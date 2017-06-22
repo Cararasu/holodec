@@ -7,7 +7,7 @@
 #include "RFunction.h"
 #include "RClass.h"
 
-namespace radpp {
+namespace holodec {
 
 	struct RType;
 	

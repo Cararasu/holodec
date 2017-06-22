@@ -5,7 +5,7 @@
 #include "RSection.h"
 #include "RInstrDefinition.h"
 
-namespace radpp {
+namespace holodec {
 
 #define R_LOCAL_TYPE_REGISTER 		(1)
 #define R_LOCAL_TYPE_STACK 			(2)

@@ -1,12 +1,12 @@
 #include "RFunctionAnalyzer.h"
 
-radpp::RFunctionAnalyzer::RFunctionAnalyzer() : binary (0) {
+holodec::RFunctionAnalyzer::RFunctionAnalyzer() : binary (0) {
 }
 
-radpp::RFunctionAnalyzer::~RFunctionAnalyzer() {
+holodec::RFunctionAnalyzer::~RFunctionAnalyzer() {
 }
 
-bool radpp::RFunctionAnalyzer::postInstruction (RInstruction* instruction) {
+bool holodec::RFunctionAnalyzer::postInstruction (RInstruction* instruction) {
 	instructionList.push_back (*instruction);
 	if(instruction->instrdef){
 		switch (instruction->instrdef->type) {
@@ -24,29 +24,29 @@ bool radpp::RFunctionAnalyzer::postInstruction (RInstruction* instruction) {
 	return true;
 }
 
-bool radpp::RFunctionAnalyzer::postBasicBlock (RBasicBlock* basicblock) {
+bool holodec::RFunctionAnalyzer::postBasicBlock (RBasicBlock* basicblock) {
 	RInstruction& i = basicblock->instructions.back();
 	if(i.instrdef && (i.instrdef->type == R_INSTR_TYPE_JMP || i.instrdef->type2 == R_INSTR_TYPE_JMP) ){
 		if (i.condition != R_INSTR_COND_FALSE && i.jumpdest)
-			;//addrToAnalyze.push_back (i.jumpdest);
+			addrToAnalyze.push_back (i.jumpdest);
 		if (i.condition != R_INSTR_COND_TRUE && i.nojumpdest)
 			addrToAnalyze.push_back (i.nojumpdest);
 	}
 	bbList.push_back (*basicblock);
 }
 
-bool radpp::RFunctionAnalyzer::splitBasicBlock (RBasicBlock* basicblock, size_t splitaddr) {
+bool holodec::RFunctionAnalyzer::splitBasicBlock (RBasicBlock* basicblock, size_t splitaddr) {
 
 }
 
-bool radpp::RFunctionAnalyzer::postFunction (RFunction* function) {
+bool holodec::RFunctionAnalyzer::postFunction (RFunction* function) {
 	binary->addFunction (function);
 }
 
-void radpp::RFunctionAnalyzer::preAnalysis() {
+void holodec::RFunctionAnalyzer::preAnalysis() {
 }
 
-void radpp::RFunctionAnalyzer::analyzeFunction (RSymbol* functionsymbol) {
+void holodec::RFunctionAnalyzer::analyzeFunction (RSymbol* functionsymbol) {
 	addrToAnalyze.clear();
 
 	size_t addr = functionsymbol->vaddr;
@@ -68,9 +68,9 @@ void radpp::RFunctionAnalyzer::analyzeFunction (RSymbol* functionsymbol) {
 	}
 }
 
-void radpp::RFunctionAnalyzer::postAnalysis() {
+void holodec::RFunctionAnalyzer::postAnalysis() {
 }
 
-radpp::RList<radpp::RFunction*> radpp::RFunctionAnalyzer::analyzeFunctions (radpp::RList<RSymbol*>* functionsymbols) {
-	return radpp::RList<radpp::RFunction*> (0);
+holodec::RList<holodec::RFunction*> holodec::RFunctionAnalyzer::analyzeFunctions (holodec::RList<RSymbol*>* functionsymbols) {
+	return holodec::RList<holodec::RFunction*> (0);
 }

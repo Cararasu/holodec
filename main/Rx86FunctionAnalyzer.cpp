@@ -9,7 +9,7 @@
 
 #define CODE "\x55\x48\x8b\x05\xb8\x13\x00\x00"
 
-using namespace radpp;
+using namespace holodec;
 
 RRegister* gr_x86_reg[X86_REG_ENDING] = {0,};
 RRegister* gr_x86_reg_al;
@@ -20,7 +20,7 @@ RArchitecture x86architecture = {"x86", "x86", {
 			static RFunctionAnalyzer* analyzer = nullptr;
 			if (analyzer == nullptr) {
 				printf ("Create New Object\n");
-				analyzer = new radx86::Rx86FunctionAnalyzer();
+				analyzer = new holox86::Rx86FunctionAnalyzer();
 			}
 			if (analyzer->canAnalyze (binary)) {
 				RFunctionAnalyzer* temp = analyzer;
@@ -129,7 +129,7 @@ RArchitecture x86architecture = {"x86", "x86", {
 		{hashRString ("adc"),		{"adc", "%s %s, %s", "=(%1$s,+(%1$s,%2$s,c)&=(z,#z)&=(p,#p)&=(s,#s)&=(o,#o)&=(c,#c)& =(a,#a))", R_INSTR_TYPE_ADD, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT, R_ARG_IN}}},
 
 		{hashRString ("sub"),		{"sub", "%s %s, %s", "=(%1$s,-(%1$s,%2$s)&=(z,#z)&=(p,#p)&=(s,#s)&=(o,#o)&=(c,#c)&=(a,#a))", R_INSTR_TYPE_SUB, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT, R_ARG_IN}}},
-		{hashRString ("sbc"),		{"sbc", "%s %s, %s", "=(%1$s,-(%1$s,%2$s,c)&=(z,#z)&=(p,#p)&=(s,#s)&=(o,#o)&=(c,#c)&=(a,#a))", R_INSTR_TYPE_SUB, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT, R_ARG_IN}}},
+		{hashRString ("sbb"),		{"sbb", "%s %s, %s", "=(%1$s,-(%1$s,%2$s,c)&=(z,#z)&=(p,#p)&=(s,#s)&=(o,#o)&=(c,#c)&=(a,#a))", R_INSTR_TYPE_SUB, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT, R_ARG_IN}}},
 
 		{hashRString ("mov"),		{"mov", "%s %s, %s", "=(%1$s,%2$s)", R_INSTR_TYPE_MOV, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT, R_ARG_IN}}},
 		{hashRString ("movq"),		{"mov", "%s %s, %s", "=(%1$s,%2$s)", R_INSTR_TYPE_MOV, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT, R_ARG_IN}}},
@@ -246,18 +246,18 @@ RArchitecture x86architecture = {"x86", "x86", {
 
 		{hashRString ("cmpxchg8b"), {"cmpxchg", "%s %s", "?(==(#append($eax,$edx),%1$s),=(z,1)&=(%1$s,#append($ebx,$ecx)),=(z,1)&=(#append($eax,$edx),%1$s))", R_INSTR_TYPE_XCHG, R_INSTR_TYPE_UNKNOWN, {R_ARG_IN | R_ARG_OUT},R_INSTR_COND_E}},
 
-		{hashRString ("push"),	{"push", "%s %s", "=($rsp,-($rsp,#size))&#st($rsp,%1$s)", R_INSTR_TYPE_PUSH, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT}}},
+		{hashRString ("push"),	{"push", "%s %s", "#push(%1$s)", R_INSTR_TYPE_PUSH, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT}}},
 		
-		{hashRString ("pop"),	{"pop", "%s %s", "#ld($rsp,%1$s)&=($rsp,-($rsp,#size))", R_INSTR_TYPE_POP, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT}}},
+		{hashRString ("pop"),	{"pop", "%s %s", "#pop(%1$s)", R_INSTR_TYPE_POP, R_INSTR_TYPE_UNKNOWN, {R_ARG_OUT}}},
 
-		{hashRString ("pushad"),{"pushad", "%s", "=(#t0,$esp)&#rec[push]($eax)&#rec[push]($ecx)&#rec[push]($edx)&#rec[push]($edx)&#rec[push]($ebx)&#rec[push](#t0)&#rec[push]($ebp)&#rec[push]($esi)&#rec[push]($edi)", R_INSTR_TYPE_PUSH, R_INSTR_TYPE_UNKNOWN}},
-		{hashRString ("pusha"),	{"pusha", "%s", "=(#t0,$sp)&#rec[push]($ax)&#rec[push]($cx)&#rec[push]($dx)&#rec[push]($dx)&#rec[push]($bx)&#rec[push](#t0)&#rec[push]($bp)&#rec[push]($si)&#rec[push]($di)", R_INSTR_TYPE_PUSH, R_INSTR_TYPE_UNKNOWN}},
+		{hashRString ("pushad"),{"pushad", "%s", "=(#t0,$esp)&#push($eax)&#push($ecx)&#push($edx)&#push($edx)&#push($ebx)&#push(#t0)&#push($ebp)&#push($esi)&#push($edi)", R_INSTR_TYPE_PUSH, R_INSTR_TYPE_UNKNOWN}},
+		{hashRString ("pusha"),	{"pusha", "%s", "=(#t0,$sp)&#push($ax)&#push($cx)&#push($dx)&#push($dx)&#push($bx)&#push(#t0)&#push($bp)&#push($si)&#push($di)", R_INSTR_TYPE_PUSH, R_INSTR_TYPE_UNKNOWN}},
 
+		{hashRString ("pushad"),{"pushad", "%s", "#pop($edi)&#pop($esi)&#pop($ebp)&=($esp,+($esp,4))&#pop($ebx)&#pop($edx)&#pop($ecx)&#pop($eax)", R_INSTR_TYPE_PUSH, R_INSTR_TYPE_UNKNOWN}},
+		{hashRString ("pusha"),	{"pusha", "%s", "#pop($di)&#pop($si)&#pop($bp)&=($esp,+($esp,2))&#pop($bx)&#pop($dx)&#pop($cx)&#pop($ax)", R_INSTR_TYPE_PUSH, R_INSTR_TYPE_UNKNOWN}},
+
+		{hashRString ("ret"),	{"ret", "%s", "#ret", R_INSTR_TYPE_RET, R_INSTR_TYPE_UNKNOWN, {},R_INSTR_COND_TRUE}},
 		/*
-		case str2int ("popa") :
-		case str2int ("popad") :
-			instruction.type = R_INSTR_TYPE_POP;
-			break;
 		case str2int ("cwd") :
 		case str2int ("cdq") :
 			instruction.type = R_INSTR_TYPE_EXTEND;
@@ -281,18 +281,6 @@ RArchitecture x86architecture = {"x86", "x86", {
 			break;
 		case str2int ("adox") :
 			instruction.type = R_INSTR_TYPE_ADD;
-			break;
-		case str2int ("add") :
-			instruction.type = R_INSTR_TYPE_ADD;
-			break;
-		case str2int ("adc") :
-			instruction.type = R_INSTR_TYPE_ADD;
-			break;
-		case str2int ("sub") :
-			instruction.type = R_INSTR_TYPE_SUB;
-			break;
-		case str2int ("sbb") :
-			instruction.type = R_INSTR_TYPE_SUB;
 			break;
 		case str2int ("imul") :
 			instruction.type = R_INSTR_TYPE_MUL;
@@ -882,17 +870,17 @@ RRegister * getRegister (x86_reg reg) {
 	return gr_x86_reg[reg];
 }
 
-radx86::Rx86FunctionAnalyzer::Rx86FunctionAnalyzer() {
+holox86::Rx86FunctionAnalyzer::Rx86FunctionAnalyzer() {
 }
 
-radx86::Rx86FunctionAnalyzer::~Rx86FunctionAnalyzer() {
+holox86::Rx86FunctionAnalyzer::~Rx86FunctionAnalyzer() {
 }
 
 
-bool radx86::Rx86FunctionAnalyzer::canAnalyze (RBinary* binary) {
-	return radpp::caseCmpRString ("x86", binary->arch);
+bool holox86::Rx86FunctionAnalyzer::canAnalyze (RBinary* binary) {
+	return holodec::caseCmpRString ("x86", binary->arch);
 }
-bool radx86::Rx86FunctionAnalyzer::init (RBinary* binary) {
+bool holox86::Rx86FunctionAnalyzer::init (RBinary* binary) {
 	this->binary = binary;
 	if (cs_open (CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK)
 		return false;
@@ -901,7 +889,7 @@ bool radx86::Rx86FunctionAnalyzer::init (RBinary* binary) {
 	return true;
 }
 
-bool radx86::Rx86FunctionAnalyzer::terminate() {
+bool holox86::Rx86FunctionAnalyzer::terminate() {
 	this->binary = 0;
 	cs_close (&handle);
 }
@@ -911,7 +899,7 @@ constexpr unsigned int str2int (const char* str, int h = 0) {
 
 void analyzeInstruction (RInstruction* instr, size_t addr, cs_insn *insn);
 
-void radx86::Rx86FunctionAnalyzer::analyzeInsts (size_t addr, size_t max_count) {
+void holox86::Rx86FunctionAnalyzer::analyzeInsts (size_t addr, size_t max_count) {
 	cs_insn *insn;
 	size_t count;
 

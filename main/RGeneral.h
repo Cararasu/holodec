@@ -6,7 +6,7 @@
 #include <map>
 #include "RString.h"
 
-namespace radpp {
+namespace holodec {
 	template <typename T>
 	using RList = std::vector<T>;
 	

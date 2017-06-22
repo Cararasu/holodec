@@ -6,7 +6,7 @@
 #include "RFunctionAnalyzer.h"
 #include "RInstrDefinition.h"
 
-namespace radpp {
+namespace holodec {
 
 	struct RArchitecture {
 		RString name;

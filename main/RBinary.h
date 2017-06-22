@@ -9,7 +9,7 @@
 #include "RSection.h"
 #include "RFunction.h"
 
-namespace radpp {
+namespace holodec {
 
 	struct RBinary {
 		RData* data;

@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-using namespace radpp;
+using namespace holodec;
 
 
 const char* instructionsets[] = {
@@ -105,8 +105,8 @@ const char* instructionsets[] = {
 	"Microprocessor series from PKU-Unity Ltd. and MPRC of Peking University"//110
 };
 
-bool radelf::RElfBinaryAnalyzer::canAnalyze(radpp::RData* pdata){
-	radpp::RData data = *pdata;
+bool holoelf::RElfBinaryAnalyzer::canAnalyze(holodec::RData* pdata){
+	holodec::RData data = *pdata;
 	//Magic number
 	if (data[0] != 0x7F || data[1] != 'E' || data[2] != 'L' || data[3] != 'F') {
 		printf ("Wrong Header %s\n", data.data);
@@ -114,10 +114,10 @@ bool radelf::RElfBinaryAnalyzer::canAnalyze(radpp::RData* pdata){
 	}
 	return true;
 }
-bool radelf::RElfBinaryAnalyzer::init (radpp::RData* file) {
+bool holoelf::RElfBinaryAnalyzer::init (holodec::RData* file) {
 	if (!file)
 		return false;
-	this->binary = new radpp::RBinary (file);
+	this->binary = new holodec::RBinary (file);
 	
 
 	if (!parseFileHeader())
@@ -137,26 +137,26 @@ bool radelf::RElfBinaryAnalyzer::init (radpp::RData* file) {
 
 	return true;
 }
-bool radelf::RElfBinaryAnalyzer::terminate() {
+bool holoelf::RElfBinaryAnalyzer::terminate() {
 	return true;
 }
 
-void radelf::RElfBinaryAnalyzer::analyzeAllSymbols() {
+void holoelf::RElfBinaryAnalyzer::analyzeAllSymbols() {
 }
 
-void radelf::RElfBinaryAnalyzer::analyzeEntryPoint() {
+void holoelf::RElfBinaryAnalyzer::analyzeEntryPoint() {
 }
 
-void radelf::RElfBinaryAnalyzer::analyzeFunctions() {
+void holoelf::RElfBinaryAnalyzer::analyzeFunctions() {
 }
 
-void radelf::RElfBinaryAnalyzer::analyzeStrings() {
+void holoelf::RElfBinaryAnalyzer::analyzeStrings() {
 }
 
-void radelf::RElfBinaryAnalyzer::analyzeValues() {
+void holoelf::RElfBinaryAnalyzer::analyzeValues() {
 }
 
-void radelf::RElfBinaryAnalyzer::doSectionAnalysis() {
+void holoelf::RElfBinaryAnalyzer::doSectionAnalysis() {
 }
 
 template<typename T>
@@ -164,7 +164,7 @@ inline T getValue (uint8_t* data, size_t offset) {
 	return ( (T*) (data + offset)) [0];
 }
 
-bool radelf::RElfBinaryAnalyzer::parseFileHeader() {
+bool holoelf::RElfBinaryAnalyzer::parseFileHeader() {
 
 	RData& data = *binary->data;
 
@@ -295,7 +295,7 @@ bool radelf::RElfBinaryAnalyzer::parseFileHeader() {
 		printf ("InstructionSet: %s\n", instructionsets[elf_is]);
 	switch(elf_is){
 	case 62:
-		binary->arch = radpp::copyRString("x86");
+		binary->arch = holodec::copyRString("x86");
 		break;
 		
 	}
@@ -335,7 +335,7 @@ bool radelf::RElfBinaryAnalyzer::parseFileHeader() {
 }
 //https://github.com/tbursztyka/python-elf/tree/master/elf
 
-bool radelf::RElfBinaryAnalyzer::parseProgramHeaderTable () {
+bool holoelf::RElfBinaryAnalyzer::parseProgramHeaderTable () {
 
 	size_t entrysize = 0;
 
@@ -382,7 +382,7 @@ bool radelf::RElfBinaryAnalyzer::parseProgramHeaderTable () {
 	return true;
 }
 
-bool radelf::RElfBinaryAnalyzer::parseSectionHeaderTable () {
+bool holoelf::RElfBinaryAnalyzer::parseSectionHeaderTable () {
 
 	size_t entrysize = 0;
 

@@ -6,7 +6,7 @@
 #include "RData.h"
 #include "RBinaryAnalyzer.h"
 
-namespace radpp {
+namespace holodec {
 
 	struct RFileFormat {
 		RString name;

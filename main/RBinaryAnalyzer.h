@@ -6,7 +6,7 @@
 #include "RGeneral.h"
 #include "RSection.h"
 
-namespace radpp {
+namespace holodec {
 
 	struct RBinaryAnalyzer {
 		RString name;

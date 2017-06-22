@@ -3,7 +3,7 @@
 
 #include <string.h>
 
-namespace radpp {
+namespace holodec {
 
 	typedef const char* RString;
 

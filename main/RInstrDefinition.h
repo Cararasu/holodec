@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "RGeneral.h"
 
-namespace radpp {
+namespace holodec {
 	
 #define R_ARG_IN (0x100)
 #define R_ARG_OUT (0x200)

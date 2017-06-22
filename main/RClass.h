@@ -5,7 +5,7 @@
 #include "RFunction.h"
 #include "RSection.h"
 
-namespace radpp {
+namespace holodec {
 
 	//static, const,
 	typedef uint32_t RTypeModifier;

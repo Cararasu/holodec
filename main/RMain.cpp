@@ -1,7 +1,7 @@
 #include "RMain.h"
 #include <fstream>
 
-using namespace radpp;
+using namespace holodec;
 
 RMain* RMain::gr_main;
 		
@@ -57,6 +57,6 @@ RData* RMain::loadRData (uint8_t* data, size_t size) {
 	return new RData (data, size, 0);
 }
 
-void radpp::RMain::initRMain() {
+void holodec::RMain::initRMain() {
 	gr_main = new RMain();
 }

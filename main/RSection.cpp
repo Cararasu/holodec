@@ -1,14 +1,14 @@
 #include "RSection.h"
 
 
-radpp::RSymbolType radpp::RSymbolType::symbool = {"bool"};
-radpp::RSymbolType radpp::RSymbolType::symint = {"int"};
-radpp::RSymbolType radpp::RSymbolType::symuint = {"uint"};
-radpp::RSymbolType radpp::RSymbolType::symfloat = {"float"};
-radpp::RSymbolType radpp::RSymbolType::symstring = {"string"};
-radpp::RSymbolType radpp::RSymbolType::symfunc = {"func"};
+holodec::RSymbolType holodec::RSymbolType::symbool = {"bool"};
+holodec::RSymbolType holodec::RSymbolType::symint = {"int"};
+holodec::RSymbolType holodec::RSymbolType::symuint = {"uint"};
+holodec::RSymbolType holodec::RSymbolType::symfloat = {"float"};
+holodec::RSymbolType holodec::RSymbolType::symstring = {"string"};
+holodec::RSymbolType holodec::RSymbolType::symfunc = {"func"};
 
-radpp::RSection* radpp::RSection::addSection (RSection* section) {
+holodec::RSection* holodec::RSection::addSection (RSection* section) {
 	if (vaddr > section->vaddr || vaddr + size <= section->vaddr)
 		return nullptr;
 	for (RSection& sectionit : subsections) {
@@ -18,7 +18,7 @@ radpp::RSection* radpp::RSection::addSection (RSection* section) {
 	subsections.push_back (*section);
 	return &subsections.back();
 }
-radpp::RSymbol* radpp::RSection::addSymbol (RSymbol* symbol) {
+holodec::RSymbol* holodec::RSection::addSymbol (RSymbol* symbol) {
 	if (vaddr > symbol->vaddr || vaddr + size <= symbol->vaddr)
 		return nullptr;
 	for (RSection& sectionit : subsections) {
@@ -29,7 +29,7 @@ radpp::RSymbol* radpp::RSection::addSymbol (RSymbol* symbol) {
 	return &symbols.back();
 }
 
-void radpp::RSymbol::print(int indent) {
+void holodec::RSymbol::print(int indent) {
 	printIndent (indent);
 	printf ("Symbol %s \t%x-%x\n", name, vaddr, vaddr + size);
 	printIndent (indent);

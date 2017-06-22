@@ -6,9 +6,9 @@
 
 #include <capstone.h>
 
-namespace radx86 {
+namespace holox86 {
 	
-	using namespace radpp;
+	using namespace holodec;
 	
 	class Rx86FunctionAnalyzer : public RFunctionAnalyzer {
 	private:

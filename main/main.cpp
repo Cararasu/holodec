@@ -6,19 +6,19 @@
 #include "RMain.h"
 #include "RFileFormat.h"
 #include "RArchitecture.h"
-using namespace radpp;
+using namespace holodec;
 
-RString filename = "E:/GNUProg/radpp/workingdir/leo";
+RString filename = "E:/GNUProg/holodec/workingdir/leo";
 
 RFileFormat elffileformat = {"elf", "elf", {
 		[] (RData * data, RString name) {
-			static radelf::RElfBinaryAnalyzer* analyzer = nullptr;
+			static holoelf::RElfBinaryAnalyzer* analyzer = nullptr;
 			if (analyzer == nullptr) {
 				printf ("Create New Object\n");
-				analyzer = new radelf::RElfBinaryAnalyzer();
+				analyzer = new holoelf::RElfBinaryAnalyzer();
 			}
 			if (analyzer->canAnalyze (data)) {
-				radelf::RElfBinaryAnalyzer* temp = analyzer;
+				holoelf::RElfBinaryAnalyzer* temp = analyzer;
 				analyzer = nullptr;
 				return (RBinaryAnalyzer*) temp;
 			}
@@ -62,7 +62,7 @@ int main (int argc, char** argv) {
 	binary->print();
 
 
-	radpp::RList<radpp::RFunction*> list = func_analyzer->analyzeFunctions (&binary->entrypoints);
+	holodec::RList<holodec::RFunction*> list = func_analyzer->analyzeFunctions (&binary->entrypoints);
 
 	for (RSymbol * symbol : binary->entrypoints) {
 		func_analyzer->analyzeFunction(symbol);

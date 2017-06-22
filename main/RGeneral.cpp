@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-namespace radpp {
+namespace holodec {
 
 	RVisibilityType gr_visibilityPublic = {.name = "public"};
 	RVisibilityType gr_visibilityProtected = {.name = "protected"};

@@ -6,7 +6,7 @@
 #include "RFunction.h"
 #include "RGeneral.h"
 
-namespace radpp {
+namespace holodec {
 	
 	class RFunctionAnalyzer {
 	protected:

@@ -6,7 +6,7 @@
 #include "RFileFormat.h"
 #include "RArchitecture.h"
 
-namespace radpp {
+namespace holodec {
 
 
 	struct RMain {

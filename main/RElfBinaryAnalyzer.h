@@ -5,7 +5,7 @@
 #include "RString.h"
 #include "RBinaryAnalyzer.h"
 
-namespace radelf {
+namespace holoelf {
 
 	enum Elf_Instructionset {
 	    ELF_IS_MIPS_I = 8,
@@ -14,9 +14,9 @@ namespace radelf {
 	    ELF_IS_MIPS_X = 51,
 	    ELF_IS_X86 = 62,
 	};
-	class RElfBinaryAnalyzer : public radpp::RBinaryAnalyzer {
+	class RElfBinaryAnalyzer : public holodec::RBinaryAnalyzer {
 
-		radpp::RBinary* binary;
+		holodec::RBinary* binary;
 
 		struct {
 			size_t offset;
@@ -38,14 +38,14 @@ namespace radelf {
 		size_t bitcount;
 
 	public:
-		RElfBinaryAnalyzer () : radpp::RBinaryAnalyzer ("elf", "elf") {}
+		RElfBinaryAnalyzer () : holodec::RBinaryAnalyzer ("elf", "elf") {}
 
-		virtual bool canAnalyze(radpp::RData* data);
+		virtual bool canAnalyze(holodec::RData* data);
 		
-		virtual bool init (radpp::RData* data);
+		virtual bool init (holodec::RData* data);
 		virtual bool terminate();
 
-		virtual radpp::RBinary* getBinary () {
+		virtual holodec::RBinary* getBinary () {
 			return binary;
 		}
 		virtual void analyzeAllSymbols();

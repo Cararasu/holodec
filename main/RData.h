@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "RString.h"
 
-namespace radpp {
+namespace holodec {
 
 	struct RData {
 		uint8_t* const data;
