@@ -21,14 +21,12 @@
       <File Name="RData.cpp"/>
       <File Name="RData.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="General"/>
     <VirtualDirectory Name="Main">
       <File Name="RMain.h"/>
       <File Name="RMain.cpp"/>
       <File Name="RString.h"/>
       <File Name="RGeneral.cpp"/>
       <File Name="RGeneral.h"/>
-      <File Name="RString.cpp"/>
       <File Name="RConsole.cpp"/>
       <File Name="RConsole.h"/>
       <File Name="RLogger.cpp"/>
@@ -53,6 +51,7 @@
       <File Name="RElfBinaryAnalyzer.h"/>
       <File Name="Rx86FunctionAnalyzer.cpp"/>
       <File Name="Rx86FunctionAnalyzer.h"/>
+      <File Name="Rx86Architecture.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">

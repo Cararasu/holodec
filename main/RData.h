@@ -9,7 +9,7 @@ namespace holodec {
 	struct RData {
 		uint8_t* const data;
 		const size_t size;
-		const char* const filename;
+		RString filename;
 
 		RData (uint8_t* data, size_t size, const RString filename = 0);
 		RData (RData& file);

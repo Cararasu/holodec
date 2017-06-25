@@ -26,17 +26,15 @@ RFileFormat elffileformat = {"elf", "elf", {
 		}
 	}
 };
-extern RArchitecture x86architecture;
+extern RArchitecture holox86::x86architecture;
 
 int main (int argc, char** argv) {
 
 	RMain::initRMain();
 	RData* data = RMain::loadRDataFromFile (filename);
 
-	RData* testdata = RMain::loadRData ( (uint8_t*) "wwwwww", 7);
-
 	RMain::gr_main->registerFileFormat (&elffileformat);
-	RMain::gr_main->registerArchitecture (&x86architecture);
+	RMain::gr_main->registerArchitecture (&holox86::x86architecture);
 
 	RBinaryAnalyzer* analyzer = nullptr;
 	for (RFileFormat * fileformat : RMain::gr_main->fileformats) {
@@ -55,13 +53,14 @@ int main (int argc, char** argv) {
 	}
 	func_analyzer->init (binary);
 
-	printf ("Binary File: %s\n", binary->data->filename);
+	printf ("Binary File: %s\n", binary->data->filename.cstr());
 	printf ("Size: %d Bytes\n", binary->data->size);
 	
 
 	binary->print();
 
-
+	holox86::x86architecture.print();
+	
 	holodec::RList<holodec::RFunction*> list = func_analyzer->analyzeFunctions (&binary->entrypoints);
 
 	for (RSymbol * symbol : binary->entrypoints) {

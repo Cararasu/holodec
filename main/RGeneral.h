@@ -13,6 +13,9 @@ namespace holodec {
 	template <typename Key,typename Value>
 	using RMap = std::map<Key,Value>;
 	
+	template <typename Value>
+	using RStringMap = std::map<RString,Value>;
+	
 	struct RVisibilityType{
 		RString name;
 	};

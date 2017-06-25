@@ -295,7 +295,7 @@ bool holoelf::RElfBinaryAnalyzer::parseFileHeader() {
 		printf ("InstructionSet: %s\n", instructionsets[elf_is]);
 	switch(elf_is){
 	case 62:
-		binary->arch = holodec::copyRString("x86");
+		binary->arch.update("x86");
 		break;
 		
 	}

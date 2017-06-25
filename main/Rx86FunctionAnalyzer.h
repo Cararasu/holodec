@@ -5,16 +5,23 @@
 #include "RGeneral.h"
 
 #include <capstone.h>
+#include "RArchitecture.h"
 
 namespace holox86 {
 	
 	using namespace holodec;
 	
+	extern RArchitecture x86architecture;
+
 	class Rx86FunctionAnalyzer : public RFunctionAnalyzer {
 	private:
 		csh handle;
+		
+		void setJumpDest (RInstruction* instruction);
+		void analyzeInstruction (RInstruction* instr, size_t addr, cs_insn *insn);
+		void setOperands (RInstruction* instruction, cs_detail* csdetail);
 	public:
-		Rx86FunctionAnalyzer();
+		Rx86FunctionAnalyzer(RArchitecture* arch);
 		~Rx86FunctionAnalyzer();
 
 		virtual bool canAnalyze (RBinary* binary);

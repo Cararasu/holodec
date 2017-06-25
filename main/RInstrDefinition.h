@@ -7,7 +7,7 @@
 #include "RGeneral.h"
 
 namespace holodec {
-	
+
 #define R_ARG_IN (0x100)
 #define R_ARG_OUT (0x200)
 
@@ -51,7 +51,6 @@ namespace holodec {
 		R_INSTR_TYPE_STORE,
 		R_INSTR_TYPE_XCHG,
 		R_INSTR_TYPE_EXTEND,
-		R_INSTR_TYPE_SEXTEND,
 
 		R_INSTR_TYPE_PUSH,
 		R_INSTR_TYPE_POP,
@@ -96,17 +95,20 @@ namespace holodec {
 		R_INSTR_TYPE_UNDEFINED,
 		R_INSTR_TYPE_ILLEGAL,
 	};
-	
+
 	struct RInstrDefinition {//16*8 -> 128 bytes
 		RString mnemonics;
-		RString formatstring;
-		RString il_string;
+		RString il_string[4];
 		size_t type;
 		size_t type2;
-		uint64_t arg_flags[8];
 		RInstructionCondition condition;
 		size_t cycles;
 		size_t failcycles;
+
+		void print (int indent = 0) {
+			printIndent (indent);
+			printf ("Instruction: %s\n", mnemonics.cstr());
+		}
 	};
 
 }

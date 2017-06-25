@@ -12,7 +12,7 @@ namespace holodec {
 		RString name;
 		RString desc;
 
-		RBinaryAnalyzer (RString name, RString desc) : name (copyRString (name)), desc (copyRString (desc)) {}
+		RBinaryAnalyzer (RString name, RString desc) : name (name), desc (desc) {}
 		virtual ~RBinaryAnalyzer() {}
 
 		virtual bool canAnalyze(RData* data) = 0;

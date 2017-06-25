@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Thomas
-Date                   :=22/06/2017
+Date                   :=25/06/2017
 CodeLitePath           :="C:/Program Files/CodeLite"
 LinkerName             :="C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/g++.exe"
 SharedObjectLinkerName :="C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/g++.exe" -shared -fPIC
@@ -62,8 +62,8 @@ AS       := "C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw6
 ## User defined environment variables
 ##
 CodeLiteDir:=C:\Program Files\CodeLite
-Objects0=$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/RClass.cpp$(ObjectSuffix) $(IntermediateDirectory)/RSection.cpp$(ObjectSuffix) $(IntermediateDirectory)/RFunction.cpp$(ObjectSuffix) $(IntermediateDirectory)/RBinary.cpp$(ObjectSuffix) $(IntermediateDirectory)/RData.cpp$(ObjectSuffix) $(IntermediateDirectory)/RMain.cpp$(ObjectSuffix) $(IntermediateDirectory)/RGeneral.cpp$(ObjectSuffix) $(IntermediateDirectory)/RString.cpp$(ObjectSuffix) $(IntermediateDirectory)/RConsole.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/RLogger.cpp$(ObjectSuffix) $(IntermediateDirectory)/RFileFormat.cpp$(ObjectSuffix) $(IntermediateDirectory)/RBinaryAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/RFunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/RArchitecture.cpp$(ObjectSuffix) $(IntermediateDirectory)/RInstrDefinition.cpp$(ObjectSuffix) $(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/RClass.cpp$(ObjectSuffix) $(IntermediateDirectory)/RSection.cpp$(ObjectSuffix) $(IntermediateDirectory)/RFunction.cpp$(ObjectSuffix) $(IntermediateDirectory)/RBinary.cpp$(ObjectSuffix) $(IntermediateDirectory)/RData.cpp$(ObjectSuffix) $(IntermediateDirectory)/RMain.cpp$(ObjectSuffix) $(IntermediateDirectory)/RGeneral.cpp$(ObjectSuffix) $(IntermediateDirectory)/RConsole.cpp$(ObjectSuffix) $(IntermediateDirectory)/RLogger.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/RFileFormat.cpp$(ObjectSuffix) $(IntermediateDirectory)/RBinaryAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/RFunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/RArchitecture.cpp$(ObjectSuffix) $(IntermediateDirectory)/RInstrDefinition.cpp$(ObjectSuffix) $(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Rx86Architecture.cpp$(ObjectSuffix) 
 
 
 
@@ -158,14 +158,6 @@ $(IntermediateDirectory)/RGeneral.cpp$(DependSuffix): RGeneral.cpp
 $(IntermediateDirectory)/RGeneral.cpp$(PreprocessSuffix): RGeneral.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RGeneral.cpp$(PreprocessSuffix) RGeneral.cpp
 
-$(IntermediateDirectory)/RString.cpp$(ObjectSuffix): RString.cpp $(IntermediateDirectory)/RString.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RString.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RString.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RString.cpp$(DependSuffix): RString.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RString.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RString.cpp$(DependSuffix) -MM RString.cpp
-
-$(IntermediateDirectory)/RString.cpp$(PreprocessSuffix): RString.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RString.cpp$(PreprocessSuffix) RString.cpp
-
 $(IntermediateDirectory)/RConsole.cpp$(ObjectSuffix): RConsole.cpp $(IntermediateDirectory)/RConsole.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RConsole.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RConsole.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/RConsole.cpp$(DependSuffix): RConsole.cpp
@@ -237,6 +229,14 @@ $(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(DependSuffix): Rx86FunctionAn
 
 $(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(PreprocessSuffix): Rx86FunctionAnalyzer.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(PreprocessSuffix) Rx86FunctionAnalyzer.cpp
+
+$(IntermediateDirectory)/Rx86Architecture.cpp$(ObjectSuffix): Rx86Architecture.cpp $(IntermediateDirectory)/Rx86Architecture.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/Rx86Architecture.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Rx86Architecture.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Rx86Architecture.cpp$(DependSuffix): Rx86Architecture.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/Rx86Architecture.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/Rx86Architecture.cpp$(DependSuffix) -MM Rx86Architecture.cpp
+
+$(IntermediateDirectory)/Rx86Architecture.cpp$(PreprocessSuffix): Rx86Architecture.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Rx86Architecture.cpp$(PreprocessSuffix) Rx86Architecture.cpp
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

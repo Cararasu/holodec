@@ -37,7 +37,7 @@ RFileFormat* RMain::getFileFormat (RString fileformat) {
 
 
 RData* RMain::loadRDataFromFile (RString file) {
-	std::ifstream t (file);
+	std::ifstream t (file.cstr());
 	size_t size;
 	uint8_t* data;
 	if (t) {

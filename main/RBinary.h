@@ -44,7 +44,7 @@ namespace holodec {
 
 		void print (int indent = 0) {
 			printIndent (indent);
-			printf ("Printing RBinary %s\n", data->filename);
+			printf ("Printing RBinary %s\n", data->filename.cstr());
 			for (RSection & section : sections) {
 				section.print (indent + 1);
 			}
