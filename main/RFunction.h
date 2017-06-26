@@ -76,11 +76,12 @@ namespace holodec {
 	typedef uint64_t RArgIntImmediate;
 	typedef double RArgFloatImmediate;
 	typedef uint64_t RArgStack;
-	struct RArgMem { //[base + index*scale + disp]
-		RArgIntImmediate disp;
+	struct RArgMem { //segment::[base + index*scale + disp]
+		RRegister* segment;
 		RRegister* base;
 		RRegister* index;
 		RArgIntImmediate scale;
+		RArgIntImmediate disp;
 	};
 	struct RInstArgument {
 		union { //ordered first because of tighter memory layout
@@ -104,7 +105,7 @@ namespace holodec {
 				printf ("Stack[%d]", stackindex);
 				break;
 			case R_LOCAL_TYPE_MEM:
-				printf ("[%s + %s*%d + %d]", mem.base ? mem.base->name.cstr() : "No Reg Def", mem.index ? mem.index->name.cstr() : "No Reg Def", mem.scale, mem.disp);
+				printf ("%s:[%s + %s*%d + %d]", mem.segment ? mem.segment->name.cstr() : "No Reg Def",mem.base ? mem.base->name.cstr() : "No Reg Def", mem.index ? mem.index->name.cstr() : "No Reg Def", mem.scale, mem.disp);
 				break;
 			case R_LOCAL_TYPE_IMM_SIGNED:
 				printf ("%d", ival);

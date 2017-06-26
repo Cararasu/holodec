@@ -6,6 +6,7 @@
 #include "RMain.h"
 #include "RFileFormat.h"
 #include "RArchitecture.h"
+
 using namespace holodec;
 
 RString filename = "E:/GNUProg/holodec/workingdir/leo";
@@ -29,7 +30,6 @@ RFileFormat elffileformat = {"elf", "elf", {
 extern RArchitecture holox86::x86architecture;
 
 int main (int argc, char** argv) {
-
 	RMain::initRMain();
 	RData* data = RMain::loadRDataFromFile (filename);
 
@@ -66,12 +66,11 @@ int main (int argc, char** argv) {
 	for (RSymbol * symbol : binary->entrypoints) {
 		func_analyzer->analyzeFunction(symbol);
 	}
-
+	
+	printf("%d\n",sizeof(RInstruction));
+	printf("%d\n",sizeof(RInstArgument));
 	return 0;
 }
 //binary analyzer
 //data analyzer
 //assembler/disassembler
-
-//File
-//Binary -> File

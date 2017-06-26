@@ -5,7 +5,7 @@
 using namespace holodec;
 
 
-holox86::RArchitecture holox86::x86architecture = {"x86", "x86", {
+holox86::RArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		[] (RBinary * binary) {
 			static RFunctionAnalyzer* analyzer = nullptr;
 			if (analyzer == nullptr) {

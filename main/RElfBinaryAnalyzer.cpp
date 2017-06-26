@@ -105,7 +105,7 @@ const char* instructionsets[] = {
 	"Microprocessor series from PKU-Unity Ltd. and MPRC of Peking University"//110
 };
 
-bool holoelf::RElfBinaryAnalyzer::canAnalyze(holodec::RData* pdata){
+bool holoelf::RElfBinaryAnalyzer::canAnalyze (holodec::RData* pdata) {
 	holodec::RData data = *pdata;
 	//Magic number
 	if (data[0] != 0x7F || data[1] != 'E' || data[2] != 'L' || data[3] != 'F') {
@@ -118,7 +118,7 @@ bool holoelf::RElfBinaryAnalyzer::init (holodec::RData* file) {
 	if (!file)
 		return false;
 	this->binary = new holodec::RBinary (file);
-	
+
 
 	if (!parseFileHeader())
 		return false;
@@ -293,11 +293,11 @@ bool holoelf::RElfBinaryAnalyzer::parseFileHeader() {
 	elf_is = (Elf_Instructionset) data.get<uint16_t> (0x12);
 	if (instructionsets[elf_is])
 		printf ("InstructionSet: %s\n", instructionsets[elf_is]);
-	switch(elf_is){
+	switch (elf_is) {
 	case 62:
-		binary->arch.update("x86");
+		binary->arch.update ("x86");
 		break;
-		
+
 	}
 	//ELF Version
 	if (data.get<uint32_t> (0x14) == 1)
@@ -395,11 +395,12 @@ bool holoelf::RElfBinaryAnalyzer::parseSectionHeaderTable () {
 	for (RSection & section : sections)
 		section = RSection();
 
+	uint32_t nameoffset[sectionHeaderTable.entries];
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
 		size_t entryoffset = sectionHeaderTable.offset + i * entrysize;
 		uint8_t* data = binary->data->data + entryoffset;
 		size_t size = binary->data->size - entryoffset;
-		sections[i].name = (char*) getValue<uint32_t> (data, 0x00);
+		nameoffset[i] = getValue<uint32_t> (data, 0x00);
 
 		uint64_t flags = bitcount == 32 ? getValue<uint32_t> (data, 0x08) : getValue<uint64_t> (data, 0x08);
 		sections[i].srwx = 0;
@@ -431,8 +432,13 @@ bool holoelf::RElfBinaryAnalyzer::parseSectionHeaderTable () {
 			//printf ("Entrysize: %X\n", getValue<uint64_t> (data, 0x38));
 		}
 	}
-	for (RSection & section : sections) {
-		section.name += (size_t) binary->data->data + sections[sectionHeaderTable.namesectionindex].offset;
+	void* nameentryptr = binary->data->data + sections[sectionHeaderTable.namesectionindex].offset;
+	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
+		RSection & section = sections[i];
+		sections[i].name.update(RString::createNewString((char*)(nameentryptr + nameoffset[i])));
+		printf ("Name: %s\n", section.name.cstr());
+		printf ("Addr: 0x%X\n", section.offset);
+		printf ("Size: 0x%X\n", section.size);
 		if (!section.vaddr)
 			continue;
 		binary->addSection (&section);

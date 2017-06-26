@@ -31,7 +31,7 @@ holodec::RSymbol* holodec::RSection::addSymbol (RSymbol* symbol) {
 
 void holodec::RSymbol::print(int indent) {
 	printIndent (indent);
-	printf ("Symbol %s \t%x-%x\n", name, vaddr, vaddr + size);
+	printf ("Symbol %s \t%x-%x\n", name.cstr(), vaddr, vaddr + size);
 	printIndent (indent);
-	printf ("Type: %s\n",symboltype.name);
+	printf ("Type: %s\n",symboltype.name.cstr());
 }

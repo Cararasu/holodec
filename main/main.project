@@ -69,7 +69,7 @@
         <IncludePath Value="."/>
         <IncludePath Value="../capstone/include"/>
       </Compiler>
-      <Linker Options="" Required="yes">
+      <Linker Options="-L;-lpython37" Required="yes">
         <LibraryPath Value="..\capstone\build"/>
         <Library Value="libcapstone.a"/>
       </Linker>

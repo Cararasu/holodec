@@ -36,6 +36,9 @@ namespace holodec {
 			}
 			return 0;
 		}
+		RData* getData () {
+			return data;
+		}
 
 		RSection* addSection (RSection* section);
 		RSymbol* addSymbol (RSymbol* symbol);

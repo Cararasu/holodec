@@ -11,6 +11,7 @@ namespace holodec {
 	struct RArchitecture {
 		RString name;
 		RString desc;
+		uint64_t bitcount;
 
 		RList<std::function<RFunctionAnalyzer* (RBinary*) >> functionanalyzerfactories;
 		RList<RRegister> registers;

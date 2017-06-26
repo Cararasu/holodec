@@ -27,12 +27,11 @@ namespace holodec {
 			doHash();
 		}
 		RString (const RString& str) : m_hash (str.m_hash), m_cstr (str.m_cstr) {}
-		RString (const RString&& str) : m_hash (str.m_hash), m_cstr (str.m_cstr) {}
 		RString operator= (RString& str) {
-			return std::move (RString (str));
+			return RString (str);
 		}
 		RString operator= (const char* str) {
-			return std::move (RString (str));
+			return RString (str);
 		}
 
 		uint64_t hash() const {
@@ -45,7 +44,10 @@ namespace holodec {
 			m_cstr = ptr;
 			doHash();
 		}
-
+		void update (RString str) {
+			m_hash = str.m_hash;
+			m_cstr = str.m_cstr;
+		}
 		operator bool() const {
 			return m_cstr != nullptr;
 		}
@@ -56,6 +58,18 @@ namespace holodec {
 		char operator[] (int i) const {
 			return m_cstr[i];
 		}
+		
+		static RString createNewString(const char* ptr){
+			return RString(strdup(ptr));
+		}
+		static RString createNewString(RString ptr){
+			return RString(strdup(ptr.cstr()));
+		}
+		static void destroyString(RString* str){
+			free((void*)str->cstr());
+			str->update(0);
+		}
+		
 		friend int64_t compare (const RString* lhs, const RString* rhs);
 	};
 	inline int64_t compare (const RString* lhs, const RString* rhs) {

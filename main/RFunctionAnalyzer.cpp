@@ -25,6 +25,7 @@ bool holodec::RFunctionAnalyzer::postInstruction (RInstruction* instruction) {
 }
 
 bool holodec::RFunctionAnalyzer::postBasicBlock (RBasicBlock* basicblock) {
+	printf("Post BB 0x%X\n",basicblock->addr);
 	RInstruction& i = basicblock->instructions.back();
 	if (i.instrdef && (i.instrdef->type == R_INSTR_TYPE_JMP || i.instrdef->type2 == R_INSTR_TYPE_JMP)) {
 		if (i.condition != R_INSTR_COND_FALSE && i.jumpdest)
@@ -36,7 +37,7 @@ bool holodec::RFunctionAnalyzer::postBasicBlock (RBasicBlock* basicblock) {
 }
 
 bool holodec::RFunctionAnalyzer::registerBasicBlock (size_t addr) {
-
+	printf("Register BB To Analyze 0x%X\n",addr);
 	for (RBasicBlock& basicblock : bbList) {
 		if (basicblock.addr == addr)
 			return true;
@@ -52,6 +53,7 @@ bool holodec::RFunctionAnalyzer::splitBasicBlock (RBasicBlock* basicblock, size_
 	for (auto instrit = basicblock->instructions.begin(); instrit != basicblock->instructions.end(); instrit++) {
 		RInstruction& instruction = *instrit;
 		if (splitaddr == instruction.addr) {
+			printf("Split BB 0x%X\n",splitaddr);
 			RBasicBlock newbb = {RList<RInstruction> (basicblock->instructions.begin(), instrit), 0, 0, R_INSTR_COND_TRUE, basicblock->addr, (instruction.addr + instruction.size) - basicblock->addr};
 			basicblock->size = basicblock->size - newbb.size;
 			basicblock->addr = instruction.addr;
@@ -64,15 +66,22 @@ bool holodec::RFunctionAnalyzer::splitBasicBlock (RBasicBlock* basicblock, size_
 }
 
 bool holodec::RFunctionAnalyzer::postFunction (RFunction* function) {
+	printf("Post Function\n");
 	binary->addFunction (function);
 }
 
 void holodec::RFunctionAnalyzer::preAnalysis() {
+	printf("Pre Analysis\n");
+}
+void holodec::RFunctionAnalyzer::postAnalysis() {
+	printf("Post Analysis\n");
 }
 
 void holodec::RFunctionAnalyzer::analyzeFunction (RSymbol* functionsymbol) {
 	addrToAnalyze.clear();
-
+	
+	preAnalysis();
+	
 	size_t addr = functionsymbol->vaddr;
 	addrToAnalyze.push_back (addr);
 	while (!addrToAnalyze.empty()) {
@@ -91,10 +100,10 @@ void holodec::RFunctionAnalyzer::analyzeFunction (RSymbol* functionsymbol) {
 			instructionList.clear();
 		}
 	}
+	
+	postAnalysis();
 }
 
-void holodec::RFunctionAnalyzer::postAnalysis() {
-}
 
 holodec::RList<holodec::RFunction*> holodec::RFunctionAnalyzer::analyzeFunctions (holodec::RList<RSymbol*>* functionsymbols) {
 	return holodec::RList<holodec::RFunction*> (0);

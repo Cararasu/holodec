@@ -85,15 +85,15 @@ void holox86::Rx86FunctionAnalyzer::analyzeInstruction (RInstruction* instr, siz
 
 	switch (insn->bytes[0]) {
 	case 0x6B:
-		instruction.instrdef = holox86::x86architecture.getInstrDef ("imul_signed");
+		instruction.instrdef = arch->getInstrDef ("imul_signed");
 		break;
 	case 0x0F: {
 		switch (insn->bytes[1]) {
 		case 0xAD:
-			instruction.instrdef = holox86::x86architecture.getInstrDef ("shrd_cl");
+			instruction.instrdef = arch->getInstrDef ("shrd_cl");
 			break;
 		default:
-			instruction.instrdef = holox86::x86architecture.getInstrDef (insn->mnemonic);
+			instruction.instrdef = arch->getInstrDef (insn->mnemonic);
 		}
 	}
 	break;
@@ -102,14 +102,14 @@ void holox86::Rx86FunctionAnalyzer::analyzeInstruction (RInstruction* instr, siz
 	case 0xD3: {
 		char buffer[16];
 		snprintf (buffer, 16, "%s_cl", insn->mnemonic);
-		instruction.instrdef = holox86::x86architecture.getInstrDef (buffer);
+		instruction.instrdef = arch->getInstrDef (buffer);
 	}
 	break;
 
 	//sar,shr,sal,shl
 	default: {
 		RStringMap<RInstrDefinition> instrdefs;
-		instruction.instrdef = holox86::x86architecture.getInstrDef (insn->mnemonic);
+		instruction.instrdef = arch->getInstrDef (insn->mnemonic);
 	}
 	break;
 	}
@@ -119,16 +119,9 @@ void holox86::Rx86FunctionAnalyzer::analyzeInstruction (RInstruction* instr, siz
 
 void holox86::Rx86FunctionAnalyzer::setOperands (RInstruction* instruction, cs_detail* csdetail) {
 
-	for(uint8_t i = 0; i < csdetail->regs_read_count;i++){
-		//printf("Read: %s\n",cs_reg_name (handle,csdetail->regs_read[i]));
-	}
-	for(uint8_t i = 0; i < csdetail->regs_write_count;i++){
-		//printf("Write: %s\n",cs_reg_name (handle,csdetail->regs_write[i]));
-	}
-	
 	cs_x86& x86 = csdetail->x86;
 	instruction->opcount = x86.op_count;
-	
+
 	for (uint8_t i = 0; i < x86.op_count; i++) {
 		switch (x86.operands[i].type) {
 		case X86_OP_INVALID:
@@ -136,38 +129,29 @@ void holox86::Rx86FunctionAnalyzer::setOperands (RInstruction* instruction, cs_d
 			break;
 		case X86_OP_REG:
 			instruction->operands[i].type = {R_LOCAL_TYPE_REGISTER, x86.operands[i].size, 0};
-			instruction->operands[i].reg = holox86::x86architecture.getRegister (cs_reg_name (handle, x86.operands[i].reg));
-			if (instruction->operands[i].reg)
-				;//printf ("Reg: %s", instruction->operands[i].reg->name);
+			instruction->operands[i].reg = arch->getRegister (cs_reg_name (handle, x86.operands[i].reg));
 			break;
 		case X86_OP_IMM:
 			instruction->operands[i].type = {R_LOCAL_TYPE_IMM_UNSIGNED, x86.operands[i].size, 0};
 			instruction->operands[i].ival = x86.operands[i].imm;
-			//printf ("Imm: %d", instruction->operands[i].ival);
 			break;
 		case X86_OP_MEM:
 			instruction->operands[i].type = {R_LOCAL_TYPE_MEM, x86.operands[i].size, 0};
-			instruction->operands[i].mem.base = holox86::x86architecture.getRegister (cs_reg_name (handle, x86.operands[i].mem.base));
+			instruction->operands[i].mem.segment = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment));
+			instruction->operands[i].mem.base = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base));
 			instruction->operands[i].mem.disp = x86.operands[i].mem.disp;
-			instruction->operands[i].mem.index = holox86::x86architecture.getRegister (cs_reg_name (handle, x86.operands[i].mem.index));
+			instruction->operands[i].mem.index = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index));
 			instruction->operands[i].mem.scale = x86.operands[i].mem.scale;
 
-			//printf ("[%s + %s*%d + %d]", instruction->operands[i].mem.base ? instruction->operands[i].mem.base->name : "-",
-			//        instruction->operands[i].mem.index ? instruction->operands[i].mem.index->name : "-",
-			//        instruction->operands[i].mem.scale, instruction->operands[i].mem.disp);
 			break;
 		case X86_OP_FP:
 			instruction->operands[i].type = {R_LOCAL_TYPE_IMM_FLOAT, x86.operands[i].size, 0};
 			instruction->operands[i].fval = x86.operands[i].fp;
-			//printf ("F: %f", instruction->operands[i].fval);
 			break;
 		default:
 			printf ("Invalid ...\n");
 		}
-		//TODO add implicit reg access
-		//printf (" -- ");
 	}
-	//printf ("\n");
 }
 
 void holox86::Rx86FunctionAnalyzer::setJumpDest (RInstruction* instruction) {
