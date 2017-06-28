@@ -15,7 +15,7 @@ namespace holodec {
 	struct HFunctionAnalyzer {
 		HArchitecture* arch;
 		HBinary* binary;
-		
+
 		struct {
 			uint8_t dataBuffer[HFUNCANAL_BUFFERSIZE];
 			size_t bufferSize;
@@ -32,7 +32,7 @@ namespace holodec {
 				instructions.clear();
 			}
 		} state;
-		
+
 		HFunctionAnalyzer (HArchitecture* arch);
 		virtual ~HFunctionAnalyzer();
 
@@ -47,6 +47,7 @@ namespace holodec {
 		void prepareBuffer (size_t addr);
 		bool postInstruction (HInstruction* instruction);
 		bool postBasicBlock (HBasicBlock* basicblock);
+		bool changedBasicBlock (HBasicBlock* basicblock);
 		//is triggered at the end of basic blocks
 		bool registerBasicBlock (size_t addr);
 		bool splitBasicBlock (HBasicBlock* basicblock, size_t splitaddr);

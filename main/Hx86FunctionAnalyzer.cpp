@@ -58,14 +58,13 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 	size_t size = binary->getVDataSize (addr);
 	size = size > 100 ? 100 : size;
 
-	bool running;
+	bool running = true;
 
 	HInstruction instruction;
 	do {
 		prepareBuffer (addr);
 		count = cs_disasm (handle, state.dataBuffer, state.bufferSize, addr, state.maxInstr, &insn);
 		if (count > 0) {
-
 			for (size_t i = 0; i < count; i++) {
 				memset (&instruction, 0, sizeof (HInstruction));
 				instruction.addr = addr;

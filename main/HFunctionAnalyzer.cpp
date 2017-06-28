@@ -64,15 +64,29 @@ bool holodec::HFunctionAnalyzer::registerBasicBlock (size_t addr) {
 	state.addrToAnalyze.push_back (addr);
 	return true;
 }
+
+bool holodec::HFunctionAnalyzer::changedBasicBlock (HBasicBlock* basicblock){
+	
+}
 bool holodec::HFunctionAnalyzer::splitBasicBlock (HBasicBlock* basicblock, size_t splitaddr) {
-	printf("SPLIT\n");
+	printf ("SPLIT %X\n",splitaddr);
 	for (auto instrit = basicblock->instructions.begin(); instrit != basicblock->instructions.end(); instrit++) {
 		HInstruction& instruction = *instrit;
 		if (splitaddr == instruction.addr) {
-			HBasicBlock newbb = {HList<HInstruction> (basicblock->instructions.begin(), instrit), 0, 0, H_INSTR_COND_TRUE, basicblock->addr, (instruction.addr + instruction.size) - basicblock->addr};
+			auto it = instrit;
+			HBasicBlock newbb = {
+				HList<HInstruction> (it, basicblock->instructions.end()),
+				basicblock->nextblock,
+				basicblock->nextcondblock,
+				basicblock->cond,
+				instruction.addr,
+				(basicblock->addr + basicblock->size) - instruction.addr
+			};
 			basicblock->size = basicblock->size - newbb.size;
-			basicblock->addr = instruction.addr;
-			basicblock->instructions.erase (basicblock->instructions.begin(), instrit);
+			basicblock->cond = H_INSTR_COND_TRUE;
+			basicblock->instructions.erase (it, basicblock->instructions.end());
+			changedBasicBlock(basicblock);
+			changedBasicBlock(&newbb);
 			state.bbs.push_back (newbb);
 			return true;
 		}
@@ -83,6 +97,8 @@ bool holodec::HFunctionAnalyzer::splitBasicBlock (HBasicBlock* basicblock, size_
 bool holodec::HFunctionAnalyzer::postFunction (HFunction* function) {
 	printf ("Post Function\n");
 	binary->addFunction (*function);
+	for(HBasicBlock& bb : function->basicblocks)
+		bb.print();
 }
 
 void holodec::HFunctionAnalyzer::preAnalysis() {
@@ -113,12 +129,11 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
 			size_t next1 = lastI->jumpdest;
 			size_t next2 = lastI->nojumpdest;
 			HBasicBlock basicblock = {state.instructions, 0, 0, lastI->condition, firstI->addr, (lastI->addr + lastI->size) - firstI->addr};
-			basicblock.print();
 			postBasicBlock (&basicblock);
 			state.instructions.clear();
 		}
 	}
-
+	binary->addFunction({0,functionsymbol->id,state.bbs,&gr_visibilityPublic});
 	postAnalysis();
 }
 

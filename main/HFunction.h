@@ -196,6 +196,14 @@ namespace holodec {
 		HId symbolref;
 		HList<HBasicBlock> basicblocks;
 		HVisibilityType* visibility;
+		
+		void print(int indent = 0){
+			printIndent(indent);
+			printf("Printing Function\n");
+			for(HBasicBlock& bb : basicblocks){
+				bb.print(indent + 1);
+			}
+		}
 	};
 
 }
