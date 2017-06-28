@@ -58,10 +58,10 @@ namespace holodec {
 		char operator[] (int i) const {
 			return m_cstr[i];
 		}
-		void del(HString* str){
+		void del(){
 			if(m_cstr)
 				free(const_cast<char*>(m_cstr));
-			str->update(0);
+			update(0);
 		}
 		HString copy(){
 			return HString(strdup(m_cstr));

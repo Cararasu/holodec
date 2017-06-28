@@ -33,10 +33,6 @@ namespace holoelf {
 
 		Elf_Instructionset elf_is;
 
-		size_t entrypoint;
-
-		size_t bitcount;
-
 	public:
 		HElfBinaryAnalyzer () : holodec::HBinaryAnalyzer ("elf", "elf") {}
 

@@ -115,151 +115,151 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{"zmm31", 512, 0}
 	},
 	{
-		{"mov",		{"mov", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"movq",	{"movq", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"movd",	{"movd", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"mov",		{"mov", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"movq",	{"movq", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"movd",	{"movd", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"lea",	{"lea", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"lea",	{"lea", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"cmovz",	{"cmovz", {0, 0, "?($z,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_E}},
-		{"cmove",	{"cmove", {0, 0, "?($z,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_E}},
+		{"cmovz",	{"cmovz", {0, 0, "?($z,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{"cmove",	{"cmove", {0, 0, "?($z,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
-		{"cmovnz",	{"cmovnz", {0, 0, "?($z,,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NE}},
-		{"cmovne",	{"cmovne", {0, 0, "?($z,,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NE}},
+		{"cmovnz",	{"cmovnz", {0, 0, "?($z,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
+		{"cmovne",	{"cmovne", {0, 0, "?($z,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
 
-		{"cmova",	{"cmova", {0, 0, "?(#and($c,$z),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_A}},
-		{"cmovnbe",	{"cmovnbe", {0, 0, "?(#and($c,$z),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_A}},
+		{"cmova",	{"cmova", {0, 0, "?(#and($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
+		{"cmovnbe",	{"cmovnbe", {0, 0, "?(#and($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
 
-		{"cmovbe",	{"cmovbe", {0, 0, "?(#or($c,$z),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_BE}},
-		{"cmovna",	{"cmovna", {0, 0, "?(#or($c,$z),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_BE}},
+		{"cmovbe",	{"cmovbe", {0, 0, "?(#or($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
+		{"cmovna",	{"cmovna", {0, 0, "?(#or($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
 
-		{"cmovg",	{"cmovg", {0, 0, "?(#and(#not($z),==($s,$o)),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_G}},
-		{"cmovnle",	{"cmovnle", {0, 0, "?(#and(#not($z),==($s,$o)),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_G}},
+		{"cmovg",	{"cmovg", {0, 0, "?(#and(#not($z),==($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
+		{"cmovnle",	{"cmovnle", {0, 0, "?(#and(#not($z),==($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
 
-		{"cmovge",	{"cmovge", {0, 0, "?(==($s,$o),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_GE}},
-		{"cmovnl",	{"cmovnl", {0, 0, "?(==($s,$o),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_GE}},
+		{"cmovge",	{"cmovge", {0, 0, "?(==($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
+		{"cmovnl",	{"cmovnl", {0, 0, "?(==($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
 
-		{"cmovl",	{"cmovge", {0, 0, "?(<>($s,$o),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_L}},
-		{"cmovnge",	{"cmovnl", {0, 0, "?(<>($s,$o),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_L}},
+		{"cmovl",	{"cmovge", {0, 0, "?(<>($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
+		{"cmovnge",	{"cmovnl", {0, 0, "?(<>($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
 
-		{"cmovle",	{"cmovle", {0, 0, "?(#or($z,<>($s,$o)),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_LE}},
-		{"cmovng",	{"cmovng", {0, 0, "?(#or($z,<>($s,$o)),=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_LE}},
+		{"cmovle",	{"cmovle", {0, 0, "?(#or($z,<>($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
+		{"cmovng",	{"cmovng", {0, 0, "?(#or($z,<>($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
 
-		{"cmovc",	{"cmovc", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_C}},
+		{"cmovc",	{"cmovc", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_C}},
 
-		{"cmovnc",	{"cmovnc", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NC}},
+		{"cmovnc",	{"cmovnc", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NC}},
 
-		{"cmovb",	{"cmovb", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_B}},
-		{"cmovnae",	{"cmovnae", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_B}},
+		{"cmovb",	{"cmovb", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
+		{"cmovnae",	{"cmovnae", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
 
-		{"cmovae",	{"cmovae", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_AE}},
-		{"cmovnb",	{"cmovnb", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_AE}},
+		{"cmovae",	{"cmovae", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
+		{"cmovnb",	{"cmovnb", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
 
-		{"cmovo",	{"cmovo", {0, 0, "?($o,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_O}},
+		{"cmovo",	{"cmovo", {0, 0, "?($o,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_O}},
 
-		{"cmovno",	{"cmovno", {0, 0, "?($o,,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NO}},
+		{"cmovno",	{"cmovno", {0, 0, "?($o,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NO}},
 
-		{"cmovs",	{"cmovs", {0, 0, "?($s,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NEG}},
+		{"cmovs",	{"cmovs", {0, 0, "?($s,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NEG}},
 
-		{"cmovns",	{"cmovns", {0, 0, "?($s,,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_POS}},
+		{"cmovns",	{"cmovns", {0, 0, "?($s,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_POS}},
 
-		{"cmovp",	{"cmovp", {0, 0, "?($p,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_UNK}},
-		{"cmovpe",	{"cmovpe", {0, 0, "?($p,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_UNK}},
+		{"cmovp",	{"cmovp", {0, 0, "?($p,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
+		{"cmovpe",	{"cmovpe", {0, 0, "?($p,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
-		{"cmovnp",	{"cmovp", {0, 0, "?($p,,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_UNK}},
-		{"cmovpo",	{"cmovpo", {0, 0, "?($p,,=(#arg1,#arg2))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_UNK}},
+		{"cmovnp",	{"cmovp", {0, 0, "?($p,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
+		{"cmovpo",	{"cmovpo", {0, 0, "?($p,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
-		{"jmp",		{"jmp", {0, "#jmp(#arg1)", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN}},
+		{"jmp",		{"jmp", {0, "#jmp(#arg1)", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN}},
 
-		{"je",		{"je", {0, "?($z,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_E}},
-		{"jz",		{"jz", {0, "?($z,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_E}},
+		{"je",		{"je", {0, "?($z,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{"jz",		{"jz", {0, "?($z,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
-		{"jne",		{"jne", {0, "?($z,,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NE}},
-		{"jnz",		{"jnz", {0, "?($z,,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NE}},
+		{"jne",		{"jne", {0, "?($z,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
+		{"jnz",		{"jnz", {0, "?($z,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
 
-		{"ja",		{"ja", {0, "?(#and($c,$z),,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_A}},
-		{"jnbe",	{"jnbe", {0, "?(#and($c,$z),,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_A}},
+		{"ja",		{"ja", {0, "?(#and($c,$z),,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
+		{"jnbe",	{"jnbe", {0, "?(#and($c,$z),,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
 
-		{"jae",		{"jae", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_AE}},
-		{"jnb",		{"jnb", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_AE}},
+		{"jae",		{"jae", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
+		{"jnb",		{"jnb", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
 
-		{"jb",		{"jb", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_B}},
-		{"jnae",		{"jnae", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_B}},
+		{"jb",		{"jb", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
+		{"jnae",		{"jnae", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
 
-		{"jbe",		{"jbe", {0, "?(#or($c,$z),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_BE}},
-		{"jna",		{"jna", {0, "?(#or($c,$z),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_BE}},
+		{"jbe",		{"jbe", {0, "?(#or($c,$z),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
+		{"jna",		{"jna", {0, "?(#or($c,$z),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
 
-		{"jg",		{"jg", {0, "?(#and(#not($z),==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_G}},
-		{"jnle",	{"jnle", {0, "?(#and(#not($z),==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_G}},
+		{"jg",		{"jg", {0, "?(#and(#not($z),==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
+		{"jnle",	{"jnle", {0, "?(#and(#not($z),==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
 
-		{"jge",		{"jge", {0, "?(==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_GE}},
-		{"jnl",		{"jge", {0, "?(==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_GE}},
+		{"jge",		{"jge", {0, "?(==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
+		{"jnl",		{"jge", {0, "?(==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
 
-		{"jl",		{"jl", {0, "?(<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_L}},
-		{"jnge",	{"jnge", {0, "?(<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_L}},
+		{"jl",		{"jl", {0, "?(<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
+		{"jnge",	{"jnge", {0, "?(<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
 
-		{"jle",		{"jle", {0, "?(#or($z,<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_LE}},
-		{"jng",		{"jng", {0, "?(#or($z,<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_LE}},
+		{"jle",		{"jle", {0, "?(#or($z,<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
+		{"jng",		{"jng", {0, "?(#or($z,<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
 
-		{"jc",		{"jc", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_C}},
+		{"jc",		{"jc", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_C}},
 
-		{"jnc",		{"jnc", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_C}},
+		{"jnc",		{"jnc", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_C}},
 
-		{"jo",		{"jo", {0, "?($o,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_O}},
+		{"jo",		{"jo", {0, "?($o,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_O}},
 
-		{"jno",		{"jno", {0, "?($o,,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NO}},
+		{"jno",		{"jno", {0, "?($o,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NO}},
 
-		{"js",		{"js", {0, "?($s,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NEG}},
+		{"js",		{"js", {0, "?($s,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NEG}},
 
-		{"jns",		{"jns", {0, "?($s,,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_POS}},
+		{"jns",		{"jns", {0, "?($s,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_POS}},
 
-		{"jp",		{"jp", {0, "?($p,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_UNK}},
-		{"jpe",		{"jpe", {0, "?($p,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_UNK}},
+		{"jp",		{"jp", {0, "?($p,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
+		{"jpe",		{"jpe", {0, "?($p,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
-		{"jpo",		{"jpo", {0, "?($p,,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_UNK}},
-		{"jnp",		{"jnp", {0, "?($p,,#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_UNK}},
+		{"jpo",		{"jpo", {0, "?($p,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
+		{"jnp",		{"jnp", {0, "?($p,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
-		{"jcxz",	{"jcxz", {0, "?(==($cx,0),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_CMP, H_INSTH_COND_E}},
-		{"jecxz",	{"jecxz", {0, "?(==($ecx,0),#jmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_CMP, H_INSTH_COND_E}},
+		{"jcxz",	{"jcxz", {0, "?(==($cx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
+		{"jecxz",	{"jecxz", {0, "?(==($ecx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
 
-		{"xchg",	{"xchg", {0, 0, "=(#t0,#arg1)&=(#arg1,#arg2)&=(#arg2,#t0)", 0}, H_INSTH_TYPE_XCHG, H_INSTH_TYPE_UNKNOWN}},
+		{"xchg",	{"xchg", {0, 0, "=(#t0,#arg1)&=(#arg1,#arg2)&=(#arg2,#t0)", 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN}},
 
-		{"bswap",	{"bswap", {0, "=(#arg1,#append(#slice(#arg1,24,31),#slice(#arg1,23,16),#slice(#arg1,15,8),#slice(#arg1,7,0)))", 0, 0}, H_INSTH_TYPE_SWAP, H_INSTH_TYPE_UNKNOWN}},
+		{"bswap",	{"bswap", {0, "=(#arg1,#append(#slice(#arg1,24,31),#slice(#arg1,23,16),#slice(#arg1,15,8),#slice(#arg1,7,0)))", 0, 0}, H_INSTR_TYPE_SWAP, H_INSTR_TYPE_UNKNOWN}},
 
-		{"xadd",	{"xadd", {0, 0, "#rec[xchg](#arg1,#arg2)&#rec[add](#arg1,#arg2)", 0}, H_INSTH_TYPE_XCHG, H_INSTH_TYPE_ADD}},
+		{"xadd",	{"xadd", {0, 0, "#rec[xchg](#arg1,#arg2)&#rec[add](#arg1,#arg2)", 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_ADD}},
 
-		{"cmpxchg",	{"cmpxchg", {0, 0, "#rec[cmp](#slice($eax,0,#size(#arg1)),#arg1)&?($z,#rec[xchg](#arg1,#arg2))", 0}, H_INSTH_TYPE_XCHG, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_E}},
+		{"cmpxchg",	{"cmpxchg", {0, 0, "#rec[cmp](#slice($eax,0,#size(#arg1)),#arg1)&?($z,#rec[xchg](#arg1,#arg2))", 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
-		{"cmpxchg8b", {"cmpxchg", {0, 0, "?(==(#append($eax,$edx),#arg1),=($z,1)&=(#arg1,#append($ebx,$ecx)),=($z,1)&=(#append($eax,$edx),#arg1))", 0}, H_INSTH_TYPE_XCHG, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_E}},
+		{"cmpxchg8b", {"cmpxchg", {0, 0, "?(==(#append($eax,$edx),#arg1),=($z,1)&=(#arg1,#append($ebx,$ecx)),=($z,1)&=(#append($eax,$edx),#arg1))", 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
-		{"push",	{"push", {0, "=($esp,-($esp,4))&#st($esp,#arg1)", 0, 0}, H_INSTH_TYPE_PUSH, H_INSTH_TYPE_UNKNOWN}},
-		{"pop",		{"pop", {0, "#ld(#arg1,$esp)&=($esp,+($esp,4))", 0, 0}, H_INSTH_TYPE_POP, H_INSTH_TYPE_UNKNOWN}},
+		{"push",	{"push", {0, "=($esp,-($esp,4))&#st($esp,#arg1)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
+		{"pop",		{"pop", {0, "#ld(#arg1,$esp)&=($esp,+($esp,4))", 0, 0}, H_INSTR_TYPE_POP, H_INSTR_TYPE_UNKNOWN}},
 
-		{"pushad",	{"pushad", {0, "=(#t0,$esp)&#push($eax)&#push($ecx)&#push($edx)&#push($edx)&#push($ebx)&#push(#t0)&#push($ebp)&#push($esi)&#push($edi)", 0, 0}, H_INSTH_TYPE_PUSH, H_INSTH_TYPE_UNKNOWN}},
-		{"pusha",	{"pusha", {0, "=(#t0,$sp)&#push($ax)&#push($cx)&#push($dx)&#push($dx)&#push($bx)&#push(#t0)&#push($bp)&#push($si)&#push($di)", 0, 0}, H_INSTH_TYPE_PUSH, H_INSTH_TYPE_UNKNOWN}},
+		{"pushad",	{"pushad", {0, "=(#t0,$esp)&#push($eax)&#push($ecx)&#push($edx)&#push($edx)&#push($ebx)&#push(#t0)&#push($ebp)&#push($esi)&#push($edi)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
+		{"pusha",	{"pusha", {0, "=(#t0,$sp)&#push($ax)&#push($cx)&#push($dx)&#push($dx)&#push($bx)&#push(#t0)&#push($bp)&#push($si)&#push($di)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
 
-		{"pushad",	{"pushad", {0, "#pop($edi)&#pop($esi)&#pop($ebp)&=($esp,+($esp,4))&#pop($ebx)&#pop($edx)&#pop($ecx)&#pop($eax)", 0, 0}, H_INSTH_TYPE_PUSH, H_INSTH_TYPE_UNKNOWN}},
-		{"pusha",	{"pusha", {0, "#pop($di)&#pop($si)&#pop($bp)&=($esp,+($esp,2))&#pop($bx)&#pop($dx)&#pop($cx)&#pop($ax)", 0, 0}, H_INSTH_TYPE_PUSH, H_INSTH_TYPE_UNKNOWN}},
+		{"pushad",	{"pushad", {0, "#pop($edi)&#pop($esi)&#pop($ebp)&=($esp,+($esp,4))&#pop($ebx)&#pop($edx)&#pop($ecx)&#pop($eax)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
+		{"pusha",	{"pusha", {0, "#pop($di)&#pop($si)&#pop($bp)&=($esp,+($esp,2))&#pop($bx)&#pop($dx)&#pop($cx)&#pop($ax)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
 
-		{"ret",		{"ret", {"#rec[pop](#t0)&#jmp(#t0)", 0, 0, 0}, H_INSTH_TYPE_HET, H_INSTH_TYPE_UNKNOWN, {}, H_INSTH_COND_THUE}},
+		{"ret",		{"ret", {"#rec[pop](#t0)&#jmp(#t0)", 0, 0, 0}, H_INSTR_TYPE_HET, H_INSTR_TYPE_UNKNOWN, {}, H_INSTR_COND_TRUE}},
 
-		{"cwd",		{"cwd", {"=($dx,#sextend($ax,#size($dx)))", 0, 0, 0}, H_INSTH_TYPE_EXTEND, H_INSTH_TYPE_UNKNOWN}},
-		{"cdq",		{"cdq", {"=($edx,#sextend($eax,#size($edx)))", 0, 0, 0}, H_INSTH_TYPE_EXTEND, H_INSTH_TYPE_UNKNOWN}},
+		{"cwd",		{"cwd", {"=($dx,#sextend($ax,#size($dx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
+		{"cdq",		{"cdq", {"=($edx,#sextend($eax,#size($edx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
 
-		{"cbw",		{"cbw", {"=($ax,#sextend($al,#size($ax)))", 0, 0, 0}, H_INSTH_TYPE_EXTEND, H_INSTH_TYPE_UNKNOWN}},
-		{"cwde",	{"cwde", {"=($eax,#sextend($al,#size($eax)))", 0, 0, 0}, H_INSTH_TYPE_EXTEND, H_INSTH_TYPE_UNKNOWN}},
+		{"cbw",		{"cbw", {"=($ax,#sextend($al,#size($ax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
+		{"cwde",	{"cwde", {"=($eax,#sextend($al,#size($eax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
 
-		{"movsx",	{"movsx", {0, 0, "=(#arg1,#sextend(#arg2,#size(#arg1)))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_EXTEND}},
-		{"movzx",	{"movzx", {0, 0, "=(#arg1,#extend(#arg2,#size(#arg1)))", 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_EXTEND}},
+		{"movsx",	{"movsx", {0, 0, "=(#arg1,#sextend(#arg2,#size(#arg1)))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
+		{"movzx",	{"movzx", {0, 0, "=(#arg1,#extend(#arg2,#size(#arg1)))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
 
-		{"add",		{"add", {0, 0, "=(#arg1,+(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTH_TYPE_ADD, H_INSTH_TYPE_UNKNOWN}},
-		{"adc",		{"adc", {0, 0, "=(#arg1,+(#arg1,#arg2,$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)& =($a,#a))", 0}, H_INSTH_TYPE_ADD, H_INSTH_TYPE_UNKNOWN}},
+		{"add",		{"add", {0, 0, "=(#arg1,+(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
+		{"adc",		{"adc", {0, 0, "=(#arg1,+(#arg1,#arg2,$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)& =($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
 
-		{"sub",		{"sub", {0, 0, "=(#arg1,-(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTH_TYPE_SUB, H_INSTH_TYPE_UNKNOWN}},
-		{"sbb",		{"sbb", {0, 0, "=(#arg1,-(#arg1,#arg2,$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTH_TYPE_SUB, H_INSTH_TYPE_UNKNOWN}},
+		{"sub",		{"sub", {0, 0, "=(#arg1,-(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_SUB, H_INSTR_TYPE_UNKNOWN}},
+		{"sbb",		{"sbb", {0, 0, "=(#arg1,-(#arg1,#arg2,$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_SUB, H_INSTR_TYPE_UNKNOWN}},
 
-		{"adcx",	{"adcx", {0, 0, "#=(#arg1,#uadd(#arg1,#arg2,c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTH_TYPE_ADD, H_INSTH_TYPE_UNKNOWN}},
-		{"adox",	{"adox", {0, 0, "#=(#arg1,#uadd(#arg1,#arg2,o)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTH_TYPE_ADD, H_INSTH_TYPE_UNKNOWN}},
+		{"adcx",	{"adcx", {0, 0, "#=(#arg1,#uadd(#arg1,#arg2,c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
+		{"adox",	{"adox", {0, 0, "#=(#arg1,#uadd(#arg1,#arg2,o)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
 
 		{
 			"imul",	{
@@ -270,7 +270,7 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 					"&=($c,#c)&=($o,#o)",
 					"=(#arg1,*(#arg1,#arg2))&=($c,#c)&=($o,#o)",
 					"=(#arg1,*(#arg2,#arg3))&=($c,#c)&=($o,#o)", 0
-				}, H_INSTH_TYPE_MUL, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_MUL, H_INSTR_TYPE_UNKNOWN
 			}
 		},
 		{
@@ -279,7 +279,7 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 					0,
 					"=(#arg1,*(#arg1,#sextend(#arg2,#size(#arg1)))&=($c,#c)&=($o,#o)",
 					"=(#arg1,*(#arg2,#sextend(#arg3,#size(#arg2))))&=($c,#c)&=($o,#o)", 0
-				}, H_INSTH_TYPE_MUL, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_MUL, H_INSTR_TYPE_UNKNOWN
 			}
 		},
 		{
@@ -290,7 +290,7 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 					"?(==(#size(#arg1),16),=($ax,#div(#append($dx,$ax),#arg1))&=($dx,#mod(#append($dx,$ax),#arg1)))"
 					"?(==(#size(#arg1),32),=($eax,#div(#append($edx,$eax),#arg1))&=($edx,#mod(#append($edx,$eax),#arg1)))",
 					0, 0
-				}, H_INSTH_TYPE_DIV, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_DIV, H_INSTR_TYPE_UNKNOWN
 			}
 		},
 		{
@@ -301,22 +301,22 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 					"?(==(#size(#arg1),16),=($ax,#udiv(#append($dx,$ax),#arg1))&=($dx,#umod(#append($dx,$ax),#arg1)))"
 					"?(==(#size(#arg1),32),=($eax,#udiv(#append($edx,$eax),#arg1))&=($edx,#umod(#append($edx,$eax),#arg1)))",
 					0, 0
-				}, H_INSTH_TYPE_DIV, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_DIV, H_INSTR_TYPE_UNKNOWN
 			}
 		},
-		{"nop",		{"nop", {"", "", 0, 0}, H_INSTH_TYPE_UNKNOWN, H_INSTH_TYPE_UNKNOWN}},
+		{"nop",		{"nop", {"", "", 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
 
-		{"inc",		{"inc", {0, 0, "=(#arg1,+(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTH_TYPE_ADD, H_INSTH_TYPE_UNKNOWN}},
-		{"dec",		{"dec", {0, 0, "=(#arg1,-(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTH_TYPE_SUB, H_INSTH_TYPE_UNKNOWN}},
+		{"inc",		{"inc", {0, 0, "=(#arg1,+(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
+		{"dec",		{"dec", {0, 0, "=(#arg1,-(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTR_TYPE_SUB, H_INSTR_TYPE_UNKNOWN}},
 
-		{"neg",		{"neg", {0, 0, "=(#arg1,#neg(#arg1,1)&=($c,#eq(#arg1,0))", 0}, H_INSTH_TYPE_NEG, H_INSTH_TYPE_UNKNOWN}},
+		{"neg",		{"neg", {0, 0, "=(#arg1,#neg(#arg1,1)&=($c,#eq(#arg1,0))", 0}, H_INSTR_TYPE_NEG, H_INSTR_TYPE_UNKNOWN}},
 
-		{"cmp",		{"cmp", {0, 0, "=(#t0,#arg1)&#rec[sub](#t0,#arg2)", 0}, H_INSTH_TYPE_CMP, H_INSTH_TYPE_UNKNOWN}},
+		{"cmp",		{"cmp", {0, 0, "=(#t0,#arg1)&#rec[sub](#t0,#arg2)", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN}},
 
-		{"and",		{"and", {0, 0, "=(#arg1,#band(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTH_TYPE_AND, H_INSTH_TYPE_UNKNOWN}},
-		{"or",		{"or", {0, 0, "=(#arg1,#bor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTH_TYPE_OH, H_INSTH_TYPE_UNKNOWN}},
-		{"xor",		{"xor", {0, 0, "=(#arg1,#bxor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTH_TYPE_XOH, H_INSTH_TYPE_UNKNOWN}},
-		{"not",		{"not", {0, 0, "=(#arg1,#bnot(#arg1,#arg2))", 0}, H_INSTH_TYPE_NOT, H_INSTH_TYPE_UNKNOWN}},
+		{"and",		{"and", {0, 0, "=(#arg1,#band(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_AND, H_INSTR_TYPE_UNKNOWN}},
+		{"or",		{"or", {0, 0, "=(#arg1,#bor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_OH, H_INSTR_TYPE_UNKNOWN}},
+		{"xor",		{"xor", {0, 0, "=(#arg1,#bxor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_XOH, H_INSTR_TYPE_UNKNOWN}},
+		{"not",		{"not", {0, 0, "=(#arg1,#bnot(#arg1,#arg2))", 0}, H_INSTR_TYPE_NOT, H_INSTR_TYPE_UNKNOWN}},
 
 		//TODO carry flags for shifts
 		//The CF flag contains the value of the last bit shifted out of the destination operand;
@@ -326,167 +326,167 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 				"sar", {
 					"=(#arg1,#sar(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))",
 					"=(#arg1,#sar(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($a,#a))", 0, 0
-				}, H_INSTH_TYPE_SHH, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN
 			}
 		},
-		{"sar_cl",	{"sar", { "=(#arg1,#sar(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTH_TYPE_SHH, H_INSTH_TYPE_UNKNOWN}},
+		{"sar_cl",	{"sar", { "=(#arg1,#sar(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN}},
 
 		{
 			"shr",		{
 				"shr", {
 					"=(#arg1,#shr(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))",
 					"=(#arg1,#shr(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($a,#a))", 0, 0
-				}, H_INSTH_TYPE_SHH, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN
 			}
 		},
-		{"shr_cl",	{"shr", { "=(#arg1,#shr(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTH_TYPE_SHH, H_INSTH_TYPE_UNKNOWN}},
+		{"shr_cl",	{"shr", { "=(#arg1,#shr(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN}},
 
 		{
 			"sal",		{
 				"sal", {
 					"=(#arg1,#sal(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))",
 					"=(#arg1,#sal(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($a,#a))", 0, 0
-				}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN
 			}
 		},
-		{"sal_cl",	{"sal", { "=(#arg1,#sal(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN}},
+		{"sal_cl",	{"sal", { "=(#arg1,#sal(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
 
 		{
 			"shl",		{
 				"shl", {
 					"=(#arg1,#shl(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))",
 					"=(#arg1,#shl(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($a,#a))", 0, 0
-				}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN
 			}
 		},
-		{"shl_cl",	{"shl", { "=(#arg1,#shl(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN}},
+		{"shl_cl",	{"shl", { "=(#arg1,#shl(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
 
 		//TODO flags
-		{"shrd",	{"shrd", { 0, "=(#arg1,#shr(#append(#arg1,#arg2),$cl))", "=(#arg1,#shr(#append(#arg1,#arg2),$arg3))", 0}, H_INSTH_TYPE_SHH, H_INSTH_TYPE_UNKNOWN}},
-		{"shld",	{"shld", { 0, "=(#arg1,#shl(#append(#arg1,#arg2),$cl))", "=(#arg1,#shl(#append(#arg1,#arg2),$arg3))", 0}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN}},
+		{"shrd",	{"shrd", { 0, "=(#arg1,#shr(#append(#arg1,#arg2),$cl))", "=(#arg1,#shr(#append(#arg1,#arg2),$arg3))", 0}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN}},
+		{"shld",	{"shld", { 0, "=(#arg1,#shl(#append(#arg1,#arg2),$cl))", "=(#arg1,#shl(#append(#arg1,#arg2),$arg3))", 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
 
 		//TODO flags for rotates
-		{"ror",		{"ror", {0, "=(#arg1,#ror(#arg1,1))", "=(#arg1,#ror(#arg1,$arg2))", 0}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN}},
-		{"ror_cl",	{"ror", {0, "=(#arg1,#ror(#arg1,$cl))", 0, 0}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN}},
-		{"rol",		{"rol", {0, "=(#arg1,#rol(#arg1,1))", "=(#arg1,#rol(#arg1,$arg2))", 0}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN}},
-		{"rol_cl",	{"rol", {0, "=(#arg1,#rol(#arg1,$cl))", 0, 0}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN}},
+		{"ror",		{"ror", {0, "=(#arg1,#ror(#arg1,1))", "=(#arg1,#ror(#arg1,$arg2))", 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
+		{"ror_cl",	{"ror", {0, "=(#arg1,#ror(#arg1,$cl))", 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
+		{"rol",		{"rol", {0, "=(#arg1,#rol(#arg1,1))", "=(#arg1,#rol(#arg1,$arg2))", 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
+		{"rol_cl",	{"rol", {0, "=(#arg1,#rol(#arg1,$cl))", 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
 		{
 			"rcr", {
 				"rcr", {
 					0,
 					"=(#t0,#ror(#append(#arg1,$c),1))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))",
 					"=(#t0,#ror(#append(#arg1,$c),$arg2))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0
-				}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN
 			}
 		},
-		{"rcr_cl",	{"rcr", {0, "=(#t0,#ror(#append(#arg1,$c),#cl))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0, 0}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN}},
+		{"rcr_cl",	{"rcr", {0, "=(#t0,#ror(#append(#arg1,$c),#cl))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
 		{
 			"rcl", {
 				"rcl", {
 					0,
 					"=(#t0,#rol(#append(#arg1,$c),1))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))",
 					"=(#t0,#rol(#append(#arg1,$c),$arg2))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0
-				}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN
 			}
 		},
-		{"rcl_cl",	{"rcl", {0, "=(#t0,#rol(#append(#arg1,$c),#cl))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0, 0}, H_INSTH_TYPE_SHL, H_INSTH_TYPE_UNKNOWN}},
+		{"rcl_cl",	{"rcl", {0, "=(#t0,#rol(#append(#arg1,$c),#cl))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
 
-		{"bt",		{"bt", {0, 0, "=($c,#split($arg1,$arg2))", 0}, H_INSTH_TYPE_BITTEST, H_INSTH_TYPE_UNKNOWN}},
-		{"bts",		{"bts", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),1)", 0}, H_INSTH_TYPE_BITTEST, H_INSTH_TYPE_BITSET}},
-		{"btr",		{"btr", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),0)", 0}, H_INSTH_TYPE_BITTEST, H_INSTH_TYPE_BITHESET}},
-		{"btc",		{"btc", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),#not(#split($arg1,$arg2)))", 0}, H_INSTH_TYPE_BITTEST, H_INSTH_TYPE_CPL}},
+		{"bt",		{"bt", {0, 0, "=($c,#split($arg1,$arg2))", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_UNKNOWN}},
+		{"bts",		{"bts", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),1)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITSET}},
+		{"btr",		{"btr", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),0)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITHESET}},
+		{"btc",		{"btc", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),#not(#split($arg1,$arg2)))", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_CPL}},
 
-		{"loop",	{"loop", {0, "=($ecx,-($ecx,1))&?(<>($ecx,0),#rjmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN}},
+		{"loop",	{"loop", {0, "=($ecx,-($ecx,1))&?(<>($ecx,0),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN}},
 
 
-		{"loope",	{"loope", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),$z),#rjmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_E}},
-		{"loopz",	{"loopz", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),$z),#rjmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_E}},
+		{"loope",	{"loope", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),$z),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{"loopz",	{"loopz", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),$z),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
-		{"loopne",	{"loopne", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),#not($z)),#rjmp(#arg1))", 0,  0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NE}},
-		{"loopnz",	{"loopnz", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),#not($z)),#rjmp(#arg1))", 0, 0}, H_INSTH_TYPE_JMP, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_NE}},
+		{"loopne",	{"loopne", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),#not($z)),#rjmp(#arg1))", 0,  0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
+		{"loopnz",	{"loopnz", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),#not($z)),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
 
-		{"call",	{"call", {0, "#call(#arg1)", 0, 0}, H_INSTH_TYPE_CALL, H_INSTH_TYPE_UNKNOWN}},
+		{"call",	{"call", {0, "#call(#arg1)", 0, 0}, H_INSTR_TYPE_CALL, H_INSTR_TYPE_UNKNOWN}},
 
-		{"ret",		{"ret", {"#ret()", 0, 0, 0}, H_INSTH_TYPE_HET, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_THUE}},
-		{"reti",	{"reti", {"#ret()", 0, 0, 0}, H_INSTH_TYPE_HET, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_THUE}},
+		{"ret",		{"ret", {"#ret()", 0, 0, 0}, H_INSTR_TYPE_HET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{"reti",	{"reti", {"#ret()", 0, 0, 0}, H_INSTR_TYPE_HET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
-		{"int",		{"int", {0, "#syscall(#arg1)", 0, 0}, H_INSTH_TYPE_SYSCALL, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_THUE}},
-		{"into",	{"into", {"#syscall()", 0, 0, 0}, H_INSTH_TYPE_SYSCALL, H_INSTH_TYPE_UNKNOWN, H_INSTH_COND_THUE}},
+		{"int",		{"int", {0, "#syscall(#arg1)", 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{"into",	{"into", {"#syscall()", 0, 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
 		//TODO il
-		{"bound",	{"bound", {0, 0, 0, 0}, H_INSTH_TYPE_UNKNOWN, H_INSTH_TYPE_UNKNOWN}},
+		{"bound",	{"bound", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
 
-		{"enter",	{"enter", {0, "#rec[push]($ebp)&#rec[mov]($ebp,$esp)&#rec[sub]($esp,#arg1)", 0, 0}, H_INSTH_TYPE_UNKNOWN, H_INSTH_TYPE_UNKNOWN}},
-		{"leave",	{"leave", {"#rec[mov]($esp,$ebp)&#rec[pop]($ebp)", 0, 0, 0}, H_INSTH_TYPE_UNKNOWN, H_INSTH_TYPE_UNKNOWN}},
+		{"enter",	{"enter", {0, "#rec[push]($ebp)&#rec[mov]($ebp,$esp)&#rec[sub]($esp,#arg1)", 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
+		{"leave",	{"leave", {"#rec[mov]($esp,$ebp)&#rec[pop]($ebp)", 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setz",	{"setz", {0, "=(#arg1,$z)", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"sete",	{"sete", {0, "=(#arg1,$z)", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setz",	{"setz", {0, "=(#arg1,$z)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"sete",	{"sete", {0, "=(#arg1,$z)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setnz",	{"setnz", {0, "=(#arg1,#not($z))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setne",	{"setne", {0, "=(#arg1,#not($z))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setnz",	{"setnz", {0, "=(#arg1,#not($z))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setne",	{"setne", {0, "=(#arg1,#not($z))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"seta",	{"seta", {0, "=(#arg1,#not(#or($c,$z)))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setnbe",	{"setnbe", {0, "=(#arg1,#not(#or($c,$z)))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"seta",	{"seta", {0, "=(#arg1,#not(#or($c,$z)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setnbe",	{"setnbe", {0, "=(#arg1,#not(#or($c,$z)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setae",	{"setae", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setnb",	{"setnb", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setnc",	{"setnc", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setae",	{"setae", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setnb",	{"setnb", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setnc",	{"setnc", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setb",	{"setae", {0, "=(#arg1,$c)", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setnae",	{"setnb", {0, "=(#arg1,$c)", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setc",	{"setnc", {0, "=(#arg1,$c)", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setb",	{"setae", {0, "=(#arg1,$c)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setnae",	{"setnb", {0, "=(#arg1,$c)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setc",	{"setnc", {0, "=(#arg1,$c)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setbe",	{"setbe", {0, "=(#arg1,#or($c,$z))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setna",	{"setna", {0, "=(#arg1,#or($c,$z))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setbe",	{"setbe", {0, "=(#arg1,#or($c,$z))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setna",	{"setna", {0, "=(#arg1,#or($c,$z))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setg",	{"setg", {0, "=(#arg1,#and(#not($z),==($s,$o)))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setnle",	{"setnle", {0, "=(#arg1,#and(#not($z),==($s,$o)))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setg",	{"setg", {0, "=(#arg1,#and(#not($z),==($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setnle",	{"setnle", {0, "=(#arg1,#and(#not($z),==($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setge",	{"setge", {0, "=(#arg1,==($s,$o))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setnl",	{"setnl", {0, "=(#arg1,==($s,$o))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setge",	{"setge", {0, "=(#arg1,==($s,$o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setnl",	{"setnl", {0, "=(#arg1,==($s,$o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setl",	{"setl", {0, "=(#arg1,<>($s,$o))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setnge",	{"setnge", {0, "=(#arg1,<>($s,$o))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setl",	{"setl", {0, "=(#arg1,<>($s,$o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setnge",	{"setnge", {0, "=(#arg1,<>($s,$o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setle",	{"setle", {0, "=(#arg1,#or($z,<>($s,$o)))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setng",	{"setng", {0, "=(#arg1,#or($z,<>($s,$o)))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setle",	{"setle", {0, "=(#arg1,#or($z,<>($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setng",	{"setng", {0, "=(#arg1,#or($z,<>($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"sets",	{"sets", {0, "=(#arg1,$s)", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setns",	{"setns", {0, "=(#arg1,#not($s))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"seto",	{"seto", {0, "=(#arg1,$o)", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setno",	{"setno", {0, "=(#arg1,#not($o))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"sets",	{"sets", {0, "=(#arg1,$s)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setns",	{"setns", {0, "=(#arg1,#not($s))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"seto",	{"seto", {0, "=(#arg1,$o)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setno",	{"setno", {0, "=(#arg1,#not($o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setp",	{"setp", {0, "=(#arg1,$p)", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setpe",	{"setpe", {0, "=(#arg1,$p)", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setp",	{"setp", {0, "=(#arg1,$p)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setpe",	{"setpe", {0, "=(#arg1,$p)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"setpo",	{"setpo", {0, "=(#arg1,#not($p))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"setnp",	{"setnp", {0, "=(#arg1,#not($p))", 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"setpo",	{"setpo", {0, "=(#arg1,#not($p))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"setnp",	{"setnp", {0, "=(#arg1,#not($p))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"test",	{"test", {0, 0, "#band(#arg1,#arg2)&==($c,0)&==($o,0)&==($p,#p)&==($z,#z)&==($s,#s)", 0}, H_INSTH_TYPE_AND, H_INSTH_TYPE_UNKNOWN}},
+		{"test",	{"test", {0, 0, "#band(#arg1,#arg2)&==($c,0)&==($o,0)&==($p,#p)&==($z,#z)&==($s,#s)", 0}, H_INSTR_TYPE_AND, H_INSTR_TYPE_UNKNOWN}},
 
-		{"bsf",		{"bsf", {0, 0, 0, 0}, H_INSTH_TYPE_UNKNOWN, H_INSTH_TYPE_UNKNOWN}},
-		{"bsr",		{"bsr", {0, 0, 0, 0}, H_INSTH_TYPE_UNKNOWN, H_INSTH_TYPE_UNKNOWN}},
-		{"crc32",	{"crc32", {0, 0, 0, 0}, H_INSTH_TYPE_UNKNOWN, H_INSTH_TYPE_UNKNOWN}},
-		{"popcnt",	{"popcnt", {0, 0, 0, 0}, H_INSTH_TYPE_UNKNOWN, H_INSTH_TYPE_UNKNOWN}},
+		{"bsf",		{"bsf", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
+		{"bsr",		{"bsr", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
+		{"crc32",	{"crc32", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
+		{"popcnt",	{"popcnt", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
 
-		{"stc",		{"stc", {"=($c,1)", 0, 0, 0}, H_INSTH_TYPE_BITSET, H_INSTH_TYPE_UNKNOWN}},
-		{"clc",		{"clc", {"=($c,0)", 0, 0, 0}, H_INSTH_TYPE_BITHESET, H_INSTH_TYPE_UNKNOWN}},
-		{"cmc",		{"cmc", {"=($c,#not($c))", 0, 0, 0}, H_INSTH_TYPE_CPL, H_INSTH_TYPE_UNKNOWN}},
+		{"stc",		{"stc", {"=($c,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET, H_INSTR_TYPE_UNKNOWN}},
+		{"clc",		{"clc", {"=($c,0)", 0, 0, 0}, H_INSTR_TYPE_BITHESET, H_INSTR_TYPE_UNKNOWN}},
+		{"cmc",		{"cmc", {"=($c,#not($c))", 0, 0, 0}, H_INSTR_TYPE_CPL, H_INSTR_TYPE_UNKNOWN}},
 
-		{"std",		{"std", {"=($d,1)", 0, 0, 0}, H_INSTH_TYPE_BITSET, H_INSTH_TYPE_UNKNOWN}},
-		{"cld",		{"cld", {"=($d,0)", 0, 0, 0}, H_INSTH_TYPE_BITHESET, H_INSTH_TYPE_UNKNOWN}},
+		{"std",		{"std", {"=($d,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET, H_INSTR_TYPE_UNKNOWN}},
+		{"cld",		{"cld", {"=($d,0)", 0, 0, 0}, H_INSTR_TYPE_BITHESET, H_INSTR_TYPE_UNKNOWN}},
 
-		{"lahf",	{"lahf", {"=($ah,$eflags)", 0, 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
-		{"sahf",	{"sahf", {"=($eflags,$ah)", 0, 0, 0}, H_INSTH_TYPE_MOV, H_INSTH_TYPE_UNKNOWN}},
+		{"lahf",	{"lahf", {"=($ah,$eflags)", 0, 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{"sahf",	{"sahf", {"=($eflags,$ah)", 0, 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 
-		{"pushf",	{"pushf", {"#rec[push]($flags)", 0, 0, 0}, H_INSTH_TYPE_PUSH, H_INSTH_TYPE_UNKNOWN}},
-		{"pushfd",	{"pushfd", {"#rec[push]($eflags)", 0, 0, 0}, H_INSTH_TYPE_PUSH, H_INSTH_TYPE_UNKNOWN}},
+		{"pushf",	{"pushf", {"#rec[push]($flags)", 0, 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
+		{"pushfd",	{"pushfd", {"#rec[push]($eflags)", 0, 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
 
-		{"popf",	{"popf", {"#rec[pop]($flags)", 0, 0, 0}, H_INSTH_TYPE_POP, H_INSTH_TYPE_UNKNOWN}},
-		{"popfd",	{"popfd", {"#rec[pop]($eflags)", 0, 0, 0}, H_INSTH_TYPE_POP, H_INSTH_TYPE_UNKNOWN}},
+		{"popf",	{"popf", {"#rec[pop]($flags)", 0, 0, 0}, H_INSTR_TYPE_POP, H_INSTR_TYPE_UNKNOWN}},
+		{"popfd",	{"popfd", {"#rec[pop]($eflags)", 0, 0, 0}, H_INSTR_TYPE_POP, H_INSTR_TYPE_UNKNOWN}},
 
-		{"sti",		{"sti", {"=($i,1)", 0, 0, 0}, H_INSTH_TYPE_BITSET, H_INSTH_TYPE_UNKNOWN}},
-		{"cli",		{"cli", {"=($i,0)", 0, 0, 0}, H_INSTH_TYPE_BITHESET, H_INSTH_TYPE_UNKNOWN}},
+		{"sti",		{"sti", {"=($i,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET, H_INSTR_TYPE_UNKNOWN}},
+		{"cli",		{"cli", {"=($i,0)", 0, 0, 0}, H_INSTR_TYPE_BITHESET, H_INSTR_TYPE_UNKNOWN}},
 	},
 };
 
@@ -499,31 +499,31 @@ case str2int ("movs") :
 case str2int ("movsb") :
 case str2int ("movsw") :
 case str2int ("movsd") :
-	instruction.type = H_INSTH_TYPE_MOV;
+	instruction.type = H_INSTR_TYPE_MOV;
 	break;
 case str2int ("cmps") :
 case str2int ("cmpsb") :
 case str2int ("cmpsw") :
 case str2int ("cmpsd") :
-	instruction.type = H_INSTH_TYPE_CMP;
+	instruction.type = H_INSTR_TYPE_CMP;
 	break;
 case str2int ("scas") :
 case str2int ("scasb") :
 case str2int ("scasw") :
 case str2int ("scasd") :
-	instruction.type = H_INSTH_TYPE_CMP;
+	instruction.type = H_INSTR_TYPE_CMP;
 	break;
 case str2int ("lods") :
 case str2int ("lodsb") :
 case str2int ("lodsw") :
 case str2int ("lodsd") :
-	instruction.type = H_INSTH_TYPE_LOAD;
+	instruction.type = H_INSTR_TYPE_LOAD;
 	break;
 case str2int ("stos") :
 case str2int ("stosb") :
 case str2int ("stosw") :
 case str2int ("stosd") :
-	instruction.type = H_INSTH_TYPE_STOHE;
+	instruction.type = H_INSTR_TYPE_STOHE;
 	break;
 case str2int ("rep") :
 	break;
@@ -536,22 +536,22 @@ case str2int ("repnz") :
 
 //I/O Instructions
 case str2int ("in") :
-	instruction.type = H_INSTH_TYPE_IO;
+	instruction.type = H_INSTR_TYPE_IO;
 	break;
 case str2int ("out") :
-	instruction.type = H_INSTH_TYPE_IO;
+	instruction.type = H_INSTR_TYPE_IO;
 	break;
 case str2int ("ins") :
 case str2int ("insb") :
 case str2int ("insw") :
 case str2int ("insd") :
-	instruction.type = H_INSTH_TYPE_IO;
+	instruction.type = H_INSTR_TYPE_IO;
 	break;
 case str2int ("outs") :
 case str2int ("outsb") :
 case str2int ("outsw") :
 case str2int ("outsd") :
-	instruction.type = H_INSTH_TYPE_IO;
+	instruction.type = H_INSTR_TYPE_IO;
 	break;
 
 //Enter and Leave Instructions
@@ -559,24 +559,24 @@ case str2int ("outsd") :
 
 //Segment Register Instructions
 case str2int ("lds") :
-	instruction.type = H_INSTH_TYPE_LOAD;
+	instruction.type = H_INSTR_TYPE_LOAD;
 	break;
 case str2int ("les") :
-	instruction.type = H_INSTH_TYPE_LOAD;
+	instruction.type = H_INSTR_TYPE_LOAD;
 	break;
 case str2int ("lfs") :
-	instruction.type = H_INSTH_TYPE_LOAD;
+	instruction.type = H_INSTR_TYPE_LOAD;
 	break;
 case str2int ("lgs") :
-	instruction.type = H_INSTH_TYPE_LOAD;
+	instruction.type = H_INSTR_TYPE_LOAD;
 	break;
 case str2int ("lss") :
-	instruction.type = H_INSTH_TYPE_LOAD;
+	instruction.type = H_INSTR_TYPE_LOAD;
 	break;
 
 //Miscellaneous Instructions
 case str2int ("ud") :
-	instruction.type = H_INSTH_TYPE_UNDEFINED;
+	instruction.type = H_INSTR_TYPE_UNDEFINED;
 	break;
 case str2int ("xlat") :
 case str2int ("xlatb") :
@@ -584,7 +584,7 @@ case str2int ("xlatb") :
 case str2int ("cpuid") :
 	break;
 case str2int ("movbe") :
-	instruction.type = H_INSTH_TYPE_MOV;
+	instruction.type = H_INSTR_TYPE_MOV;
 	break;
 case str2int ("prefetchbe") :
 	break;
@@ -604,13 +604,13 @@ case str2int ("clflushopt") :
 //x87 FPU Transcendental Instructions
 //x87 FPU Load Constants Instructions
 //x87 FPU Control Instructions
-//X87 FPU AND SIMD STATE MANAGEMENT INSTHUCTIONS
+//X87 FPU AND SIMD STATE MANAGEMENT INSTRUCTIONS
 //MMX Data Transfer Instructions
 case str2int ("movd") :
-	instruction.type = H_INSTH_TYPE_MOV;
+	instruction.type = H_INSTR_TYPE_MOV;
 	break;
 case str2int ("movq") :
-	instruction.type = H_INSTH_TYPE_MOV;
+	instruction.type = H_INSTR_TYPE_MOV;
 	break;
 //MMX Conversion Instructions
 case str2int ("packsswb") :
@@ -690,19 +690,19 @@ case str2int ("punpckldq") :
 //INTEL® TRAHSACTIONAL SYNCHROHIZATION EXTENSIONS (INTEL® TSX)
 //INTEL® SHA EXTENSIONS
 //INTEL® ADVANCED VECTOR HXTENSIONS 512 (INTEL® AVX-512)
-//SYSTEM INSTHUCTIONS
+//SYSTEM INSTRUCTIONS
 case str2int ("clac") :
-	instruction.type = H_INSTH_TYPE_BITHESET;
+	instruction.type = H_INSTR_TYPE_BITHESET;
 	break;
 case str2int ("stac") :
-	instruction.type = H_INSTH_TYPE_BITSET;
+	instruction.type = H_INSTR_TYPE_BITSET;
 	break;
 case str2int ("hlt") :
-	instruction.type = H_INSTH_TYPE_HALT;
+	instruction.type = H_INSTR_TYPE_HALT;
 	break;
-//64-BIT MODE INSTHUCTIONS
+//64-BIT MODE INSTRUCTIONS
 case str2int ("syscall") :
-	instruction.type = H_INSTH_TYPE_SYSCALL;
+	instruction.type = H_INSTR_TYPE_SYSCALL;
 	break;
 //VIHTUAL-MACHINE EXTENSIONS
 //SAFEH MODE EXTENSIONS

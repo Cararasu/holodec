@@ -30,8 +30,8 @@ HFileFormat elffileformat = {"elf", "elf", {
 extern HArchitecture holox86::x86architecture;
 
 int main (int argc, char** argv, char** envp) {
-	
-	
+
+
 	HMain::initHMain();
 	HData* data = HMain::loadHDataFromFile (filename);
 
@@ -46,7 +46,7 @@ int main (int argc, char** argv, char** envp) {
 	}
 	analyzer->init (data);
 	HBinary* binary = analyzer->getBinary();
-	
+
 	HFunctionAnalyzer* func_analyzer;
 	for (HArchitecture * architecture : HMain::gr_main->architectures) {
 		func_analyzer = architecture->createFunctionAnalyzer (binary);
@@ -57,19 +57,19 @@ int main (int argc, char** argv, char** envp) {
 
 	printf ("Binary File: %s\n", binary->data->filename.cstr());
 	printf ("Size: %d Bytes\n", binary->data->size);
-	
+
 
 	binary->print();
 
 	holox86::x86architecture.print();
 
 	for (HId& id : binary->entrypoints) {
-		func_analyzer->analyzeFunction(binary->getSymbol(id));
+		func_analyzer->analyzeFunction (binary->getSymbol (id));
 	}
-	
-	printf("%d\n",sizeof(HInstruction));
-	printf("%d\n",sizeof(HInstArgument));
-	
+
+	printf ("%d\n", sizeof (HInstruction));
+	printf ("%d\n", sizeof (HInstArgument));
+
 
 	return 0;
 }

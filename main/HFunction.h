@@ -156,7 +156,7 @@ namespace holodec {
 		size_t calldest;//if call succeeds -> creates new function symbol
 
 		size_t opcount;
-		HInstArgument operands[6];
+		HInstArgument operands[4];
 
 		void print (int indent = 0) {
 			if (instrdef) {

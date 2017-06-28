@@ -26,7 +26,7 @@ namespace holodec {
 		HList<HFunction> functions;
 		//which architecture
 		//global string
-		size_t bits;
+		size_t bitbase;
 		HString arch;
 
 		HStringDatabase stringDB;
@@ -37,16 +37,15 @@ namespace holodec {
 
 		uint8_t* getVDataPtr (size_t addr) {
 			for (HSection & section : sections) {
-				if (section.vAddrInSection (addr))
-					return data->data + section.getDataOffsetFromVAddr (addr);
+				if (section.pointsToSection (addr))
+					return section.getPtr<uint8_t>(data, addr - section.vaddr);
 			}
 			return 0;
 		}
 		size_t getVDataSize (size_t addr) {
 			for (HSection & section : sections) {
-				if (section.vAddrInSection (addr)) {
-					return section.size - (section.getDataOffsetFromVAddr (addr) - section.vaddr);
-				}
+				if (section.pointsToSection (addr))
+					return section.size - (addr - section.vaddr);
 			}
 			return 0;
 		}
@@ -64,6 +63,7 @@ namespace holodec {
 		HId addSymbol (HSymbol symbol);
 		HSymbol* getSymbol (HString string);
 		HSymbol* getSymbol (HId id);
+		HSymbol* findSymbol(size_t addr,const HSymbolType* type);
 		HId addFunction (HFunction function);
 		bool addEntrypoint (HId name);
 

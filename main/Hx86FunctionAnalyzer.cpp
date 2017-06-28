@@ -109,10 +109,11 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 
 			cs_free (insn, count);
 		} else {
-			printf ("EHHOH: Failed to disassemble given code!\n");
+			printf ("ERROR:: Failed to disassemble given code!\n");
 			running = false;
 		}
 	} while (running);
+	
 }
 
 
@@ -161,7 +162,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 
 void holox86::Hx86FunctionAnalyzer::setJumpDest (HInstruction* instruction) {
 
-	if (instruction->instrdef && (instruction->instrdef->type == H_INSTH_TYPE_JMP || instruction->instrdef->type2 == H_INSTH_TYPE_JMP)) {
+	if (instruction->instrdef && (instruction->instrdef->type == H_INSTR_TYPE_JMP || instruction->instrdef->type2 == H_INSTR_TYPE_JMP)) {
 		if (instruction->operands[0].type.type == H_LOCAL_TYPE_IMM_UNSIGNED)
 			instruction->jumpdest = instruction->operands[0].ival;
 		else if (instruction->operands[0].type.type == H_LOCAL_TYPE_IMM_SIGNED)

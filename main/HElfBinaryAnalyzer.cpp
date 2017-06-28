@@ -29,52 +29,85 @@ bool holoelf::HElfBinaryAnalyzer::init (holodec::HData* file) {
 	if (!parseSectionHeaderTable())
 		return false;
 
-	binary->bits = bitcount;
-
-
-	binary->addEntrypoint (binary->addSymbol ({0,HString::create ("entry0"), HSymbolType::symfunc, 0, entrypoint, entrypoint, 0}));
 
 	//handle entry and exit points
 	{
-		int entrypoint = 1;
-		int exitpoint = 0;
+		uint32_t entrypoint = binary->data->get<uint32_t> (0x18);
+		binary->addEntrypoint (binary->addSymbol ({0,HString::create ("entry0"), &HSymbolType::symfunc, 0, entrypoint, entrypoint, 0}));
+		int entrycount = 1;
+		int exitcount = 0;
 		char buffer[20];
 		if (HSection* init = binary->getSection (".init")) {
-			snprintf (buffer, 20, "entry%d", entrypoint++);
-			binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), HSymbolType::symfunc, 0, init->vaddr, init->vaddr, 0}));
+			snprintf (buffer, 20, "entry%d", entrycount++);
+			binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, init->vaddr, init->vaddr, 0}));
 		}
 		if (HSection* finit = binary->getSection (".finit")) {
-			snprintf (buffer, 20, "exit%d", entrypoint);
-			binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), HSymbolType::symfunc, 0, finit->vaddr, finit->vaddr, 0}));
+			snprintf (buffer, 20, "exit%d", entrycount);
+			binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, finit->vaddr, finit->vaddr, 0}));
 		}
 		if (HSection* init_array = binary->getSection (".init_array")) {
-			if (binary->bits == 32) {
+			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < init_array->size; i += 4) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, "entry%d", entrypoint++);
-					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
+					snprintf (buffer, 20, "entry%d", entrycount++);
+					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
 				}
-			} else if (binary->bits == 64) {
+			} else if (binary->bitbase == 64) {
 				for (size_t i = 0; i < init_array->size; i += 8) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, "entry%d", entrypoint++);
-					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
+					snprintf (buffer, 20, "entry%d", entrycount++);
+					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
 				}
 			}
 		}
 		if (HSection* finit_array = binary->getSection (".finit_array")) {
-			if (binary->bits == 32) {
+			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < finit_array->size; i += 4) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, "exit%d", entrypoint++);
-					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
+					snprintf (buffer, 20, "exit%d", exitcount++);
+					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
 				}
-			} else if (binary->bits == 64) {
+			} else if (binary->bitbase == 64) {
 				printf ("%p", finit_array->vaddr);
 				for (size_t i = 0; i < finit_array->size; i += 8) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, "exit%d", entrypoint++);
-					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
+					snprintf (buffer, 20, "exit%d", exitcount++);
+					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
+				}
+			}
+		}
+	}
+	{
+		HSection* dynsym,* dynstr;
+		if ((dynsym = binary->getSection (".dynsym") )&& (dynstr = binary->getSection (".dynstr")) ){
+			size_t structlength;
+			size_t valueoffset;
+			size_t sizeoffset;
+			if(binary->bitbase == 32)
+				structlength = 16;
+			else
+				structlength = 24;
+				
+			for(size_t entryoffset = 0; entryoffset < dynsym->size; entryoffset += structlength){
+				char* name = dynstr->getPtr<char>(binary->data,dynsym->getValue<uint32_t>(binary->data,entryoffset));
+				uint64_t value;
+				uint64_t size;
+				if(binary->bitbase == 32){
+					value = dynsym->getValue<uint32_t>(binary->data,entryoffset + 0x4);
+					size = dynsym->getValue<uint32_t>(binary->data,entryoffset + 0x8);
+				}else{
+					value = dynsym->getValue<uint64_t>(binary->data,entryoffset + 0x8);
+					size = dynsym->getValue<uint64_t>(binary->data,entryoffset + 0x10);
+				}
+				if(value){
+					HSymbol* sym = binary->findSymbol(value,&HSymbolType::symfunc);
+					if(sym){
+						sym->name.del();
+						sym->name.update(holodec::HString::create(name));
+						sym->size = size;
+					}else{
+						binary->addSymbol({0,holodec::HString::create(name),&holodec::HSymbolType::symfunc,0,value,value,size});
+					}
 				}
 			}
 		}
@@ -118,11 +151,11 @@ bool holoelf::HElfBinaryAnalyzer::parseFileHeader() {
 	switch (data[4]) {
 	case 0x01:
 		binary->stringDB.insert (std::pair<HString, HString> (holokey::bit, HString::create ("32-bit")));
-		bitcount = 32;
+		binary->bitbase = 32;
 		break;
 	case 0x02:
 		binary->stringDB.insert (std::pair<HString, HString> (holokey::bit, HString::create ("64-bit")));
-		bitcount = 64;
+		binary->bitbase = 64;
 		break;
 	default:
 		printf ("Not supported Architecture\n");
@@ -199,9 +232,8 @@ bool holoelf::HElfBinaryAnalyzer::parseFileHeader() {
 		printf ("Not supported Version\n");
 
 	size_t offset64bit;
-	if (bitcount == 32) {
-		//Ptr to EntryPoint
-		entrypoint = data.get<uint32_t> (0x18);
+	if (binary->bitbase == 32) {
+		//Ptr to EntryPoint handled later
 		//Ptr to Program Header Table
 		programHeaderTable.offset = data.get<uint32_t> (0x1C);
 		//Ptr to Section Header Table
@@ -209,7 +241,6 @@ bool holoelf::HElfBinaryAnalyzer::parseFileHeader() {
 		offset64bit = 0;
 	} else {
 		//Ptr to EntryPoint
-		entrypoint = data.get<size_t> (0x18);
 		//Ptr to Program Header Table
 		programHeaderTable.offset = data.get<uint64_t> (0x20);
 		//Ptr to Section Header Table
@@ -232,9 +263,9 @@ bool holoelf::HElfBinaryAnalyzer::parseProgramHeaderTable () {
 
 	size_t entrysize = 0;
 
-	if (bitcount == 32)
+	if (binary->bitbase == 32)
 		entrysize = 0x20;
-	else if (bitcount == 64)
+	else if (binary->bitbase == 64)
 		entrysize = 0x38;
 
 	for (unsigned int i = 0; i < programHeaderTable.entries; i++) {
@@ -246,23 +277,23 @@ bool holoelf::HElfBinaryAnalyzer::parseProgramHeaderTable () {
 			HSection section = HSection();
 
 			uint32_t flags;
-			if (bitcount == 32)
+			if (binary->bitbase == 32)
 				flags = data.get<uint32_t> (entryoffset + 0x18);
-			else if (bitcount == 64)
+			else if (binary->bitbase == 64)
 				flags = data.get<uint32_t> (entryoffset + 0x04);
 			section.srwx = (flags & 0x4 ? 0x1 : 0x0) | (flags & 0x2 ? 0x2 : 0x0) | (flags & 0x1 ? 0x4 : 0x0);
 
-			if (bitcount == 32) {
+			if (binary->bitbase == 32) {
 				section.offset = data.get<uint32_t> (entryoffset + 0x04);
 				section.vaddr = data.get<uint32_t> (entryoffset + 0x08);
-				section.paddr = data.get<uint32_t> (entryoffset + 0x0C);
+				//section.paddr = data.get<uint32_t> (entryoffset + 0x0C);
 				//section.size = data.get<uint32_t> (entryoffset +0x10);//Size in File Image
 				section.size = data.get<uint32_t> (entryoffset + 0x14);//Size in Memory
 				//printf ("Alignment: %X\n", data.get<uint32_t> (entryoffset + 0x1C));
-			} else if (bitcount == 64) {
+			} else if (binary->bitbase == 64) {
 				section.offset = data.get<uint32_t> (entryoffset + 0x08);
 				section.vaddr = data.get<uint32_t> (entryoffset + 0x10);
-				section.paddr = data.get<uint32_t> (entryoffset + 0x18);
+				//section.paddr = data.get<uint32_t> (entryoffset + 0x18);
 				//section.size = data.get<uint32_t> (entryoffset + 0x20);//Size in File Image
 				section.size = data.get<uint32_t> (entryoffset + 0x28);//Size in Memory
 				//printf ("Alignment: %X\n", data.get<uint32_t> (entryoffset + 0x30));
@@ -279,9 +310,9 @@ bool holoelf::HElfBinaryAnalyzer::parseSectionHeaderTable () {
 
 	size_t entrysize = 0;
 
-	if (bitcount == 32)
+	if (binary->bitbase == 32)
 		entrysize = 0x28;
-	else if (bitcount == 64)
+	else if (binary->bitbase == 64)
 		entrysize = 0x40;
 
 	HSection sections[sectionHeaderTable.entries];
@@ -294,7 +325,7 @@ bool holoelf::HElfBinaryAnalyzer::parseSectionHeaderTable () {
 		size_t size = binary->data->size - entryoffset;
 		nameoffset[i] = binary->getValue<uint32_t> (entryoffset + 0x00);
 
-		uint64_t flags = bitcount == 32 ? binary->getValue<uint32_t> (entryoffset + 0x08) : binary->getValue<uint32_t> (entryoffset + 0x08);
+		uint64_t flags = binary->bitbase == 32 ? binary->getValue<uint32_t> (entryoffset + 0x08) : binary->getValue<uint32_t> (entryoffset + 0x08);
 		sections[i].srwx = 0;
 		if (flags & 0x1)
 			sections[i].srwx |= 0x2;
@@ -304,18 +335,18 @@ bool holoelf::HElfBinaryAnalyzer::parseSectionHeaderTable () {
 		//printf ("SHF_ALLOC\n");
 		if (flags & 0x4)
 			sections[i].srwx |= 0x4;
-		//printf ("SHF_EXECINSTH\n");
+		//printf ("SHF_EXECINSTR\n");
 
-		if (bitcount == 32) {
-			sections[i].vaddr = sections[i].paddr = binary->getValue<uint32_t> (entryoffset + 0x0C);
+		if (binary->bitbase == 32) {
+			sections[i].vaddr = binary->getValue<uint32_t> (entryoffset + 0x0C);
 			sections[i].offset = binary->getValue<uint32_t> (entryoffset + 0x10);
 			sections[i].size = binary->getValue<uint32_t> (entryoffset + 0x14);
 			//printf ("Link: %X\n", binary->getValue<uint32_t> (entryoffset + 0x18));
 			//printf ("Info: %X\n", binary->getValue<uint32_t> (entryoffset + 0x1C));
 			//printf ("Alignment: %X\n", binary->getValue<uint32_t> (entryoffset + 0x20));
 			//printf ("Entrysize: %X\n", binary->getValue<uint32_t> (entryoffset + 0x24));
-		} else if (bitcount == 64) {
-			sections[i].vaddr = sections[i].paddr = binary->getValue<uint32_t> (entryoffset + 0x10);
+		} else if (binary->bitbase == 64) {
+			sections[i].vaddr = binary->getValue<uint32_t> (entryoffset + 0x10);
 			sections[i].offset = binary->getValue<uint32_t> (entryoffset + 0x18);
 			sections[i].size = binary->getValue<uint32_t> (entryoffset + 0x20);
 			//printf ("Link: %X\n", binary->getValue<uint32_t> (entryoffset + 0x28));

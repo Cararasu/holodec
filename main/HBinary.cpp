@@ -37,6 +37,7 @@ holodec::HSection* holodec::HBinary::getSection (HId id) {
 }
 holodec::HId holodec::HBinary::addSymbol (HSymbol symbol) {
 	symbol.id = gen_symbols.next();
+	printf("Add Symbol %d\n",symbol.id);
 	symbols.push_back (symbol);
 	return symbol.id;
 }
@@ -50,6 +51,13 @@ holodec::HSymbol* holodec::HBinary::getSymbol (HString name) {
 holodec::HSymbol* holodec::HBinary::getSymbol (HId id) {
 	for (HSymbol & symbol : symbols) {
 		if(symbol.id == id)
+			return &symbol;
+	}
+	return nullptr;
+}
+holodec::HSymbol* holodec::HBinary::findSymbol (size_t addr,const HSymbolType* type) {
+	for (HSymbol & symbol : symbols) {
+		if(symbol.vaddr == addr && (symbol.symboltype == type || symbol.symboltype->name == type->name))
 			return &symbol;
 	}
 	return nullptr;

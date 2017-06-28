@@ -11,7 +11,7 @@ namespace holodec {
 	struct HArchitecture {
 		HString name;
 		HString desc;
-		uint64_t bitcount;
+		uint64_t bitbase;
 
 		HList<std::function<HFunctionAnalyzer* (HBinary*) >> functionanalyzerfactories;
 		HList<HRegister> registers;

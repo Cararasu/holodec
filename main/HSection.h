@@ -16,19 +16,19 @@ namespace holodec {
 	struct HSymbolType {
 		HString name;
 
-		static HSymbolType symbool;
-		static HSymbolType symint;
-		static HSymbolType symuint;
-		static HSymbolType symfloat;
-		static HSymbolType symstring;
-		static HSymbolType symfunc;
+		static const HSymbolType symbool;
+		static const HSymbolType symint;
+		static const HSymbolType symuint;
+		static const HSymbolType symfloat;
+		static const HSymbolType symstring;
+		static const HSymbolType symfunc;
 	};
 
 	struct HSymbol {
 		HId id;
 		HString name;
 
-		HSymbolType symboltype;
+		const HSymbolType* symboltype;
 		HType* type;
 
 		size_t vaddr;
@@ -39,20 +39,21 @@ namespace holodec {
 	};
 	struct HSection {
 		HId id;
+		//name of the section
 		HString name;
 
+		//the offset into the memory
 		size_t offset;
+		//the virtual address, that section is mapped to
 		size_t vaddr;
-		size_t paddr;
+		//size_t paddr;needed?
+		//the size of the section
 		size_t size;
-
+		
+		//read/write/executable
 		uint32_t srwx;
 
 		HList<HSection> subsections;
-
-		HId addSection (HSection section);
-		HSection* getSection (HId id);
-		HSection* getSection (HString name);
 
 		HSection() = default;
 		HSection (const HSection&) = default;
@@ -60,16 +61,16 @@ namespace holodec {
 			return HSection (sec);
 		}
 
-		size_t vAddrInSection (size_t addr) {
-			if (vaddr <= addr && vaddr + size > addr)
-				return true;
-			return false;
+		HId addSection (HSection section);
+		HSection* getSection (HId id);
+		HSection* getSection (HString name);
+
+		size_t pointsToSection (size_t addr) {
+			return vaddr <= addr && addr < vaddr + size;
 		}
-		size_t getDataOffsetFromVAddr (size_t addr) {
-			return offset + addr - vaddr;
-		}
-		size_t getDataOffsetFromPAddr (size_t addr) {
-			return offset + addr - paddr;
+		template<typename T>
+		T* getPtr (HData* data, size_t offset) {
+			return (T*)(data->data + this->offset + offset);
 		}
 
 		template<typename T>
