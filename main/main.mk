@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Thomas
-Date                   :=26/06/2017
+Date                   :=28/06/2017
 CodeLitePath           :="C:/Program Files/CodeLite"
 LinkerName             :="C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/g++.exe"
 SharedObjectLinkerName :="C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/g++.exe" -shared -fPIC
@@ -37,13 +37,13 @@ PCHCompileFlags        :=
 MakeDirCommand         :=makedir
 RcCmpOptions           := 
 RcCompilerName         :="C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/windres.exe"
-LinkOptions            :=  -L -lpython37
+LinkOptions            :=  
 IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch). $(IncludeSwitch)../capstone/include 
 IncludePCH             := 
 RcIncludePath          := 
 Libs                   := $(LibrarySwitch)capstone 
-ArLibs                 :=  "libcapstone.a" 
-LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch)..\capstone\build 
+ArLibs                 :=  "capstone" 
+LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch)../capstone/build 
 
 ##
 ## Common variables
@@ -52,8 +52,8 @@ LibPath                := $(LibraryPathSwitch). $(LibraryPathSwitch)..\capstone\
 AR       := "C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/ar.exe" rcu
 CXX      := "C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/g++.exe"
 CC       := "C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/gcc.exe"
-CXXFLAGS :=  -g -O0 -Wall -std=c++11 $(Preprocessors)
-CFLAGS   :=  -g -O0 -Wall $(Preprocessors)
+CXXFLAGS := -Wall -std=c++11 -g -O0 $(Preprocessors)
+CFLAGS   := -Wall -std=c99 -g -O0 $(Preprocessors)
 ASFLAGS  := 
 AS       := "C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/as.exe"
 
@@ -62,8 +62,9 @@ AS       := "C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw6
 ## User defined environment variables
 ##
 CodeLiteDir:=C:\Program Files\CodeLite
-Objects0=$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/RClass.cpp$(ObjectSuffix) $(IntermediateDirectory)/RSection.cpp$(ObjectSuffix) $(IntermediateDirectory)/RFunction.cpp$(ObjectSuffix) $(IntermediateDirectory)/RBinary.cpp$(ObjectSuffix) $(IntermediateDirectory)/RData.cpp$(ObjectSuffix) $(IntermediateDirectory)/RMain.cpp$(ObjectSuffix) $(IntermediateDirectory)/RGeneral.cpp$(ObjectSuffix) $(IntermediateDirectory)/RConsole.cpp$(ObjectSuffix) $(IntermediateDirectory)/RLogger.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/RFileFormat.cpp$(ObjectSuffix) $(IntermediateDirectory)/RBinaryAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/RFunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/RArchitecture.cpp$(ObjectSuffix) $(IntermediateDirectory)/RInstrDefinition.cpp$(ObjectSuffix) $(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Rx86Architecture.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/HStringDatabase.cpp$(ObjectSuffix) $(IntermediateDirectory)/HSection.cpp$(ObjectSuffix) $(IntermediateDirectory)/HFunction.cpp$(ObjectSuffix) $(IntermediateDirectory)/HData.cpp$(ObjectSuffix) $(IntermediateDirectory)/HClass.cpp$(ObjectSuffix) $(IntermediateDirectory)/HBinary.cpp$(ObjectSuffix) $(IntermediateDirectory)/HScriptingInterface.cpp$(ObjectSuffix) $(IntermediateDirectory)/HMain.cpp$(ObjectSuffix) $(IntermediateDirectory)/HLogger.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/HGeneral.cpp$(ObjectSuffix) $(IntermediateDirectory)/HConsole.cpp$(ObjectSuffix) $(IntermediateDirectory)/HBinaryAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/HFileFormat.cpp$(ObjectSuffix) $(IntermediateDirectory)/HInstrDefinition.cpp$(ObjectSuffix) $(IntermediateDirectory)/HFunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/HArchitecture.cpp$(ObjectSuffix) $(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Hx86Architecture.cpp$(ObjectSuffix) $(IntermediateDirectory)/HElfDataFile.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(ObjectSuffix) 
 
 
 
@@ -102,141 +103,165 @@ $(IntermediateDirectory)/main.cpp$(DependSuffix): main.cpp
 $(IntermediateDirectory)/main.cpp$(PreprocessSuffix): main.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/main.cpp$(PreprocessSuffix) main.cpp
 
-$(IntermediateDirectory)/RClass.cpp$(ObjectSuffix): RClass.cpp $(IntermediateDirectory)/RClass.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RClass.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RClass.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RClass.cpp$(DependSuffix): RClass.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RClass.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RClass.cpp$(DependSuffix) -MM RClass.cpp
+$(IntermediateDirectory)/HStringDatabase.cpp$(ObjectSuffix): HStringDatabase.cpp $(IntermediateDirectory)/HStringDatabase.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HStringDatabase.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HStringDatabase.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HStringDatabase.cpp$(DependSuffix): HStringDatabase.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HStringDatabase.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HStringDatabase.cpp$(DependSuffix) -MM HStringDatabase.cpp
 
-$(IntermediateDirectory)/RClass.cpp$(PreprocessSuffix): RClass.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RClass.cpp$(PreprocessSuffix) RClass.cpp
+$(IntermediateDirectory)/HStringDatabase.cpp$(PreprocessSuffix): HStringDatabase.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HStringDatabase.cpp$(PreprocessSuffix) HStringDatabase.cpp
 
-$(IntermediateDirectory)/RSection.cpp$(ObjectSuffix): RSection.cpp $(IntermediateDirectory)/RSection.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RSection.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RSection.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RSection.cpp$(DependSuffix): RSection.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RSection.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RSection.cpp$(DependSuffix) -MM RSection.cpp
+$(IntermediateDirectory)/HSection.cpp$(ObjectSuffix): HSection.cpp $(IntermediateDirectory)/HSection.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HSection.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HSection.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HSection.cpp$(DependSuffix): HSection.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HSection.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HSection.cpp$(DependSuffix) -MM HSection.cpp
 
-$(IntermediateDirectory)/RSection.cpp$(PreprocessSuffix): RSection.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RSection.cpp$(PreprocessSuffix) RSection.cpp
+$(IntermediateDirectory)/HSection.cpp$(PreprocessSuffix): HSection.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HSection.cpp$(PreprocessSuffix) HSection.cpp
 
-$(IntermediateDirectory)/RFunction.cpp$(ObjectSuffix): RFunction.cpp $(IntermediateDirectory)/RFunction.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RFunction.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RFunction.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RFunction.cpp$(DependSuffix): RFunction.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RFunction.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RFunction.cpp$(DependSuffix) -MM RFunction.cpp
+$(IntermediateDirectory)/HFunction.cpp$(ObjectSuffix): HFunction.cpp $(IntermediateDirectory)/HFunction.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HFunction.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HFunction.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HFunction.cpp$(DependSuffix): HFunction.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HFunction.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HFunction.cpp$(DependSuffix) -MM HFunction.cpp
 
-$(IntermediateDirectory)/RFunction.cpp$(PreprocessSuffix): RFunction.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RFunction.cpp$(PreprocessSuffix) RFunction.cpp
+$(IntermediateDirectory)/HFunction.cpp$(PreprocessSuffix): HFunction.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HFunction.cpp$(PreprocessSuffix) HFunction.cpp
 
-$(IntermediateDirectory)/RBinary.cpp$(ObjectSuffix): RBinary.cpp $(IntermediateDirectory)/RBinary.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RBinary.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RBinary.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RBinary.cpp$(DependSuffix): RBinary.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RBinary.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RBinary.cpp$(DependSuffix) -MM RBinary.cpp
+$(IntermediateDirectory)/HData.cpp$(ObjectSuffix): HData.cpp $(IntermediateDirectory)/HData.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HData.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HData.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HData.cpp$(DependSuffix): HData.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HData.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HData.cpp$(DependSuffix) -MM HData.cpp
 
-$(IntermediateDirectory)/RBinary.cpp$(PreprocessSuffix): RBinary.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RBinary.cpp$(PreprocessSuffix) RBinary.cpp
+$(IntermediateDirectory)/HData.cpp$(PreprocessSuffix): HData.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HData.cpp$(PreprocessSuffix) HData.cpp
 
-$(IntermediateDirectory)/RData.cpp$(ObjectSuffix): RData.cpp $(IntermediateDirectory)/RData.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RData.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RData.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RData.cpp$(DependSuffix): RData.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RData.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RData.cpp$(DependSuffix) -MM RData.cpp
+$(IntermediateDirectory)/HClass.cpp$(ObjectSuffix): HClass.cpp $(IntermediateDirectory)/HClass.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HClass.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HClass.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HClass.cpp$(DependSuffix): HClass.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HClass.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HClass.cpp$(DependSuffix) -MM HClass.cpp
 
-$(IntermediateDirectory)/RData.cpp$(PreprocessSuffix): RData.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RData.cpp$(PreprocessSuffix) RData.cpp
+$(IntermediateDirectory)/HClass.cpp$(PreprocessSuffix): HClass.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HClass.cpp$(PreprocessSuffix) HClass.cpp
 
-$(IntermediateDirectory)/RMain.cpp$(ObjectSuffix): RMain.cpp $(IntermediateDirectory)/RMain.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RMain.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RMain.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RMain.cpp$(DependSuffix): RMain.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RMain.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RMain.cpp$(DependSuffix) -MM RMain.cpp
+$(IntermediateDirectory)/HBinary.cpp$(ObjectSuffix): HBinary.cpp $(IntermediateDirectory)/HBinary.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HBinary.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HBinary.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HBinary.cpp$(DependSuffix): HBinary.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HBinary.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HBinary.cpp$(DependSuffix) -MM HBinary.cpp
 
-$(IntermediateDirectory)/RMain.cpp$(PreprocessSuffix): RMain.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RMain.cpp$(PreprocessSuffix) RMain.cpp
+$(IntermediateDirectory)/HBinary.cpp$(PreprocessSuffix): HBinary.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HBinary.cpp$(PreprocessSuffix) HBinary.cpp
 
-$(IntermediateDirectory)/RGeneral.cpp$(ObjectSuffix): RGeneral.cpp $(IntermediateDirectory)/RGeneral.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RGeneral.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RGeneral.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RGeneral.cpp$(DependSuffix): RGeneral.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RGeneral.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RGeneral.cpp$(DependSuffix) -MM RGeneral.cpp
+$(IntermediateDirectory)/HScriptingInterface.cpp$(ObjectSuffix): HScriptingInterface.cpp $(IntermediateDirectory)/HScriptingInterface.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HScriptingInterface.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HScriptingInterface.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HScriptingInterface.cpp$(DependSuffix): HScriptingInterface.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HScriptingInterface.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HScriptingInterface.cpp$(DependSuffix) -MM HScriptingInterface.cpp
 
-$(IntermediateDirectory)/RGeneral.cpp$(PreprocessSuffix): RGeneral.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RGeneral.cpp$(PreprocessSuffix) RGeneral.cpp
+$(IntermediateDirectory)/HScriptingInterface.cpp$(PreprocessSuffix): HScriptingInterface.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HScriptingInterface.cpp$(PreprocessSuffix) HScriptingInterface.cpp
 
-$(IntermediateDirectory)/RConsole.cpp$(ObjectSuffix): RConsole.cpp $(IntermediateDirectory)/RConsole.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RConsole.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RConsole.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RConsole.cpp$(DependSuffix): RConsole.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RConsole.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RConsole.cpp$(DependSuffix) -MM RConsole.cpp
+$(IntermediateDirectory)/HMain.cpp$(ObjectSuffix): HMain.cpp $(IntermediateDirectory)/HMain.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HMain.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HMain.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HMain.cpp$(DependSuffix): HMain.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HMain.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HMain.cpp$(DependSuffix) -MM HMain.cpp
 
-$(IntermediateDirectory)/RConsole.cpp$(PreprocessSuffix): RConsole.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RConsole.cpp$(PreprocessSuffix) RConsole.cpp
+$(IntermediateDirectory)/HMain.cpp$(PreprocessSuffix): HMain.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HMain.cpp$(PreprocessSuffix) HMain.cpp
 
-$(IntermediateDirectory)/RLogger.cpp$(ObjectSuffix): RLogger.cpp $(IntermediateDirectory)/RLogger.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RLogger.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RLogger.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RLogger.cpp$(DependSuffix): RLogger.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RLogger.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RLogger.cpp$(DependSuffix) -MM RLogger.cpp
+$(IntermediateDirectory)/HLogger.cpp$(ObjectSuffix): HLogger.cpp $(IntermediateDirectory)/HLogger.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HLogger.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HLogger.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HLogger.cpp$(DependSuffix): HLogger.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HLogger.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HLogger.cpp$(DependSuffix) -MM HLogger.cpp
 
-$(IntermediateDirectory)/RLogger.cpp$(PreprocessSuffix): RLogger.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RLogger.cpp$(PreprocessSuffix) RLogger.cpp
+$(IntermediateDirectory)/HLogger.cpp$(PreprocessSuffix): HLogger.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HLogger.cpp$(PreprocessSuffix) HLogger.cpp
 
-$(IntermediateDirectory)/RFileFormat.cpp$(ObjectSuffix): RFileFormat.cpp $(IntermediateDirectory)/RFileFormat.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RFileFormat.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RFileFormat.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RFileFormat.cpp$(DependSuffix): RFileFormat.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RFileFormat.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RFileFormat.cpp$(DependSuffix) -MM RFileFormat.cpp
+$(IntermediateDirectory)/HGeneral.cpp$(ObjectSuffix): HGeneral.cpp $(IntermediateDirectory)/HGeneral.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HGeneral.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HGeneral.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HGeneral.cpp$(DependSuffix): HGeneral.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HGeneral.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HGeneral.cpp$(DependSuffix) -MM HGeneral.cpp
 
-$(IntermediateDirectory)/RFileFormat.cpp$(PreprocessSuffix): RFileFormat.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RFileFormat.cpp$(PreprocessSuffix) RFileFormat.cpp
+$(IntermediateDirectory)/HGeneral.cpp$(PreprocessSuffix): HGeneral.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HGeneral.cpp$(PreprocessSuffix) HGeneral.cpp
 
-$(IntermediateDirectory)/RBinaryAnalyzer.cpp$(ObjectSuffix): RBinaryAnalyzer.cpp $(IntermediateDirectory)/RBinaryAnalyzer.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RBinaryAnalyzer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RBinaryAnalyzer.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RBinaryAnalyzer.cpp$(DependSuffix): RBinaryAnalyzer.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RBinaryAnalyzer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RBinaryAnalyzer.cpp$(DependSuffix) -MM RBinaryAnalyzer.cpp
+$(IntermediateDirectory)/HConsole.cpp$(ObjectSuffix): HConsole.cpp $(IntermediateDirectory)/HConsole.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HConsole.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HConsole.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HConsole.cpp$(DependSuffix): HConsole.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HConsole.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HConsole.cpp$(DependSuffix) -MM HConsole.cpp
 
-$(IntermediateDirectory)/RBinaryAnalyzer.cpp$(PreprocessSuffix): RBinaryAnalyzer.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RBinaryAnalyzer.cpp$(PreprocessSuffix) RBinaryAnalyzer.cpp
+$(IntermediateDirectory)/HConsole.cpp$(PreprocessSuffix): HConsole.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HConsole.cpp$(PreprocessSuffix) HConsole.cpp
 
-$(IntermediateDirectory)/RFunctionAnalyzer.cpp$(ObjectSuffix): RFunctionAnalyzer.cpp $(IntermediateDirectory)/RFunctionAnalyzer.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RFunctionAnalyzer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RFunctionAnalyzer.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RFunctionAnalyzer.cpp$(DependSuffix): RFunctionAnalyzer.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RFunctionAnalyzer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RFunctionAnalyzer.cpp$(DependSuffix) -MM RFunctionAnalyzer.cpp
+$(IntermediateDirectory)/HBinaryAnalyzer.cpp$(ObjectSuffix): HBinaryAnalyzer.cpp $(IntermediateDirectory)/HBinaryAnalyzer.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HBinaryAnalyzer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HBinaryAnalyzer.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HBinaryAnalyzer.cpp$(DependSuffix): HBinaryAnalyzer.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HBinaryAnalyzer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HBinaryAnalyzer.cpp$(DependSuffix) -MM HBinaryAnalyzer.cpp
 
-$(IntermediateDirectory)/RFunctionAnalyzer.cpp$(PreprocessSuffix): RFunctionAnalyzer.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RFunctionAnalyzer.cpp$(PreprocessSuffix) RFunctionAnalyzer.cpp
+$(IntermediateDirectory)/HBinaryAnalyzer.cpp$(PreprocessSuffix): HBinaryAnalyzer.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HBinaryAnalyzer.cpp$(PreprocessSuffix) HBinaryAnalyzer.cpp
 
-$(IntermediateDirectory)/RArchitecture.cpp$(ObjectSuffix): RArchitecture.cpp $(IntermediateDirectory)/RArchitecture.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RArchitecture.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RArchitecture.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RArchitecture.cpp$(DependSuffix): RArchitecture.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RArchitecture.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RArchitecture.cpp$(DependSuffix) -MM RArchitecture.cpp
+$(IntermediateDirectory)/HFileFormat.cpp$(ObjectSuffix): HFileFormat.cpp $(IntermediateDirectory)/HFileFormat.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HFileFormat.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HFileFormat.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HFileFormat.cpp$(DependSuffix): HFileFormat.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HFileFormat.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HFileFormat.cpp$(DependSuffix) -MM HFileFormat.cpp
 
-$(IntermediateDirectory)/RArchitecture.cpp$(PreprocessSuffix): RArchitecture.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RArchitecture.cpp$(PreprocessSuffix) RArchitecture.cpp
+$(IntermediateDirectory)/HFileFormat.cpp$(PreprocessSuffix): HFileFormat.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HFileFormat.cpp$(PreprocessSuffix) HFileFormat.cpp
 
-$(IntermediateDirectory)/RInstrDefinition.cpp$(ObjectSuffix): RInstrDefinition.cpp $(IntermediateDirectory)/RInstrDefinition.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RInstrDefinition.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RInstrDefinition.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RInstrDefinition.cpp$(DependSuffix): RInstrDefinition.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RInstrDefinition.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RInstrDefinition.cpp$(DependSuffix) -MM RInstrDefinition.cpp
+$(IntermediateDirectory)/HInstrDefinition.cpp$(ObjectSuffix): HInstrDefinition.cpp $(IntermediateDirectory)/HInstrDefinition.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HInstrDefinition.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HInstrDefinition.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HInstrDefinition.cpp$(DependSuffix): HInstrDefinition.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HInstrDefinition.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HInstrDefinition.cpp$(DependSuffix) -MM HInstrDefinition.cpp
 
-$(IntermediateDirectory)/RInstrDefinition.cpp$(PreprocessSuffix): RInstrDefinition.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RInstrDefinition.cpp$(PreprocessSuffix) RInstrDefinition.cpp
+$(IntermediateDirectory)/HInstrDefinition.cpp$(PreprocessSuffix): HInstrDefinition.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HInstrDefinition.cpp$(PreprocessSuffix) HInstrDefinition.cpp
 
-$(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(ObjectSuffix): RElfBinaryAnalyzer.cpp $(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/RElfBinaryAnalyzer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(DependSuffix): RElfBinaryAnalyzer.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(DependSuffix) -MM RElfBinaryAnalyzer.cpp
+$(IntermediateDirectory)/HFunctionAnalyzer.cpp$(ObjectSuffix): HFunctionAnalyzer.cpp $(IntermediateDirectory)/HFunctionAnalyzer.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HFunctionAnalyzer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HFunctionAnalyzer.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HFunctionAnalyzer.cpp$(DependSuffix): HFunctionAnalyzer.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HFunctionAnalyzer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HFunctionAnalyzer.cpp$(DependSuffix) -MM HFunctionAnalyzer.cpp
 
-$(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(PreprocessSuffix): RElfBinaryAnalyzer.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RElfBinaryAnalyzer.cpp$(PreprocessSuffix) RElfBinaryAnalyzer.cpp
+$(IntermediateDirectory)/HFunctionAnalyzer.cpp$(PreprocessSuffix): HFunctionAnalyzer.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HFunctionAnalyzer.cpp$(PreprocessSuffix) HFunctionAnalyzer.cpp
 
-$(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(ObjectSuffix): Rx86FunctionAnalyzer.cpp $(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/Rx86FunctionAnalyzer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(DependSuffix): Rx86FunctionAnalyzer.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(DependSuffix) -MM Rx86FunctionAnalyzer.cpp
+$(IntermediateDirectory)/HArchitecture.cpp$(ObjectSuffix): HArchitecture.cpp $(IntermediateDirectory)/HArchitecture.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HArchitecture.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HArchitecture.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HArchitecture.cpp$(DependSuffix): HArchitecture.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HArchitecture.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HArchitecture.cpp$(DependSuffix) -MM HArchitecture.cpp
 
-$(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(PreprocessSuffix): Rx86FunctionAnalyzer.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Rx86FunctionAnalyzer.cpp$(PreprocessSuffix) Rx86FunctionAnalyzer.cpp
+$(IntermediateDirectory)/HArchitecture.cpp$(PreprocessSuffix): HArchitecture.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HArchitecture.cpp$(PreprocessSuffix) HArchitecture.cpp
 
-$(IntermediateDirectory)/Rx86Architecture.cpp$(ObjectSuffix): Rx86Architecture.cpp $(IntermediateDirectory)/Rx86Architecture.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/Rx86Architecture.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Rx86Architecture.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/Rx86Architecture.cpp$(DependSuffix): Rx86Architecture.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/Rx86Architecture.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/Rx86Architecture.cpp$(DependSuffix) -MM Rx86Architecture.cpp
+$(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(ObjectSuffix): Hx86FunctionAnalyzer.cpp $(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/Hx86FunctionAnalyzer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(DependSuffix): Hx86FunctionAnalyzer.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(DependSuffix) -MM Hx86FunctionAnalyzer.cpp
 
-$(IntermediateDirectory)/Rx86Architecture.cpp$(PreprocessSuffix): Rx86Architecture.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Rx86Architecture.cpp$(PreprocessSuffix) Rx86Architecture.cpp
+$(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(PreprocessSuffix): Hx86FunctionAnalyzer.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(PreprocessSuffix) Hx86FunctionAnalyzer.cpp
+
+$(IntermediateDirectory)/Hx86Architecture.cpp$(ObjectSuffix): Hx86Architecture.cpp $(IntermediateDirectory)/Hx86Architecture.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/Hx86Architecture.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Hx86Architecture.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Hx86Architecture.cpp$(DependSuffix): Hx86Architecture.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/Hx86Architecture.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/Hx86Architecture.cpp$(DependSuffix) -MM Hx86Architecture.cpp
+
+$(IntermediateDirectory)/Hx86Architecture.cpp$(PreprocessSuffix): Hx86Architecture.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Hx86Architecture.cpp$(PreprocessSuffix) Hx86Architecture.cpp
+
+$(IntermediateDirectory)/HElfDataFile.cpp$(ObjectSuffix): HElfDataFile.cpp $(IntermediateDirectory)/HElfDataFile.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HElfDataFile.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HElfDataFile.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HElfDataFile.cpp$(DependSuffix): HElfDataFile.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HElfDataFile.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HElfDataFile.cpp$(DependSuffix) -MM HElfDataFile.cpp
+
+$(IntermediateDirectory)/HElfDataFile.cpp$(PreprocessSuffix): HElfDataFile.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HElfDataFile.cpp$(PreprocessSuffix) HElfDataFile.cpp
+
+$(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(ObjectSuffix): HElfBinaryAnalyzer.cpp $(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HElfBinaryAnalyzer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(DependSuffix): HElfBinaryAnalyzer.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(DependSuffix) -MM HElfBinaryAnalyzer.cpp
+
+$(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(PreprocessSuffix): HElfBinaryAnalyzer.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(PreprocessSuffix) HElfBinaryAnalyzer.cpp
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

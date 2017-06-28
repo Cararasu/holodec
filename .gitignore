@@ -1,1 +1,3 @@
-.codelite/
+/.codelite/
+/cpython/
+/capstone/
