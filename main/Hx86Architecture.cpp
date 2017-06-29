@@ -194,8 +194,8 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_JNP,		{"jnp", {0, "?($p,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
 		{X86_INS_JCXZ,	{"jcxz", {0, "?(==($cx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
-		{X86_INS_JECXZ,	{"jcxz", {0, "?(==($ecx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
-		{X86_INS_JRCXZ,	{"jcxz", {0, "?(==($rcx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
+		{X86_INS_JECXZ,	{"jecxz", {0, "?(==($ecx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
+		{X86_INS_JRCXZ,	{"jrcxz", {0, "?(==($rcx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
 
 		{X86_INS_XCHG,	{"xchg", {0, 0, "=(#t0,#arg1)&=(#arg1,#arg2)&=(#arg2,#t0)", 0}, H_INSTR_TYPE_XCHG}},
 
@@ -225,7 +225,7 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_POPAW,	{"popad", {0, "#pop($edi)&#pop($esi)&#pop($ebp)&=($esp,+($esp,4))&#pop($ebx)&#pop($edx)&#pop($ecx)&#pop($eax)", 0, 0}, H_INSTR_TYPE_PUSH}},
 		{X86_INS_POPAL,	{"popa", {0, "#pop($di)&#pop($si)&#pop($bp)&=($esp,+($esp,2))&#pop($bx)&#pop($dx)&#pop($cx)&#pop($ax)", 0, 0}, H_INSTR_TYPE_PUSH}},
 
-		{X86_INS_RET,		{"ret", {"#rec[pop](#t0)&#jmp(#t0)", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_RET,		{"ret", {"#ret", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
 		{X86_INS_CWD,		{"cwd", {"=($dx,#sextend($ax,#size($dx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
 		{X86_INS_CDQ,		{"cdq", {"=($edx,#sextend($eax,#size($edx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
@@ -295,13 +295,31 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_INC,		{"inc", {0, 0, "=(#arg1,+(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTR_TYPE_ADD}},
 		{X86_INS_DEC,		{"dec", {0, 0, "=(#arg1,-(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTR_TYPE_SUB}},
 
-		{X86_INS_NEG,		{"neg", {0, 0, "=(#arg1,#neg(#arg1,1)&=($c,#eq(#arg1,0))", 0}, H_INSTR_TYPE_NEG}},
+		{X86_INS_NEG,		{"neg", {0, 0, "=(#arg1,#neg(#arg1)&=($c,#eq(#arg1,0))", 0}, H_INSTR_TYPE_NEG}},
 
 		{X86_INS_CMP,		{"cmp", {0, 0, "=(#t0,#arg1)&#rec[sub](#t0,#arg2)", 0}, H_INSTR_TYPE_CMP}},
 
-		{X86_INS_AND,		{"and", {0, 0, "=(#arg1,#band(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_AND}},
-		{X86_INS_OR,		{"or", {0, 0, "=(#arg1,#bor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_OR}},
-		{X86_INS_XOR,		{"xor", {0, 0, "=(#arg1,#bxor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_XOH}},
+		{X86_INS_AND,		{"and", {0, 0, "=(#arg1,#band(#arg1,#arg2)&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p))", 0}, H_INSTR_TYPE_AND}},
+		{X86_INS_ANDPD,		{"andpd", {0, 0, "=(#arg1,#band(#arg1,#arg2))", 0}}},
+		{X86_INS_ANDPS,		{"andps", {0, 0, "=(#arg1,#band(#arg1,#arg2))", 0}}},
+		{X86_INS_PAND,		{"pand", {0, 0, "=(#arg1,#band(#arg1,#arg2))", 0}}},
+		
+		{X86_INS_ANDN,		{"andn", {0, 0, "=(#arg1,#band(#bnot(#arg1),#arg2))", 0}}},
+		{X86_INS_ANDNPD,		{"andnpd", {0, 0, "=(#arg1,#band(#bnot(#arg1),#arg2))", 0}}},
+		{X86_INS_ANDNPS,		{"andnps", {0, 0, "=(#arg1,#band(#bnot(#arg1),#arg2))", 0}}},
+		{X86_INS_PANDN,		{"pandn", {0, 0, "=(#arg1,#band(#bnot(#arg1),#arg2)&=($o,0)&=($c,0)&=($s,#s)&=($z,#z))", 0}}},
+		
+		
+		{X86_INS_OR,		{"or", {0, 0, "=(#arg1,#bor(#arg1,#arg2)&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p))", 0}, H_INSTR_TYPE_OR}},
+		{X86_INS_ORPD,		{"orpd", {0, 0, "=(#arg1,#bor(#arg1,#arg2))", 0}}},
+		{X86_INS_ORPS,		{"orps", {0, 0, "=(#arg1,#bor(#arg1,#arg2))", 0}}},
+		{X86_INS_POR,		{"por", {0, 0, "=(#arg1,#bor(#arg1,#arg2))", 0}}},
+		
+		{X86_INS_XOR,		{"xor", {0, 0, "=(#arg1,#bxor(#arg1,#arg2)&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p))", 0}, H_INSTR_TYPE_XOH}},
+		{X86_INS_XORPD,		{"xorpd", {0, 0, "=(#arg1,#bxor(#arg1,#arg2))", 0}}},
+		{X86_INS_XORPS,		{"xorps", {0, 0, "=(#arg1,#bxor(#arg1,#arg2))", 0}}},
+		{X86_INS_PXOR,		{"pxor", {0, 0, "=(#arg1,#bxor(#arg1,#arg2))", 0}}},
+		
 		{X86_INS_NOT,		{"not", {0, 0, "=(#arg1,#bnot(#arg1,#arg2))", 0}, H_INSTR_TYPE_NOT}},
 
 
@@ -457,10 +475,10 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_STI,		{"sti", {"=($i,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET}},
 		{X86_INS_CLI,		{"cli", {"=($i,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET}},
 
-		{X86_INS_AAA,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_AAD,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_AAM,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_AAS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AAA,		{"aaa", {0, 0, 0, 0}}},
+		{X86_INS_AAD,		{"aad", {0, 0, 0, 0}}},
+		{X86_INS_AAM,		{"aam", {0, 0, 0, 0}}},
+		{X86_INS_AAS,		{"aas", {0, 0, 0, 0}}},
 
 		{X86_INS_FABS,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_ADDPD,		{"xxx", {0, 0, 0, 0}}},
@@ -479,11 +497,6 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_AESENC,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_AESIMC,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_AESKEYGENASSIST,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_ANDN,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_ANDNPD,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_ANDNPS,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_ANDPD,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_ANDPS,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_ARPL,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_BEXTR,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_BLCFILL,		{"xxx", {0, 0, 0, 0}}},
@@ -611,12 +624,8 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_FYL2XP1,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVAPD,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVAPS,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_ORPD,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_ORPS,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_VMOVAPD,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_VMOVAPS,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_XORPD,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_XORPS,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_GETSEC,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_HADDPD,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_HADDPS,		{"xxx", {0, 0, 0, 0}}},
@@ -738,11 +747,9 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_CVTTPS2PI,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_EMMS,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MASKMOVQ,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_MOVD,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVDQ2Q,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVNTQ,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVQ2DQ,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_MOVQ,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PABSB,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PABSD,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PABSW,		{"xxx", {0, 0, 0, 0}}},
@@ -758,8 +765,6 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_PADDUSW,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PADDW,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PALIGNR,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_PANDN,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_PAND,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PAVGB,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PAVGW,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PCMPEQB,		{"xxx", {0, 0, 0, 0}}},
@@ -788,7 +793,6 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_PMULHW,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PMULLW,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PMULUDQ,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_POR,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PSADBW,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PSHUFB,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PSHUFW,		{"xxx", {0, 0, 0, 0}}},
@@ -817,10 +821,8 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_PUNPCKLBW,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PUNPCKLDQ,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_PUNPCKLWD,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_PXOR,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MONITOR,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MONTMUL,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_MOV,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVABS,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVBE,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVDDUP,		{"xxx", {0, 0, 0, 0}}},
@@ -848,7 +850,6 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{X86_INS_MOVSQ,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVSS,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVSW,		{"xxx", {0, 0, 0, 0}}},
-		{X86_INS_MOVSXD,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVUPD,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MOVUPS,		{"xxx", {0, 0, 0, 0}}},
 		{X86_INS_MPSADBW,		{"xxx", {0, 0, 0, 0}}},
