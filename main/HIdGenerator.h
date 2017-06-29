@@ -14,6 +14,9 @@ namespace holodec {
 		HId next() {
 			return val++;
 		}
+		void clear() {
+			val = 1;
+		}
 	};
 }
 

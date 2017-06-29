@@ -107,24 +107,24 @@ namespace holodec {
 				break;
 			case H_LOCAL_TYPE_MEM: {
 				bool pre = false;
-				if (mem.segment){
+				if (mem.segment) {
 					printf ("%s:", mem.segment->name.cstr());
 				}
 				printf ("[");
-				if (mem.base){
+				if (mem.base) {
 					printf ("%s", mem.base->name.cstr());
 					pre = true;
 				}
 				if (mem.index && mem.scale) {
-					if(pre)
-						printf(" + ");
+					if (pre)
+						printf (" + ");
 					printf ("%s*%d", mem.index->name.cstr(), mem.scale);
 					pre = true;
 				}
 				if (mem.disp) {
-					if(pre)
-						printf(" + ");
-					if(mem.disp >= 0)
+					if (pre)
+						printf (" + ");
+					if (mem.disp >= 0)
 						printf ("0x%X", mem.disp);
 					else
 						printf ("%d", mem.disp);
@@ -176,9 +176,10 @@ namespace holodec {
 		}
 	};
 	struct HBasicBlock {
+		HId id;
 		HList<HInstruction> instructions;
-		HBasicBlock* nextblock;
-		HBasicBlock* nextcondblock;
+		HId nextblock;
+		HId nextcondblock;
 		HInstructionCondition cond;
 		size_t addr;
 		size_t size;
@@ -194,14 +195,35 @@ namespace holodec {
 	struct HFunction {
 		HId id;
 		HId symbolref;
+		HIdGenerator gen_bb;
 		HList<HBasicBlock> basicblocks;
 		HVisibilityType* visibility;
-		
-		void print(int indent = 0){
-			printIndent(indent);
-			printf("Printing Function\n");
-			for(HBasicBlock& bb : basicblocks){
-				bb.print(indent + 1);
+
+		HBasicBlock* findBasicBlock (size_t addr) {
+			for (HBasicBlock& bb : basicblocks) {
+				if (bb.addr == addr)
+					return &bb;
+			}
+		}
+
+		HId addBasicBlock (HBasicBlock basicblock) {
+			basicblock.id = gen_bb.next();
+			basicblocks.push_back (basicblock);
+			return basicblock.id;
+		}
+		void clear() {
+			id = 0;
+			symbolref = 0;
+			gen_bb.clear();
+			basicblocks.clear();
+			visibility = 0;
+		}
+
+		void print (int indent = 0) {
+			printIndent (indent);
+			printf ("Printing Function\n");
+			for (HBasicBlock& bb : basicblocks) {
+				bb.print (indent + 1);
 			}
 		}
 	};

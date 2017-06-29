@@ -21,14 +21,14 @@ namespace holodec {
 			size_t bufferSize;
 			size_t maxInstr;
 			HList<size_t> addrToAnalyze;
-			HList<HBasicBlock> bbs;
+			HFunction function;
 			HList<HInstruction> instructions;
 
 			void reset() {
 				bufferSize = 0;
 				maxInstr = 0;
 				addrToAnalyze.clear();
-				bbs.clear();
+				function.clear();
 				instructions.clear();
 			}
 		} state;
@@ -51,6 +51,7 @@ namespace holodec {
 		//is triggered at the end of basic blocks
 		bool registerBasicBlock (size_t addr);
 		bool splitBasicBlock (HBasicBlock* basicblock, size_t splitaddr);
+		bool trySplitBasicBlock (size_t splitaddr);
 		bool postFunction (HFunction* function);
 
 		virtual void preAnalysis();

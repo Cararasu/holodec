@@ -169,7 +169,7 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{"cmovnp",	{"cmovp", {0, 0, "?($p,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 		{"cmovpo",	{"cmovpo", {0, 0, "?($p,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
-		{"jmp",		{"jmp", {0, "#jmp(#arg1)", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN}},
+		{"jmp",		{"jmp", {0, "#jmp(#arg1)", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
 		{"je",		{"je", {0, "?($z,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 		{"jz",		{"jz", {0, "?($z,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
@@ -241,7 +241,7 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{"pushad",	{"pushad", {0, "#pop($edi)&#pop($esi)&#pop($ebp)&=($esp,+($esp,4))&#pop($ebx)&#pop($edx)&#pop($ecx)&#pop($eax)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
 		{"pusha",	{"pusha", {0, "#pop($di)&#pop($si)&#pop($bp)&=($esp,+($esp,2))&#pop($bx)&#pop($dx)&#pop($cx)&#pop($ax)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
 
-		{"ret",		{"ret", {"#rec[pop](#t0)&#jmp(#t0)", 0, 0, 0}, H_INSTR_TYPE_HET, H_INSTR_TYPE_UNKNOWN, {}, H_INSTR_COND_TRUE}},
+		{"ret",		{"ret", {"#rec[pop](#t0)&#jmp(#t0)", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, {}, H_INSTR_COND_TRUE}},
 
 		{"cwd",		{"cwd", {"=($dx,#sextend($ax,#size($dx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
 		{"cdq",		{"cdq", {"=($edx,#sextend($eax,#size($edx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
@@ -314,7 +314,7 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{"cmp",		{"cmp", {0, 0, "=(#t0,#arg1)&#rec[sub](#t0,#arg2)", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN}},
 
 		{"and",		{"and", {0, 0, "=(#arg1,#band(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_AND, H_INSTR_TYPE_UNKNOWN}},
-		{"or",		{"or", {0, 0, "=(#arg1,#bor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_OH, H_INSTR_TYPE_UNKNOWN}},
+		{"or",		{"or", {0, 0, "=(#arg1,#bor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_OR, H_INSTR_TYPE_UNKNOWN}},
 		{"xor",		{"xor", {0, 0, "=(#arg1,#bxor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_XOH, H_INSTR_TYPE_UNKNOWN}},
 		{"not",		{"not", {0, 0, "=(#arg1,#bnot(#arg1,#arg2))", 0}, H_INSTR_TYPE_NOT, H_INSTR_TYPE_UNKNOWN}},
 
@@ -393,7 +393,7 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 
 		{"bt",		{"bt", {0, 0, "=($c,#split($arg1,$arg2))", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_UNKNOWN}},
 		{"bts",		{"bts", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),1)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITSET}},
-		{"btr",		{"btr", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),0)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITHESET}},
+		{"btr",		{"btr", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),0)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITRESET}},
 		{"btc",		{"btc", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),#not(#split($arg1,$arg2)))", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_CPL}},
 
 		{"loop",	{"loop", {0, "=($ecx,-($ecx,1))&?(<>($ecx,0),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN}},
@@ -407,8 +407,8 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 
 		{"call",	{"call", {0, "#call(#arg1)", 0, 0}, H_INSTR_TYPE_CALL, H_INSTR_TYPE_UNKNOWN}},
 
-		{"ret",		{"ret", {"#ret()", 0, 0, 0}, H_INSTR_TYPE_HET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
-		{"reti",	{"reti", {"#ret()", 0, 0, 0}, H_INSTR_TYPE_HET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{"ret",		{"ret", {"#ret()", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{"reti",	{"reti", {"#ret()", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
 		{"int",		{"int", {0, "#syscall(#arg1)", 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 		{"into",	{"into", {"#syscall()", 0, 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
@@ -470,11 +470,11 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{"popcnt",	{"popcnt", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
 
 		{"stc",		{"stc", {"=($c,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET, H_INSTR_TYPE_UNKNOWN}},
-		{"clc",		{"clc", {"=($c,0)", 0, 0, 0}, H_INSTR_TYPE_BITHESET, H_INSTR_TYPE_UNKNOWN}},
+		{"clc",		{"clc", {"=($c,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET, H_INSTR_TYPE_UNKNOWN}},
 		{"cmc",		{"cmc", {"=($c,#not($c))", 0, 0, 0}, H_INSTR_TYPE_CPL, H_INSTR_TYPE_UNKNOWN}},
 
 		{"std",		{"std", {"=($d,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET, H_INSTR_TYPE_UNKNOWN}},
-		{"cld",		{"cld", {"=($d,0)", 0, 0, 0}, H_INSTR_TYPE_BITHESET, H_INSTR_TYPE_UNKNOWN}},
+		{"cld",		{"cld", {"=($d,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET, H_INSTR_TYPE_UNKNOWN}},
 
 		{"lahf",	{"lahf", {"=($ah,$eflags)", 0, 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
 		{"sahf",	{"sahf", {"=($eflags,$ah)", 0, 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
@@ -486,7 +486,7 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{"popfd",	{"popfd", {"#rec[pop]($eflags)", 0, 0, 0}, H_INSTR_TYPE_POP, H_INSTR_TYPE_UNKNOWN}},
 
 		{"sti",		{"sti", {"=($i,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET, H_INSTR_TYPE_UNKNOWN}},
-		{"cli",		{"cli", {"=($i,0)", 0, 0, 0}, H_INSTR_TYPE_BITHESET, H_INSTR_TYPE_UNKNOWN}},
+		{"cli",		{"cli", {"=($i,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET, H_INSTR_TYPE_UNKNOWN}},
 	},
 };
 
@@ -523,7 +523,7 @@ case str2int ("stos") :
 case str2int ("stosb") :
 case str2int ("stosw") :
 case str2int ("stosd") :
-	instruction.type = H_INSTR_TYPE_STOHE;
+	instruction.type = H_INSTR_TYPE_STORE;
 	break;
 case str2int ("rep") :
 	break;
@@ -692,7 +692,7 @@ case str2int ("punpckldq") :
 //INTEL® ADVANCED VECTOR HXTENSIONS 512 (INTEL® AVX-512)
 //SYSTEM INSTRUCTIONS
 case str2int ("clac") :
-	instruction.type = H_INSTR_TYPE_BITHESET;
+	instruction.type = H_INSTR_TYPE_BITRESET;
 	break;
 case str2int ("stac") :
 	instruction.type = H_INSTR_TYPE_BITSET;
