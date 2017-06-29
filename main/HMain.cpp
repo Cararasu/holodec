@@ -3,7 +3,7 @@
 
 using namespace holodec;
 
-HMain* HMain::gr_main;
+HMain* HMain::gh_main;
 		
 bool HMain::registerArchitecture (HArchitecture* arch) {
 	for (HArchitecture * a : architectures)
@@ -58,5 +58,5 @@ HData* HMain::loadHData (uint8_t* data, size_t size) {
 }
 
 void holodec::HMain::initHMain() {
-	gr_main = new HMain();
+	gh_main = new HMain();
 }

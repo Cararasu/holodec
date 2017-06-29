@@ -11,8 +11,8 @@
 
 using namespace holodec;
 
-HRegister* gr_x86_reg[X86_REG_ENDING] = {0,};
-HRegister* gr_x86_reg_al;
+HRegister* gh_x86_reg[X86_REG_ENDING] = {0,};
+HRegister* gh_x86_reg_al;
 
 
 
@@ -23,7 +23,7 @@ void setOperands (HInstruction * instruction, cs_x86 * x86info);
 HRegister * getRegister (x86_reg reg) {
 	if (reg >= X86_REG_ENDING)
 		return 0;
-	return gr_x86_reg[reg];
+	return gh_x86_reg[reg];
 }
 
 holox86::Hx86FunctionAnalyzer::Hx86FunctionAnalyzer (HArchitecture* arch) : holodec::HFunctionAnalyzer (arch) {}
@@ -70,34 +70,12 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 				instruction.addr = addr;
 				instruction.size = insn[i].size;
 				setOperands (&instruction, insn[i].detail);
-
-				switch (insn[i].bytes[0]) {
-				case 0x6B:
-					instruction.instrdef = arch->getInstrDef ("imul_signed");
-					break;
-				case 0x0F: {
-					switch (insn[i].bytes[1]) {
-					case 0xAD:
-						instruction.instrdef = arch->getInstrDef ("shrd_cl");
-						break;
-					default:
-						instruction.instrdef = arch->getInstrDef (insn[i].mnemonic);
-					}
-				}
-				break;
-				//TODO make it available to parser prefix 0x6B
-				case 0xD2:
-				case 0xD3: {
-					char buffer[16];
-					snprintf (buffer, 16, "%s_cl", insn[i].mnemonic);
-					instruction.instrdef = arch->getInstrDef (buffer);
-				}
-				break;
-				//sar,shr,sal,shl
-				default:
-					instruction.instrdef = arch->getInstrDef (insn[i].mnemonic);
-					break;
-				}
+				
+				instruction.instrdef = arch->getInstrDef (insn[i].id, insn[i].mnemonic);
+				
+				if(!instruction.instrdef)
+					printf("ID: %d\n",insn[i].id);
+				
 				setJumpDest (&instruction);
 				addr += insn[i].size;
 				if (!this->postInstruction (&instruction)) {

@@ -17,6 +17,9 @@ void holodec::HFunctionAnalyzer::prepareBuffer (size_t addr) {
 	}
 }
 bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
+	if(state.function.findBasicBlockDeep(instruction->addr + instruction->size))
+		return false;
+
 	state.instructions.push_back (*instruction);
 	if (instruction->instrdef) {
 		switch (instruction->instrdef->type) {

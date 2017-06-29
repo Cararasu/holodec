@@ -35,11 +35,11 @@ int main (int argc, char** argv, char** envp) {
 	HMain::initHMain();
 	HData* data = HMain::loadHDataFromFile (filename);
 
-	HMain::gr_main->registerFileFormat (&elffileformat);
-	HMain::gr_main->registerArchitecture (&holox86::x86architecture);
+	HMain::gh_main->registerFileFormat (&elffileformat);
+	HMain::gh_main->registerArchitecture (&holox86::x86architecture);
 
 	HBinaryAnalyzer* analyzer = nullptr;
-	for (HFileFormat * fileformat : HMain::gr_main->fileformats) {
+	for (HFileFormat * fileformat : HMain::gh_main->fileformats) {
 		analyzer = fileformat->createBinaryAnalyzer (data);
 		if (analyzer)
 			break;
@@ -48,7 +48,7 @@ int main (int argc, char** argv, char** envp) {
 	HBinary* binary = analyzer->getBinary();
 
 	HFunctionAnalyzer* func_analyzer;
-	for (HArchitecture * architecture : HMain::gr_main->architectures) {
+	for (HArchitecture * architecture : HMain::gh_main->architectures) {
 		func_analyzer = architecture->createFunctionAnalyzer (binary);
 		if (func_analyzer)
 			break;

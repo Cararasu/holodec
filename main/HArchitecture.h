@@ -16,7 +16,7 @@ namespace holodec {
 		HList<std::function<HFunctionAnalyzer* (HBinary*) >> functionanalyzerfactories;
 		HList<HRegister> registers;
 
-		HStringMap<HInstrDefinition> instrdefs;
+		HMap<HId, HInstrDefinition> instrdefs;
 
 		//HInstructionSet
 
@@ -45,11 +45,11 @@ namespace holodec {
 			return 0;
 		}
 
-		HInstrDefinition* getInstrDef (HString mnemonics) {
-			auto it = instrdefs.find (mnemonics);
+		HInstrDefinition* getInstrDef (HId id, HString mnemonic) {
+			auto it = instrdefs.find (id);
 			if (it != instrdefs.end())
 				return & (*it).second;
-			printf ("%s not found\n", mnemonics.cstr());
+			printf ("%s not found\n", mnemonic.cstr());
 			return 0;
 		}
 

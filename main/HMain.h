@@ -26,7 +26,7 @@ namespace holodec {
 		static HData* loadHDataFromFile (HString);
 		static HData* loadHData (uint8_t* data, size_t size);
 
-		static HMain* gr_main;
+		static HMain* gh_main;
 		static void initHMain();
 	};
 

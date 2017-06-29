@@ -16,13 +16,16 @@ namespace holodec {
 	template <typename Value>
 	using HStringMap = std::map<HString,Value>;
 	
+	template <typename Key,typename Value>
+	using HMap = std::map<Key,Value>;
+	
 	struct HVisibilityType{
 		HString name;
 	};
 	
-	extern HVisibilityType gr_visibilityPublic;
-	extern HVisibilityType gr_visibilityProtected;
-	extern HVisibilityType gr_visibilityPrivate;
+	extern HVisibilityType gh_visibilityPublic;
+	extern HVisibilityType gh_visibilityProtected;
+	extern HVisibilityType gh_visibilityPrivate;
 	
 	void printIndent(int indent);
 }

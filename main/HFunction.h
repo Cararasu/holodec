@@ -200,10 +200,28 @@ namespace holodec {
 		HVisibilityType* visibility;
 
 		HBasicBlock* findBasicBlock (size_t addr) {
-			for (HBasicBlock& bb : basicblocks) {
-				if (bb.addr == addr)
-					return &bb;
+			if (addr) {
+				for (HBasicBlock& bb : basicblocks) {
+					if (bb.addr == addr)
+						return &bb;
+				}
 			}
+			return nullptr;
+		}
+		HBasicBlock* findBasicBlockDeep (size_t addr) {
+			if (addr) {
+				for (HBasicBlock& bb : basicblocks) {
+					if (bb.addr == addr)
+						return &bb;
+					if (bb.addr <= addr && addr < (bb.addr + bb.size)) {
+						for (HInstruction& instr : bb.instructions) {
+							if (instr.addr == addr)
+								return &bb;
+						}
+					}
+				}
+			}
+			return nullptr;
 		}
 
 		HId addBasicBlock (HBasicBlock basicblock) {

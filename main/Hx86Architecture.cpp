@@ -115,599 +115,1514 @@ holox86::HArchitecture holox86::x86architecture = {"x86", "x86", 32, {
 		{"zmm31", 512, 0}
 	},
 	{
-		{"mov",		{"mov", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"movq",	{"movq", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"movd",	{"movd", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_INVALID,		{"invalid", {0, 0, 0, 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_MOV,		{"mov", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_MOVQ,	{"movq", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_MOVD,	{"movd", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV}},
 
-		{"lea",	{"lea", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_LEA,	{"lea", {0, 0, "=(#arg1,#arg2)", 0}, H_INSTR_TYPE_MOV}},
 
-		{"cmovz",	{"cmovz", {0, 0, "?($z,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
-		{"cmove",	{"cmove", {0, 0, "?($z,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_CMOVE,	{"cmovz", {0, 0, "?($z,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
-		{"cmovnz",	{"cmovnz", {0, 0, "?($z,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
-		{"cmovne",	{"cmovne", {0, 0, "?($z,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
+		{X86_INS_CMOVNE,	{"cmovne", {0, 0, "?($z,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
 
-		{"cmova",	{"cmova", {0, 0, "?(#and($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
-		{"cmovnbe",	{"cmovnbe", {0, 0, "?(#and($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
+		{X86_INS_CMOVA,	{"cmova", {0, 0, "?(#and($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
 
-		{"cmovbe",	{"cmovbe", {0, 0, "?(#or($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
-		{"cmovna",	{"cmovna", {0, 0, "?(#or($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
+		{X86_INS_CMOVBE,	{"cmovbe", {0, 0, "?(#or($c,$z),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
 
-		{"cmovg",	{"cmovg", {0, 0, "?(#and(#not($z),==($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
-		{"cmovnle",	{"cmovnle", {0, 0, "?(#and(#not($z),==($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
+		{X86_INS_CMOVG,	{"cmovg", {0, 0, "?(#and(#not($z),==($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
 
-		{"cmovge",	{"cmovge", {0, 0, "?(==($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
-		{"cmovnl",	{"cmovnl", {0, 0, "?(==($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
+		{X86_INS_CMOVGE,	{"cmovge", {0, 0, "?(==($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
 
-		{"cmovl",	{"cmovge", {0, 0, "?(<>($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
-		{"cmovnge",	{"cmovnl", {0, 0, "?(<>($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
 
-		{"cmovle",	{"cmovle", {0, 0, "?(#or($z,<>($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
-		{"cmovng",	{"cmovng", {0, 0, "?(#or($z,<>($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
+		{X86_INS_CMOVL,	{"cmovge", {0, 0, "?(<>($s,$o),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
+		{X86_INS_CMOVLE,	{"cmovle", {0, 0, "?(#or($z,<>($s,$o)),=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
 
-		{"cmovc",	{"cmovc", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_C}},
+		//{X86_INS_CMOVC,	{"cmovc", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_C}},
+		//{X86_INS_CMOVNC,	{"cmovnc", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NC}},
 
-		{"cmovnc",	{"cmovnc", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NC}},
+		{X86_INS_CMOVB,	{"cmovb", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
 
-		{"cmovb",	{"cmovb", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
-		{"cmovnae",	{"cmovnae", {0, 0, "?($c,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
+		{X86_INS_CMOVAE,	{"cmovae", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
 
-		{"cmovae",	{"cmovae", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
-		{"cmovnb",	{"cmovnb", {0, 0, "?($c,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
+		{X86_INS_CMOVO,	{"cmovo", {0, 0, "?($o,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_O}},
 
-		{"cmovo",	{"cmovo", {0, 0, "?($o,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_O}},
+		{X86_INS_CMOVNO,	{"cmovno", {0, 0, "?($o,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NO}},
 
-		{"cmovno",	{"cmovno", {0, 0, "?($o,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NO}},
+		{X86_INS_CMOVS,	{"cmovs", {0, 0, "?($s,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NEG}},
 
-		{"cmovs",	{"cmovs", {0, 0, "?($s,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NEG}},
+		{X86_INS_CMOVNS,	{"cmovns", {0, 0, "?($s,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_POS}},
 
-		{"cmovns",	{"cmovns", {0, 0, "?($s,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_POS}},
+		{X86_INS_CMOVP,	{"cmovp", {0, 0, "?($p,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
-		{"cmovp",	{"cmovp", {0, 0, "?($p,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
-		{"cmovpe",	{"cmovpe", {0, 0, "?($p,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
+		{X86_INS_CMOVNP,	{"cmovp", {0, 0, "?($p,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
-		{"cmovnp",	{"cmovp", {0, 0, "?($p,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
-		{"cmovpo",	{"cmovpo", {0, 0, "?($p,,=(#arg1,#arg2))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
+		{X86_INS_JMP,		{"jmp", {0, "#jmp(#arg1)", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
-		{"jmp",		{"jmp", {0, "#jmp(#arg1)", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_JE,		{"je", {0, "?($z,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
-		{"je",		{"je", {0, "?($z,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
-		{"jz",		{"jz", {0, "?($z,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_JNE,		{"jne", {0, "?($z,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
 
-		{"jne",		{"jne", {0, "?($z,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
-		{"jnz",		{"jnz", {0, "?($z,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
+		{X86_INS_JA,		{"ja", {0, "?(#and($c,$z),,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
 
-		{"ja",		{"ja", {0, "?(#and($c,$z),,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
-		{"jnbe",	{"jnbe", {0, "?(#and($c,$z),,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_A}},
+		{X86_INS_JAE,		{"jae", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
+		//{X86_INS_JNC,		{"jnc", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_C}},
 
-		{"jae",		{"jae", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
-		{"jnb",		{"jnb", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_AE}},
+		{X86_INS_JB,		{"jb", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
+		//{X86_INS_JC,		{"jc", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_C}},
 
-		{"jb",		{"jb", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
-		{"jnae",		{"jnae", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_B}},
+		{X86_INS_JBE,		{"jbe", {0, "?(#or($c,$z),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
 
-		{"jbe",		{"jbe", {0, "?(#or($c,$z),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
-		{"jna",		{"jna", {0, "?(#or($c,$z),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_BE}},
+		{X86_INS_JG,		{"jg", {0, "?(#and(#not($z),==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
 
-		{"jg",		{"jg", {0, "?(#and(#not($z),==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
-		{"jnle",	{"jnle", {0, "?(#and(#not($z),==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_G}},
+		{X86_INS_JGE,		{"jge", {0, "?(==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
 
-		{"jge",		{"jge", {0, "?(==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
-		{"jnl",		{"jge", {0, "?(==($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_GE}},
+		{X86_INS_JL,		{"jl", {0, "?(<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
 
-		{"jl",		{"jl", {0, "?(<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
-		{"jnge",	{"jnge", {0, "?(<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_L}},
+		{X86_INS_JLE,		{"jle", {0, "?(#or($z,<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
 
-		{"jle",		{"jle", {0, "?(#or($z,<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
-		{"jng",		{"jng", {0, "?(#or($z,<>($s,$o)),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_LE}},
+		{X86_INS_JO,		{"jo", {0, "?($o,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_O}},
 
-		{"jc",		{"jc", {0, "?($c,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_C}},
+		{X86_INS_JNO,		{"jno", {0, "?($o,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NO}},
 
-		{"jnc",		{"jnc", {0, "?($c,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_C}},
+		{X86_INS_JS,		{"js", {0, "?($s,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NEG}},
 
-		{"jo",		{"jo", {0, "?($o,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_O}},
+		{X86_INS_JNS,		{"jns", {0, "?($s,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_POS}},
 
-		{"jno",		{"jno", {0, "?($o,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NO}},
+		{X86_INS_JP,		{"jp", {0, "?($p,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
-		{"js",		{"js", {0, "?($s,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NEG}},
+		{X86_INS_JNP,		{"jnp", {0, "?($p,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
 
-		{"jns",		{"jns", {0, "?($s,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_POS}},
+		{X86_INS_JCXZ,	{"jcxz", {0, "?(==($cx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
+		{X86_INS_JECXZ,	{"jcxz", {0, "?(==($ecx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
+		{X86_INS_JRCXZ,	{"jcxz", {0, "?(==($rcx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
 
-		{"jp",		{"jp", {0, "?($p,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
-		{"jpe",		{"jpe", {0, "?($p,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
+		{X86_INS_XCHG,	{"xchg", {0, 0, "=(#t0,#arg1)&=(#arg1,#arg2)&=(#arg2,#t0)", 0}, H_INSTR_TYPE_XCHG}},
 
-		{"jpo",		{"jpo", {0, "?($p,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
-		{"jnp",		{"jnp", {0, "?($p,,#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_UNK}},
+		{X86_INS_BSWAP,	{"bswap", {0, "=(#arg1,#append(#slice(#arg1,24,31),#slice(#arg1,23,16),#slice(#arg1,15,8),#slice(#arg1,7,0)))", 0, 0}, H_INSTR_TYPE_SWAP}},
 
-		{"jcxz",	{"jcxz", {0, "?(==($cx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
-		{"jecxz",	{"jecxz", {0, "?(==($ecx,0),#jmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
+		{X86_INS_XADD,	{"xadd", {0, 0, "#rec[xchg](#arg1,#arg2)&#rec[add](#arg1,#arg2)", 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_ADD}},
 
-		{"xchg",	{"xchg", {0, 0, "=(#t0,#arg1)&=(#arg1,#arg2)&=(#arg2,#t0)", 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN}},
+		//X86_INS_CMPXCHG16B,
+		{
+			X86_INS_CMPXCHG,	{
+				"cmpxchg", {
+					0, 0, "?(==(#size(#arg1),8),=($z,==($al,#arg1))&?($z,=(#arg1,#arg2),=(#arg1,$al))&"
+					"?(==(#size(#arg1),16),=($z,==($ax,#arg1))&?($z,=(#arg1,#arg2),=(#arg1,$ax))&"
+					"?(==(#size(#arg1),32),=($z,==($eax,#arg1))&?($z,=(#arg1,#arg2),=(#arg1,$eax))", 0
+				}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E
+			}
+		},
+		{X86_INS_CMPXCHG8B, {"cmpxchg8g", {0, "=($z,==(#append($eax,$edx),#arg1))&?($z,=(#arg1,#append($ebx,$ecx)),=(#append($eax,$edx),#arg1))", 0, 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_CMPXCHG16B, {"cmpxchg8g", {0, "=($z,==(#append($rax,$rdx),#arg1))&?($z,&=(#arg1,#append($rbx,$rcx)),=(#append($rax,$rdx),#arg1))", 0, 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
-		{"bswap",	{"bswap", {0, "=(#arg1,#append(#slice(#arg1,24,31),#slice(#arg1,23,16),#slice(#arg1,15,8),#slice(#arg1,7,0)))", 0, 0}, H_INSTR_TYPE_SWAP, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_PUSH,	{"push", {0, "=($esp,-($esp,4))&#st($esp,#arg1)", 0, 0}, H_INSTR_TYPE_PUSH}},
+		{X86_INS_POP,		{"pop", {0, "=(#arg1,#ld($esp))&=($esp,+($esp,4))", 0, 0}, H_INSTR_TYPE_POP}},
 
-		{"xadd",	{"xadd", {0, 0, "#rec[xchg](#arg1,#arg2)&#rec[add](#arg1,#arg2)", 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_ADD}},
+		{X86_INS_PUSHAW,	{"pushad", {0, "=(#t0,$esp)&#push($eax)&#push($ecx)&#push($edx)&#push($edx)&#push($ebx)&#push(#t0)&#push($ebp)&#push($esi)&#push($edi)", 0, 0}, H_INSTR_TYPE_PUSH}},
+		{X86_INS_PUSHAL,	{"pusha", {0, "=(#t0,$sp)&#push($ax)&#push($cx)&#push($dx)&#push($dx)&#push($bx)&#push(#t0)&#push($bp)&#push($si)&#push($di)", 0, 0}, H_INSTR_TYPE_PUSH}},
 
-		{"cmpxchg",	{"cmpxchg", {0, 0, "#rec[cmp](#slice($eax,0,#size(#arg1)),#arg1)&?($z,#rec[xchg](#arg1,#arg2))", 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_POPAW,	{"popad", {0, "#pop($edi)&#pop($esi)&#pop($ebp)&=($esp,+($esp,4))&#pop($ebx)&#pop($edx)&#pop($ecx)&#pop($eax)", 0, 0}, H_INSTR_TYPE_PUSH}},
+		{X86_INS_POPAL,	{"popa", {0, "#pop($di)&#pop($si)&#pop($bp)&=($esp,+($esp,2))&#pop($bx)&#pop($dx)&#pop($cx)&#pop($ax)", 0, 0}, H_INSTR_TYPE_PUSH}},
 
-		{"cmpxchg8b", {"cmpxchg", {0, 0, "?(==(#append($eax,$edx),#arg1),=($z,1)&=(#arg1,#append($ebx,$ecx)),=($z,1)&=(#append($eax,$edx),#arg1))", 0}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_RET,		{"ret", {"#rec[pop](#t0)&#jmp(#t0)", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
-		{"push",	{"push", {0, "=($esp,-($esp,4))&#st($esp,#arg1)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
-		{"pop",		{"pop", {0, "#ld(#arg1,$esp)&=($esp,+($esp,4))", 0, 0}, H_INSTR_TYPE_POP, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_CWD,		{"cwd", {"=($dx,#sextend($ax,#size($dx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_CDQ,		{"cdq", {"=($edx,#sextend($eax,#size($edx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
 
-		{"pushad",	{"pushad", {0, "=(#t0,$esp)&#push($eax)&#push($ecx)&#push($edx)&#push($edx)&#push($ebx)&#push(#t0)&#push($ebp)&#push($esi)&#push($edi)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
-		{"pusha",	{"pusha", {0, "=(#t0,$sp)&#push($ax)&#push($cx)&#push($dx)&#push($dx)&#push($bx)&#push(#t0)&#push($bp)&#push($si)&#push($di)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_CBW,		{"cbw", {"=($ax,#sextend($al,#size($ax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_CWDE,	{"cwde", {"=($eax,#sextend($al,#size($eax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
 
-		{"pushad",	{"pushad", {0, "#pop($edi)&#pop($esi)&#pop($ebp)&=($esp,+($esp,4))&#pop($ebx)&#pop($edx)&#pop($ecx)&#pop($eax)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
-		{"pusha",	{"pusha", {0, "#pop($di)&#pop($si)&#pop($bp)&=($esp,+($esp,2))&#pop($bx)&#pop($dx)&#pop($cx)&#pop($ax)", 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_MOVSX,	{"movsx", {0, 0, "=(#arg1,#sextend(#arg2,#size(#arg1)))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_MOVZX,	{"movzx", {0, 0, "=(#arg1,#extend(#arg2,#size(#arg1)))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
 
-		{"ret",		{"ret", {"#rec[pop](#t0)&#jmp(#t0)", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, {}, H_INSTR_COND_TRUE}},
+		{X86_INS_ADD,		{"add", {0, 0, "=(#arg1,+(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD}},
+		{X86_INS_ADC,		{"adc", {0, 0, "=(#arg1,+(#arg1,#arg2,$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)& =($a,#a))", 0}, H_INSTR_TYPE_ADD}},
 
-		{"cwd",		{"cwd", {"=($dx,#sextend($ax,#size($dx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
-		{"cdq",		{"cdq", {"=($edx,#sextend($eax,#size($edx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SUB,		{"sub", {0, 0, "=(#arg1,-(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_SUB}},
+		{X86_INS_SBB,		{"sbb", {0, 0, "=(#arg1,-(#arg1,#arg2,$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_SUB}},
 
-		{"cbw",		{"cbw", {"=($ax,#sextend($al,#size($ax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
-		{"cwde",	{"cwde", {"=($eax,#sextend($al,#size($eax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND, H_INSTR_TYPE_UNKNOWN}},
-
-		{"movsx",	{"movsx", {0, 0, "=(#arg1,#sextend(#arg2,#size(#arg1)))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
-		{"movzx",	{"movzx", {0, 0, "=(#arg1,#extend(#arg2,#size(#arg1)))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
-
-		{"add",		{"add", {0, 0, "=(#arg1,+(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
-		{"adc",		{"adc", {0, 0, "=(#arg1,+(#arg1,#arg2,$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)& =($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
-
-		{"sub",		{"sub", {0, 0, "=(#arg1,-(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_SUB, H_INSTR_TYPE_UNKNOWN}},
-		{"sbb",		{"sbb", {0, 0, "=(#arg1,-(#arg1,#arg2,$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_SUB, H_INSTR_TYPE_UNKNOWN}},
-
-		{"adcx",	{"adcx", {0, 0, "#=(#arg1,#uadd(#arg1,#arg2,c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
-		{"adox",	{"adox", {0, 0, "#=(#arg1,#uadd(#arg1,#arg2,o)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_ADCX,	{"adcx", {0, 0, "#=(#arg1,#uadd(#arg1,#arg2,c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD}},
+		{X86_INS_ADOX,	{"adox", {0, 0, "#=(#arg1,#uadd(#arg1,#arg2,o)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD}},
 
 		{
-			"imul",	{
+			X86_INS_MUL,	{
+				"imul", {
+					"?(==(#size(#arg1),8),=($ax,#u[*]($al,#arg1)))&"
+					"?(==(#size(#arg1),16),=(#append($dx,$ax),#u[*]($ax,#arg1)))&"
+					"?(==(#size(#arg1),32),=(#append($edx,$eax),#u[*]($eax,#arg1)))&"
+					"=($c,#c)&=($o,#o)",
+					0, 0, 0
+				}, H_INSTR_TYPE_MUL
+			}
+		},
+		{
+			X86_INS_IMUL,	{
 				"imul", {
 					"?(==(#size(#arg1),8),=($ax,*($al,#arg1)))&"
-					"?(==(#size(#arg1),16),=(#append($dx,$ax),*($ax,#arg1)))"
-					"?(==(#size(#arg1),32),=(#append($edx,$eax),*($eax,#arg1)))"
-					"&=($c,#c)&=($o,#o)",
-					"=(#arg1,*(#arg1,#arg2))&=($c,#c)&=($o,#o)",
-					"=(#arg1,*(#arg2,#arg3))&=($c,#c)&=($o,#o)", 0
-				}, H_INSTR_TYPE_MUL, H_INSTR_TYPE_UNKNOWN
-			}
-		},
-		{
-			"imul_signed", {
-				"imul", {
-					0,
-					"=(#arg1,*(#arg1,#sextend(#arg2,#size(#arg1)))&=($c,#c)&=($o,#o)",
+					"?(==(#size(#arg1),16),=(#append($dx,$ax),*($ax,#arg1)))&"
+					"?(==(#size(#arg1),32),=(#append($edx,$eax),*($eax,#arg1)))&"
+					"=($c,#c)&=($o,#o)",
+					"=(#arg1,*(#arg1,#sextend(#arg2,#size(#arg1))))&=($c,#c)&=($o,#o)",
 					"=(#arg1,*(#arg2,#sextend(#arg3,#size(#arg2))))&=($c,#c)&=($o,#o)", 0
-				}, H_INSTR_TYPE_MUL, H_INSTR_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_MUL
 			}
 		},
 		{
-			"idiv",	{
+			X86_INS_IDIV,	{
 				"idiv", {
 					0,
 					"?(==(#size(#arg1),8),=($al,#div($ax,#arg1))&=($ah,#mod($ax,#arg1)))&"
 					"?(==(#size(#arg1),16),=($ax,#div(#append($dx,$ax),#arg1))&=($dx,#mod(#append($dx,$ax),#arg1)))"
 					"?(==(#size(#arg1),32),=($eax,#div(#append($edx,$eax),#arg1))&=($edx,#mod(#append($edx,$eax),#arg1)))",
 					0, 0
-				}, H_INSTR_TYPE_DIV, H_INSTR_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_DIV
 			}
 		},
 		{
-			"div",	{
+			X86_INS_DIV,	{
 				"div", {
 					0,
-					"?(==(#size(#arg1),8),=($al,#udiv($ax,#arg1))&=($ah,#umod($ax,#arg1)))&"
-					"?(==(#size(#arg1),16),=($ax,#udiv(#append($dx,$ax),#arg1))&=($dx,#umod(#append($dx,$ax),#arg1)))"
-					"?(==(#size(#arg1),32),=($eax,#udiv(#append($edx,$eax),#arg1))&=($edx,#umod(#append($edx,$eax),#arg1)))",
+					"?(==(#size(#arg1),8),=($al,#u[/]($ax,#arg1))&=($ah,#u[mod]($ax,#arg1)))&"
+					"?(==(#size(#arg1),16),=($ax,#u[/](#append($dx,$ax),#arg1))&=($dx,#u[mod](#append($dx,$ax),#arg1)))&"
+					"?(==(#size(#arg1),32),=($eax,#u[/](#append($edx,$eax),#arg1))&=($edx,#u[mod](#append($edx,$eax),#arg1)))",
 					0, 0
-				}, H_INSTR_TYPE_DIV, H_INSTR_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_DIV
 			}
 		},
-		{"nop",		{"nop", {"", "", 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_NOP,		{"nop", {"", "", 0, 0}}},
 
-		{"inc",		{"inc", {0, 0, "=(#arg1,+(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTR_TYPE_ADD, H_INSTR_TYPE_UNKNOWN}},
-		{"dec",		{"dec", {0, 0, "=(#arg1,-(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTR_TYPE_SUB, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_INC,		{"inc", {0, 0, "=(#arg1,+(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTR_TYPE_ADD}},
+		{X86_INS_DEC,		{"dec", {0, 0, "=(#arg1,-(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0}, H_INSTR_TYPE_SUB}},
 
-		{"neg",		{"neg", {0, 0, "=(#arg1,#neg(#arg1,1)&=($c,#eq(#arg1,0))", 0}, H_INSTR_TYPE_NEG, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_NEG,		{"neg", {0, 0, "=(#arg1,#neg(#arg1,1)&=($c,#eq(#arg1,0))", 0}, H_INSTR_TYPE_NEG}},
 
-		{"cmp",		{"cmp", {0, 0, "=(#t0,#arg1)&#rec[sub](#t0,#arg2)", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_CMP,		{"cmp", {0, 0, "=(#t0,#arg1)&#rec[sub](#t0,#arg2)", 0}, H_INSTR_TYPE_CMP}},
 
-		{"and",		{"and", {0, 0, "=(#arg1,#band(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_AND, H_INSTR_TYPE_UNKNOWN}},
-		{"or",		{"or", {0, 0, "=(#arg1,#bor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_OR, H_INSTR_TYPE_UNKNOWN}},
-		{"xor",		{"xor", {0, 0, "=(#arg1,#bxor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_XOH, H_INSTR_TYPE_UNKNOWN}},
-		{"not",		{"not", {0, 0, "=(#arg1,#bnot(#arg1,#arg2))", 0}, H_INSTR_TYPE_NOT, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_AND,		{"and", {0, 0, "=(#arg1,#band(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_AND}},
+		{X86_INS_OR,		{"or", {0, 0, "=(#arg1,#bor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_OR}},
+		{X86_INS_XOR,		{"xor", {0, 0, "=(#arg1,#bxor(#arg1,#arg2))&=($o,0)&=($c,0)&=($s,#s)&=($z,#z)&=($p,#p)", 0}, H_INSTR_TYPE_XOH}},
+		{X86_INS_NOT,		{"not", {0, 0, "=(#arg1,#bnot(#arg1,#arg2))", 0}, H_INSTR_TYPE_NOT}},
+
 
 		//TODO carry flags for shifts
 		//The CF flag contains the value of the last bit shifted out of the destination operand;
 		//it is undefined for SHL and SHH instructions where the count is greater than or equal to the size (in bits) of the destination operand.
 		{
-			"sar",		{
+			X86_INS_SAR,		{
 				"sar", {
 					"=(#arg1,#sar(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))",
 					"=(#arg1,#sar(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($a,#a))", 0, 0
-				}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHH
 			}
 		},
-		{"sar_cl",	{"sar", { "=(#arg1,#sar(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN}},
+		//{"sar_cl",	{"sar", { "=(#arg1,#sar(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHH}},
 
 		{
-			"shr",		{
+			X86_INS_SHR,		{
 				"shr", {
 					"=(#arg1,#shr(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))",
 					"=(#arg1,#shr(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($a,#a))", 0, 0
-				}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHH
 			}
 		},
-		{"shr_cl",	{"shr", { "=(#arg1,#shr(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN}},
+		//{"shr_cl",	{"shr", { "=(#arg1,#shr(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHH}},
 
 		{
-			"sal",		{
+			X86_INS_SAL,		{
 				"sal", {
 					"=(#arg1,#sal(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))",
 					"=(#arg1,#sal(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($a,#a))", 0, 0
-				}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHL
 			}
 		},
-		{"sal_cl",	{"sal", { "=(#arg1,#sal(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
+		//{"sal_cl",	{"sal", { "=(#arg1,#sal(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHL}},
 
 		{
-			"shl",		{
+			X86_INS_SHL,		{
 				"shl", {
 					"=(#arg1,#shl(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))",
 					"=(#arg1,#shl(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($a,#a))", 0, 0
-				}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHL
 			}
 		},
-		{"shl_cl",	{"shl", { "=(#arg1,#shl(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
+		//{"shl_cl",	{"shl", { "=(#arg1,#shl(#arg1,$cl)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a))", 0, 0, 0}, H_INSTR_TYPE_SHL}},
 
 		//TODO flags
-		{"shrd",	{"shrd", { 0, "=(#arg1,#shr(#append(#arg1,#arg2),$cl))", "=(#arg1,#shr(#append(#arg1,#arg2),$arg3))", 0}, H_INSTR_TYPE_SHH, H_INSTR_TYPE_UNKNOWN}},
-		{"shld",	{"shld", { 0, "=(#arg1,#shl(#append(#arg1,#arg2),$cl))", "=(#arg1,#shl(#append(#arg1,#arg2),$arg3))", 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SHRD,	{"shrd", { 0, "=(#arg1,#shr(#append(#arg1,#arg2),$cl))", "=(#arg1,#shr(#append(#arg1,#arg2),$arg3))", 0}, H_INSTR_TYPE_SHH}},
+		{X86_INS_SHLD,	{"shld", { 0, "=(#arg1,#shl(#append(#arg1,#arg2),$cl))", "=(#arg1,#shl(#append(#arg1,#arg2),$arg3))", 0}, H_INSTR_TYPE_SHL}},
 
 		//TODO flags for rotates
-		{"ror",		{"ror", {0, "=(#arg1,#ror(#arg1,1))", "=(#arg1,#ror(#arg1,$arg2))", 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
-		{"ror_cl",	{"ror", {0, "=(#arg1,#ror(#arg1,$cl))", 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
-		{"rol",		{"rol", {0, "=(#arg1,#rol(#arg1,1))", "=(#arg1,#rol(#arg1,$arg2))", 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
-		{"rol_cl",	{"rol", {0, "=(#arg1,#rol(#arg1,$cl))", 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_ROR,		{"ror", {0, "=(#arg1,#ror(#arg1,1))", "=(#arg1,#ror(#arg1,$arg2))", 0}, H_INSTR_TYPE_SHL}},
+		//{"ror_cl",	{"ror", {0, "=(#arg1,#ror(#arg1,$cl))", 0, 0}, H_INSTR_TYPE_SHL}},
+		{X86_INS_ROL,		{"rol", {0, "=(#arg1,#rol(#arg1,1))", "=(#arg1,#rol(#arg1,$arg2))", 0}, H_INSTR_TYPE_SHL}},
+		//{"rol_cl",	{"rol", {0, "=(#arg1,#rol(#arg1,$cl))", 0, 0}, H_INSTR_TYPE_SHL}},
 		{
-			"rcr", {
+			X86_INS_RCR, {
 				"rcr", {
 					0,
 					"=(#t0,#ror(#append(#arg1,$c),1))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))",
 					"=(#t0,#ror(#append(#arg1,$c),$arg2))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0
-				}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHL
 			}
 		},
-		{"rcr_cl",	{"rcr", {0, "=(#t0,#ror(#append(#arg1,$c),#cl))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
+		//{"rcr_cl",	{"rcr", {0, "=(#t0,#ror(#append(#arg1,$c),#cl))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0, 0}, H_INSTR_TYPE_SHL}},
 		{
-			"rcl", {
+			X86_INS_RCL, {
 				"rcl", {
 					0,
 					"=(#t0,#rol(#append(#arg1,$c),1))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))",
 					"=(#t0,#rol(#append(#arg1,$c),$arg2))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0
-				}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN
+				}, H_INSTR_TYPE_SHL
 			}
 		},
-		{"rcl_cl",	{"rcl", {0, "=(#t0,#rol(#append(#arg1,$c),#cl))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0, 0}, H_INSTR_TYPE_SHL, H_INSTR_TYPE_UNKNOWN}},
+		//{"rcl_cl",	{"rcl", {0, "=(#t0,#rol(#append(#arg1,$c),#cl))&=(#arg1,#t0)&=($c,#split(#t0,#size(#arg1),1))", 0, 0}, H_INSTR_TYPE_SHL}},
 
-		{"bt",		{"bt", {0, 0, "=($c,#split($arg1,$arg2))", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_UNKNOWN}},
-		{"bts",		{"bts", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),1)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITSET}},
-		{"btr",		{"btr", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),0)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITRESET}},
-		{"btc",		{"btc", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),#not(#split($arg1,$arg2)))", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_CPL}},
+		{X86_INS_BT,		{"bt", {0, 0, "=($c,#split($arg1,$arg2))", 0}, H_INSTR_TYPE_BITTEST}},
+		{X86_INS_BTS,		{"bts", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),1)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITSET}},
+		{X86_INS_BTR,		{"btr", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),0)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITRESET}},
+		{X86_INS_BTC,		{"btc", {0, 0, "=($c,#split($arg1,$arg2))&=(#split($arg1,$arg2),#not(#split($arg1,$arg2)))", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_CPL}},
 
-		{"loop",	{"loop", {0, "=($ecx,-($ecx,1))&?(<>($ecx,0),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_LOOP,	{"loop", {0, "=($ecx,-($ecx,1))&?(<>($ecx,0),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP}},
 
 
-		{"loope",	{"loope", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),$z),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
-		{"loopz",	{"loopz", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),$z),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_LOOPE,	{"loope", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),$z),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
-		{"loopne",	{"loopne", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),#not($z)),#rjmp(#arg1))", 0,  0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
-		{"loopnz",	{"loopnz", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),#not($z)),#rjmp(#arg1))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
+		{X86_INS_LOOPNE,	{"loopne", {0, "=($ecx,-($ecx,1))&?(#and(<>($ecx,0),#not($z)),#rjmp(#arg1))", 0,  0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
 
-		{"call",	{"call", {0, "#call(#arg1)", 0, 0}, H_INSTR_TYPE_CALL, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_CALL,	{"call", {0, "#call(#arg1)", 0, 0}, H_INSTR_TYPE_CALL}},
 
-		{"ret",		{"ret", {"#ret()", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
-		{"reti",	{"reti", {"#ret()", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_INT,		{"int", {0, "#syscall(#arg1)", 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_INTO,	{"into", {"#syscall()", 0, 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
-		{"int",		{"int", {0, "#syscall(#arg1)", 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
-		{"into",	{"into", {"#syscall()", 0, 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_BOUND,	{"bound", {0, 0, "=(#t0,#ld(#arg2,#size(#arg1)))&=(#t1,#ld(+(#arg2,#size(#arg1)),#size(#arg1)))&?(#or(<(#arg1,#t0),>(#arg1,#t1)),#trap)", 0}}},
 
-		//TODO il
-		{"bound",	{"bound", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_ENTER,	{"enter", {0, "#rec[push]($ebp)&#rec[mov]($ebp,$esp)&#rec[sub]($esp,#arg1)", 0, 0}}},
+		{X86_INS_LEAVE,	{"leave", {"#rec[mov]($esp,$ebp)&#rec[pop]($ebp)", 0, 0, 0}}},
 
-		{"enter",	{"enter", {0, "#rec[push]($ebp)&#rec[mov]($ebp,$esp)&#rec[sub]($esp,#arg1)", 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
-		{"leave",	{"leave", {"#rec[mov]($esp,$ebp)&#rec[pop]($ebp)", 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETE,	{"sete", {0, "=(#arg1,$z)", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setz",	{"setz", {0, "=(#arg1,$z)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"sete",	{"sete", {0, "=(#arg1,$z)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETNE,	{"setne", {0, "=(#arg1,#not($z))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setnz",	{"setnz", {0, "=(#arg1,#not($z))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setne",	{"setne", {0, "=(#arg1,#not($z))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETA,	{"seta", {0, "=(#arg1,#not(#or($c,$z)))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"seta",	{"seta", {0, "=(#arg1,#not(#or($c,$z)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setnbe",	{"setnbe", {0, "=(#arg1,#not(#or($c,$z)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETAE,	{"setae", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setae",	{"setae", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setnb",	{"setnb", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setnc",	{"setnc", {0, "=(#arg1,#not($c))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETB,	{"setae", {0, "=(#arg1,$c)", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setb",	{"setae", {0, "=(#arg1,$c)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setnae",	{"setnb", {0, "=(#arg1,$c)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setc",	{"setnc", {0, "=(#arg1,$c)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETBE,	{"setbe", {0, "=(#arg1,#or($c,$z))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setbe",	{"setbe", {0, "=(#arg1,#or($c,$z))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setna",	{"setna", {0, "=(#arg1,#or($c,$z))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETG,	{"setg", {0, "=(#arg1,#and(#not($z),==($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setg",	{"setg", {0, "=(#arg1,#and(#not($z),==($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setnle",	{"setnle", {0, "=(#arg1,#and(#not($z),==($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETGE,	{"setge", {0, "=(#arg1,==($s,$o))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setge",	{"setge", {0, "=(#arg1,==($s,$o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setnl",	{"setnl", {0, "=(#arg1,==($s,$o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETL,	{"setl", {0, "=(#arg1,<>($s,$o))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setl",	{"setl", {0, "=(#arg1,<>($s,$o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setnge",	{"setnge", {0, "=(#arg1,<>($s,$o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETLE,	{"setle", {0, "=(#arg1,#or($z,<>($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setle",	{"setle", {0, "=(#arg1,#or($z,<>($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setng",	{"setng", {0, "=(#arg1,#or($z,<>($s,$o)))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETS,	{"sets", {0, "=(#arg1,$s)", 0, 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_SETNS,	{"setns", {0, "=(#arg1,#not($s))", 0, 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_SETO,	{"seto", {0, "=(#arg1,$o)", 0, 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_SETNO,	{"setno", {0, "=(#arg1,#not($o))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"sets",	{"sets", {0, "=(#arg1,$s)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setns",	{"setns", {0, "=(#arg1,#not($s))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"seto",	{"seto", {0, "=(#arg1,$o)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setno",	{"setno", {0, "=(#arg1,#not($o))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETP,	{"setp", {0, "=(#arg1,$p)", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setp",	{"setp", {0, "=(#arg1,$p)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setpe",	{"setpe", {0, "=(#arg1,$p)", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_SETNP,	{"setnp", {0, "=(#arg1,#not($p))", 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"setpo",	{"setpo", {0, "=(#arg1,#not($p))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"setnp",	{"setnp", {0, "=(#arg1,#not($p))", 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_TEST,	{"test", {0, 0, "#band(#arg1,#arg2)&==($c,0)&==($o,0)&==($p,#p)&==($z,#z)&==($s,#s)", 0}, H_INSTR_TYPE_AND}},
 
-		{"test",	{"test", {0, 0, "#band(#arg1,#arg2)&==($c,0)&==($o,0)&==($p,#p)&==($z,#z)&==($s,#s)", 0}, H_INSTR_TYPE_AND, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_BSF,		{"bsf", {0, 0, 0, 0}}},
+		{X86_INS_BSR,		{"bsr", {0, 0, 0, 0}}},
+		{X86_INS_CRC32,	{"crc32", {0, 0, 0, 0}}},
+		{X86_INS_POPCNT,	{"popcnt", {0, "#popcnt(#arg1)", 0, 0}}},
 
-		{"bsf",		{"bsf", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
-		{"bsr",		{"bsr", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
-		{"crc32",	{"crc32", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
-		{"popcnt",	{"popcnt", {0, 0, 0, 0}, H_INSTR_TYPE_UNKNOWN, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_STC,		{"stc", {"=($c,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET}},
+		{X86_INS_CLC,		{"clc", {"=($c,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET}},
+		{X86_INS_CMC,		{"cmc", {"=($c,#not($c))", 0, 0, 0}, H_INSTR_TYPE_CPL}},
 
-		{"stc",		{"stc", {"=($c,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET, H_INSTR_TYPE_UNKNOWN}},
-		{"clc",		{"clc", {"=($c,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET, H_INSTR_TYPE_UNKNOWN}},
-		{"cmc",		{"cmc", {"=($c,#not($c))", 0, 0, 0}, H_INSTR_TYPE_CPL, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_STD,		{"std", {"=($d,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET}},
+		{X86_INS_CLD,		{"cld", {"=($d,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET}},
 
-		{"std",		{"std", {"=($d,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET, H_INSTR_TYPE_UNKNOWN}},
-		{"cld",		{"cld", {"=($d,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_LAHF,	{"lahf", {"=($ah,$eflags)", 0, 0, 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_SAHF,	{"sahf", {"=($eflags,$ah)", 0, 0, 0}, H_INSTR_TYPE_MOV}},
 
-		{"lahf",	{"lahf", {"=($ah,$eflags)", 0, 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
-		{"sahf",	{"sahf", {"=($eflags,$ah)", 0, 0, 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_PUSHF,	{"pushf", {"#rec[push]($flags)", 0, 0, 0}, H_INSTR_TYPE_PUSH}},
+		{X86_INS_PUSHFD,	{"pushfd", {"#rec[push]($eflags)", 0, 0, 0}, H_INSTR_TYPE_PUSH}},
+		{X86_INS_PUSHFQ,	{"pushfq", {"#rec[push]($rflags)", 0, 0, 0}, H_INSTR_TYPE_PUSH}},
 
-		{"pushf",	{"pushf", {"#rec[push]($flags)", 0, 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
-		{"pushfd",	{"pushfd", {"#rec[push]($eflags)", 0, 0, 0}, H_INSTR_TYPE_PUSH, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_POPF,	{"popf", {"#rec[pop]($flags)", 0, 0, 0}, H_INSTR_TYPE_POP}},
+		{X86_INS_POPFD,	{"popfd", {"#rec[pop]($eflags)", 0, 0, 0}, H_INSTR_TYPE_POP}},
+		{X86_INS_POPFQ,	{"popfq", {"#rec[pop]($rflags)", 0, 0, 0}, H_INSTR_TYPE_POP}},
 
-		{"popf",	{"popf", {"#rec[pop]($flags)", 0, 0, 0}, H_INSTR_TYPE_POP, H_INSTR_TYPE_UNKNOWN}},
-		{"popfd",	{"popfd", {"#rec[pop]($eflags)", 0, 0, 0}, H_INSTR_TYPE_POP, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_STI,		{"sti", {"=($i,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET}},
+		{X86_INS_CLI,		{"cli", {"=($i,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET}},
 
-		{"sti",		{"sti", {"=($i,1)", 0, 0, 0}, H_INSTR_TYPE_BITSET, H_INSTR_TYPE_UNKNOWN}},
-		{"cli",		{"cli", {"=($i,0)", 0, 0, 0}, H_INSTR_TYPE_BITRESET, H_INSTR_TYPE_UNKNOWN}},
+		{X86_INS_AAA,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AAD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AAM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AAS,		{"xxx", {0, 0, 0, 0}}},
+
+		{X86_INS_FABS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ADDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ADDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ADDSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ADDSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ADDSUBPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ADDSUBPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FADD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FIADD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FADDP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ADOX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AESDECLAST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AESDEC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AESENCLAST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AESENC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AESIMC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_AESKEYGENASSIST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ANDN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ANDNPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ANDNPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ANDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ANDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ARPL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BEXTR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLCFILL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLCI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLCIC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLCMSK,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLCS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLENDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLENDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLENDVPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLENDVPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLSFILL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLSI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLSIC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLSMSK,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BLSR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_BZHI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CDQE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCHS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CLAC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CLFLUSH,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CLGI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CLTS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCMOVBE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCMOVB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCMOVE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCMOVNBE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCMOVNB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCMOVNE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCMOVNU,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCMOVU,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CMPPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CMPPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CMPSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CMPSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CMPSQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CMPSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CMPSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_COMISD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_COMISS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCOMP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCOMPI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCOMI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCOM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCOS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CPUID,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CQO,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTDQ2PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTDQ2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTPD2DQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTPD2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTPS2DQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTPS2PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTSD2SI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTSD2SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTSI2SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTSI2SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTSS2SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTSS2SI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTTPD2DQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTTPS2DQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTTSD2SI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTTSS2SI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_DAA,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_DAS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_DATA16,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_DIVPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_DIVPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FDIVR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FIDIVR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FDIVRP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_DIVSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_DIVSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FDIV,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FIDIV,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FDIVP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_DPPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_DPPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ENCLS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ENCLU,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_EXTRACTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_EXTRQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_F2XM1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LCALL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LJMP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FBLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FBSTP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FCOMPP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FDECSTP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FEMMS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FFREE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FICOM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FICOMP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FINCSTP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLDCW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLDENV,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLDL2E,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLDL2T,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLDLG2,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLDLN2,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLDPI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FNCLEX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FNINIT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FNOP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FNSTCW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FNSTSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FPATAN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FPREM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FPREM1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FPTAN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FRNDINT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FRSTOR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FNSAVE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSCALE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSETPM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSINCOS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FNSTENV,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FXAM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FXRSTOR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FXRSTOR64,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FXSAVE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FXSAVE64,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FXTRACT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FYL2X,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FYL2XP1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVAPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVAPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ORPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ORPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVAPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVAPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XORPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XORPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_GETSEC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_HADDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_HADDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_HLT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_HSUBPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_HSUBPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_IDIV,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FILD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_IMUL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_IN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INSERTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INSERTQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INT1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INT3,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INVD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INVEPT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INVLPG,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INVLPGA,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INVPCID,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_INVVPID,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_IRET,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_IRETD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_IRETQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FISTTP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FIST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FISTP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_UCOMISD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_UCOMISS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCMP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCOMISD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCOMISS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTSD2SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTSI2SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTSI2SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTSS2SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTTSD2SI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTTSD2USI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTTSS2SI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTTSS2USI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTUSI2SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTUSI2SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VUCOMISD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VUCOMISS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KANDB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KANDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KANDNB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KANDND,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KANDNQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KANDNW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KANDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KANDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KMOVB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KMOVD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KMOVQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KMOVW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KNOTD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KNOTQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KNOTW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KORB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KORD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KORQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KORTESTW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KORW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KSHIFTLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KSHIFTRW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KUNPCKBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KXNORB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KXNORD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KXNORQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KXNORW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KXORB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KXORD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KXORQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_KXORW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LAR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LDDQU,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LDMXCSR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LDS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLDZ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLD1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LES,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LFENCE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LFS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LGDT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LGS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LIDT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LLDT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LMSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LODSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LODSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LODSQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LODSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RETF,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RETFQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LSL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LTR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_LZCNT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MASKMOVDQU,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MAXPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MAXPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MAXSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MAXSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MFENCE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MINPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MINPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MINSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MINSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTPD2PI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTPI2PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTPI2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTPS2PI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTTPD2PI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_CVTTPS2PI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_EMMS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MASKMOVQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVDQ2Q,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVNTQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVQ2DQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PABSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PABSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PABSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PACKSSDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PACKSSWB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PACKUSWB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PADDB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PADDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PADDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PADDSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PADDSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PADDUSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PADDUSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PADDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PALIGNR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PANDN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PAND,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PAVGB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PAVGW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPEQB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPEQD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPEQW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPGTB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPGTD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPGTW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PEXTRW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PHADDSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PHADDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PHADDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PHSUBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PHSUBSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PHSUBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PINSRW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMADDUBSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMADDWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMAXSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMAXUB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMINSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMINUB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVMSKB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMULHRSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMULHUW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMULHW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMULLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMULUDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_POR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSADBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSHUFB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSHUFW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSIGNB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSIGND,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSIGNW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSLLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSLLQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSLLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSRAD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSRAW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSRLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSRLQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSRLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSUBB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSUBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSUBQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSUBSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSUBSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSUBUSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSUBUSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSUBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PUNPCKHBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PUNPCKHDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PUNPCKHWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PUNPCKLBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PUNPCKLDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PUNPCKLWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PXOR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MONITOR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MONTMUL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOV,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVABS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVBE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVDDUP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVDQA,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVDQU,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVHLPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVHPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVHPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVLHPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVLPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVLPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVMSKPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVMSKPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVNTDQA,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVNTDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVNTI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVNTPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVNTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVNTSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVNTSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVSHDUP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVSLDUP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVSQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVSXD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVUPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MOVUPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MPSADBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MUL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MULPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MULPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MULSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MULSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MULX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FMUL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FIMUL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FMULP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_MWAIT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_NEG,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_NOP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_OUT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_OUTSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_OUTSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_OUTSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PACKUSDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PAUSE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PAVGUSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PBLENDVB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PBLENDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCLMULQDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPEQQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPESTRI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPESTRM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPGTQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPISTRI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PCMPISTRM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PDEP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PEXT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PEXTRB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PEXTRD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PEXTRQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PF2ID,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PF2IW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFACC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFADD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFCMPEQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFCMPGE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFCMPGT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFMAX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFMIN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFMUL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFNACC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFPNACC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFRCPIT1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFRCPIT2,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFRCP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFRSQIT1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFRSQRT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFSUBR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PFSUB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PHMINPOSUW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PI2FD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PI2FW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PINSRB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PINSRD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PINSRQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMAXSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMAXSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMAXUD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMAXUW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMINSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMINSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMINUD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMINUW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVSXBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVSXBQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVSXBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVSXDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVSXWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVSXWQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVZXBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVZXBQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVZXBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVZXDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVZXWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMOVZXWQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMULDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMULHRW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PMULLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PREFETCH,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PREFETCHNTA,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PREFETCHT0,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PREFETCHT1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PREFETCHT2,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PREFETCHW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSHUFD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSHUFHW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSHUFLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSLLDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSRLDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PSWAPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PTEST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PUNPCKHQDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_PUNPCKLQDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RCPPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RCPSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RDFSBASE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RDGSBASE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RDMSR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RDPMC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RDRAND,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RDSEED,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RDTSC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RDTSCP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RORX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ROUNDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ROUNDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ROUNDSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_ROUNDSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RSM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RSQRTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_RSQRTSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SALC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SARX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SCASB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SCASD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SCASQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SCASW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SFENCE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SGDT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHA1MSG1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHA1MSG2,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHA1NEXTE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHA1RNDS4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHA256MSG1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHA256MSG2,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHA256RNDS2,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHLX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHRX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHUFPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SHUFPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SIDT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSIN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SKINIT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SLDT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SMSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SQRTPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SQRTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SQRTSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SQRTSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSQRT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_STAC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_STGI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_STMXCSR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_STOSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_STOSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_STOSQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_STOSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_STR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSTP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSTPNCE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SUBPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SUBPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSUBR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FISUBR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSUBRP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SUBSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SUBSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSUB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FISUB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FSUBP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SWAPGS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SYSCALL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SYSENTER,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SYSEXIT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_SYSRET,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_T1MSKC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_UD2,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FTST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_TZCNT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_TZMSK,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FUCOMPI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FUCOMI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FUCOMPP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FUCOMP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FUCOM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_UD2B,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_UNPCKHPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_UNPCKHPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_UNPCKLPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_UNPCKLPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VADDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VADDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VADDSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VADDSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VADDSUBPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VADDSUBPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VAESDECLAST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VAESDEC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VAESENCLAST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VAESENC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VAESIMC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VAESKEYGENASSIST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VALIGND,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VALIGNQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VANDNPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VANDNPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VANDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VANDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBLENDMPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBLENDMPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBLENDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBLENDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBLENDVPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBLENDVPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBROADCASTF128,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBROADCASTI128,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBROADCASTI32X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBROADCASTI64X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBROADCASTSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VBROADCASTSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCMPPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCMPPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCMPSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCMPSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTDQ2PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTDQ2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPD2DQX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPD2DQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPD2PSX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPD2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPD2UDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPH2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPS2DQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPS2PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPS2PH,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTPS2UDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTSD2SI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTSD2USI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTSS2SI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTSS2USI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTTPD2DQX,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTTPD2DQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTTPD2UDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTTPS2DQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTTPS2UDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTUDQ2PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VCVTUDQ2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VDIVPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VDIVPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VDIVSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VDIVSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VDPPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VDPPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VERR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VERW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VEXTRACTF128,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VEXTRACTF32X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VEXTRACTF64X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VEXTRACTI128,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VEXTRACTI32X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VEXTRACTI64X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VEXTRACTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD132PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD132PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD213PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD213PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD231PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD231PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD213SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD132SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD231SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD213SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD132SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADD231SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSUB132PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSUB132PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSUB213PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSUB213PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSUBPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSUB231PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSUBPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMADDSUB231PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB132PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB132PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB213PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB213PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBADD132PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBADD132PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBADD213PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBADD213PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBADDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBADD231PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBADDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBADD231PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB231PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB231PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB213SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB132SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB231SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUBSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB213SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB132SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFMSUB231SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD132PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD132PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD213PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD213PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD231PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD231PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADDSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD213SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD132SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD231SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADDSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD213SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD132SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMADD231SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB132PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB132PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB213PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB213PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUBPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB231PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUBPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB231PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUBSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB213SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB132SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB231SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUBSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB213SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB132SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFNMSUB231SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFRCZPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFRCZPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFRCZSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VFRCZSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VORPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VORPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VXORPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VXORPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERPF0DPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERPF0DPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERPF0QPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERPF0QPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERPF1DPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERPF1DPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERPF1QPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERPF1QPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERQPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VGATHERQPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VHADDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VHADDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VHSUBPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VHSUBPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VINSERTF128,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VINSERTF32X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VINSERTF64X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VINSERTI128,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VINSERTI32X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VINSERTI64X4,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VINSERTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VLDDQU,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VLDMXCSR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMASKMOVDQU,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMASKMOVPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMASKMOVPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMAXPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMAXPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMAXSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMAXSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMCALL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMCLEAR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMFUNC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMINPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMINPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMINSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMINSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMLAUNCH,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMLOAD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMMCALL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVDDUP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVDQA32,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVDQA64,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVDQA,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVDQU16,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVDQU32,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVDQU64,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVDQU8,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVDQU,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVHLPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVHPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVHPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVLHPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVLPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVLPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVMSKPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVMSKPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVNTDQA,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVNTDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVNTPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVNTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVSHDUP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVSLDUP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVUPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMOVUPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMPSADBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMPTRLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMPTRST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMREAD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMRESUME,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMRUN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMSAVE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMULPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMULPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMULSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMULSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMWRITE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMXOFF,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VMXON,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPABSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPABSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPABSQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPABSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPACKSSDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPACKSSWB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPACKUSDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPACKUSWB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPADDB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPADDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPADDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPADDSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPADDSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPADDUSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPADDUSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPADDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPALIGNR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPANDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPANDND,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPANDNQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPANDN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPANDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPAND,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPAVGB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPAVGW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBLENDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBLENDMD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBLENDMQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBLENDVB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBLENDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBROADCASTB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBROADCASTD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBROADCASTMB2Q,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBROADCASTMW2D,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBROADCASTQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPBROADCASTW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCLMULQDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMOV,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMP,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPEQB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPEQD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPEQQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPEQW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPESTRI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPESTRM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPGTB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPGTD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPGTQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPGTW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPISTRI,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPISTRM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPUD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCMPUQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCOMB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCOMD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCOMQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCOMUB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCOMUD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCOMUQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCOMUW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCOMW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCONFLICTD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPCONFLICTQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERM2F128,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERM2I128,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMI2D,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMI2PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMI2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMI2Q,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMIL2PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMIL2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMILPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMILPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMT2D,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMT2PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMT2PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPERMT2Q,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPEXTRB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPEXTRD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPEXTRQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPEXTRW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPGATHERDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPGATHERDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPGATHERQD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPGATHERQQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDBQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDUBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDUBQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDUBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDUDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDUWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDUWQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDWQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHADDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHMINPOSUW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHSUBBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHSUBDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHSUBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHSUBSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHSUBWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPHSUBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPINSRB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPINSRD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPINSRQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPINSRW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPLZCNTD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPLZCNTQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSDQH,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSDQL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSSDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSSDQH,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSSDQL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSSWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSSWW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMACSWW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMADCSSWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMADCSWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMADDUBSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMADDWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMASKMOVD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMASKMOVQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMAXSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMAXSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMAXSQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMAXSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMAXUB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMAXUD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMAXUQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMAXUW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMINSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMINSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMINSQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMINSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMINUB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMINUD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMINUQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMINUW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVDB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVMSKB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVQB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVQD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVQW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSDB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSQB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSQD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSQW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSXBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSXBQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSXBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSXDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSXWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVSXWQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVUSDB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVUSDW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVUSQB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVUSQD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVUSQW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVZXBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVZXBQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVZXBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVZXDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVZXWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMOVZXWQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMULDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMULHRSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMULHUW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMULHW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMULLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMULLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPMULUDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPORD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPORQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPOR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPPERM,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPROTB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPROTD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPROTQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPROTW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSADBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSCATTERDD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSCATTERDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSCATTERQD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSCATTERQQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHAB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHAD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHAQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHAW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHLB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHLQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHUFB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHUFD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHUFHW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSHUFLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSIGNB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSIGND,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSIGNW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSLLDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSLLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSLLQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSLLVD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSLLVQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSLLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRAD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRAQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRAVD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRAVQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRAW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRLDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRLD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRLQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRLVD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRLVQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSRLW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSUBB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSUBD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSUBQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSUBSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSUBSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSUBUSB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSUBUSW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPSUBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPTESTMD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPTESTMQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPTESTNMD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPTESTNMQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPTEST,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPUNPCKHBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPUNPCKHDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPUNPCKHQDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPUNPCKHWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPUNPCKLBW,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPUNPCKLDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPUNPCKLQDQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPUNPCKLWD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPXORD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPXORQ,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VPXOR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCP14PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCP14PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCP14SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCP14SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCP28PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCP28PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCP28SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCP28SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCPPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRCPSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRNDSCALEPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRNDSCALEPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRNDSCALESD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRNDSCALESS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VROUNDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VROUNDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VROUNDSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VROUNDSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRT14PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRT14PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRT14SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRT14SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRT28PD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRT28PS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRT28SD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRT28SS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VRSQRTSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERDPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERDPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERPF0DPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERPF0DPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERPF0QPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERPF0QPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERPF1DPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERPF1DPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERPF1QPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERPF1QPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERQPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSCATTERQPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSHUFPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSHUFPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSQRTPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSQRTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSQRTSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSQRTSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSTMXCSR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSUBPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSUBPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSUBSD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VSUBSS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VTESTPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VTESTPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VUNPCKHPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VUNPCKHPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VUNPCKLPD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VUNPCKLPS,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VZEROALL,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_VZEROUPPER,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_WAIT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_WBINVD,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_WRFSBASE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_WRGSBASE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_WRMSR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XABORT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XACQUIRE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XBEGIN,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_FXCH,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XCRYPTCBC,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XCRYPTCFB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XCRYPTCTR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XCRYPTECB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XCRYPTOFB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XEND,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XGETBV,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XLATB,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XRELEASE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XRSTOR,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XRSTOR64,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XSAVE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XSAVE64,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XSAVEOPT,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XSAVEOPT64,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XSETBV,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XSHA1,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XSHA256,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XSTORE,		{"xxx", {0, 0, 0, 0}}},
+		{X86_INS_XTEST,		{"xxx", {0, 0, 0, 0}}},
 	},
 };
-
-/*
-//Decimal Arithmetic Instructions
-
-
-//String Instructions
-case str2int ("movs") :
-case str2int ("movsb") :
-case str2int ("movsw") :
-case str2int ("movsd") :
-	instruction.type = H_INSTR_TYPE_MOV;
-	break;
-case str2int ("cmps") :
-case str2int ("cmpsb") :
-case str2int ("cmpsw") :
-case str2int ("cmpsd") :
-	instruction.type = H_INSTR_TYPE_CMP;
-	break;
-case str2int ("scas") :
-case str2int ("scasb") :
-case str2int ("scasw") :
-case str2int ("scasd") :
-	instruction.type = H_INSTR_TYPE_CMP;
-	break;
-case str2int ("lods") :
-case str2int ("lodsb") :
-case str2int ("lodsw") :
-case str2int ("lodsd") :
-	instruction.type = H_INSTR_TYPE_LOAD;
-	break;
-case str2int ("stos") :
-case str2int ("stosb") :
-case str2int ("stosw") :
-case str2int ("stosd") :
-	instruction.type = H_INSTR_TYPE_STORE;
-	break;
-case str2int ("rep") :
-	break;
-case str2int ("repe") :
-case str2int ("repz") :
-	break;
-case str2int ("repne") :
-case str2int ("repnz") :
-	break;
-
-//I/O Instructions
-case str2int ("in") :
-	instruction.type = H_INSTR_TYPE_IO;
-	break;
-case str2int ("out") :
-	instruction.type = H_INSTR_TYPE_IO;
-	break;
-case str2int ("ins") :
-case str2int ("insb") :
-case str2int ("insw") :
-case str2int ("insd") :
-	instruction.type = H_INSTR_TYPE_IO;
-	break;
-case str2int ("outs") :
-case str2int ("outsb") :
-case str2int ("outsw") :
-case str2int ("outsd") :
-	instruction.type = H_INSTR_TYPE_IO;
-	break;
-
-//Enter and Leave Instructions
-//Already defined in Control Flow Instructions
-
-//Segment Register Instructions
-case str2int ("lds") :
-	instruction.type = H_INSTR_TYPE_LOAD;
-	break;
-case str2int ("les") :
-	instruction.type = H_INSTR_TYPE_LOAD;
-	break;
-case str2int ("lfs") :
-	instruction.type = H_INSTR_TYPE_LOAD;
-	break;
-case str2int ("lgs") :
-	instruction.type = H_INSTR_TYPE_LOAD;
-	break;
-case str2int ("lss") :
-	instruction.type = H_INSTR_TYPE_LOAD;
-	break;
-
-//Miscellaneous Instructions
-case str2int ("ud") :
-	instruction.type = H_INSTR_TYPE_UNDEFINED;
-	break;
-case str2int ("xlat") :
-case str2int ("xlatb") :
-	break;
-case str2int ("cpuid") :
-	break;
-case str2int ("movbe") :
-	instruction.type = H_INSTR_TYPE_MOV;
-	break;
-case str2int ("prefetchbe") :
-	break;
-case str2int ("prefetchwt1") :
-	break;
-case str2int ("clflush") :
-	break;
-case str2int ("clflushopt") :
-	break;
-//User Mode Extended Sate Save/Hestore Instructions
-//Handom Number Generator Instructions
-//BMI1, BMI2
-//Detection of VEX-encoded GPH Instructions, LZCNT and TZCNT, PHEFETCHW
-//x87 FPU Data Transfer Instructions
-//x87 FPU Basic Arithmetic Instructions
-//x87 FPU Comparison Instructions
-//x87 FPU Transcendental Instructions
-//x87 FPU Load Constants Instructions
-//x87 FPU Control Instructions
-//X87 FPU AND SIMD STATE MANAGEMENT INSTRUCTIONS
-//MMX Data Transfer Instructions
-case str2int ("movd") :
-	instruction.type = H_INSTR_TYPE_MOV;
-	break;
-case str2int ("movq") :
-	instruction.type = H_INSTR_TYPE_MOV;
-	break;
-//MMX Conversion Instructions
-case str2int ("packsswb") :
-	break;
-case str2int ("packssdw") :
-	break;
-case str2int ("packuswb") :
-	break;
-case str2int ("punpckhbw") :
-	break;
-case str2int ("punpckhwd") :
-	break;
-case str2int ("punpckhdq") :
-	break;
-case str2int ("punpcklbw") :
-	break;
-case str2int ("punpcklwd") :
-	break;
-case str2int ("punpckldq") :
-	break;
-
-//MMX Packed Arithmetic Instructions
-//MMX Comparison Instructions
-//MMX Logical Instructions
-//MMX Shift and Hotate Instructions
-//MMX State Management Instructions
-//SSE SIMD Single-Precision Floating-Point Instructions
-//SSE Data Transfer Instructions
-//SSE Packed Arithmetic Instructions
-//SSE Comparison Instructions
-//SSE Logical Instructions
-//SSE Shuffle and Unpack Instructions
-//SSE Conversion Instructions
-//SSE MXCSH State Management Instructions
-//SSE 64-Bit SIMD Integer Instructions
-//SSE Cacheability Control, Prefetch, and Instruction Ordering Instructions
-//SSE2 Data Movement Instructions
-//SSE2 Packed Arithmetic Instructions
-//SSE2 Logical Instructions
-//SSE2 Compare Instructions
-//SSE2 Shuffle and Unpack Instructions
-//SSE2 Conversion Instructions
-//SSE2 Packed Single-Precision Floating-Point Instructions
-//SSE2 128-Bit SIMD Integer Instructions
-//SSE2 Cacheability Control and Ordering Instructions
-//SSE3 x87-FP Integer Conversion Instruction
-//SSE3 Specialized 128-bit Unaligned Data Load Instruction
-//SSE3 SIMD Floating-Point Packed ADD/SUB Instructions
-//SSE3 SIMD Floating-Point Horizontal ADD/SUB Instructions
-//SSE3 SIMD Floating-Point LOAD/MOVE/DUPLICATE Instructions
-//SSE3 Agent Synchronization Instructions
-//Horizontal Addition/Subtraction
-//Packed Absolute Values
-//Multiply and Add Packed Signed and Unsigned Bytes
-//Packed Multiply High with Hound and Scale
-//Packed Shuffle Bytes
-//Packed Sign
-//Packed Align Hight
-//SSE4
-//Dword Multiply Instructions
-//Floating-Point Dot Product Instructions
-//Streaming Load Hint Instruction
-//Packed Blending Instructions
-//Packed Integer MIN/MAX Instructions
-//Floating-Point Hound Instructions with Selectable Hounding Mode
-//Insertion and Extractions from XMM Registers
-//Packed Integer Format Conversions
-//Improved Sums of Absolute Differences (SAD) for 4-Byte Blocks
-//Horizontal Search
-//Packed Test
-//Packed Qword Equality Comparisons
-//Dword Packing With Unsigned Saturation
-//String and Text Processing Instructions
-//Packed Comparison SIMD integer Instruction
-//AESNI AND PCLMULQDQ
-//16-BIT FLOATING-POINT CONVEHSION
-//INTEL® TRAHSACTIONAL SYNCHROHIZATION EXTENSIONS (INTEL® TSX)
-//INTEL® SHA EXTENSIONS
-//INTEL® ADVANCED VECTOR HXTENSIONS 512 (INTEL® AVX-512)
-//SYSTEM INSTRUCTIONS
-case str2int ("clac") :
-	instruction.type = H_INSTR_TYPE_BITRESET;
-	break;
-case str2int ("stac") :
-	instruction.type = H_INSTR_TYPE_BITSET;
-	break;
-case str2int ("hlt") :
-	instruction.type = H_INSTR_TYPE_HALT;
-	break;
-//64-BIT MODE INSTRUCTIONS
-case str2int ("syscall") :
-	instruction.type = H_INSTR_TYPE_SYSCALL;
-	break;
-//VIHTUAL-MACHINE EXTENSIONS
-//SAFEH MODE EXTENSIONS
-//INTEL® MEMORYHPROHECTION EXTENSIONS
-//INTEL® SECURIHY GUARDHEXTENSIONS
-default:
-	printf ("Missed %s", insn->mnemonic);
-}*/
