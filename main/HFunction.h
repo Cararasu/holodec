@@ -166,9 +166,8 @@ namespace holodec {
 					printf (" Args%d: ", i + 1);
 					operands[i].print ();
 				}
-				if (!instrdef->il_string[opcount])
-					printf ("   Has no il_string!");
 				printf ("\n");
+				instrdef->il_string[opcount].print (indent + 1);
 			} else {
 				printIndent (indent);
 				printf ("No Def\n");
