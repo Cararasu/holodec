@@ -70,12 +70,20 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 				instruction.addr = addr;
 				instruction.size = insn[i].size;
 				setOperands (&instruction, insn[i].detail);
-				
+
+				switch (insn[i].detail->x86.prefix[0]) {
+				case X86_PREFIX_REP:
+					insn[i].id |= CUSOM_X86_INSTR_EXTR_REPE;
+					break;
+				case X86_PREFIX_REPNE:
+					insn[i].id |= CUSOM_X86_INSTR_EXTR_REPNE;
+					break;
+				}
+
 				instruction.instrdef = arch->getInstrDef (insn[i].id, insn[i].mnemonic);
-				
-				if(!instruction.instrdef)
-					printf("ID: %d\n",insn[i].id);
-				
+				if (!instruction.instrdef)
+					printf ("ID: %d\n", insn[i].id);
+
 				setJumpDest (&instruction);
 				addr += insn[i].size;
 				if (!this->postInstruction (&instruction)) {
@@ -143,7 +151,7 @@ void holox86::Hx86FunctionAnalyzer::setJumpDest (HInstruction* instruction) {
 
 	instruction->nojumpdest = instruction->addr + instruction->size;
 	if (instruction->instrdef && (instruction->instrdef->type == H_INSTR_TYPE_JMP || instruction->instrdef->type2 == H_INSTR_TYPE_JMP)) {
-		if (instruction->condition == H_INSTR_COND_TRUE && instruction->instrdef->condition == H_INSTR_COND_TRUE){
+		if (instruction->condition == H_INSTR_COND_TRUE && instruction->instrdef->condition == H_INSTR_COND_TRUE) {
 			instruction->nojumpdest = 0;
 		}
 		if (instruction->operands[0].type.type == H_LOCAL_TYPE_IMM_UNSIGNED)

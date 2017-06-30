@@ -32,6 +32,10 @@ namespace holox86 {
 		virtual void analyzeInsts (size_t addr);
 
 	};
+	
+	#define CUSOM_X86_INSTR_EXTR_REP 	(0x1000000)
+	#define CUSOM_X86_INSTR_EXTR_REPE 	CUSOM_X86_INSTR_EXTR_REP
+	#define CUSOM_X86_INSTR_EXTR_REPNE 	(0x2000000)
 }
 
 #endif // H_X86FUNCTIONANALYZEH_H
