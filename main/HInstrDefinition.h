@@ -5,6 +5,7 @@
 #include "HString.h"
 #include <stdint.h>
 #include "HGeneral.h"
+#include "HoloIR.h"
 
 namespace holodec {
 
@@ -96,36 +97,10 @@ namespace holodec {
 		H_INSTR_TYPE_ILLEGAL,
 	};
 
-	struct HILRepresentation{
-		HString string;
-	
-		HILRepresentation():string(0){}
-		HILRepresentation(int i):string(0){}
-		HILRepresentation(const char* ptr):string(ptr){}
-		HILRepresentation(HString string):string(string){}
-		
-		bool operator!(){
-			return !string;
-		}
-		operator bool(){
-			return string;
-		}
-		
-		void print (int indent = 0) {
-			if(string){
-			printIndent (indent);
-			printf ("IL-String: %s\n", string.cstr());	
-			}else{
-				
-			printIndent (indent);
-			printf ("No IL-String----------------\n");
-			}
-		}
-	};
 	
 	struct HInstrDefinition {//16*8 -> 128 bytes
 		HString mnemonics;
-		HILRepresentation il_string[4];
+		holoir::HIRRepresentation il_string[4];
 		size_t type;
 		size_t type2;
 		HInstructionCondition condition;

@@ -174,11 +174,34 @@ namespace holodec {
 			}
 		}
 	};
+	struct HJumpTable {
+		struct HEntry {
+			size_t addr;//where the entry is in memory
+			size_t targetaddr;//the target of the jump
+			HId bb_id;
+		};
+		
+		HId id;
+		size_t addr;
+		HList<HEntry> entries;
+		
+		void print (int indent = 0) {
+			printIndent (indent);
+			printf ("JumpTable \n");
+			for (HEntry& entry : entries) {
+				printIndent (indent + 1);
+				printf("0x%X",entry.addr);
+			}
+		}
+	};
 	struct HBasicBlock {
 		HId id;
 		HList<HInstruction> instructions;
 		HId nextblock;
 		HId nextcondblock;
+
+		HId jumptable;
+
 		HInstructionCondition cond;
 		size_t addr;
 		size_t size;
@@ -195,7 +218,9 @@ namespace holodec {
 		HId id;
 		HId symbolref;
 		HIdGenerator gen_bb;
+		HIdGenerator gen_jt;
 		HList<HBasicBlock> basicblocks;
+		HList<HJumpTable> jumptables;
 		HVisibilityType* visibility;
 
 		HBasicBlock* findBasicBlock (size_t addr) {

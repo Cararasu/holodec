@@ -36,6 +36,8 @@
       <File Name="HConsole.h"/>
       <File Name="HGeneral.cpp"/>
       <File Name="HConsole.cpp"/>
+      <File Name="HoloIR.h"/>
+      <File Name="HoloIR.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="DataAnalyzer">
       <File Name="HBinaryAnalyzer.cpp"/>

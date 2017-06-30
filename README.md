@@ -11,7 +11,7 @@ The goal of HoloDec is to write an open source decompiler for x86/x86-64 binarie
     * Probably convert IR into an SSA form
     * Generation of Pseudocode from SSA
 * Maybe a structural decompiler (something easy like Python just to show possibilites)
-    * Use a per-instructionset decompiler
+    * A per-instructionset decompiler
 
 # Current IR Specs
 The Intermediate Representation is written in prefix notation.
@@ -51,24 +51,37 @@ these Flags are implicitly set After every arithmetic operation
     * Overflow Flag
 * `#z`
     * Zero Flag
+* `#s`
+    * Signed Flag
 
 ### Variables
-* `#arg'n' (0-ary)`
+* `#arg['n'] (0-ary)`
     * The `n`th argument of the instruction.
-* `#stck'n' (0-ary)`
+* `#stck['n'] (0-ary)`
     * The `n`th element on the stack.
-* `#t'n' (0-ary)`
+* `#t['n'] (0-ary)`
     * The `n`th temporary value.
-* `#ret (0-ary)`
-    * Defines a return from a function. This does not assume that the return address is on the stack. It is completely independant of an architecture, but it terminates a function.
 
 ### Functions
-* `= (2-ary)`
+
+* `#ret (0-ary)`
+    * Defines a return from a function. This does not assume that the return address is on the stack. It is completely independant of an architecture, but it terminates a function.
+* `#jmp (1-ary)`
+    * A jump
+* `#call (1-ary)`
+    * Calls a function
+* `#trap (0-ary)`
+    * Trap
+* `#syscall (1-ary)`
+    * Calls a function
+* `=, #assign (2-ary)`
     * Assignment
 * `#size (1-ary)`
     * Returns the bits of the argument
 * `#popcnt (1-ary)`
     * Number of bits set
+* `?, #if (2-ary)`
+    * 1st Argument is the condition, 2nd Argument is the Body
 * `#loop (2-ary)`
     * 1st Argument is the condition, 2nd Argument is the Body
 * `#rec['mnemonic'] (n-ary)`
@@ -107,17 +120,17 @@ these Flags are implicitly set After every arithmetic operation
     * Loads (2nd Argument) number of bytes from the (first Argument) memory location
 
 #### Comparisons
-* `<> (2-ary)`
+* `<>, #neq (2-ary)`
     * Not Equals
 * `==, #eq (2-ary)`
     * Equals
-* `< (2-ary)`
+* `<, #l (2-ary)`
     * Smaller
-* `<= (2-ary)`
+* `<=, #le (2-ary)`
     * Smaller Equals
-* `> (2-ary)`
+* `>, #g (2-ary)`
     * Greater
-* `>= (2-ary)`
+* `>=, #ge (2-ary)`
     * Greater Equals
 * `#not (1-ary)`
     * Is 0

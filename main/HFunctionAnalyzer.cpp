@@ -74,12 +74,16 @@ bool holodec::HFunctionAnalyzer::splitBasicBlock (HBasicBlock* basicblock, size_
 				HList<HInstruction> (it, basicblock->instructions.end()),
 				basicblock->nextblock,
 				basicblock->nextcondblock,
+				basicblock->jumptable,
 				basicblock->cond,
 				instruction.addr,
 				(basicblock->addr + basicblock->size) - instruction.addr
 			};
 			basicblock->size = basicblock->size - newbb.size;
 			basicblock->cond = H_INSTR_COND_TRUE;
+			basicblock->nextblock = 0;
+			basicblock->nextcondblock = 0;
+			basicblock->jumptable = 0;
 			basicblock->instructions.erase (it, basicblock->instructions.end());
 			changedBasicBlock (basicblock);
 			changedBasicBlock (&newbb);
@@ -134,7 +138,7 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
 		if (!state.instructions.empty()) {
 			HInstruction* firstI = &state.instructions.front();
 			HInstruction* lastI = &state.instructions.back();
-			HBasicBlock basicblock = {0, state.instructions, 0, 0, lastI->condition, firstI->addr, (lastI->addr + lastI->size) - firstI->addr};
+			HBasicBlock basicblock = {0, state.instructions, 0, 0, 0, lastI->condition, firstI->addr, (lastI->addr + lastI->size) - firstI->addr};
 			postBasicBlock (&basicblock);
 			state.instructions.clear();
 		}

@@ -103,7 +103,8 @@ bool holoelf::HElfBinaryAnalyzer::init (holodec::HData* file) {
 					HSymbol* sym = binary->findSymbol(value,&HSymbolType::symfunc);
 					if(sym){
 						sym->name.del();
-						sym->name.update(holodec::HString::create(name));
+						HString s = holodec::HString::create(name);
+						sym->name = s;
 						sym->size = size;
 					}else{
 						binary->addSymbol({0,holodec::HString::create(name),&holodec::HSymbolType::symfunc,0,value,value,size});
@@ -221,7 +222,7 @@ bool holoelf::HElfBinaryAnalyzer::parseFileHeader() {
 	}
 	switch (elf_is) {
 	case ELF_IS_X86:
-		binary->arch.update ("x86");
+		binary->arch = "x86";
 		break;
 
 	}
@@ -358,7 +359,8 @@ bool holoelf::HElfBinaryAnalyzer::parseSectionHeaderTable () {
 	void* nameentryptr = binary->data->data + sections[sectionHeaderTable.namesectionindex].offset;
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
 		HSection & section = sections[i];
-		sections[i].name.update (HString::create ( (char*) (nameentryptr + nameoffset[i])));
+		HString s = HString::create ( (char*) (nameentryptr + nameoffset[i]));
+		sections[i].name = s;
 		printf ("Name: %s\n", section.name.cstr());
 		printf ("Addr: 0x%X\n", section.offset);
 		printf ("Size: 0x%X\n", section.size);

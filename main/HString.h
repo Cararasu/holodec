@@ -27,11 +27,15 @@ namespace holodec {
 			doHash();
 		}
 		HString (const HString& str) : m_hash (str.m_hash), m_cstr (str.m_cstr) {}
-		HString operator= (HString& str) {
-			return HString (str);
+		HString& operator= (HString& str) {
+			m_hash = str.m_hash;
+			m_cstr = str.m_cstr;
+			return *this;
 		}
-		HString operator= (const char* str) {
-			return HString (str);
+		HString& operator= (const char* str) {
+			m_cstr = str;
+			doHash();
+			return *this;
 		}
 
 		uint64_t hash() const {
@@ -39,14 +43,6 @@ namespace holodec {
 		}
 		const char* cstr() const {
 			return m_cstr;
-		}
-		void update (const char* ptr) {
-			m_cstr = ptr;
-			doHash();
-		}
-		void update (HString str) {
-			m_hash = str.m_hash;
-			m_cstr = str.m_cstr;
 		}
 		operator bool() const {
 			return m_cstr != nullptr;
@@ -61,7 +57,7 @@ namespace holodec {
 		void del(){
 			if(m_cstr)
 				free(const_cast<char*>(m_cstr));
-			update(0);
+			*this = nullptr;
 		}
 		HString copy(){
 			return HString(strdup(m_cstr));

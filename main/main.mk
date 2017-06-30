@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Thomas
-Date                   :=29/06/2017
+Date                   :=30/06/2017
 CodeLitePath           :="C:/Program Files/CodeLite"
 LinkerName             :="C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/g++.exe"
 SharedObjectLinkerName :="C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw64/bin/g++.exe" -shared -fPIC
@@ -63,8 +63,8 @@ AS       := "C:/Program Files/mingw-w64/x86_64-6.2.0-posix-seh-rt_v5-rev1/mingw6
 ##
 CodeLiteDir:=C:\Program Files\CodeLite
 Objects0=$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/HStringDatabase.cpp$(ObjectSuffix) $(IntermediateDirectory)/HSection.cpp$(ObjectSuffix) $(IntermediateDirectory)/HFunction.cpp$(ObjectSuffix) $(IntermediateDirectory)/HData.cpp$(ObjectSuffix) $(IntermediateDirectory)/HClass.cpp$(ObjectSuffix) $(IntermediateDirectory)/HBinary.cpp$(ObjectSuffix) $(IntermediateDirectory)/HScriptingInterface.cpp$(ObjectSuffix) $(IntermediateDirectory)/HMain.cpp$(ObjectSuffix) $(IntermediateDirectory)/HLogger.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/HGeneral.cpp$(ObjectSuffix) $(IntermediateDirectory)/HConsole.cpp$(ObjectSuffix) $(IntermediateDirectory)/HBinaryAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/HFileFormat.cpp$(ObjectSuffix) $(IntermediateDirectory)/HInstrDefinition.cpp$(ObjectSuffix) $(IntermediateDirectory)/HFunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/HArchitecture.cpp$(ObjectSuffix) $(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Hx86Architecture.cpp$(ObjectSuffix) $(IntermediateDirectory)/HElfDataFile.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(ObjectSuffix) 
+	$(IntermediateDirectory)/HGeneral.cpp$(ObjectSuffix) $(IntermediateDirectory)/HConsole.cpp$(ObjectSuffix) $(IntermediateDirectory)/HoloIR.cpp$(ObjectSuffix) $(IntermediateDirectory)/HBinaryAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/HFileFormat.cpp$(ObjectSuffix) $(IntermediateDirectory)/HInstrDefinition.cpp$(ObjectSuffix) $(IntermediateDirectory)/HFunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/HArchitecture.cpp$(ObjectSuffix) $(IntermediateDirectory)/Hx86FunctionAnalyzer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Hx86Architecture.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/HElfDataFile.cpp$(ObjectSuffix) $(IntermediateDirectory)/HElfBinaryAnalyzer.cpp$(ObjectSuffix) 
 
 
 
@@ -190,6 +190,14 @@ $(IntermediateDirectory)/HConsole.cpp$(DependSuffix): HConsole.cpp
 
 $(IntermediateDirectory)/HConsole.cpp$(PreprocessSuffix): HConsole.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HConsole.cpp$(PreprocessSuffix) HConsole.cpp
+
+$(IntermediateDirectory)/HoloIR.cpp$(ObjectSuffix): HoloIR.cpp $(IntermediateDirectory)/HoloIR.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HoloIR.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HoloIR.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/HoloIR.cpp$(DependSuffix): HoloIR.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/HoloIR.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/HoloIR.cpp$(DependSuffix) -MM HoloIR.cpp
+
+$(IntermediateDirectory)/HoloIR.cpp$(PreprocessSuffix): HoloIR.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/HoloIR.cpp$(PreprocessSuffix) HoloIR.cpp
 
 $(IntermediateDirectory)/HBinaryAnalyzer.cpp$(ObjectSuffix): HBinaryAnalyzer.cpp $(IntermediateDirectory)/HBinaryAnalyzer.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "E:/GNUProg/holodec/main/HBinaryAnalyzer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/HBinaryAnalyzer.cpp$(ObjectSuffix) $(IncludePath)
