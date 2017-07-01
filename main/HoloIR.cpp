@@ -48,12 +48,16 @@ holodec::HMap<holodec::HString, holodec::holoir::HIRTokenType> holodec::holoir::
 	{"le", { holodec::holoir::H_IR_TOKEN_CMP_LE, 2, 2}},
 	{"g", { holodec::holoir::H_IR_TOKEN_CMP_G, 2, 2}},
 	{"ge", { holodec::holoir::H_IR_TOKEN_CMP_GE, 2, 2}},
-	{"not", { holodec::holoir::H_IR_TOKEN_CMP_NOT, 2, 2}},
+	{"not", { holodec::holoir::H_IR_TOKEN_CMP_NOT, 1, 1}},
 
-	{"and", { holodec::holoir::H_IR_TOKEN_BINOP_AND, 2}},
-	{"or", { holodec::holoir::H_IR_TOKEN_BINOP_OR, 2}},
-	{"xor", { holodec::holoir::H_IR_TOKEN_BINOP_XOR, 2}},
-	{"not", { holodec::holoir::H_IR_TOKEN_BINOP_NOT, 1, 1}},
+	{"and", { holodec::holoir::H_IR_TOKEN_OP_AND, 2}},
+	{"or", { holodec::holoir::H_IR_TOKEN_OP_OR, 2}},
+	{"xor", { holodec::holoir::H_IR_TOKEN_OP_XOR, 2}},
+	
+	{"band", { holodec::holoir::H_IR_TOKEN_BINOP_AND, 2}},
+	{"bor", { holodec::holoir::H_IR_TOKEN_BINOP_OR, 2}},
+	{"bxor", { holodec::holoir::H_IR_TOKEN_BINOP_XOR, 2}},
+	{"bnot", { holodec::holoir::H_IR_TOKEN_BINOP_NOT, 1, 1}},
 
 	{"shr", { holodec::holoir::H_IR_TOKEN_BINOP_SHR, 2, 2}},
 	{"shl", { holodec::holoir::H_IR_TOKEN_BINOP_SHL, 2, 2}},
@@ -67,11 +71,7 @@ holodec::HMap<holodec::HString, holodec::holoir::HIRTokenType> holodec::holoir::
 };
 
 void holodec::holoir::HIRParser::skipWhitespaces() {
-	char c = peek();
-	while (c == ' ') {
-		c = consume();
-		c = peek();
-	}
+	while (parseCharacter(' '));
 }
 void holodec::holoir::HIRParser::printParseFailure (const char* str) {
 	printf ("Invalid Token at '%s' expected %s\n", string.cstr() + index, str);
@@ -80,43 +80,41 @@ bool holodec::holoir::HIRParser::parseIdentifier (char *buffer, size_t buffersiz
 	size_t current_index = index;
 	for (size_t i = 0; i < buffersize; i++) {
 		char c = peek();
-		if (('a' <= c && c <= 'z') || ('0' <= c && c <= '9') || ('A' <= c && c <= 'Z'))
+		if (('a' <= c && c <= 'z') || ('0' <= c && c <= '9') || ('A' <= c && c <= 'Z')){
 			buffer[i] = c;
-		else {
+		} else {
 			buffer[i] = '\0';
+			if(i == 0)
+				return false;
 			return true;
 		}
 		consume();
 	}
 	return false;
 }
-bool holodec::holoir::HIRParser::parseSequence() {
-	size_t current_index = index;
-	skipWhitespaces();
-	char c = peek();
-	if (c == '&') {
-		consume();
+bool holodec::holoir::HIRParser::parseCharacter(char character) {
+	if (pop() == character) {
 		return true;
 	}
+	pushback();
 	return false;
 }
 bool holodec::holoir::HIRParser::parseIndex() {
 	size_t current_index = index;
 	skipWhitespaces();
-	int64_t i = 0;
-	if (peek() == '[') {
-		consume();
+	if (parseCharacter('[')) {
+		const char* x = string.cstr() + index;
 		if(!parseExpression())
 			return false;
-		
-		if (peek() == ':') {
-			consume();
+		x = string.cstr() + index;
+		skipWhitespaces();
+		if (parseCharacter(',')) {
 			 if(!parseExpression())
 				 return false;
 		}
 		skipWhitespaces();
-		if (peek() == ']') {
-			consume();
+		x = string.cstr() + index;
+		if (parseCharacter(']')) {
 			return true;
 		}
 		printParseFailure ("']'");
@@ -128,16 +126,13 @@ bool holodec::holoir::HIRParser::parseIndex() {
 bool holodec::holoir::HIRParser::parseStringIndex() {
 	size_t current_index = index;
 	skipWhitespaces();
-	int64_t i = 0;
-	if (peek() == '[') {
-		consume();
+	if (parseCharacter('[')) {
 		char buffer[100];
 		if(!parseIdentifier (buffer, 100))
 			return false;
 		printf("Parsed String Index %s\n",buffer);
 		skipWhitespaces();
-		if (peek() == ']') {
-			consume();
+		if (parseCharacter(']')) {
 			return true;
 		}
 		printParseFailure ("']'");
@@ -157,31 +152,33 @@ bool holodec::holoir::HIRParser::parseNumber(int64_t* num) {
 		index += pos;
 	return true;
 }
-int holodec::holoir::HIRParser::parseArguments() {
+int holodec::holoir::HIRParser::parseArguments(HIRTokenType tokentype) {
 	size_t current_index = index;
 	skipWhitespaces();
 	int i = 0;
-	if (peek() == '(') {
+	if (parseCharacter('(')) {
 		skipWhitespaces();
-		if (peek() == ')') {
-			consume();
+		if (parseCharacter(')')) {
 			return 0;
 		}
 		do {
-			consume();
 			if (!parseExpression()) {
 				printf ("Failed to parse Argument %d\n", i);
 				return -1;
 			}
 			i++;
 			skipWhitespaces();
-		} while (peek() == ',');
-
-		if (peek() == ')') {
-			consume();
+		} while (parseCharacter(','));
+		skipWhitespaces();
+		if(!parseCharacter(')')){
+			printParseFailure("',', ')'");
+			return -1;
 		}
 	}
-	return 0;
+	if(tokentype.minargs <= i && i <=tokentype.maxargs)
+		return i;
+	printf("Wrong number of arguments Min: %d Max: %d Actual Arguments: %d\n",tokentype.minargs,tokentype.maxargs,i);
+	return -1;
 }
 holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseBuiltin() {
 	size_t current_index = index;
@@ -196,68 +193,63 @@ holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseBuiltin() {
 	}
 	return H_IR_TOKEN_INVALID;
 }
-holodec::holoir::HIRToken holodec::holoir::HIRParser::parseToken() {
+holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseToken() {
 	skipWhitespaces();
 	while (char c = pop()) {
 		size_t current_index = index;
-		char c2 = peek();
 		switch (c) {
 		case '#':
-			return parseBuiltin().token;
+			return parseBuiltin();
 		case '$':
 			return H_IR_TOKEN_CUSTOM;
 		case '?':
 			printf ("Parsed If\n");
-			return H_IR_TOKEN_OP_IF;
+			return {H_IR_TOKEN_OP_IF,1,3};
 		case '+':
 			printf ("Parsed Add\n");
-			return H_IR_TOKEN_OP_ADD;
+			return {H_IR_TOKEN_OP_ADD,2};
 		case '-':
 			printf ("Parsed Sub\n");
-			return H_IR_TOKEN_OP_SUB;
+			return {H_IR_TOKEN_OP_SUB,2};
 		case '*':
 			printf ("Parsed Mul\n");
-			return H_IR_TOKEN_OP_MUL;
+			return {H_IR_TOKEN_OP_MUL,2};
 		case '=':
-			if (c2 == '=') {
+			if (parseCharacter('=')) {
 				printf ("Parsed Eq\n");
-				consume();
-				return H_IR_TOKEN_CMP_E;
+				return {H_IR_TOKEN_CMP_E,2,2};
 			}
 			printf ("Parsed Assign\n");
-			return H_IR_TOKEN_OP_ASSIGN;
+			return {H_IR_TOKEN_OP_ASSIGN,2,2};
 			break;
 		case '<':
-			if (c2 == '=') {
+			if (parseCharacter('=')) {
 				printf ("Parsed LE\n");
-				consume();
-				return H_IR_TOKEN_CMP_LE;
-			} else if (c2 == '>') {
+				return {H_IR_TOKEN_CMP_LE,2,2};
+			} else if (parseCharacter('>')) {
 				printf ("Parsed NE\n");
-				consume();
-				return H_IR_TOKEN_CMP_NE;
+				return {H_IR_TOKEN_CMP_NE,2,2};
 			}
 			printf ("Parsed L\n");
-			return H_IR_TOKEN_CMP_L;
+			return {H_IR_TOKEN_CMP_L,2,2};
 		case '>':
-			if (c2 == '=') {
+			if (parseCharacter('=')) {
 				printf ("Parsed GE\n");
-				consume();
-				return H_IR_TOKEN_CMP_GE;
+				return {H_IR_TOKEN_CMP_GE,2,2};
 			}
 			printf ("Parsed G\n");
-			return H_IR_TOKEN_CMP_G;
+			return {H_IR_TOKEN_CMP_G,2,2};
 		case ' ':
 			break;
 		default:{
 			int64_t num;
 			pushback();
 			if(!parseNumber(&num)){
-				printf ("Unexpected Token %c\n", c);
+				printf ("Unexpected Token %c in %s\n", c, string.cstr() + index);
 				return H_IR_TOKEN_INVALID;
 			}
 			printf ("Parsed Number %d\n", num);
-			return H_IR_TOKEN_NUMBER;
+			return {H_IR_TOKEN_NUMBER,0,0};
 		}
 		}
 	}
@@ -265,38 +257,41 @@ holodec::holoir::HIRToken holodec::holoir::HIRParser::parseToken() {
 }
 bool holodec::holoir::HIRParser::parseExpression() {
 	do {
-		size_t current_index = index;
-		HIRToken token = parseToken();
-		switch (token) {
-		case H_IR_TOKEN_OP_REC:
-			if (!parseStringIndex()){
+		do{
+			size_t current_index = index;
+			HIRTokenType tokentype = parseToken();
+			switch (tokentype.token) {
+			case H_IR_TOKEN_OP_REC:
+				if (!parseStringIndex()){
+					return false;
+				}
+				break;
+			case H_IR_TOKEN_INVALID:
+				break;
+			case H_IR_TOKEN_CUSTOM: {
+				char buffer[100];
+				if (parseIdentifier (buffer, 100)) {
+					printf ("Parsed Custom %s\n", buffer);
+				}else{
+					printf("No custom token");
+				}
+			}
+			break;
+			case H_IR_TOKEN_OP_ARG:
+			case H_IR_TOKEN_OP_STCK:
+			case H_IR_TOKEN_OP_TMP:
+				if (!parseIndex())
+					return false;
+				break;
+			default:
+				break;
+			}
+			if (parseArguments(tokentype) < 0)
 				return false;
-			}
-			break;
-		case H_IR_TOKEN_INVALID:
-			break;
-		case H_IR_TOKEN_CUSTOM: {
-			char buffer[100];
-			if (parseIdentifier (buffer, 100)) {
-				printf ("Parsed Custom %s\n", buffer);
-			}
-
-		}
-		break;
-		case H_IR_TOKEN_OP_ARG:
-		case H_IR_TOKEN_OP_STCK:
-		case H_IR_TOKEN_OP_TMP:
 			if (!parseIndex())
 				return false;
-			break;
-		default:
-			break;
-		}
-		if (parseArguments() < 0)
-			return false;
-		if (!parseIndex())
-			return false;
-	} while (parseSequence());
+		} while (parseCharacter(':'));
+	} while (parseCharacter('&'));
 	return true;
 }
 

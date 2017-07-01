@@ -4,6 +4,7 @@
 #include "HGeneral.h"
 #include <limits>
 
+
 namespace holodec {
 
 	namespace holoir {
@@ -64,6 +65,10 @@ namespace holodec {
 			H_IR_TOKEN_CMP_G,
 			H_IR_TOKEN_CMP_GE,
 			H_IR_TOKEN_CMP_NOT,
+			//
+			H_IR_TOKEN_OP_AND,
+			H_IR_TOKEN_OP_OR,
+			H_IR_TOKEN_OP_XOR,
 			//Bit Operators
 			H_IR_TOKEN_BINOP_AND,
 			H_IR_TOKEN_BINOP_OR,
@@ -120,14 +125,14 @@ namespace holodec {
 
 			bool parseIdentifier (char *buffer, size_t buffersize);
 			HIRTokenType parseBuiltin();
-			HIRToken parseToken();
+			HIRTokenType parseToken();
 			bool parseExpression();
-			bool parseSequence();
+			bool parseCharacter(char character);
 			void skipWhitespaces();
 			bool parseIndex();
 			bool parseStringIndex();
 			bool parseNumber(int64_t* num);
-			int parseArguments();
+			int parseArguments(HIRTokenType tokentype);
 
 			void printParseFailure (const char*);
 
