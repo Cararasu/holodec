@@ -5,9 +5,11 @@
     <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>
       <Project Name="main" ConfigName="Debug"/>
+      <Project Name="main" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="yes">
       <Environment/>
+      <Project Name="main" ConfigName="Release"/>
       <Project Name="main" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>

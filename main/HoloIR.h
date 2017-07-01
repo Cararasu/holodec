@@ -24,6 +24,8 @@ namespace holodec {
 			H_IR_TOKEN_OP_ARG,
 			H_IR_TOKEN_OP_STCK,
 			H_IR_TOKEN_OP_TMP,
+			
+			H_IR_TOKEN_NUMBER,
 
 			//Call - Return
 			H_IR_TOKEN_OP_JMP,
@@ -112,6 +114,9 @@ namespace holodec {
 			char consume() {
 				index++;
 			}
+			void pushback(){
+				index--;
+			}
 
 			bool parseIdentifier (char *buffer, size_t buffersize);
 			HIRTokenType parseBuiltin();
@@ -121,7 +126,7 @@ namespace holodec {
 			void skipWhitespaces();
 			bool parseIndex();
 			bool parseStringIndex();
-			int64_t parseNumber();
+			bool parseNumber(int64_t* num);
 			int parseArguments();
 
 			void printParseFailure (const char*);

@@ -293,8 +293,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_SUB,		{"sub", {0, 0, "=(#arg[1],-(#arg[1],#arg[2])&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_SUB}},
 		{X86_INS_SBB,		{"sbb", {0, 0, "=(#arg[1],-(#arg[1],#arg[2],$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_SUB}},
 
-		{X86_INS_ADCX,	{"adcx", {0, 0, "=(#arg[1],+(#arg[1],#arg[2],c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD}},
-		{X86_INS_ADOX,	{"adox", {0, 0, "=(#arg[1],+(#arg[1],#arg[2],o)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD}},
+		{X86_INS_ADCX,	{"adcx", {0, 0, "=(#arg[1],+(#arg[1],#arg[2],$c)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD}},
+		{X86_INS_ADOX,	{"adox", {0, 0, "=(#arg[1],+(#arg[1],#arg[2],$o)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))", 0}, H_INSTR_TYPE_ADD}},
 
 		{
 			X86_INS_MUL,	{
@@ -414,18 +414,18 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		},
 
 		//TODO flags
-		{X86_INS_SHRD,	{"shrd", { 0, "=(#arg[1],#shr(#arg[1]:#arg[2],$cl))", "=(#arg[1],#shr(#arg[1]:#arg[2],$arg3))", 0}, H_INSTR_TYPE_SHH}},
-		{X86_INS_SHLD,	{"shld", { 0, "=(#arg[1],#shl(#arg[1]:#arg[2],$cl))", "=(#arg[1],#shl(#arg[1]:#arg[2],$arg3))", 0}, H_INSTR_TYPE_SHL}},
+		{X86_INS_SHRD,	{"shrd", { 0, "=(#arg[1],#shr(#arg[1]:#arg[2],$cl))", "=(#arg[1],#shr(#arg[1]:#arg[2],#arg[3]))", 0}, H_INSTR_TYPE_SHH}},
+		{X86_INS_SHLD,	{"shld", { 0, "=(#arg[1],#shl(#arg[1]:#arg[2],$cl))", "=(#arg[1],#shl(#arg[1]:#arg[2],#arg[3]))", 0}, H_INSTR_TYPE_SHL}},
 
 		//TODO flags for rotates
-		{X86_INS_ROR,	{"ror", {0, "=(#arg[1],#ror(#arg[1],1))", "=(#arg[1],#ror(#arg[1],$arg2))", 0}, H_INSTR_TYPE_SHL}},
-		{X86_INS_ROL,	{"rol", {0, "=(#arg[1],#rol(#arg[1],1))", "=(#arg[1],#rol(#arg[1],$arg2))", 0}, H_INSTR_TYPE_SHL}},
+		{X86_INS_ROR,	{"ror", {0, "=(#arg[1],#ror(#arg[1],1))", "=(#arg[1],#ror(#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_SHL}},
+		{X86_INS_ROL,	{"rol", {0, "=(#arg[1],#rol(#arg[1],1))", "=(#arg[1],#rol(#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_SHL}},
 		{
 			X86_INS_RCR, {
 				"rcr", {
 					0,
 					"=(#t[0],#ror(#arg[1]:$c,1))&=(#arg[1],#t[0])&=($c,#t[0][#size(#arg[1])])",
-					"=(#t[0],#ror(#arg[1]:$c,$c),$arg2))&=(#arg[1],#t[0])&=($c,#t[0][#size(#arg[1])])", 0
+					"=(#t[0],#ror(#arg[1]:$c,$c),#arg[2]))&=(#arg[1],#t[0])&=($c,#t[0][#size(#arg[1])])", 0
 				}, H_INSTR_TYPE_SHL
 			}
 		},
@@ -434,15 +434,15 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"rcl", {
 					0,
 					"=(#t[0],#rol(#arg[1]:$c,1))&=(#arg[1],#t[0])&=($c,#t[0][#size(#arg[1])])",
-					"=(#t[0],#rol(#arg[1]:$c,$arg2))&=(#arg[1],#t[0])&=($c,#t[0][#size(#arg[1])])", 0
+					"=(#t[0],#rol(#arg[1]:$c,#arg[2]))&=(#arg[1],#t[0])&=($c,#t[0][#size(#arg[1])])", 0
 				}, H_INSTR_TYPE_SHL
 			}
 		},
 
-		{X86_INS_BT,	{"bt", {0, 0, "=($c,$arg1[$arg2])", 0}, H_INSTR_TYPE_BITTEST}},
-		{X86_INS_BTS,	{"bts", {0, 0, "=($c,$arg1[$arg2])&=($arg1[$arg2],1)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITSET}},
-		{X86_INS_BTR,	{"btr", {0, 0, "=($c,$arg1[$arg2])&=($arg1[$arg2],0)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITRESET}},
-		{X86_INS_BTC,	{"btc", {0, 0, "=($c,$arg1[$arg2])&=($arg1[$arg2],#not($arg1[$arg2]))", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_CPL}},
+		{X86_INS_BT,	{"bt", {0, 0, "=($c,#arg[1][#arg[2]])", 0}, H_INSTR_TYPE_BITTEST}},
+		{X86_INS_BTS,	{"bts", {0, 0, "=($c,#arg[1][#arg[2]])&=(#arg[1][#arg[2]],1)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITSET}},
+		{X86_INS_BTR,	{"btr", {0, 0, "=($c,#arg[1][#arg[2]])&=(#arg[1][#arg[2]],0)", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_BITRESET}},
+		{X86_INS_BTC,	{"btc", {0, 0, "=($c,#arg[1][#arg[2]])&=(#arg[1][#arg[2]],#not(#arg[1][#arg[2]]))", 0}, H_INSTR_TYPE_BITTEST, H_INSTR_TYPE_CPL}},
 
 		{X86_INS_LOOP,	{"loop", {0, "=($ecx,-($ecx,1))&?(<>($ecx,0),#rjmp(#arg[1]))", 0, 0}, H_INSTR_TYPE_JMP}},
 
@@ -525,7 +525,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_DAA, 		{"daa", {0, 0, 0, 0}}},
 		{X86_INS_DAS, 		{"das", {0, 0, 0, 0}}},
 
-		{X86_INS_FABS,		{"fabs", {"=($st0,#f[*]($st0,-1))", 0, 0, 0}}},
+		{X86_INS_FABS,		{"fabs", {"=($st0,#fmul($st0,-1))", 0, 0, 0}}},
 		{X86_INS_ADDPD,		{"addpd", {0, 0, "=(#arg[1][0:64],#fadd(#arg[1][0:64],#arg[2][0:64]))&=(#arg[1][64:64],#fadd(#arg[1][64:64],#arg[2][64:64]))", 0}}},
 		{
 			X86_INS_ADDPS,		{

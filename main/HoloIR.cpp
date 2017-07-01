@@ -77,6 +77,7 @@ void holodec::holoir::HIRParser::printParseFailure (const char* str) {
 	printf ("Invalid Token at '%s' expected %s\n", string.cstr() + index, str);
 }
 bool holodec::holoir::HIRParser::parseIdentifier (char *buffer, size_t buffersize) {
+	size_t current_index = index;
 	for (size_t i = 0; i < buffersize; i++) {
 		char c = peek();
 		if (('a' <= c && c <= 'z') || ('0' <= c && c <= '9') || ('A' <= c && c <= 'Z'))
@@ -90,6 +91,7 @@ bool holodec::holoir::HIRParser::parseIdentifier (char *buffer, size_t buffersiz
 	return false;
 }
 bool holodec::holoir::HIRParser::parseSequence() {
+	size_t current_index = index;
 	skipWhitespaces();
 	char c = peek();
 	if (c == '&') {
@@ -99,19 +101,22 @@ bool holodec::holoir::HIRParser::parseSequence() {
 	return false;
 }
 bool holodec::holoir::HIRParser::parseIndex() {
+	size_t current_index = index;
 	skipWhitespaces();
 	int64_t i = 0;
 	if (peek() == '[') {
 		consume();
-		int64_t base = parseNumber(), size = 0;
+		if(!parseExpression())
+			return false;
+		
 		if (peek() == ':') {
 			consume();
-			size = parseNumber();
+			 if(!parseExpression())
+				 return false;
 		}
 		skipWhitespaces();
 		if (peek() == ']') {
 			consume();
-			printf ("Parsed Index Base: %d Size: %d\n", base, size);
 			return true;
 		}
 		printParseFailure ("']'");
@@ -121,13 +126,15 @@ bool holodec::holoir::HIRParser::parseIndex() {
 	}
 }
 bool holodec::holoir::HIRParser::parseStringIndex() {
+	size_t current_index = index;
 	skipWhitespaces();
 	int64_t i = 0;
 	if (peek() == '[') {
 		consume();
 		char buffer[100];
-		parseIdentifier (buffer, 100);
-		printf ("Id: %s\n", buffer);
+		if(!parseIdentifier (buffer, 100))
+			return false;
+		printf("Parsed String Index %s\n",buffer);
 		skipWhitespaces();
 		if (peek() == ']') {
 			consume();
@@ -139,16 +146,19 @@ bool holodec::holoir::HIRParser::parseStringIndex() {
 		return true;
 	}
 }
-int64_t holodec::holoir::HIRParser::parseNumber() {
+bool holodec::holoir::HIRParser::parseNumber(int64_t* num) {
+	size_t current_index = index;
 	skipWhitespaces();
-	int64_t i, pos;
-	int parsed = sscanf (string.cstr() + index, "%d%n", &i, &pos);
-	if (parsed != 1)
-		printParseFailure ("number");
-	index += pos;
-	return i;
+	int64_t pos;
+	int parsed = sscanf (string.cstr() + index, "%d%n", num, &pos);
+	if (parsed != 1){
+		return false;
+	}else
+		index += pos;
+	return true;
 }
 int holodec::holoir::HIRParser::parseArguments() {
+	size_t current_index = index;
 	skipWhitespaces();
 	int i = 0;
 	if (peek() == '(') {
@@ -158,7 +168,6 @@ int holodec::holoir::HIRParser::parseArguments() {
 			return 0;
 		}
 		do {
-			printf ("Parse Arg\n");
 			consume();
 			if (!parseExpression()) {
 				printf ("Failed to parse Argument %d\n", i);
@@ -175,85 +184,94 @@ int holodec::holoir::HIRParser::parseArguments() {
 	return 0;
 }
 holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseBuiltin() {
+	size_t current_index = index;
 	char buffer[100];
 	if (parseIdentifier (buffer, 100)) {
 		HString string (buffer);
 		auto i = tokenmap.find (string);
 		if (i != tokenmap.end()) {
-			printf ("Parse Identifier: %s\n", buffer);
+			printf ("Parsed Identifier: %s\n", buffer);
 			return (*i).second;
 		}
 	}
-	return {H_IR_TOKEN_INVALID};
+	return H_IR_TOKEN_INVALID;
 }
 holodec::holoir::HIRToken holodec::holoir::HIRParser::parseToken() {
 	skipWhitespaces();
 	while (char c = pop()) {
+		size_t current_index = index;
 		char c2 = peek();
 		switch (c) {
 		case '#':
-			printf ("Parse Builtin\n");
 			return parseBuiltin().token;
 		case '$':
-			printf ("Custom\n");
 			return H_IR_TOKEN_CUSTOM;
 		case '?':
-			printf ("If\n");
+			printf ("Parsed If\n");
 			return H_IR_TOKEN_OP_IF;
 		case '+':
-			printf ("Add\n");
+			printf ("Parsed Add\n");
 			return H_IR_TOKEN_OP_ADD;
 		case '-':
-			printf ("Sub\n");
+			printf ("Parsed Sub\n");
 			return H_IR_TOKEN_OP_SUB;
 		case '*':
-			printf ("Mul\n");
+			printf ("Parsed Mul\n");
 			return H_IR_TOKEN_OP_MUL;
 		case '=':
 			if (c2 == '=') {
-				printf ("Eq\n");
+				printf ("Parsed Eq\n");
 				consume();
 				return H_IR_TOKEN_CMP_E;
 			}
-			printf ("Assign\n");
+			printf ("Parsed Assign\n");
 			return H_IR_TOKEN_OP_ASSIGN;
 			break;
 		case '<':
 			if (c2 == '=') {
-				printf ("LE\n");
+				printf ("Parsed LE\n");
 				consume();
 				return H_IR_TOKEN_CMP_LE;
 			} else if (c2 == '>') {
-				printf ("NE\n");
+				printf ("Parsed NE\n");
 				consume();
 				return H_IR_TOKEN_CMP_NE;
 			}
-			printf ("L\n");
+			printf ("Parsed L\n");
 			return H_IR_TOKEN_CMP_L;
 		case '>':
 			if (c2 == '=') {
-				printf ("GE\n");
+				printf ("Parsed GE\n");
 				consume();
 				return H_IR_TOKEN_CMP_GE;
 			}
-			printf ("G\n");
+			printf ("Parsed G\n");
 			return H_IR_TOKEN_CMP_G;
 		case ' ':
 			break;
-		default:
-			printf ("Unexpected Token %c\n", c);
-			return H_IR_TOKEN_INVALID;
+		default:{
+			int64_t num;
+			pushback();
+			if(!parseNumber(&num)){
+				printf ("Unexpected Token %c\n", c);
+				return H_IR_TOKEN_INVALID;
+			}
+			printf ("Parsed Number %d\n", num);
+			return H_IR_TOKEN_NUMBER;
+		}
 		}
 	}
 	return H_IR_TOKEN_INVALID;
 }
 bool holodec::holoir::HIRParser::parseExpression() {
 	do {
+		size_t current_index = index;
 		HIRToken token = parseToken();
 		switch (token) {
 		case H_IR_TOKEN_OP_REC:
-			if (!parseStringIndex())
+			if (!parseStringIndex()){
 				return false;
+			}
 			break;
 		case H_IR_TOKEN_INVALID:
 			break;

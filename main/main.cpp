@@ -9,7 +9,7 @@
 
 using namespace holodec;
 
-HString filename = "E:/GNUProg/holodec/workingdir/leo";
+HString filename = "../../workingdir/leo";
 
 HFileFormat elffileformat = {"elf", "elf", {
 		[] (HData * data, HString name) {
@@ -29,9 +29,13 @@ HFileFormat elffileformat = {"elf", "elf", {
 };
 extern HArchitecture holox86::x86architecture;
 
-int main (int argc, char** argv, char** envp) {
+int main (int argc, char** argv) {
 	HMain::initHMain();
 	HData* data = HMain::loadHDataFromFile (filename);
+	if(!data){
+		printf("Could not Load File %s\n",filename.cstr());
+		return -1;
+	}
 
 	HMain::gh_main->registerFileFormat (&elffileformat);
 	HMain::gh_main->registerArchitecture (&holox86::x86architecture);
