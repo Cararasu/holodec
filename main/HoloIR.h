@@ -2,6 +2,7 @@
 #define HIRPARSER_H
 
 #include "HGeneral.h"
+#include <limits>
 
 namespace holodec {
 
@@ -23,7 +24,7 @@ namespace holodec {
 			H_IR_TOKEN_OP_ARG,
 			H_IR_TOKEN_OP_STCK,
 			H_IR_TOKEN_OP_TMP,
-			
+
 			//Call - Return
 			H_IR_TOKEN_OP_JMP,
 			H_IR_TOKEN_OP_CALL,
@@ -66,24 +67,41 @@ namespace holodec {
 			H_IR_TOKEN_BINOP_OR,
 			H_IR_TOKEN_BINOP_XOR,
 			H_IR_TOKEN_BINOP_NOT,
-
+			//Shifts - Rotates
 			H_IR_TOKEN_BINOP_SHR,
 			H_IR_TOKEN_BINOP_SHL,
 			H_IR_TOKEN_BINOP_SAR,
 			H_IR_TOKEN_BINOP_SAL,
 			H_IR_TOKEN_BINOP_ROR,
 			H_IR_TOKEN_BINOP_ROL,
-
+			//Casts
 			H_IR_TOKEN_CAST_I2F,
 			H_IR_TOKEN_CAST_F2I,
 
 			H_IR_TOKEN_CUSTOM,
 		};
+
+		struct HIRTokenType {
+			HIRToken token;
+			size_t minargs = 0;
+			size_t maxargs = std::numeric_limits<size_t>::max();
+
+			HIRTokenType (HIRToken token) : token (token) {}
+			HIRTokenType (HIRToken token, size_t minargs) : token (token), minargs (minargs) {}
+			HIRTokenType (HIRToken token, size_t minargs, size_t maxargs) : token (token), minargs (minargs), maxargs (maxargs) {}
+		};
+		struct HIRExpression {
+			HIRToken token;
+			size_t index = 0;
+			HList<HIRExpression> arguments;
+		};
+
+		extern holodec::HMap<HString, HIRTokenType> tokenmap;
+
 		struct HIRParser {
 			size_t index;
 			HString string;
-			
-			static HMap<HString, HIRToken> tokenmap;
+
 
 			char peek() {
 				return string[index];
@@ -95,10 +113,18 @@ namespace holodec {
 				index++;
 			}
 
-			bool parseIdentifier(char *buffer,size_t buffersize);
-			HIRToken parseBuiltin();
+			bool parseIdentifier (char *buffer, size_t buffersize);
+			HIRTokenType parseBuiltin();
 			HIRToken parseToken();
 			bool parseExpression();
+			bool parseSequence();
+			void skipWhitespaces();
+			bool parseIndex();
+			bool parseStringIndex();
+			int64_t parseNumber();
+			int parseArguments();
+
+			void printParseFailure (const char*);
 
 			void parse (HIRRepresentation* rep);
 		};
@@ -108,11 +134,9 @@ namespace holodec {
 
 			HIRRepresentation() : string (0) {}
 			HIRRepresentation (int i) : string (0) {}
-			HIRRepresentation (const char* ptr) : string (ptr) {
-				HIRParser parser;
-				parser.parse (this);
-			}
-			HIRRepresentation (HString string) : string (string) {
+			HIRRepresentation (const char* ptr) : string (ptr) {}
+			HIRRepresentation (HString string) : string (string) {}
+			void parse() {
 				HIRParser parser;
 				parser.parse (this);
 			}

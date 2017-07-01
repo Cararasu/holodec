@@ -30,8 +30,6 @@ HFileFormat elffileformat = {"elf", "elf", {
 extern HArchitecture holox86::x86architecture;
 
 int main (int argc, char** argv, char** envp) {
-
-
 	HMain::initHMain();
 	HData* data = HMain::loadHDataFromFile (filename);
 
@@ -70,6 +68,7 @@ int main (int argc, char** argv, char** envp) {
 	printf ("%d\n", sizeof (HInstruction));
 	printf ("%d\n", sizeof (HInstArgument));
 
+	holox86::x86architecture.init();
 
 	return 0;
 }

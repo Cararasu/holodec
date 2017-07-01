@@ -25,6 +25,14 @@ namespace holodec {
 		HArchitecture (HArchitecture&&) = default;
 		~HArchitecture() = default;
 
+		void init() {
+			for (auto entry : instrdefs) {
+				for(int i = 0; i < 4; i++)
+					if(entry.second.il_string[i])
+						entry.second.il_string[i].parse();
+			}
+		}
+
 		HFunctionAnalyzer* createFunctionAnalyzer (HBinary* binary) {
 			for (std::function<HFunctionAnalyzer* (HBinary*) >& fac : functionanalyzerfactories) {
 				HFunctionAnalyzer* analyzer = fac (binary);
