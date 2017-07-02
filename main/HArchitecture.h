@@ -27,9 +27,10 @@ namespace holodec {
 
 		void init() {
 			for (auto entry : instrdefs) {
-				for(int i = 0; i < 4; i++)
-					if(entry.second.il_string[i])
-						entry.second.il_string[i].parse();
+				holoir::HIRParser parser (this);
+				for (int i = 0; i < 4; i++)
+					if (entry.second.il_string[i])
+						entry.second.il_string[i].parse (&parser);
 			}
 		}
 
@@ -40,7 +41,7 @@ namespace holodec {
 					return analyzer;
 
 			}
-			return 0;
+			return nullptr;
 		}
 
 		HRegister* getRegister (HString string) {
@@ -50,7 +51,7 @@ namespace holodec {
 				HRegister* r = reg.getRegister (string);
 				if (r) return r;
 			}
-			return 0;
+			return nullptr;
 		}
 
 		HInstrDefinition* getInstrDef (HId id, HString mnemonic) {
@@ -58,7 +59,14 @@ namespace holodec {
 			if (it != instrdefs.end())
 				return & (*it).second;
 			printf ("%s not found\n", mnemonic.cstr());
-			return 0;
+			return nullptr;
+		}
+		HInstrDefinition* getInstrDef (HString mnemonic) {
+			for (auto& entry : instrdefs) {
+				if (entry.second.mnemonics == mnemonic)
+					return &entry.second;
+			}
+			return nullptr;
 		}
 
 		void print (int indent = 0) {

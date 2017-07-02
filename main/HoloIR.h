@@ -7,6 +7,9 @@
 
 namespace holodec {
 
+	class HArchitecture;
+	class HRegister;
+
 	namespace holoir {
 
 		struct HIRRepresentation;
@@ -25,7 +28,7 @@ namespace holodec {
 			H_IR_TOKEN_OP_ARG,
 			H_IR_TOKEN_OP_STCK,
 			H_IR_TOKEN_OP_TMP,
-			
+
 			H_IR_TOKEN_NUMBER,
 
 			//Call - Return
@@ -87,7 +90,7 @@ namespace holodec {
 
 			H_IR_TOKEN_CUSTOM,
 		};
-
+		
 		struct HIRTokenType {
 			HIRToken token;
 			size_t minargs = 0;
@@ -97,18 +100,38 @@ namespace holodec {
 			HIRTokenType (HIRToken token, size_t minargs) : token (token), minargs (minargs) {}
 			HIRTokenType (HIRToken token, size_t minargs, size_t maxargs) : token (token), minargs (minargs), maxargs (maxargs) {}
 		};
-		struct HIRExpression {
-			HIRToken token;
-			size_t index = 0;
-			HList<HIRExpression> arguments;
-		};
+		extern HMap<HString, HIRTokenType> tokenmap;
 
-		extern holodec::HMap<HString, HIRTokenType> tokenmap;
+		struct HIRExpression {
+			HIRToken token = H_IR_TOKEN_INVALID;
+			HList<HIRExpression*> subexpressions = HList<HIRExpression*>();
+			int64_t value = 0;
+			HRegister* regacces;
+			struct {
+				HString name_index;
+				size_t var_index = 0;
+				HIRExpression* index = 0, * size = 0;
+			} mod;
+
+			HIRExpression* append = 0;
+			HIRExpression* sequence = 0;
+
+			size_t bitsize;
+
+			void free ();
+			void print ();
+		};
 
 		struct HIRParser {
 			size_t index;
 			HString string;
 
+			HArchitecture* arch;
+			//Arguments
+			//Stack
+			//Temp
+
+			HIRParser (HArchitecture* arch) : arch (arch) {}
 
 			char peek() {
 				return string[index];
@@ -116,23 +139,25 @@ namespace holodec {
 			char pop() {
 				return string[index++];
 			}
-			char consume() {
-				index++;
+			char consume (size_t count = 1) {
+				index += count;
 			}
-			void pushback(){
-				index--;
+			void pushback (size_t count = 1) {
+				index -= count;
 			}
+
+			bool parseIndex (HIRExpression* expr);
+			int parseArguments (HIRExpression* expr);
+			HIRExpression* parseExpression();
 
 			bool parseIdentifier (char *buffer, size_t buffersize);
 			HIRTokenType parseBuiltin();
 			HIRTokenType parseToken();
-			bool parseExpression();
-			bool parseCharacter(char character);
+			bool parseCharacter (char character);
 			void skipWhitespaces();
-			bool parseIndex();
-			bool parseStringIndex();
-			bool parseNumber(int64_t* num);
-			int parseArguments(HIRTokenType tokentype);
+			bool parseStringIndex (HIRExpression* expr);
+			bool parseNumberIndex (HIRExpression* expr);
+			bool parseNumber (int64_t* num);
 
 			void printParseFailure (const char*);
 
@@ -141,14 +166,14 @@ namespace holodec {
 
 		struct HIRRepresentation {
 			HString string;
+			HIRExpression* expression;
 
 			HIRRepresentation() : string (0) {}
 			HIRRepresentation (int i) : string (0) {}
 			HIRRepresentation (const char* ptr) : string (ptr) {}
 			HIRRepresentation (HString string) : string (string) {}
-			void parse() {
-				HIRParser parser;
-				parser.parse (this);
+			void parse (HIRParser* parser) {
+				parser->parse (this);
 			}
 
 			bool operator!() {

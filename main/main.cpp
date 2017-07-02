@@ -32,13 +32,15 @@ extern HArchitecture holox86::x86architecture;
 int main (int argc, char** argv) {
 	HMain::initHMain();
 	HData* data = HMain::loadHDataFromFile (filename);
-	if(!data){
-		printf("Could not Load File %s\n",filename.cstr());
+	if (!data) {
+		printf ("Could not Load File %s\n", filename.cstr());
 		return -1;
 	}
 
 	HMain::gh_main->registerFileFormat (&elffileformat);
 	HMain::gh_main->registerArchitecture (&holox86::x86architecture);
+
+	holox86::x86architecture.init();
 
 	HBinaryAnalyzer* analyzer = nullptr;
 	for (HFileFormat * fileformat : HMain::gh_main->fileformats) {
@@ -72,10 +74,12 @@ int main (int argc, char** argv) {
 	printf ("%d\n", sizeof (HInstruction));
 	printf ("%d\n", sizeof (HInstArgument));
 
-	holox86::x86architecture.init();
+	HRegister* rax = holox86::x86architecture.getRegister ("rax");
+	HRegister* rbx = holox86::x86architecture.getRegister ("rbx");
 
+
+	HInstrDefinition* instrdef = holox86::x86architecture.getInstrDef ("mov");
+
+	instrdef->il_string[2].print();
 	return 0;
 }
-//binary analyzer
-//data analyzer
-//assembler/disassembler
