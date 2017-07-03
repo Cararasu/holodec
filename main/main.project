@@ -38,6 +38,8 @@
       <File Name="HConsole.cpp"/>
       <File Name="HoloIR.h"/>
       <File Name="HoloIR.cpp"/>
+      <File Name="HoloSSA.cpp"/>
+      <File Name="HoloSSA.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="DataAnalyzer">
       <File Name="HBinaryAnalyzer.cpp"/>

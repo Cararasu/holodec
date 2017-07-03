@@ -76,8 +76,8 @@ int main (int argc, char** argv) {
 
 	HRegister* rax = holox86::x86architecture.getRegister ("rax");
 	HRegister* rbx = holox86::x86architecture.getRegister ("rbx");
-
-
+	
+	
 	HInstrDefinition* instrdef = holox86::x86architecture.getInstrDef ("mov");
 
 	instrdef->il_string[2].print();
