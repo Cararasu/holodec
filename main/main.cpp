@@ -40,6 +40,7 @@ int main (int argc, char** argv) {
 	HMain::gh_main->registerFileFormat (&elffileformat);
 	HMain::gh_main->registerArchitecture (&holox86::x86architecture);
 
+	printf("Init X86\n");
 	holox86::x86architecture.init();
 
 	HBinaryAnalyzer* analyzer = nullptr;

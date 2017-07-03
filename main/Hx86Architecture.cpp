@@ -161,8 +161,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_MOVUPD,		{"movupd", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
 		{X86_INS_MOVUPS,		{"movups", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
 
-
-		{X86_INS_LEA,	{"lea", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
+		//Todo
+		{X86_INS_LEA,	{"lea", {0, 0, "=(#arg[1],#val(#arg[2]))", 0}, H_INSTR_TYPE_MOV}},
 
 		{X86_INS_CMOVE,	{"cmovz", {0, 0, "?($zf,=(#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
