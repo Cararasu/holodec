@@ -13,7 +13,7 @@ namespace holodec {
 			HSSA_TYPE_INPUT,//Predefined variables, correspond to input arguments
 
 			//Call - Return
-			HSSA_TYPE_JMP,//Jmp to HId
+			HSSA_TYPE_BR,//Branch
 			HSSA_TYPE_CALL,//a call to a function
 			HSSA_TYPE_RET,//a return
 			HSSA_TYPE_SYSCALL,//a syscall
@@ -110,6 +110,7 @@ namespace holodec {
 		struct HSSAExpression {
 			HId defId;
 			HSSAExpressionType type;
+			//MemorySSA additions
 			HId useId[HSSA_LOCAL_USEID_MAX];
 			HList<HId> moreUseIds;
 			HId lastUse;
