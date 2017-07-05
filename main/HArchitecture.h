@@ -26,11 +26,13 @@ namespace holodec {
 		~HArchitecture() = default;
 
 		void init() {
-			for (auto entry : instrdefs) {
+			for (auto& entry : instrdefs) {
 				holoir::HIRParser parser (this);
-				for (int i = 0; i < 4; i++)
-					if (entry.second.il_string[i])
-						entry.second.il_string[i].parse (&parser);
+				for (int i = 0; i < 4; i++){
+					if (entry.second.il_string[i]){
+						parser.parse(&entry.second.il_string[i]);
+					}
+				}	
 			}
 		}
 

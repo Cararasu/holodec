@@ -6,6 +6,7 @@
 #include "HMain.h"
 #include "HFileFormat.h"
 #include "HArchitecture.h"
+#include "HoloSSA.h"
 
 using namespace holodec;
 
@@ -82,5 +83,11 @@ int main (int argc, char** argv) {
 	HInstrDefinition* instrdef = holox86::x86architecture.getInstrDef ("mov");
 
 	instrdef->il_string[2].print();
+	
+	holossa::HSSAGenerator ssaGenerator;
+	ssaGenerator.arch = &holox86::x86architecture;
+	for(HFunction& function : binary->functions){
+		ssaGenerator.parseFunction(&function);
+	}
 	return 0;
 }

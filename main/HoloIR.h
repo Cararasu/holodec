@@ -30,6 +30,8 @@ namespace holodec {
 			HIR_TOKEN_OP_TMP,
 
 			HIR_TOKEN_NUMBER,
+			
+			HIR_TOKEN_VALUE,
 
 			//Call - Return
 			HIR_TOKEN_OP_JMP,
@@ -174,9 +176,6 @@ namespace holodec {
 			HIRRepresentation (int i) : string (0) {}
 			HIRRepresentation (const char* ptr) : string (ptr) {}
 			HIRRepresentation (HString string) : string (string) {}
-			void parse (HIRParser* parser) {
-				parser->parse (this);
-			}
 
 			bool operator!() {
 				return !string;
@@ -193,6 +192,12 @@ namespace holodec {
 
 					printIndent (indent);
 					printf ("No IL-String----------------\n");
+				}
+				if(expression){
+					printIndent (indent);
+					printf ("Parsed Expression: ");
+					expression->print();
+					printf ("\n");
 				}
 			}
 		};

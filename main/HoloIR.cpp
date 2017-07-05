@@ -14,6 +14,8 @@ holodec::HMap<holodec::HString, holodec::holoir::HIRTokenType> holodec::holoir::
 	{"arg", { holodec::holoir::HIR_TOKEN_OP_ARG}},
 	{"stck", { holodec::holoir::HIR_TOKEN_OP_STCK}},
 	{"t", { holodec::holoir::HIR_TOKEN_OP_TMP}},
+	
+	{"val", { holodec::holoir::HIR_TOKEN_VALUE, 1, 1}},
 
 	{"jmp", { holodec::holoir::HIR_TOKEN_OP_JMP, 1, 1}},
 	{"call", { holodec::holoir::HIR_TOKEN_OP_CALL, 1, 1}},
@@ -186,7 +188,7 @@ int holodec::holoir::HIRParser::parseArguments (HIRExpression* expr) {
 		do {
 			i++;
 			HIRExpression* parsedExpr = parseExpression();
-			if (expr)
+			if (expr && parsedExpr)
 				expr->subexpressions.push_back (parsedExpr);
 			else {
 				printf ("%s\n", string.cstr());
@@ -359,8 +361,6 @@ void holodec::holoir::HIRParser::parse (holodec::holoir::HIRRepresentation* rep)
 	index = 0;
 	rep->expression = parseExpression();
 }
-
-
 
 
 void holodec::holoir::HIRExpression::free() {

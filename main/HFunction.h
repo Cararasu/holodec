@@ -6,6 +6,10 @@
 #include "HInstrDefinition.h"
 #include "HIdGenerator.h"
 
+
+
+#define HINSTRUCTION_MAX_OPERANDS (4)
+
 namespace holodec {
 
 
@@ -108,7 +112,7 @@ namespace holodec {
 		size_t calldest;//if call succeeds -> creates new function symbol
 
 		size_t opcount;
-		HInstArgument operands[4];
+		HInstArgument operands[HINSTRUCTION_MAX_OPERANDS];
 
 		void print (int indent = 0);
 	};

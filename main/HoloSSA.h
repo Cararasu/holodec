@@ -131,14 +131,29 @@ namespace holodec {
 			HIdGenerator gen_block;
 		};
 
+		//can be id, value, control flow change expression, reg, stck, temp, mem
+		struct HSSAParsedExpression{
+			//type
+			//controlFlowType - none, jmp, call, ret
+			union{				
+				HId resultid;
+				int64_t value;
+				//reg + modifiers
+				//stck + modifiers
+				//tmp + modifiers
+				//mem
+				//aggregation(list of reg/stck/tmp + modifiers)
+			};
+		};
+
 		struct HSSAGenerator {
 
 			HArchitecture* arch;
-			HList<HRegister*> arguments;
-
+			HIdGenerator gen_expr;
 
 			bool parseFunction (HFunction* function);
-			bool parseInstruction (HInstrDefinition* instrdef);
+			bool parseInstruction (HInstruction* instr);
+			HId parseExpression (HInstArgument* arguments, holoir::HIRExpression* expression);
 
 		};
 	}
