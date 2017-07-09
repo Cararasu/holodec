@@ -18,17 +18,17 @@ namespace holodec {
 #define H_SET_FLAGM(val,flag,mask) val = (val & ~mask) | flag
 
 	enum HLocalType {
-		H_LOCAL_TYPE_REGISTER = 1,
-		H_LOCAL_TYPE_STACK,
-		H_LOCAL_TYPE_MEM,
-		H_LOCAL_TYPE_IMM_SIGNED,
-		H_LOCAL_TYPE_IMM_UNSIGNED,
-		H_LOCAL_TYPE_IMM_FLOAT,
+	    H_LOCAL_TYPE_REGISTER = 1,
+	    H_LOCAL_TYPE_STACK,
+	    H_LOCAL_TYPE_MEM,
+	    H_LOCAL_TYPE_IMM_SIGNED,
+	    H_LOCAL_TYPE_IMM_UNSIGNED,
+	    H_LOCAL_TYPE_IMM_FLOAT,
 	};
 	enum HOpAccess {
-		H_OP_ACCESS_READ = 1,
-		H_OP_ACCESS_WRITE = 2,
-		H_OP_ACCESS_RW = 3,
+	    H_OP_ACCESS_READ = 1,
+	    H_OP_ACCESS_WRITE = 2,
+	    H_OP_ACCESS_RW = 3,
 	};
 
 	struct HInstArgType {
@@ -46,45 +46,58 @@ namespace holodec {
 		uint32_t flags;//is memoperand, functionptr,...
 	};
 	struct HRegister {
+		HId id;
 		HString name;
 		size_t size;
 		size_t offset;
 		HList<HRegister> subregisters;
 
 		HRegister() = default;
-		HRegister (HString name, size_t size, size_t offset) : name (name), size (size), offset (offset), subregisters (0) {};
-		HRegister (HString name, size_t size, size_t offset, HList<HRegister> subregisters) : name (name), size (size), offset (offset), subregisters (subregisters) {};
-		HRegister (const HRegister& reg) : name (reg.name), size (reg.size), offset (reg.offset), subregisters (reg.subregisters) {}
-		HRegister (const HRegister&& reg) : name (reg.name), size (reg.size), offset (reg.offset), subregisters (reg.subregisters) {}
+		HRegister ( HString name, size_t size, size_t offset ) : id ( 0 ), name ( name ), size ( size ), offset ( offset ), subregisters ( 0 ) {};
+		HRegister ( HString name, size_t size, size_t offset, HList<HRegister> subregisters ) : id ( 0 ), name ( name ), size ( size ), offset ( offset ), subregisters ( subregisters ) {};
+		HRegister ( const HRegister& reg ) : id ( 0 ), name ( reg.name ), size ( reg.size ), offset ( reg.offset ), subregisters ( reg.subregisters ) {}
+		HRegister ( const HRegister&& reg ) : id ( 0 ), name ( reg.name ), size ( reg.size ), offset ( reg.offset ), subregisters ( reg.subregisters ) {}
 
-		HRegister* addRegister (HRegister* reg) {
-			subregisters.push_back (*reg);
+		HRegister* addRegister ( HRegister* reg ) {
+			subregisters.push_back ( *reg );
 			return &subregisters.back();
 		};
-		HRegister* getRegister (HString string) {
-			for (HRegister& reg : subregisters) {
-				if (string == reg.name)
+		HRegister* getRegister ( const HString string ) {
+			for ( HRegister& reg : subregisters ) {
+				if ( string == reg.name )
 					return &reg;
-				HRegister* r = reg.getRegister (string);
-				if (r) return r;
+				HRegister* r = reg.getRegister ( string );
+				if ( r ) return r;
 			}
 			return 0;
 		}
-		void print (int indent = 0) {
-			printIndent (indent);
-			std::printf ("Register %s s: %d o: %d\n", name.cstr(), size, offset);
-			for (HRegister & reg : subregisters) {
-				reg.print (indent + 1);
+		HRegister* getRegister ( const HId id ) {
+			for ( HRegister& reg : subregisters ) {
+				if ( id == reg.id )
+					return &reg;
+				HRegister* r = reg.getRegister ( id );
+				if ( r ) return r;
+			}
+			return 0;
+		}
+		void print ( int indent = 0 ) {
+			printIndent ( indent );
+			std::printf ( "Register %s s: %d o: %d\n", name.cstr(), size, offset );
+			for ( HRegister & reg : subregisters ) {
+				reg.print ( indent + 1 );
 			}
 		}
 	};
+	
+	extern HRegister invalidReg;
+	
 	typedef int64_t HArgIntImmediate;
 	typedef double HArgFloatImmediate;
 	typedef uint64_t HArgStack;
 	struct HArgMem { //segment::[base + index*scale + disp]
-		HRegister* segment;
-		HRegister* base;
-		HRegister* index;
+		HId segment;
+		HId base;
+		HId index;
 		HArgIntImmediate scale;
 		HArgIntImmediate disp;
 	};
@@ -93,12 +106,12 @@ namespace holodec {
 			HArgIntImmediate ival;
 			HArgFloatImmediate fval;
 			HArgMem mem;
-			HRegister* reg;
-			HArgStack stackindex;
+			HId reg;
+			HId stackindex;
 		};
 		HInstArgType type;// size || memoperand || (reg or stack or signed or unsigned)
 
-		void print ();
+		void print ( HArchitecture* arch );
 	};
 	struct HInstruction {
 		size_t addr;
@@ -114,7 +127,7 @@ namespace holodec {
 		size_t opcount;
 		HInstArgument operands[HINSTRUCTION_MAX_OPERANDS];
 
-		void print (int indent = 0);
+		void print ( HArchitecture* arch, int indent = 0 );
 	};
 	struct HJumpTable {
 		struct HEntry {
@@ -122,17 +135,17 @@ namespace holodec {
 			size_t targetaddr;//the target of the jump
 			HId bb_id;
 		};
-		
+
 		HId id;
 		size_t addr;
 		HList<HEntry> entries;
-		
-		void print (int indent = 0) {
-			printIndent (indent);
-			printf ("JumpTable \n");
-			for (HEntry& entry : entries) {
-				printIndent (indent + 1);
-				printf("0x%X",entry.addr);
+
+		void print ( int indent = 0 ) {
+			printIndent ( indent );
+			printf ( "JumpTable \n" );
+			for ( HEntry& entry : entries ) {
+				printIndent ( indent + 1 );
+				printf ( "0x%X",entry.addr );
 			}
 		}
 	};
@@ -148,11 +161,11 @@ namespace holodec {
 		size_t addr;
 		size_t size;
 
-		void print (int indent = 0) {
-			printIndent (indent);
-			printf ("BB 0x%x-0x%x t:0x%x f:0x%x\n", addr, addr + size, instructions.back().jumpdest, instructions.back().nojumpdest);
-			for (HInstruction& instruction : instructions) {
-				instruction.print (indent + 1);
+		void print ( HArchitecture* arch, int indent = 0 ) {
+			printIndent ( indent );
+			printf ( "BB 0x%x-0x%x t:0x%x f:0x%x\n", addr, addr + size, instructions.back().jumpdest, instructions.back().nojumpdest );
+			for ( HInstruction& instruction : instructions ) {
+				instruction.print ( arch, indent + 1 );
 			}
 		}
 	};
@@ -165,23 +178,23 @@ namespace holodec {
 		HList<HJumpTable> jumptables;
 		HVisibilityType* visibility;
 
-		HBasicBlock* findBasicBlock (size_t addr) {
-			if (addr) {
-				for (HBasicBlock& bb : basicblocks) {
-					if (bb.addr == addr)
+		HBasicBlock* findBasicBlock ( size_t addr ) {
+			if ( addr ) {
+				for ( HBasicBlock& bb : basicblocks ) {
+					if ( bb.addr == addr )
 						return &bb;
 				}
 			}
 			return nullptr;
 		}
-		HBasicBlock* findBasicBlockDeep (size_t addr) {
-			if (addr) {
-				for (HBasicBlock& bb : basicblocks) {
-					if (bb.addr == addr)
+		HBasicBlock* findBasicBlockDeep ( size_t addr ) {
+			if ( addr ) {
+				for ( HBasicBlock& bb : basicblocks ) {
+					if ( bb.addr == addr )
 						return &bb;
-					if (bb.addr <= addr && addr < (bb.addr + bb.size)) {
-						for (HInstruction& instr : bb.instructions) {
-							if (instr.addr == addr)
+					if ( bb.addr <= addr && addr < ( bb.addr + bb.size ) ) {
+						for ( HInstruction& instr : bb.instructions ) {
+							if ( instr.addr == addr )
 								return &bb;
 						}
 					}
@@ -190,9 +203,9 @@ namespace holodec {
 			return nullptr;
 		}
 
-		HId addBasicBlock (HBasicBlock basicblock) {
+		HId addBasicBlock ( HBasicBlock basicblock ) {
 			basicblock.id = gen_bb.next();
-			basicblocks.push_back (basicblock);
+			basicblocks.push_back ( basicblock );
 			return basicblock.id;
 		}
 		void clear() {
@@ -203,11 +216,11 @@ namespace holodec {
 			visibility = 0;
 		}
 
-		void print (int indent = 0) {
-			printIndent (indent);
-			printf ("Printing Function\n");
-			for (HBasicBlock& bb : basicblocks) {
-				bb.print (indent + 1);
+		void print ( HArchitecture* arch, int indent = 0 ) {
+			printIndent ( indent );
+			printf ( "Printing Function\n" );
+			for ( HBasicBlock& bb : basicblocks ) {
+				bb.print ( arch, indent + 1 );
 			}
 		}
 	};

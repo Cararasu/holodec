@@ -3,6 +3,7 @@
 
 #include "HGeneral.h"
 #include <limits>
+#include "HIdGenerator.h"
 
 
 namespace holodec {
@@ -110,7 +111,7 @@ namespace holodec {
 			HIRToken token = HIR_TOKEN_INVALID;
 			HList<HIRExpression*> subexpressions = HList<HIRExpression*>();
 			int64_t value = 0;
-			HRegister* regacces;
+			HId regacces;
 			struct {
 				HString name_index;
 				size_t var_index = 0;
@@ -123,7 +124,7 @@ namespace holodec {
 			size_t bitsize;
 
 			void free ();
-			void print ();
+			void print (HArchitecture* arch);
 		};
 
 		struct HIRParser {
@@ -184,7 +185,7 @@ namespace holodec {
 				return string;
 			}
 
-			void print (int indent = 0) {
+			void print (HArchitecture* arch,int indent = 0) {
 				if (string) {
 					printIndent (indent);
 					printf ("IL-String: %s\n", string.cstr());
@@ -196,7 +197,7 @@ namespace holodec {
 				if(expression){
 					printIndent (indent);
 					printf ("Parsed Expression: ");
-					expression->print();
+					expression->print(arch);
 					printf ("\n");
 				}
 			}

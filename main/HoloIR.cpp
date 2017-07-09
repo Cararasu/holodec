@@ -318,7 +318,7 @@ holodec::holoir::HIRExpression* holodec::holoir::HIRParser::parseExpression() {
 				char buffer[100];
 				if (parseIdentifier (buffer, 100)) {
 
-					appdexpr->regacces = arch->getRegister (buffer);
+					appdexpr->regacces = arch->getRegister (buffer)->id;
 					if (!appdexpr->regacces)
 						printf ("NNNNN %s\n", buffer);
 					//printf ("Parsed Custom %s\n", buffer);
@@ -368,7 +368,7 @@ void holodec::holoir::HIRExpression::free() {
 		expr->free();
 	}
 	subexpressions.clear();
-	regacces = nullptr;
+	regacces = 0;
 	mod.name_index.del();
 	if (mod.index)
 		delete mod.index;
@@ -381,7 +381,7 @@ void holodec::holoir::HIRExpression::free() {
 	delete this;
 }
 
-void holodec::holoir::HIRExpression::print () {
+void holodec::holoir::HIRExpression::print (HArchitecture* arch) {
 	for (auto& entry : tokenmap) {
 		if (entry.second.token == token) {
 			printf ("#%s", entry.first.cstr());
@@ -394,7 +394,7 @@ void holodec::holoir::HIRExpression::print () {
 		break;
 	case HIR_TOKEN_CUSTOM:
 		if (regacces)
-			printf ("$%s", regacces->name.cstr());
+			printf ("$%s", arch->getRegister(regacces)->name.cstr());
 		else
 			printf ("RegFail");
 		break;
@@ -409,17 +409,18 @@ void holodec::holoir::HIRExpression::print () {
 				printf (",");
 			else
 				first = false;
-			expr->print();
+			expr->print(arch);
 		}
 		printf (")");
 	}
-	printf ("[%d,%d]", mod.index, mod.size);
+	if(mod.index != 0 && mod.size != 0)
+		printf ("[%d,%d]", mod.index, mod.size);
 	if (append) {
 		printf (":");
-		append->print();
+		append->print(arch);
 	}
 	if (sequence) {
 		printf ("&");
-		sequence->print();
+		sequence->print(arch);
 	}
 }

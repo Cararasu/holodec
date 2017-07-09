@@ -107,8 +107,6 @@ bool holodec::HFunctionAnalyzer::trySplitBasicBlock (size_t splitaddr) {
 bool holodec::HFunctionAnalyzer::postFunction (HFunction* function) {
 	printf ("Post Function\n");
 	binary->addFunction (*function);
-	for (HBasicBlock& bb : function->basicblocks)
-		bb.print();
 }
 
 void holodec::HFunctionAnalyzer::preAnalysis() {

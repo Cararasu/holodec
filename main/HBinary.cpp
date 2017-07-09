@@ -65,7 +65,6 @@ holodec::HSymbol* holodec::HBinary::findSymbol (size_t addr,const HSymbolType* t
 holodec::HId holodec::HBinary::addFunction (HFunction function) {
 	function.id = gen_functions.next();
 	functions.push_back (function);
-	function.print();
 	return function.id;
 }
 bool holodec::HBinary::addEntrypoint (HId id) {

@@ -115,7 +115,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 			break;
 		case X86_OP_REG:
 			instruction->operands[i].type = {H_LOCAL_TYPE_REGISTER, x86.operands[i].size, 0};
-			instruction->operands[i].reg = arch->getRegister (cs_reg_name (handle, x86.operands[i].reg));
+			instruction->operands[i].reg = arch->getRegister (cs_reg_name (handle, x86.operands[i].reg))->id;
 			break;
 		case X86_OP_IMM:
 			instruction->operands[i].type = {H_LOCAL_TYPE_IMM_UNSIGNED, x86.operands[i].size, 0};
@@ -123,15 +123,15 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 			break;
 		case X86_OP_MEM:
 			instruction->operands[i].type = {H_LOCAL_TYPE_MEM, x86.operands[i].size, 0};
-			instruction->operands[i].mem.segment = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment));
+			instruction->operands[i].mem.segment = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment))->id;
 			if (x86.operands[i].mem.base == X86_REG_RIP || x86.operands[i].mem.base == X86_REG_EIP) {
 				x86.operands[i].mem.disp += instruction->addr;
 				instruction->operands[i].mem.base = 0;
 			} else {
-				instruction->operands[i].mem.base = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base));
+				instruction->operands[i].mem.base = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base))->id;
 			}
 			instruction->operands[i].mem.disp = x86.operands[i].mem.disp;
-			instruction->operands[i].mem.index = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index));
+			instruction->operands[i].mem.index = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index))->id;
 			instruction->operands[i].mem.scale = x86.operands[i].mem.scale;
 
 			break;
