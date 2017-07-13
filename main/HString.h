@@ -27,7 +27,7 @@ namespace holodec {
 			doHash();
 		}
 		HString (const HString& str) : m_hash (str.m_hash), m_cstr (str.m_cstr) {}
-		HString& operator= (HString& str) {
+		HString& operator= (const HString& str) {
 			m_hash = str.m_hash;
 			m_cstr = str.m_cstr;
 			return *this;

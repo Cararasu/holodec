@@ -30,9 +30,12 @@ namespace holodec {
 			HIR_TOKEN_OP_STCK,
 			HIR_TOKEN_OP_TMP,
 
+			HIR_TOKEN_REGISTER,
 			HIR_TOKEN_NUMBER,
+			HIR_TOKEN_FLOAT,
 
 			HIR_TOKEN_VALUE,
+			HIR_TOKEN_MEM,
 
 			//Call - Return
 			HIR_TOKEN_OP_JMP,
@@ -92,8 +95,6 @@ namespace holodec {
 			//Casts
 			HIR_TOKEN_CAST_I2F,
 			HIR_TOKEN_CAST_F2I,
-
-			HIR_TOKEN_CUSTOM,
 		};
 
 		struct HIRTokenType {
@@ -113,8 +114,15 @@ namespace holodec {
 			HId id = 0;
 			HIRToken token = HIR_TOKEN_INVALID;
 			HId subexpressions[HIR_LOCAL_SUBEXPRESSION_COUNT] = {0};
-			int64_t value = 0;
-			HId regacces = 0;
+			union{
+				int64_t value = 0;
+				double fvalue;
+				HId regacces;
+				struct{
+					HId base,index;
+					int64_t disp, scale;
+				}mem;
+			};
 			struct HIRExpressionMod {
 				HString name_index;
 				size_t var_index = 0;
@@ -125,6 +133,11 @@ namespace holodec {
 			HId sequence = 0;
 
 			size_t bitsize = 0;
+
+			HIRExpression() = default;
+			HIRExpression (const HIRExpression&) = default;
+
+			HIRExpression& operator= (const HIRExpression& expr) = default;
 
 			void print (HArchitecture* arch);
 
@@ -205,9 +218,18 @@ namespace holodec {
 				return string;
 			}
 			HIRExpression* getExpr (HId id) {
-				for (HIRExpression& expr : expressions) {
-					if (expr.id == id)
-						return &expr;
+				if (expressions[id - 1].id == id) {
+					return &expressions[id - 1];
+				} else if (expressions[id - 1].id < id) {//search upwards
+					for (int i = id - 1; i < expressions.size(); i++) {
+						if (expressions[i].id == id)
+							return &expressions[id - 1];
+					}
+				} else if (expressions[id - 1].id > id) {//search downwards
+					for (int i = id - 1; i >= 0; i--) {
+						if (expressions[i].id == id)
+							return &expressions[id - 1];
+					}
 				}
 				return nullptr;
 			}

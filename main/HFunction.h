@@ -50,13 +50,16 @@ namespace holodec {
 		HString name;
 		size_t size;
 		size_t offset;
+		bool clearParentOnWrite;
 		HList<HRegister> subregisters;
 
 		HRegister() = default;
-		HRegister ( HString name, size_t size, size_t offset ) : id ( 0 ), name ( name ), size ( size ), offset ( offset ), subregisters ( 0 ) {};
-		HRegister ( HString name, size_t size, size_t offset, HList<HRegister> subregisters ) : id ( 0 ), name ( name ), size ( size ), offset ( offset ), subregisters ( subregisters ) {};
-		HRegister ( const HRegister& reg ) : id ( 0 ), name ( reg.name ), size ( reg.size ), offset ( reg.offset ), subregisters ( reg.subregisters ) {}
-		HRegister ( const HRegister&& reg ) : id ( 0 ), name ( reg.name ), size ( reg.size ), offset ( reg.offset ), subregisters ( reg.subregisters ) {}
+		HRegister ( HString name, size_t size, size_t offset ) : id ( 0 ), name ( name ), size ( size ), offset ( offset ), clearParentOnWrite(false), subregisters ( 0 ) {};
+		HRegister ( HString name, size_t size, size_t offset, bool clearParentOnWrite) : id ( 0 ), name ( name ), size ( size ), offset ( offset ), clearParentOnWrite(clearParentOnWrite), subregisters ( 0 ) {};
+		HRegister ( HString name, size_t size, size_t offset, HList<HRegister> subregisters ) : id ( 0 ), name ( name ), size ( size ), offset ( offset ), clearParentOnWrite(false), subregisters ( subregisters ) {};
+		HRegister ( HString name, size_t size, size_t offset, bool clearParentOnWrite, HList<HRegister> subregisters ) : id ( 0 ), name ( name ), size ( size ), offset ( offset ), clearParentOnWrite(clearParentOnWrite), subregisters ( subregisters ) {};
+		HRegister ( const HRegister& reg ) : id ( 0 ), name ( reg.name ), size ( reg.size ), offset ( reg.offset ), clearParentOnWrite(reg.clearParentOnWrite), subregisters ( reg.subregisters ) {}
+		HRegister ( const HRegister&& reg ) : id ( 0 ), name ( reg.name ), size ( reg.size ), offset ( reg.offset ), clearParentOnWrite(reg.clearParentOnWrite), subregisters ( reg.subregisters ) {}
 
 		HRegister* addRegister ( HRegister* reg ) {
 			subregisters.push_back ( *reg );

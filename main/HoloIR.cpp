@@ -227,7 +227,7 @@ holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseToken() {
 		case '#':
 			return parseBuiltin();
 		case '$':
-			return HIR_TOKEN_CUSTOM;
+			return HIR_TOKEN_REGISTER;
 		case '?':
 			//printf ("Parsed If\n");
 			return {HIR_TOKEN_OP_IF, 1, 3};
@@ -305,10 +305,9 @@ holodec::HId holodec::holoir::HIRParser::parseExpression() {
 				break;
 			case HIR_TOKEN_INVALID:
 				break;
-			case HIR_TOKEN_CUSTOM: {
+			case HIR_TOKEN_REGISTER: {
 				char buffer[100];
 				if (parseIdentifier (buffer, 100)) {
-
 					expression.regacces = arch->getRegister (buffer)->id;
 					//printf ("Parsed Custom %s\n", buffer);
 				} else {
@@ -361,14 +360,10 @@ void holodec::holoir::HIRParser::parse (holodec::holoir::HIRRepresentation* rep)
 	index = 0;
 	this->rep = rep;
 	rep->rootExpr = parseExpression();
-	printf ("IR: %s\n", string.cstr());
-	for (HIRExpression& expr : rep->expressions) {
-		expr.print (arch);
-	}
 }
 
 void holodec::holoir::HIRExpression::print (HArchitecture* arch) {
-	printf ("%d = ", id);
+	printf ("%lld = ", id);
 
 	for (auto& entry : tokenmap) {
 		if (entry.second.token == token) {
@@ -378,35 +373,55 @@ void holodec::holoir::HIRExpression::print (HArchitecture* arch) {
 	}
 	switch (token) {
 	case HIR_TOKEN_NUMBER:
-		printf ("%d", value);
+		printf ("0x%x", value);
 		break;
-	case HIR_TOKEN_CUSTOM:
+	case HIR_TOKEN_FLOAT:
+		printf ("%d", fvalue);
+		break;
+	case HIR_TOKEN_REGISTER:
 		if (regacces)
 			printf ("$%s", arch->getRegister (regacces)->name.cstr());
 		else
 			printf ("RegFail");
 		break;
+	case HIR_TOKEN_MEM:
+		printf("[");
+		if (mem.base)
+			printf ("%s", arch->getRegister (mem.base)->name.cstr());
+		else
+			printf ("RegFail");
+		if (mem.scale && mem.index)
+			printf (" + %s", arch->getRegister (mem.index)->name.cstr());
+		if (mem.scale && mem.scale != 1)
+			printf ("*%d", mem.scale);
+		if (mem.disp)
+			printf (" + %d", mem.disp);
+		printf("]");
+		break;
+	default:
+		break;
 	}
 	if (mod.var_index)
 		printf ("[%d]", mod.var_index);
+	if (mod.name_index)
+		printf ("[%s]", mod.name_index.cstr());
 	if (subexpressions[0]) {
 		printf ("(");
-		bool first = true;
-		printf ("%d", subexpressions[0]);
+		printf ("%lld", subexpressions[0]);
 		for (int i = 1; i < HIR_LOCAL_SUBEXPRESSION_COUNT && subexpressions[i]; i++) {
-			printf (", %d", subexpressions[i]);
+			printf (", %lld", subexpressions[i]);
 		}
 		printf (")");
 	}
 	if (mod.index != 0 && mod.size != 0)
-		printf ("[%d,%d]", mod.index, mod.size);
+		printf ("[%lld,%lld]", mod.index, mod.size);
 	if (append) {
 		printf (":");
-		printf ("%d", append);
+		printf ("%lld", append);
 	}
 	if (sequence) {
 		printf ("&");
-		printf ("%d", sequence);
+		printf ("%lld", sequence);
 	}
 	printf ("\n");
 }

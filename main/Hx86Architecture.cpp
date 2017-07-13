@@ -21,24 +21,24 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		}
 	},
 	{
-		{"rax", 64, 0, {	{"eax", 32, 0, {	{"ax", 16, 0, {{"al", 8, 0}, {"ah", 8, 8}}}}}}},
-		{"rbx", 64, 0, {	{"ebx", 32, 0, {	{"bx", 16, 0, {{"bl", 8, 0}, {"bh", 8, 8}}}}}}},
-		{"rcx", 64, 0, {	{"ecx", 32, 0, {	{"cx", 16, 0, {{"cl", 8, 0}, {"ch", 8, 8}}}}}}},
-		{"rdx", 64, 0, {	{"edx", 32, 0, {	{"dx", 16, 0, {{"dl", 8, 0}, {"dh", 8, 8}}}}}}},
-		{"r8", 64, 0, {	{"r8d", 32, 0, {	{"r8w", 16, 0, {{"r8b", 8, 0}}}}}}},
-		{"r9", 64, 0, {	{"r9d", 32, 0, {	{"r9w", 16, 0, {{"r9b", 8, 0}}}}}}},
-		{"r10", 64, 0, {	{"r10d", 32, 0, {	{"r10w", 16, 0, {{"r10b", 8, 0}}}}}}},
-		{"r11", 64, 0, {	{"r11d", 32, 0, {	{"r11w", 16, 0, {{"r11b", 8, 0}}}}}}},
-		{"r12", 64, 0, {	{"r12d", 32, 0, {	{"r12w", 16, 0, {{"r12b", 8, 0}}}}}}},
-		{"r13", 64, 0, {	{"r13d", 32, 0, {	{"r13w", 16, 0, {{"r13b", 8, 0}}}}}}},
-		{"r14", 64, 0, {	{"r14d", 32, 0, {	{"r14w", 16, 0, {{"r14b", 8, 0}}}}}}},
-		{"r15", 64, 0, {	{"r15d", 32, 0, {	{"r15w", 16, 0, {{"r15b", 8, 0}}}}}}},
+		{"rax", 64, 0, true, {	{"eax", 32, 0, true, {	{"ax", 16, 0, {{"al", 8, 0}, {"ah", 8, 8}}}}}}},
+		{"rbx", 64, 0, true, {	{"ebx", 32, 0, true, {	{"bx", 16, 0, {{"bl", 8, 0}, {"bh", 8, 8}}}}}}},
+		{"rcx", 64, 0, true, {	{"ecx", 32, 0, true, {	{"cx", 16, 0, {{"cl", 8, 0}, {"ch", 8, 8}}}}}}},
+		{"rdx", 64, 0, true, {	{"edx", 32, 0, true, {	{"dx", 16, 0, {{"dl", 8, 0}, {"dh", 8, 8}}}}}}},
+		{"r8", 64, 0, true, {	{"r8d", 32, 0, true, {	{"r8w", 16, 0, {{"r8b", 8, 0}}}}}}},
+		{"r9", 64, 0, true, {	{"r9d", 32, 0, true, {	{"r9w", 16, 0, {{"r9b", 8, 0}}}}}}},
+		{"r10", 64, 0, true, {	{"r10d", 32, 0, true, {	{"r10w", 16, 0, {{"r10b", 8, 0}}}}}}},
+		{"r11", 64, 0, true, {	{"r11d", 32, 0, true, {	{"r11w", 16, 0, {{"r11b", 8, 0}}}}}}},
+		{"r12", 64, 0, true, {	{"r12d", 32, 0, true, {	{"r12w", 16, 0, {{"r12b", 8, 0}}}}}}},
+		{"r13", 64, 0, true, {	{"r13d", 32, 0, true, {	{"r13w", 16, 0, {{"r13b", 8, 0}}}}}}},
+		{"r14", 64, 0, true, {	{"r14d", 32, 0, true, {	{"r14w", 16, 0, {{"r14b", 8, 0}}}}}}},
+		{"r15", 64, 0, true, {	{"r15d", 32, 0, true, {	{"r15w", 16, 0, {{"r15b", 8, 0}}}}}}},
 
-		{"rbp", 64, 0, {	{"ebp", 32, 0, {	{"bp", 16, 0}}}}},
-		{"rsi", 64, 0, {	{"esi", 32, 0, {	{"si", 16, 0}}}}},
-		{"rdi", 64, 0, {	{"edi", 32, 0, {	{"di", 16, 0}}}}},
-		{"rsp", 64, 0, {	{"esp", 32, 0, {	{"sp", 16, 0}}}}},
-		{"rip", 64, 0, {	{"eip", 32, 0, {	{"ip", 16, 0}}}}},
+		{"rbp", 64, 0, true, {	{"ebp", 32, 0, true, {	{"bp", 16, 0}}}}},
+		{"rsi", 64, 0, true, {	{"esi", 32, 0, true, {	{"si", 16, 0}}}}},
+		{"rdi", 64, 0, true, {	{"edi", 32, 0, true, {	{"di", 16, 0}}}}},
+		{"rsp", 64, 0, true, {	{"esp", 32, 0, true, {	{"sp", 16, 0}}}}},
+		{"rip", 64, 0, true, {	{"eip", 32, 0, true, {	{"ip", 16, 0}}}}},
 
 		{
 			"rflags", 64, 0,
@@ -81,22 +81,22 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 
 		//{"cr0", X86_REG_CH0, 512, 0},
 
-		{"zmm0", 512, 0, {{"ymm0", 256, 0, {{"xmm0", 128, 0 }}}}},
-		{"zmm1", 512, 0, {{"ymm1", 256, 0, {{"xmm1", 128, 0 }}}}},
-		{"zmm2", 512, 0, {{"ymm2", 256, 0, {{"xmm2", 128, 0 }}}}},
-		{"zmm3", 512, 0, {{"ymm3", 256, 0, {{"xmm3", 128, 0 }}}}},
-		{"zmm4", 512, 0, {{"ymm4", 256, 0, {{"xmm4", 128, 0 }}}}},
-		{"zmm5", 512, 0, {{"ymm5", 256, 0, {{"xmm5", 128, 0 }}}}},
-		{"zmm6", 512, 0, {{"ymm6", 256, 0, {{"xmm6", 128, 0 }}}}},
-		{"zmm7", 512, 0, {{"ymm7", 256, 0, {{"xmm7", 128, 0 }}}}},
-		{"zmm8", 512, 0, {{"ymm8", 256, 0, {{"xmm8", 128, 0 }}}}},
-		{"zmm9", 512, 0, {{"ymm9", 256, 0, {{"xmm9", 128, 0 }}}}},
-		{"zmm10", 512, 0, {{"ymm10", 256, 0, {{"xmm10", 128, 0 }}}}},
-		{"zmm11", 512, 0, {{"ymm11", 256, 0, {{"xmm11", 128, 0 }}}}},
-		{"zmm12", 512, 0, {{"ymm12", 256, 0, {{"xmm12", 128, 0 }}}}},
-		{"zmm13", 512, 0, {{"ymm13", 256, 0, {{"xmm13", 128, 0 }}}}},
-		{"zmm14", 512, 0, {{"ymm14", 256, 0, {{"xmm14", 128, 0 }}}}},
-		{"zmm15", 512, 0, {{"ymm15", 256, 0, {{"xmm15", 128, 0 }}}}},
+		{"zmm0", 512, 0, true, {{"ymm0", 512, 0, true, {{"xmm0", 128, 0, true}}}}},
+		{"zmm1", 512, 0, true, {{"ymm1", 512, 0, true, {{"xmm1", 128, 0, true}}}}},
+		{"zmm2", 512, 0, true, {{"ymm2", 512, 0, true, {{"xmm2", 128, 0, true}}}}},
+		{"zmm3", 512, 0, true, {{"ymm3", 512, 0, true, {{"xmm3", 128, 0, true}}}}},
+		{"zmm4", 512, 0, true, {{"ymm4", 512, 0, true, {{"xmm4", 128, 0, true}}}}},
+		{"zmm5", 512, 0, true, {{"ymm5", 512, 0, true, {{"xmm5", 128, 0, true}}}}},
+		{"zmm6", 512, 0, true, {{"ymm6", 512, 0, true, {{"xmm6", 128, 0, true}}}}},
+		{"zmm7", 512, 0, true, {{"ymm7", 512, 0, true, {{"xmm7", 128, 0, true}}}}},
+		{"zmm8", 512, 0, true, {{"ymm8", 512, 0, true, {{"xmm8", 128, 0, true}}}}},
+		{"zmm9", 512, 0, true, {{"ymm9", 512, 0, true, {{"xmm9", 128, 0, true}}}}},
+		{"zmm10", 512, 0, true, {{"ymm10", 512, 0, true, {{"xmm10", 128, 0, true}}}}},
+		{"zmm11", 512, 0, true, {{"ymm11", 512, 0, true, {{"xmm11", 128, 0, true}}}}},
+		{"zmm12", 512, 0, true, {{"ymm12", 512, 0, true, {{"xmm12", 128, 0, true}}}}},
+		{"zmm13", 512, 0, true, {{"ymm13", 512, 0, true, {{"xmm13", 128, 0, true}}}}},
+		{"zmm14", 512, 0, true, {{"ymm14", 512, 0, true, {{"xmm14", 128, 0, true}}}}},
+		{"zmm15", 512, 0, true, {{"ymm15", 512, 0, true, {{"xmm15", 128, 0, true}}}}},
 		{"zmm16", 512, 0},
 		{"zmm17", 512, 0},
 		{"zmm18", 512, 0},
@@ -236,7 +236,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_JECXZ,	{"jecxz", {0, "?(==($ecx,0),#jmp(#arg[1]))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
 		{X86_INS_JRCXZ,	{"jrcxz", {0, "?(==($rcx,0),#jmp(#arg[1]))", 0, 0}, H_INSTR_TYPE_JMP, H_INSTR_TYPE_CMP, H_INSTR_COND_E}},
 
-		{X86_INS_XCHG,	{"xchg", {0, 0, "=(#t[0],#arg[1])&=(#arg[1],#arg[2])&=(#arg[2],#t[0])", 0}, H_INSTR_TYPE_XCHG}},
+		{X86_INS_XCHG,	{"xchg", {0, 0, "=(#t[1],#arg[1])&=(#arg[1],#arg[2])&=(#arg[2],#t[1])", 0}, H_INSTR_TYPE_XCHG}},
 
 		{X86_INS_BSWAP,	{"bswap", {0, "=(#arg[1],#arg[1][24,8]:#arg[1][16,8]:#arg[1][8,8]:#arg[1][0,8])", 0, 0}, H_INSTR_TYPE_SWAP}},
 
@@ -258,8 +258,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_PUSH,	{"push", {0, "=($esp,-($rsp,#size(#arg[1])))&#st($rsp,#arg[1])", 0, 0}, H_INSTR_TYPE_PUSH}},
 		{X86_INS_POP,		{"pop", {0, "=(#arg[1],#ld($rsp))&=($rsp,+($rsp,#size(#arg[1])))", 0, 0}, H_INSTR_TYPE_POP}},
 
-		{X86_INS_PUSHAW,	{"pushad", {0, "=(#t[0],$esp)&#rec[push]($eax)&#rec[push]($ecx)&#rec[push]($edx)&#rec[push]($edx)&#rec[push]($ebx)&#rec[push](#t[0])&#rec[push]($ebp)&#rec[push]($esi)&#rec[push]($edi)", 0, 0}, H_INSTR_TYPE_PUSH}},
-		{X86_INS_PUSHAL,	{"pusha", {0, "=(#t[0],$sp)&#rec[push]($ax)&#rec[push]($cx)&#rec[push]($dx)&#rec[push]($dx)&#rec[push]($bx)&#rec[push](#t[0])&#rec[push]($bp)&#rec[push]($si)&#rec[push]($di)", 0, 0}, H_INSTR_TYPE_PUSH}},
+		{X86_INS_PUSHAW,	{"pushad", {0, "=(#t[1],$esp)&#rec[push]($eax)&#rec[push]($ecx)&#rec[push]($edx)&#rec[push]($edx)&#rec[push]($ebx)&#rec[push](#t[1])&#rec[push]($ebp)&#rec[push]($esi)&#rec[push]($edi)", 0, 0}, H_INSTR_TYPE_PUSH}},
+		{X86_INS_PUSHAL,	{"pusha", {0, "=(#t[1],$sp)&#rec[push]($ax)&#rec[push]($cx)&#rec[push]($dx)&#rec[push]($dx)&#rec[push]($bx)&#rec[push](#t[1])&#rec[push]($bp)&#rec[push]($si)&#rec[push]($di)", 0, 0}, H_INSTR_TYPE_PUSH}},
 
 		{X86_INS_POPAW,	{"popad", {0, "#rec[pop]($edi)&#rec[pop]($esi)&#rec[pop]($ebp)&=($esp,+($esp,4))&#rec[pop]($ebx)&#rec[pop]($edx)&#rec[pop]($ecx)&#rec[pop]($eax)", 0, 0}, H_INSTR_TYPE_PUSH}},
 		{X86_INS_POPAL,	{"popa", {0, "#rec[pop]($di)&#rec[pop]($si)&#rec[pop]($bp)&=($esp,+($esp,2))&#rec[pop]($bx)&#rec[pop]($dx)&#rec[pop]($cx)&#rec[pop]($ax)", 0, 0}, H_INSTR_TYPE_PUSH}},
@@ -345,7 +345,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 
 		{X86_INS_NEG,		{"neg", {0, 0, "=(#arg[1],#neg(#arg[1])&=($cf,==(#arg[1],0)))", 0}, H_INSTR_TYPE_NEG}},
 
-		{X86_INS_CMP,		{"cmp", {0, 0, "=(#t[0],#arg[1])&#rec[sub](#t[0],#arg[2])", 0}, H_INSTR_TYPE_CMP}},
+		{X86_INS_CMP,		{"cmp", {0, 0, "=(#t[1],#arg[1])&#rec[sub](#t[1],#arg[2])", 0}, H_INSTR_TYPE_CMP}},
 
 		{X86_INS_AND,		{"and", {0, 0, "=(#arg[1],#band(#arg[1],#arg[2])&=($of,0)&=($cf,0)&=($sf,#s)&=($zf,#z)&=($pf,#p))", 0}, H_INSTR_TYPE_AND}},
 		{X86_INS_ANDPD,		{"andpd", {0, 0, "=(#arg[1],#band(#arg[1],#arg[2]))", 0}}},
@@ -374,8 +374,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_SAR, {
 				"sar", {
 					0,
-					"=(#t[0],#sar(#arg[1],1)&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[0][0,#size(#arg[1])])&=($cf,#t[0][#size(#arg[1])])",
-					"?(<(#arg[2],#size(#arg[1])),=(#t[0],#sar(#arg[1],#arg[2])&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[0][0,#size(#arg[1])])&=($cf,#t[0][#size(#arg[1])]))", 0
+					"=(#t[1],#sar(#arg[1],1)&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[1][0,#size(#arg[1])])&=($cf,#t[1][#size(#arg[1])])",
+					"?(<(#arg[2],#size(#arg[1])),=(#t[1],#sar(#arg[1],#arg[2])&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[1][0,#size(#arg[1])])&=($cf,#t[1][#size(#arg[1])]))", 0
 				}, H_INSTR_TYPE_SHH
 			}
 		},
@@ -384,8 +384,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_SHR, {
 				"shr", {
 					0,
-					"=(#t[0],#shr(#arg[1],1)&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[0][0,#size(#arg[1])])&=($cf,#t[0][#size(#arg[1])])",
-					"?(<(#arg[2],#size(#arg[1])),=(#t[0],#shr(#arg[1],#arg[2])&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[0][0,#size(#arg[1])])&=($cf,#t[0][#size(#arg[1])]))", 0
+					"=(#t[1],#shr(#arg[1],1)&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[1][0,#size(#arg[1])])&=($cf,#t[1][#size(#arg[1])])",
+					"?(<(#arg[2],#size(#arg[1])),=(#t[1],#shr(#arg[1],#arg[2])&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[1][0,#size(#arg[1])])&=($cf,#t[1][#size(#arg[1])]))", 0
 				}, H_INSTR_TYPE_SHH
 			}
 		},
@@ -394,8 +394,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_SAL, {
 				"sal", {
 					0,
-					"=(#t[0],#sal(#arg[1],1)&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[0][0,#size(#arg[1])])&=($cf,#t[0][#size(#arg[1])])",
-					"?(<(#arg[2],#size(#arg[1])),=(#t[0],#sal(#arg[1],#arg[2])&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[0][0,#size(#arg[1])])&=($cf,#t[0][#size(#arg[1])]))", 0
+					"=(#t[1],#sal(#arg[1],1)&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[1][0,#size(#arg[1])])&=($cf,#t[1][#size(#arg[1])])",
+					"?(<(#arg[2],#size(#arg[1])),=(#t[1],#sal(#arg[1],#arg[2])&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[1][0,#size(#arg[1])])&=($cf,#t[1][#size(#arg[1])]))", 0
 				}, H_INSTR_TYPE_SHL
 			}
 		},
@@ -404,8 +404,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_SHL, {
 				"shl", {
 					0,
-					"=(#t[0],#shl(#arg[1],1)&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[0][0,#size(#arg[1])])&=($cf,#t[0][#size(#arg[1])])",
-					"?(<(#arg[2],#size(#arg[1])),=(#t[0],#shl(#arg[1],#arg[2])&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[0][0,#size(#arg[1])])&=($cf,#t[0][#size(#arg[1])]))", 0
+					"=(#t[1],#shl(#arg[1],1)&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[1][0,#size(#arg[1])])&=($cf,#t[1][#size(#arg[1])])",
+					"?(<(#arg[2],#size(#arg[1])),=(#t[1],#shl(#arg[1],#arg[2])&=($zf,#z)&=($pf,#p)&=($sf,#s)&=($of,#o)&=($af,#a))&=(#arg[1],#t[1][0,#size(#arg[1])])&=($cf,#t[1][#size(#arg[1])]))", 0
 				}, H_INSTR_TYPE_SHL
 			}
 		},
@@ -421,8 +421,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_RCR, {
 				"rcr", {
 					0,
-					"=(#t[0],#ror(#arg[1]:$cf,1))&=(#arg[1],#t[0])&=($cf,#t[0][#size(#arg[1])])",
-					"=(#t[0],#ror(#arg[1]:$cf,#arg[2]))&=(#arg[1],#t[0])&=($cf,#t[0][#size(#arg[1])])", 0
+					"=(#t[1],#ror(#arg[1]:$cf,1))&=(#arg[1],#t[1])&=($cf,#t[1][#size(#arg[1])])",
+					"=(#t[1],#ror(#arg[1]:$cf,#arg[2]))&=(#arg[1],#t[1])&=($cf,#t[1][#size(#arg[1])])", 0
 				}, H_INSTR_TYPE_ROR
 			}
 		},
@@ -430,8 +430,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_RCL, {
 				"rcl", {
 					0,
-					"=(#t[0],#rol(#arg[1]:$cf,1))&=(#arg[1],#t[0])&=($cf,#t[0][#size(#arg[1])])",
-					"=(#t[0],#rol(#arg[1]:$cf,#arg[2]))&=(#arg[1],#t[0])&=($cf,#t[0][#size(#arg[1])])", 0
+					"=(#t[1],#rol(#arg[1]:$cf,1))&=(#arg[1],#t[1])&=($cf,#t[1][#size(#arg[1])])",
+					"=(#t[1],#rol(#arg[1]:$cf,#arg[2]))&=(#arg[1],#t[1])&=($cf,#t[1][#size(#arg[1])])", 0
 				}, H_INSTR_TYPE_ROL
 			}
 		},
@@ -453,7 +453,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_INT,	{"int", {0, "#syscall(#arg[1])", 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 		{X86_INS_INTO,	{"into", {"#syscall()", 0, 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
-		{X86_INS_BOUND,	{"bound", {0, 0, "=(#t[0],#ld(#arg[2]))&=(#t[1],#ld(+(#arg[2],#div(#size(#arg[1]),8)),#size(#arg[1])))&?(#or(<(#arg[1],#t[0]),>(#arg[1],#t[1])),#trap)", 0}}},
+		{X86_INS_BOUND,	{"bound", {0, 0, "=(#t[1],#ld(#arg[2]))&=(#t[2],#ld(+(#arg[2],#div(#size(#arg[1]),8)),#size(#arg[1])))&?(#or(<(#arg[1],#t[1]),>(#arg[1],#t[2])),#trap)", 0}}},
 
 		{X86_INS_ENTER,	{"enter", {0, "#rec[push]($ebp)&#rec[mov]($ebp,$esp)&#rec[sub]($esp,#arg[1])", 0, 0}}},
 		{X86_INS_LEAVE,	{"leave", {"#rec[mov]($esp,$ebp)&#rec[pop]($ebp)", 0, 0, 0}}},
