@@ -323,6 +323,7 @@ bool holoelf::HElfBinaryAnalyzer::parseSectionHeaderTable () {
 	uint32_t nameoffset[sectionHeaderTable.entries];
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
 		size_t entryoffset = sectionHeaderTable.offset + i * entrysize;
+		//TODO check size
 		size_t size = binary->data->size - entryoffset;
 		nameoffset[i] = binary->getValue<uint32_t> (entryoffset + 0x00);
 

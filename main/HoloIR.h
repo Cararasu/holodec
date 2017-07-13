@@ -31,7 +31,7 @@ namespace holodec {
 			HIR_TOKEN_OP_TMP,
 
 			HIR_TOKEN_NUMBER,
-			
+
 			HIR_TOKEN_VALUE,
 
 			//Call - Return
@@ -95,7 +95,7 @@ namespace holodec {
 
 			HIR_TOKEN_CUSTOM,
 		};
-		
+
 		struct HIRTokenType {
 			HIRToken token;
 			size_t minargs = 0;
@@ -107,31 +107,47 @@ namespace holodec {
 		};
 		extern HMap<HString, HIRTokenType> tokenmap;
 
+#define HIR_LOCAL_SUBEXPRESSION_COUNT (10)
+
 		struct HIRExpression {
+			HId id = 0;
 			HIRToken token = HIR_TOKEN_INVALID;
-			HList<HIRExpression*> subexpressions = HList<HIRExpression*>();
+			HId subexpressions[HIR_LOCAL_SUBEXPRESSION_COUNT] = {0};
 			int64_t value = 0;
-			HId regacces;
-			struct {
+			HId regacces = 0;
+			struct HIRExpressionMod {
 				HString name_index;
 				size_t var_index = 0;
-				HIRExpression* index = 0, * size = 0;
+				HId index = 0, size = 0;
 			} mod;
 
-			HIRExpression* append = 0;
-			HIRExpression* sequence = 0;
+			HId append = 0;
+			HId sequence = 0;
 
-			size_t bitsize;
+			size_t bitsize = 0;
 
-			void free ();
 			void print (HArchitecture* arch);
+
+			bool addSubExpression (HId id) {
+				for (int i = 0; i < HIR_LOCAL_SUBEXPRESSION_COUNT; i++) {
+					if (!subexpressions[i]) {
+						subexpressions[i] = id;
+						return true;
+					}
+				}
+				return false;
+			}
 		};
+		bool operator== (HIRExpression::HIRExpressionMod& expr1, HIRExpression::HIRExpressionMod& expr2);
+
+		bool operator== (HIRExpression& expr1, HIRExpression& expr2);
 
 		struct HIRParser {
 			size_t index;
 			HString string;
 
 			HArchitecture* arch;
+			HIRRepresentation* rep;
 			//Arguments
 			//Stack
 			//Temp
@@ -144,7 +160,7 @@ namespace holodec {
 			char pop() {
 				return string[index++];
 			}
-			char consume (size_t count = 1) {
+			void consume (size_t count = 1) {
 				index += count;
 			}
 			void pushback (size_t count = 1) {
@@ -153,7 +169,7 @@ namespace holodec {
 
 			bool parseIndex (HIRExpression* expr);
 			int parseArguments (HIRExpression* expr);
-			HIRExpression* parseExpression();
+			HId parseExpression();
 
 			bool parseIdentifier (char *buffer, size_t buffersize);
 			HIRTokenType parseBuiltin();
@@ -171,7 +187,11 @@ namespace holodec {
 
 		struct HIRRepresentation {
 			HString string;
+			HList<HIRExpression> expressions;
 			HIRExpression* expression;
+
+			HId rootExpr;
+			HIdGenerator gen_expr;
 
 			HIRRepresentation() : string (0) {}
 			HIRRepresentation (int i) : string (0) {}
@@ -184,8 +204,23 @@ namespace holodec {
 			operator bool() {
 				return string;
 			}
-
-			void print (HArchitecture* arch,int indent = 0) {
+			HIRExpression* getExpr (HId id) {
+				for (HIRExpression& expr : expressions) {
+					if (expr.id == id)
+						return &expr;
+				}
+				return nullptr;
+			}
+			HId addExpr (HIRExpression expr) {
+				for (HIRExpression& expression : expressions) { //Do CSE
+					if (expression == expr)
+						return expression.id;
+				}
+				expr.id = gen_expr.next();
+				expressions.push_back (expr);
+				return expr.id;
+			}
+			void print (HArchitecture* arch, int indent = 0) {
 				if (string) {
 					printIndent (indent);
 					printf ("IL-String: %s\n", string.cstr());
@@ -194,10 +229,10 @@ namespace holodec {
 					printIndent (indent);
 					printf ("No IL-String----------------\n");
 				}
-				if(expression){
+				if (expression) {
 					printIndent (indent);
 					printf ("Parsed Expression: ");
-					expression->print(arch);
+					expression->print (arch);
 					printf ("\n");
 				}
 			}

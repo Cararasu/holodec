@@ -14,7 +14,7 @@ holodec::HMap<holodec::HString, holodec::holoir::HIRTokenType> holodec::holoir::
 	{"arg", { holodec::holoir::HIR_TOKEN_OP_ARG}},
 	{"stck", { holodec::holoir::HIR_TOKEN_OP_STCK}},
 	{"t", { holodec::holoir::HIR_TOKEN_OP_TMP}},
-	
+
 	{"val", { holodec::holoir::HIR_TOKEN_VALUE, 1, 1}},
 
 	{"jmp", { holodec::holoir::HIR_TOKEN_OP_JMP, 1, 1}},
@@ -187,9 +187,9 @@ int holodec::holoir::HIRParser::parseArguments (HIRExpression* expr) {
 		}
 		do {
 			i++;
-			HIRExpression* parsedExpr = parseExpression();
+			HId parsedExpr = parseExpression();
 			if (expr && parsedExpr)
-				expr->subexpressions.push_back (parsedExpr);
+				expr->addSubExpression (parsedExpr);
 			else {
 				printf ("%s\n", string.cstr());
 				printf ("%s\n", string.cstr() + index);
@@ -285,31 +285,22 @@ holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseToken() {
 	}
 	return HIR_TOKEN_INVALID;
 }
-holodec::holoir::HIRExpression* holodec::holoir::HIRParser::parseExpression() {
-	HIRExpression* returnexpr = new HIRExpression();
-	HIRExpression* seqexpr = 0;
+holodec::HId holodec::holoir::HIRParser::parseExpression() {
+	HId returnExpr = 0;
+	HId lastPassedExpression = 0;
+	HId seqexpr = 0;
 	do {
-		if (!seqexpr)
-			seqexpr = returnexpr;
-		else {
-			seqexpr = seqexpr->sequence = new HIRExpression();
-		}
-		HIRExpression* appdexpr = 0;
+		HId appdexpr = 0;
 		do {
-			if (!appdexpr)
-				appdexpr = seqexpr;
-			else {
-				appdexpr = appdexpr->append = new HIRExpression();
-			}
+			HIRExpression expression = HIRExpression();
 			size_t current_index = index;
 			HIRTokenType tokentype = parseToken();
 
-			appdexpr->token = tokentype.token;
+			expression.token = tokentype.token;
 			switch (tokentype.token) {
 			case HIR_TOKEN_OP_REC:
-				if (!parseStringIndex (appdexpr)) {
-					returnexpr->free();
-					return nullptr;
+				if (!parseStringIndex (&expression)) {
+					return 0;
 				}
 				break;
 			case HIR_TOKEN_INVALID:
@@ -318,9 +309,7 @@ holodec::holoir::HIRExpression* holodec::holoir::HIRParser::parseExpression() {
 				char buffer[100];
 				if (parseIdentifier (buffer, 100)) {
 
-					appdexpr->regacces = arch->getRegister (buffer)->id;
-					if (!appdexpr->regacces)
-						printf ("NNNNN %s\n", buffer);
+					expression.regacces = arch->getRegister (buffer)->id;
 					//printf ("Parsed Custom %s\n", buffer);
 				} else {
 					printf ("No custom token");
@@ -330,58 +319,57 @@ holodec::holoir::HIRExpression* holodec::holoir::HIRParser::parseExpression() {
 			case HIR_TOKEN_OP_ARG:
 			case HIR_TOKEN_OP_STCK:
 			case HIR_TOKEN_OP_TMP:
-				if (!parseNumberIndex (appdexpr)) {
-					returnexpr->free();
-					return nullptr;
+				if (!parseNumberIndex (&expression)) {
+					return 0;
 				}
 				break;
 			default:
 				break;
 			}
-			int i = parseArguments (appdexpr);
+			int i = parseArguments (&expression);
 
 			if (i < tokentype.minargs && tokentype.maxargs < i) {
 				printf ("%s\n", string.cstr());
 				printf ("Wrong number of arguments Min: %u Max: %u Actual Arguments: %d\n", tokentype.minargs, tokentype.maxargs, i);
-				returnexpr->free();
-				return nullptr;
+				return 0;
 			}
-			if (!parseIndex (appdexpr)) {
-				returnexpr->free();
-				return nullptr;
+			if (!parseIndex (&expression)) {
+				return 0;
+			}
+			lastPassedExpression = rep->addExpr (expression);
+			if (!returnExpr)
+				returnExpr = lastPassedExpression;
+			if (!appdexpr) {
+				appdexpr = lastPassedExpression;
+			} else {
+				appdexpr = rep->getExpr (appdexpr)->append = lastPassedExpression;
 			}
 		} while (parseCharacter (':'));
+
+		if (!seqexpr) {
+			seqexpr = lastPassedExpression;
+		} else {
+			seqexpr = rep->getExpr (seqexpr)->sequence = lastPassedExpression;
+		}
 	} while (parseCharacter ('&'));
-	return returnexpr;
+	return returnExpr;
 }
 
 
 void holodec::holoir::HIRParser::parse (holodec::holoir::HIRRepresentation* rep) {
 	string = rep->string;
 	index = 0;
-	rep->expression = parseExpression();
-}
-
-
-void holodec::holoir::HIRExpression::free() {
-	for (HIRExpression* expr : subexpressions) {
-		expr->free();
+	this->rep = rep;
+	rep->rootExpr = parseExpression();
+	printf ("IR: %s\n", string.cstr());
+	for (HIRExpression& expr : rep->expressions) {
+		expr.print (arch);
 	}
-	subexpressions.clear();
-	regacces = 0;
-	mod.name_index.del();
-	if (mod.index)
-		delete mod.index;
-	if (mod.size)
-		delete mod.size;
-	if (append)
-		append->free();
-	if (sequence)
-		sequence->free();
-	delete this;
 }
 
 void holodec::holoir::HIRExpression::print (HArchitecture* arch) {
+	printf ("%d = ", id);
+
 	for (auto& entry : tokenmap) {
 		if (entry.second.token == token) {
 			printf ("#%s", entry.first.cstr());
@@ -394,33 +382,54 @@ void holodec::holoir::HIRExpression::print (HArchitecture* arch) {
 		break;
 	case HIR_TOKEN_CUSTOM:
 		if (regacces)
-			printf ("$%s", arch->getRegister(regacces)->name.cstr());
+			printf ("$%s", arch->getRegister (regacces)->name.cstr());
 		else
 			printf ("RegFail");
 		break;
 	}
 	if (mod.var_index)
 		printf ("[%d]", mod.var_index);
-	if (subexpressions.size()) {
+	if (subexpressions[0]) {
 		printf ("(");
 		bool first = true;
-		for (HIRExpression* expr : subexpressions) {
-			if (!first)
-				printf (",");
-			else
-				first = false;
-			expr->print(arch);
+		printf ("%d", subexpressions[0]);
+		for (int i = 1; i < HIR_LOCAL_SUBEXPRESSION_COUNT && subexpressions[i]; i++) {
+			printf (", %d", subexpressions[i]);
 		}
 		printf (")");
 	}
-	if(mod.index != 0 && mod.size != 0)
+	if (mod.index != 0 && mod.size != 0)
 		printf ("[%d,%d]", mod.index, mod.size);
 	if (append) {
 		printf (":");
-		append->print(arch);
+		printf ("%d", append);
 	}
 	if (sequence) {
 		printf ("&");
-		sequence->print(arch);
+		printf ("%d", sequence);
 	}
+	printf ("\n");
+}
+
+
+
+bool holodec::holoir::operator== (holodec::holoir::HIRExpression::HIRExpressionMod& expr1, holodec::holoir::HIRExpression::HIRExpressionMod& expr2) {
+	return expr1.name_index == expr2.name_index &&
+	       expr1.var_index == expr2.var_index &&
+	       expr1.index == expr2.index &&
+	       expr1.size == expr2.size;
+}
+
+bool holodec::holoir::operator== (holodec::holoir::HIRExpression& expr1, holodec::holoir::HIRExpression& expr2) {
+	for (int i = 0; i < HIR_LOCAL_SUBEXPRESSION_COUNT; i++) {
+		if (expr1.subexpressions[i] != expr2.subexpressions[i])
+			return false;
+	}
+	return expr1.token == expr2.token &&
+	       expr1.value == expr2.value &&
+	       expr1.regacces == expr2.regacces &&
+	       expr1.mod == expr2.mod &&
+	       expr1.append == expr2.append &&
+	       expr1.sequence == expr2.sequence &&
+	       expr1.bitsize == expr2.bitsize;
 }
