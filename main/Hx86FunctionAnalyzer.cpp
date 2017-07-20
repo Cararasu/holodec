@@ -142,6 +142,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 		default:
 			printf ("Invalid ...\n");
 		}
+		instruction->operands[i].type.size = x86.operands[i].size * 8;
 	}
 }
 

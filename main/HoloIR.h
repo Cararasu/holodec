@@ -36,6 +36,9 @@ namespace holodec {
 
 			HIR_TOKEN_VALUE,
 			HIR_TOKEN_MEM,
+			
+			HIR_TOKEN_POP,
+			HIR_TOKEN_PUSH,
 
 			//Call - Return
 			HIR_TOKEN_OP_JMP,
@@ -114,14 +117,14 @@ namespace holodec {
 			HId id = 0;
 			HIRToken token = HIR_TOKEN_INVALID;
 			HId subexpressions[HIR_LOCAL_SUBEXPRESSION_COUNT] = {0};
-			union{
+			union {
 				int64_t value = 0;
 				double fvalue;
 				HId regacces;
-				struct{
-					HId base,index;
+				struct {
+					HId base, index;
 					int64_t disp, scale;
-				}mem;
+				} mem;
 			};
 			struct HIRExpressionMod {
 				HString name_index;
@@ -131,8 +134,6 @@ namespace holodec {
 
 			HId append = 0;
 			HId sequence = 0;
-
-			size_t bitsize = 0;
 
 			HIRExpression() = default;
 			HIRExpression (const HIRExpression&) = default;
@@ -201,7 +202,6 @@ namespace holodec {
 		struct HIRRepresentation {
 			HString string;
 			HList<HIRExpression> expressions;
-			HIRExpression* expression;
 
 			HId rootExpr;
 			HIdGenerator gen_expr;
@@ -250,12 +250,9 @@ namespace holodec {
 
 					printIndent (indent);
 					printf ("No IL-String----------------\n");
-				}
-				if (expression) {
-					printIndent (indent);
-					printf ("Parsed Expression: ");
-					expression->print (arch);
-					printf ("\n");
+					for (holoir::HIRExpression&	expr : expressions) {
+						expr.print (arch);
+					}
 				}
 			}
 		};

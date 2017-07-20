@@ -14,6 +14,9 @@ holodec::HMap<holodec::HString, holodec::holoir::HIRTokenType> holodec::holoir::
 	{"arg", { holodec::holoir::HIR_TOKEN_OP_ARG}},
 	{"stck", { holodec::holoir::HIR_TOKEN_OP_STCK}},
 	{"t", { holodec::holoir::HIR_TOKEN_OP_TMP}},
+	
+	{"pop", { holodec::holoir::HIR_TOKEN_POP}},
+	{"push", { holodec::holoir::HIR_TOKEN_PUSH}},
 
 	{"val", { holodec::holoir::HIR_TOKEN_VALUE, 1, 1}},
 
@@ -308,7 +311,9 @@ holodec::HId holodec::holoir::HIRParser::parseExpression() {
 			case HIR_TOKEN_REGISTER: {
 				char buffer[100];
 				if (parseIdentifier (buffer, 100)) {
-					expression.regacces = arch->getRegister (buffer)->id;
+					HRegister* reg = arch->getRegister (buffer);
+					expression.regacces = reg->id;
+					expression.mod.size = reg->size;
 					//printf ("Parsed Custom %s\n", buffer);
 				} else {
 					printf ("No custom token");
@@ -413,7 +418,7 @@ void holodec::holoir::HIRExpression::print (HArchitecture* arch) {
 		}
 		printf (")");
 	}
-	if (mod.index != 0 && mod.size != 0)
+	if (mod.index != 0 || mod.size != 0)
 		printf ("[%lld,%lld]", mod.index, mod.size);
 	if (append) {
 		printf (":");
@@ -445,6 +450,5 @@ bool holodec::holoir::operator== (holodec::holoir::HIRExpression& expr1, holodec
 	       expr1.regacces == expr2.regacces &&
 	       expr1.mod == expr2.mod &&
 	       expr1.append == expr2.append &&
-	       expr1.sequence == expr2.sequence &&
-	       expr1.bitsize == expr2.bitsize;
+	       expr1.sequence == expr2.sequence;
 }

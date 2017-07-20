@@ -83,6 +83,15 @@ namespace holodec {
 			}
 			return 0;
 		}
+		HRegister* getParentRegister ( const HId id ) {
+			for ( HRegister& reg : subregisters ) {
+				if ( id == reg.id )
+					return &reg;
+				HRegister* r = reg.getRegister ( id );
+				if ( r ) return &reg;
+			}
+			return 0;
+		}
 		void print ( int indent = 0 ) {
 			printIndent ( indent );
 			std::printf ( "Register %s s: %d o: %d\n", name.cstr(), size, offset );
