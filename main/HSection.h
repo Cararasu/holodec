@@ -7,7 +7,7 @@
 #include "HFunction.h"
 #include "HClass.h"
 #include "HData.h"
-#include "HIdGenerator.h"
+#include "HId.h"
 
 namespace holodec {
 

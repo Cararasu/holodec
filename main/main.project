@@ -14,7 +14,6 @@
       <File Name="HStringDatabase.cpp"/>
       <File Name="HSection.h"/>
       <File Name="HSection.cpp"/>
-      <File Name="HIdGenerator.h"/>
       <File Name="HFunction.h"/>
       <File Name="HFunction.cpp"/>
       <File Name="HData.h"/>
@@ -23,6 +22,7 @@
       <File Name="HClass.cpp"/>
       <File Name="HBinary.h"/>
       <File Name="HBinary.cpp"/>
+      <File Name="HId.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <File Name="HString.h"/>

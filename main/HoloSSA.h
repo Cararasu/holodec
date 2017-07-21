@@ -144,7 +144,7 @@ namespace holodec {
 
 			bool parseFunction (HFunction* function);
 			bool parseInstruction (HInstruction* instr);
-			HSSAParsedExpression parseExpression (HInstArgument* arguments, holoir::HIRExpression* expression);
+			HSSAParsedExpression parseExpression (HInstArgument* arguments, HIRExpression* expression);
 		};
 	}
 }

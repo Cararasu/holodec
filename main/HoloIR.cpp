@@ -3,89 +3,89 @@
 #include "HFunction.h"
 
 
-holodec::HMap<holodec::HString, holodec::holoir::HIRTokenType> holodec::holoir::tokenmap = {
-	{"c", { holodec::holoir::HIR_TOKEN_FLAG_C, 0, 0}},
-	{"a", { holodec::holoir::HIR_TOKEN_FLAG_A, 0, 0}},
-	{"p", { holodec::holoir::HIR_TOKEN_FLAG_P, 0, 0}},
-	{"o", { holodec::holoir::HIR_TOKEN_FLAG_O, 0, 0}},
-	{"z", { holodec::holoir::HIR_TOKEN_FLAG_Z, 0, 0}},
-	{"s", { holodec::holoir::HIR_TOKEN_FLAG_S, 0, 0}},
+holodec::HMap<holodec::HString, holodec::HIRTokenType> holodec::tokenmap = {
+	{"c", { holodec::HIR_TOKEN_FLAG_C, 0, 0}},
+	{"a", { holodec::HIR_TOKEN_FLAG_A, 0, 0}},
+	{"p", { holodec::HIR_TOKEN_FLAG_P, 0, 0}},
+	{"o", { holodec::HIR_TOKEN_FLAG_O, 0, 0}},
+	{"z", { holodec::HIR_TOKEN_FLAG_Z, 0, 0}},
+	{"s", { holodec::HIR_TOKEN_FLAG_S, 0, 0}},
 
-	{"arg", { holodec::holoir::HIR_TOKEN_OP_ARG}},
-	{"stck", { holodec::holoir::HIR_TOKEN_OP_STCK}},
-	{"t", { holodec::holoir::HIR_TOKEN_OP_TMP}},
+	{"arg", { holodec::HIR_TOKEN_OP_ARG}},
+	{"stck", { holodec::HIR_TOKEN_OP_STCK}},
+	{"t", { holodec::HIR_TOKEN_OP_TMP}},
 	
-	{"pop", { holodec::holoir::HIR_TOKEN_POP}},
-	{"push", { holodec::holoir::HIR_TOKEN_PUSH}},
+	{"pop", { holodec::HIR_TOKEN_POP}},
+	{"push", { holodec::HIR_TOKEN_PUSH}},
 
-	{"val", { holodec::holoir::HIR_TOKEN_VALUE, 1, 1}},
+	{"val", { holodec::HIR_TOKEN_VALUE, 1, 1}},
 
-	{"jmp", { holodec::holoir::HIR_TOKEN_OP_JMP, 1, 1}},
-	{"call", { holodec::holoir::HIR_TOKEN_OP_CALL, 1, 1}},
-	{"ret", { holodec::holoir::HIR_TOKEN_OP_RET, 0, 0}},
-	{"syscall", { holodec::holoir::HIR_TOKEN_OP_SYSCALL, 0, 1}},
-	{"trap", { holodec::holoir::HIR_TOKEN_OP_TRAP, 0, 0}},
-	{"call", { holodec::holoir::HIR_TOKEN_OP_CALL, 1, 1}},
+	{"jmp", { holodec::HIR_TOKEN_OP_JMP, 1, 1}},
+	{"call", { holodec::HIR_TOKEN_OP_CALL, 1, 1}},
+	{"ret", { holodec::HIR_TOKEN_OP_RET, 0, 0}},
+	{"syscall", { holodec::HIR_TOKEN_OP_SYSCALL, 0, 1}},
+	{"trap", { holodec::HIR_TOKEN_OP_TRAP, 0, 0}},
+	{"call", { holodec::HIR_TOKEN_OP_CALL, 1, 1}},
 
-	{"assign", { holodec::holoir::HIR_TOKEN_OP_ASSIGN, 2, 2}},
-	{"size", { holodec::holoir::HIR_TOKEN_OP_SIZE, 1, 1}},
-	{"popcnt", { holodec::holoir::HIR_TOKEN_OP_POPCNT, 1, 1}},
-	{"loop", { holodec::holoir::HIR_TOKEN_OP_LOOP, 2, 2}},
-	{"if", { holodec::holoir::HIR_TOKEN_OP_IF, 2, 3}},
-	{"rec", { holodec::holoir::HIR_TOKEN_OP_REC}},
-	{"ext", { holodec::holoir::HIR_TOKEN_OP_EXTEND, 1, 2}},
-	{"sext", { holodec::holoir::HIR_TOKEN_OP_SEXTEND, 1, 2}},
+	{"assign", { holodec::HIR_TOKEN_OP_ASSIGN, 2, 2}},
+	{"size", { holodec::HIR_TOKEN_OP_SIZE, 1, 1}},
+	{"popcnt", { holodec::HIR_TOKEN_OP_POPCNT, 1, 1}},
+	{"loop", { holodec::HIR_TOKEN_OP_LOOP, 2, 2}},
+	{"if", { holodec::HIR_TOKEN_OP_IF, 2, 3}},
+	{"rec", { holodec::HIR_TOKEN_OP_REC}},
+	{"ext", { holodec::HIR_TOKEN_OP_EXTEND, 1, 2}},
+	{"sext", { holodec::HIR_TOKEN_OP_SEXTEND, 1, 2}},
 
-	{"add", { holodec::holoir::HIR_TOKEN_OP_ADD, 2}},
-	{"fadd", { holodec::holoir::HIR_TOKEN_OP_FADD, 2}},
-	{"sub", { holodec::holoir::HIR_TOKEN_OP_SUB, 2}},
-	{"fsub", { holodec::holoir::HIR_TOKEN_OP_FSUB, 2}},
-	{"mul", { holodec::holoir::HIR_TOKEN_OP_MUL, 2}},
-	{"smul", { holodec::holoir::HIR_TOKEN_OP_SMUL, 2}},
-	{"fmul", { holodec::holoir::HIR_TOKEN_OP_FMUL, 2}},
-	{"div", { holodec::holoir::HIR_TOKEN_OP_DIV, 2, 2}},
-	{"sdiv", { holodec::holoir::HIR_TOKEN_OP_SDIV, 2, 2}},
-	{"fdiv", { holodec::holoir::HIR_TOKEN_OP_FDIV, 2, 2}},
+	{"add", { holodec::HIR_TOKEN_OP_ADD, 2}},
+	{"fadd", { holodec::HIR_TOKEN_OP_FADD, 2}},
+	{"sub", { holodec::HIR_TOKEN_OP_SUB, 2}},
+	{"fsub", { holodec::HIR_TOKEN_OP_FSUB, 2}},
+	{"mul", { holodec::HIR_TOKEN_OP_MUL, 2}},
+	{"smul", { holodec::HIR_TOKEN_OP_SMUL, 2}},
+	{"fmul", { holodec::HIR_TOKEN_OP_FMUL, 2}},
+	{"div", { holodec::HIR_TOKEN_OP_DIV, 2, 2}},
+	{"sdiv", { holodec::HIR_TOKEN_OP_SDIV, 2, 2}},
+	{"fdiv", { holodec::HIR_TOKEN_OP_FDIV, 2, 2}},
 
-	{"st", { holodec::holoir::HIR_TOKEN_OP_STORE, 2}},
-	{"ld", { holodec::holoir::HIR_TOKEN_OP_LOAD, 1, 2}},
+	{"st", { holodec::HIR_TOKEN_OP_STORE, 2}},
+	{"ld", { holodec::HIR_TOKEN_OP_LOAD, 1, 2}},
 
-	{"eq", { holodec::holoir::HIR_TOKEN_CMP_E, 2, 2}},
-	{"neq", { holodec::holoir::HIR_TOKEN_CMP_NE, 2, 2}},
-	{"l", { holodec::holoir::HIR_TOKEN_CMP_L, 2, 2}},
-	{"le", { holodec::holoir::HIR_TOKEN_CMP_LE, 2, 2}},
-	{"g", { holodec::holoir::HIR_TOKEN_CMP_G, 2, 2}},
-	{"ge", { holodec::holoir::HIR_TOKEN_CMP_GE, 2, 2}},
-	{"not", { holodec::holoir::HIR_TOKEN_CMP_NOT, 1, 1}},
+	{"eq", { holodec::HIR_TOKEN_CMP_E, 2, 2}},
+	{"neq", { holodec::HIR_TOKEN_CMP_NE, 2, 2}},
+	{"l", { holodec::HIR_TOKEN_CMP_L, 2, 2}},
+	{"le", { holodec::HIR_TOKEN_CMP_LE, 2, 2}},
+	{"g", { holodec::HIR_TOKEN_CMP_G, 2, 2}},
+	{"ge", { holodec::HIR_TOKEN_CMP_GE, 2, 2}},
+	{"not", { holodec::HIR_TOKEN_CMP_NOT, 1, 1}},
 
-	{"and", { holodec::holoir::HIR_TOKEN_OP_AND, 2}},
-	{"or", { holodec::holoir::HIR_TOKEN_OP_OR, 2}},
-	{"xor", { holodec::holoir::HIR_TOKEN_OP_XOR, 2}},
+	{"and", { holodec::HIR_TOKEN_OP_AND, 2}},
+	{"or", { holodec::HIR_TOKEN_OP_OR, 2}},
+	{"xor", { holodec::HIR_TOKEN_OP_XOR, 2}},
 
-	{"band", { holodec::holoir::HIR_TOKEN_BINOP_AND, 2}},
-	{"bor", { holodec::holoir::HIR_TOKEN_BINOP_OR, 2}},
-	{"bxor", { holodec::holoir::HIR_TOKEN_BINOP_XOR, 2}},
-	{"bnot", { holodec::holoir::HIR_TOKEN_BINOP_NOT, 1, 1}},
+	{"band", { holodec::HIR_TOKEN_BINOP_AND, 2}},
+	{"bor", { holodec::HIR_TOKEN_BINOP_OR, 2}},
+	{"bxor", { holodec::HIR_TOKEN_BINOP_XOR, 2}},
+	{"bnot", { holodec::HIR_TOKEN_BINOP_NOT, 1, 1}},
 
-	{"shr", { holodec::holoir::HIR_TOKEN_BINOP_SHR, 2, 2}},
-	{"shl", { holodec::holoir::HIR_TOKEN_BINOP_SHL, 2, 2}},
-	{"sar", { holodec::holoir::HIR_TOKEN_BINOP_SAR, 2, 2}},
-	{"sal", { holodec::holoir::HIR_TOKEN_BINOP_SAL, 2, 2}},
-	{"ror", { holodec::holoir::HIR_TOKEN_BINOP_ROR, 2, 2}},
-	{"rol", { holodec::holoir::HIR_TOKEN_BINOP_ROL, 2, 2}},
+	{"shr", { holodec::HIR_TOKEN_BINOP_SHR, 2, 2}},
+	{"shl", { holodec::HIR_TOKEN_BINOP_SHL, 2, 2}},
+	{"sar", { holodec::HIR_TOKEN_BINOP_SAR, 2, 2}},
+	{"sal", { holodec::HIR_TOKEN_BINOP_SAL, 2, 2}},
+	{"ror", { holodec::HIR_TOKEN_BINOP_ROR, 2, 2}},
+	{"rol", { holodec::HIR_TOKEN_BINOP_ROL, 2, 2}},
 
-	{"i2f", { holodec::holoir::HIR_TOKEN_CAST_I2F, 1, 2}},
-	{"f2i", { holodec::holoir::HIR_TOKEN_CAST_F2I, 1, 2}},
+	{"i2f", { holodec::HIR_TOKEN_CAST_I2F, 1, 2}},
+	{"f2i", { holodec::HIR_TOKEN_CAST_F2I, 1, 2}},
 };
 
-void holodec::holoir::HIRParser::skipWhitespaces() {
+void holodec::HIRParser::skipWhitespaces() {
 	while (parseCharacter (' '));
 }
-void holodec::holoir::HIRParser::printParseFailure (const char* str) {
+void holodec::HIRParser::printParseFailure (const char* str) {
 	printf ("%s\n", string.cstr());
 	printf ("Invalid Token at '%s' expected %s\n", string.cstr() + index, str);
 }
-bool holodec::holoir::HIRParser::parseIdentifier (char *buffer, size_t buffersize) {
+bool holodec::HIRParser::parseIdentifier (char *buffer, size_t buffersize) {
 	size_t current_index = index;
 	for (size_t i = 0; i < buffersize; i++) {
 		char c = peek();
@@ -101,14 +101,14 @@ bool holodec::holoir::HIRParser::parseIdentifier (char *buffer, size_t buffersiz
 	}
 	return false;
 }
-bool holodec::holoir::HIRParser::parseCharacter (char character) {
+bool holodec::HIRParser::parseCharacter (char character) {
 	if (character == pop()) {
 		return true;
 	}
 	pushback();
 	return false;
 }
-bool holodec::holoir::HIRParser::parseIndex (HIRExpression* expr) {
+bool holodec::HIRParser::parseIndex (HIRExpression* expr) {
 	size_t current_index = index;
 	skipWhitespaces();
 	if (parseCharacter ('[')) {
@@ -131,7 +131,7 @@ bool holodec::holoir::HIRParser::parseIndex (HIRExpression* expr) {
 	}
 	return true;
 }
-bool holodec::holoir::HIRParser::parseNumberIndex (HIRExpression* expr) {
+bool holodec::HIRParser::parseNumberIndex (HIRExpression* expr) {
 	size_t current_index = index;
 	skipWhitespaces();
 	if (parseCharacter ('[')) {
@@ -148,7 +148,7 @@ bool holodec::holoir::HIRParser::parseNumberIndex (HIRExpression* expr) {
 		return true;
 	}
 }
-bool holodec::holoir::HIRParser::parseStringIndex (HIRExpression* expr) {
+bool holodec::HIRParser::parseStringIndex (HIRExpression* expr) {
 	size_t current_index = index;
 	skipWhitespaces();
 	if (parseCharacter ('[')) {
@@ -167,7 +167,7 @@ bool holodec::holoir::HIRParser::parseStringIndex (HIRExpression* expr) {
 		return true;
 	}
 }
-bool holodec::holoir::HIRParser::parseNumber (int64_t* num) {
+bool holodec::HIRParser::parseNumber (int64_t* num) {
 	size_t current_index = index;
 	skipWhitespaces();
 	int64_t pos;
@@ -179,7 +179,7 @@ bool holodec::holoir::HIRParser::parseNumber (int64_t* num) {
 	}
 	return true;
 }
-int holodec::holoir::HIRParser::parseArguments (HIRExpression* expr) {
+int holodec::HIRParser::parseArguments (HIRExpression* expr) {
 	size_t current_index = index;
 	skipWhitespaces();
 	int i = 0;
@@ -209,7 +209,7 @@ int holodec::holoir::HIRParser::parseArguments (HIRExpression* expr) {
 	}
 	return i;
 }
-holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseBuiltin() {
+holodec::HIRTokenType holodec::HIRParser::parseBuiltin() {
 	size_t current_index = index;
 	char buffer[100];
 	if (parseIdentifier (buffer, 100)) {
@@ -222,7 +222,7 @@ holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseBuiltin() {
 	}
 	return HIR_TOKEN_INVALID;
 }
-holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseToken() {
+holodec::HIRTokenType holodec::HIRParser::parseToken() {
 	skipWhitespaces();
 	while (char c = pop()) {
 		size_t current_index = index;
@@ -288,7 +288,7 @@ holodec::holoir::HIRTokenType holodec::holoir::HIRParser::parseToken() {
 	}
 	return HIR_TOKEN_INVALID;
 }
-holodec::HId holodec::holoir::HIRParser::parseExpression() {
+holodec::HId holodec::HIRParser::parseExpression() {
 	HId returnExpr = 0;
 	HId lastPassedExpression = 0;
 	HId seqexpr = 0;
@@ -360,14 +360,14 @@ holodec::HId holodec::holoir::HIRParser::parseExpression() {
 }
 
 
-void holodec::holoir::HIRParser::parse (holodec::holoir::HIRRepresentation* rep) {
+void holodec::HIRParser::parse (holodec::HIRRepresentation* rep) {
 	string = rep->string;
 	index = 0;
 	this->rep = rep;
 	rep->rootExpr = parseExpression();
 }
 
-void holodec::holoir::HIRExpression::print (HArchitecture* arch) {
+void holodec::HIRExpression::print (HArchitecture* arch) {
 	printf ("%lld = ", id);
 
 	for (auto& entry : tokenmap) {
@@ -433,14 +433,14 @@ void holodec::holoir::HIRExpression::print (HArchitecture* arch) {
 
 
 
-bool holodec::holoir::operator== (holodec::holoir::HIRExpression::HIRExpressionMod& expr1, holodec::holoir::HIRExpression::HIRExpressionMod& expr2) {
+bool holodec::operator== (holodec::HIRExpression::HIRExpressionMod& expr1, holodec::HIRExpression::HIRExpressionMod& expr2) {
 	return expr1.name_index == expr2.name_index &&
 	       expr1.var_index == expr2.var_index &&
 	       expr1.index == expr2.index &&
 	       expr1.size == expr2.size;
 }
 
-bool holodec::holoir::operator== (holodec::holoir::HIRExpression& expr1, holodec::holoir::HIRExpression& expr2) {
+bool holodec::operator== (holodec::HIRExpression& expr1, holodec::HIRExpression& expr2) {
 	for (int i = 0; i < HIR_LOCAL_SUBEXPRESSION_COUNT; i++) {
 		if (expr1.subexpressions[i] != expr2.subexpressions[i])
 			return false;

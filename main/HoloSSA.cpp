@@ -164,10 +164,10 @@ namespace holodec {
 		//struct H
 		//HMap<HId,>
 
-		HId parseForSSA (holoir::HIRRepresentation* ir, HId nodeid, HSSAGenState* state/*, flag dom, stack dom, reg dom */) {
+		HId parseForSSA (HIRRepresentation* ir, HId nodeid, HSSAGenState* state/*, flag dom, stack dom, reg dom */) {
 			if (!nodeid)
 				return 0;
-			holoir::HIRExpression* expr = ir->getExpr (nodeid);
+			HIRExpression* expr = ir->getExpr (nodeid);
 			if (!expr)
 				return 0;
 			auto it = state->map.find (expr->id);
@@ -176,97 +176,97 @@ namespace holodec {
 			HId id;
 			switch (expr->token) {
 
-			case holoir::HIR_TOKEN_FLAG_C:
+			case HIR_TOKEN_FLAG_C:
 				id = state->gen.next();
 				printf ("%d = Flag_Carry(%d)", id, parseForSSA (ir, expr->subexpressions[0], state));
 				state->map.insert (std::pair<HId, HId> (expr->id, id));
 				break;
-			case holoir::HIR_TOKEN_FLAG_A:
+			case HIR_TOKEN_FLAG_A:
 				id = state->gen.next();
 				printf ("%d = Flag_HalfCarry(%d)", id, parseForSSA (ir, expr->subexpressions[0], state));
 				state->map.insert (std::pair<HId, HId> (expr->id, id));
 				break;
-			case holoir::HIR_TOKEN_FLAG_P:
+			case HIR_TOKEN_FLAG_P:
 				id = state->gen.next();
 				printf ("%d = Flag_Parity(%d)", id, parseForSSA (ir, expr->subexpressions[0], state));
 				state->map.insert (std::pair<HId, HId> (expr->id, id));
 				break;
-			case holoir::HIR_TOKEN_FLAG_O:
+			case HIR_TOKEN_FLAG_O:
 				id = state->gen.next();
 				printf ("%d = Flag_Overflow(%d)", id, parseForSSA (ir, expr->subexpressions[0], state));
 				state->map.insert (std::pair<HId, HId> (expr->id, id));
 				break;
-			case holoir::HIR_TOKEN_FLAG_Z:
+			case HIR_TOKEN_FLAG_Z:
 				id = state->gen.next();
 				printf ("%d = Flag_Zero(%d)", id, parseForSSA (ir, expr->subexpressions[0], state));
 				state->map.insert (std::pair<HId, HId> (expr->id, id));
 				break;
-			case holoir::HIR_TOKEN_FLAG_S:
+			case HIR_TOKEN_FLAG_S:
 				id = state->gen.next();
 				printf ("%d = Flag_Signed(%d)", id, parseForSSA (ir, expr->subexpressions[0], state));
 				state->map.insert (std::pair<HId, HId> (expr->id, id));
 				break;
-			case holoir::HIR_TOKEN_OP_ARG:
+			case HIR_TOKEN_OP_ARG:
 				printf ("Arg not replaced\n");
 				break;
-			case holoir::HIR_TOKEN_OP_STCK:
+			case HIR_TOKEN_OP_STCK:
 				printf ("Stck not replaced\n");
 				break;
-			case holoir::HIR_TOKEN_OP_TMP:
+			case HIR_TOKEN_OP_TMP:
 				printf ("Tmp not replaced\n");
 				break;
 
-			case holoir::HIR_TOKEN_REGISTER: {
+			case HIR_TOKEN_REGISTER: {
 				HSSARegDef def = state->getLastRegDef (expr->regacces);
 				id = def.ssaId;
 				printf ("Reg not implemented\n");
 			}
 			break;
-			case holoir::HIR_TOKEN_NUMBER:
+			case HIR_TOKEN_NUMBER:
 				id = state->gen.next();
 				printf ("%d = 0x%x\n", id, expr->value);
 				state->map.insert (std::pair<HId, HId> (expr->id, id));
 				break;
-			case holoir::HIR_TOKEN_FLOAT:
+			case HIR_TOKEN_FLOAT:
 				id = state->gen.next();
 				printf ("%d = %d\n", id, expr->fvalue);
 				state->map.insert (std::pair<HId, HId> (expr->id, id));
 				break;
-			case holoir::HIR_TOKEN_VALUE:
+			case HIR_TOKEN_VALUE:
 				expr = ir->getExpr (expr->subexpressions[0]);
 				if (!expr)
 					return 0;
-				if (expr->token != holoir::HIR_TOKEN_MEM) {
+				if (expr->token != HIR_TOKEN_MEM) {
 					id = parseForSSA (ir, expr->id, state);
 					break;
 				}
 			//fallthrough
-			case holoir::HIR_TOKEN_MEM:
+			case HIR_TOKEN_MEM:
 				id = state->gen.next();
 				printf ("%d = [%s + %s*%d + %d]\n", id, state->arch->getRegister (expr->mem.base)->name.cstr(), state->arch->getRegister (expr->mem.index)->name.cstr(), expr->mem.scale, expr->mem.disp);
 				state->map.insert (std::pair<HId, HId> (expr->id, id));
 				break;
 
-			case holoir::HIR_TOKEN_OP_ASSIGN:
-				holoir::HIRExpression* source = ir->getExpr (expr->subexpressions[1]);
+			case HIR_TOKEN_OP_ASSIGN:
+				HIRExpression* source = ir->getExpr (expr->subexpressions[1]);
 				if (!source)
 					return 0;
-				holoir::HIRToken sourcetoken = source->token;
+				HIRToken sourcetoken = source->token;
 				HId sourceId = parseForSSA (ir, expr->subexpressions[1], state);
-				if (sourcetoken == holoir::HIR_TOKEN_MEM) {
+				if (sourcetoken == HIR_TOKEN_MEM) {
 					HId temp = state->gen.next();
 					printf ("%d = load(%d)\n", temp, sourceId);
 					sourceId = temp;
 				}
-				holoir::HIRExpression* target = ir->getExpr (expr->subexpressions[0]);
+				HIRExpression* target = ir->getExpr (expr->subexpressions[0]);
 				if (!target)
 					return 0;
-				holoir::HIRToken targettoken = target->token;
+				HIRToken targettoken = target->token;
 				id = state->gen.next();
-				if (targettoken == holoir::HIR_TOKEN_MEM) {
+				if (targettoken == HIR_TOKEN_MEM) {
 					HId targetId = parseForSSA (ir, expr->subexpressions[0], state);
 					printf ("%d = store(%d,%d)\n", id, targetId, sourceId);
-				} else if (targettoken == holoir::HIR_TOKEN_REGISTER) {
+				} else if (targettoken == HIR_TOKEN_REGISTER) {
 					HRegister* reg = state->arch->getRegister (target->regacces);
 					HRegister* parent = state->arch->getParentRegister (target->regacces);
 					state->addLastRegDef ({parent->id, reg->id, reg->offset + target->mod.index, target->mod.size, id});
@@ -277,62 +277,62 @@ namespace holodec {
 				break;
 				/*
 				//Call - Return
-				holoir::HIR_TOKEN_OP_JMP,
-				holoir::HIR_TOKEN_OP_CALL,
-				holoir::HIR_TOKEN_OP_RET,
-				holoir::HIR_TOKEN_OP_SYSCALL,
-				holoir::HIR_TOKEN_OP_TRAP,
+				HIR_TOKEN_OP_JMP,
+				HIR_TOKEN_OP_CALL,
+				HIR_TOKEN_OP_RET,
+				HIR_TOKEN_OP_SYSCALL,
+				HIR_TOKEN_OP_TRAP,
 				//Misc
-				holoir::HIR_TOKEN_OP_SIZE,
-				holoir::HIR_TOKEN_OP_POPCNT,
-				holoir::HIR_TOKEN_OP_LOOP,
-				holoir::HIR_TOKEN_OP_IF,
-				holoir::HIR_TOKEN_OP_REC,
-				holoir::HIR_TOKEN_OP_EXTEND,
-				holoir::HIR_TOKEN_OP_SEXTEND,
+				HIR_TOKEN_OP_SIZE,
+				HIR_TOKEN_OP_POPCNT,
+				HIR_TOKEN_OP_LOOP,
+				HIR_TOKEN_OP_IF,
+				HIR_TOKEN_OP_REC,
+				HIR_TOKEN_OP_EXTEND,
+				HIR_TOKEN_OP_SEXTEND,
 				//Arithmetic
-				holoir::HIR_TOKEN_OP_ADD,
-				holoir::HIR_TOKEN_OP_SADD,
-				holoir::HIR_TOKEN_OP_FADD,
-				holoir::HIR_TOKEN_OP_SUB,
-				holoir::HIR_TOKEN_OP_SSUB,
-				holoir::HIR_TOKEN_OP_FSUB,
-				holoir::HIR_TOKEN_OP_MUL,
-				holoir::HIR_TOKEN_OP_SMUL,
-				holoir::HIR_TOKEN_OP_FMUL,
-				holoir::HIR_TOKEN_OP_DIV,
-				holoir::HIR_TOKEN_OP_SDIV,
-				holoir::HIR_TOKEN_OP_FDIV,
+				HIR_TOKEN_OP_ADD,
+				HIR_TOKEN_OP_SADD,
+				HIR_TOKEN_OP_FADD,
+				HIR_TOKEN_OP_SUB,
+				HIR_TOKEN_OP_SSUB,
+				HIR_TOKEN_OP_FSUB,
+				HIR_TOKEN_OP_MUL,
+				HIR_TOKEN_OP_SMUL,
+				HIR_TOKEN_OP_FMUL,
+				HIR_TOKEN_OP_DIV,
+				HIR_TOKEN_OP_SDIV,
+				HIR_TOKEN_OP_FDIV,
 				//Memory
-				holoir::HIR_TOKEN_OP_STORE,
-				holoir::HIR_TOKEN_OP_LOAD,
+				HIR_TOKEN_OP_STORE,
+				HIR_TOKEN_OP_LOAD,
 				//Comparison
-				holoir::HIR_TOKEN_CMP_E,
-				holoir::HIR_TOKEN_CMP_NE,
-				holoir::HIR_TOKEN_CMP_L,
-				holoir::HIR_TOKEN_CMP_LE,
-				holoir::HIR_TOKEN_CMP_G,
-				holoir::HIR_TOKEN_CMP_GE,
-				holoir::HIR_TOKEN_CMP_NOT,
+				HIR_TOKEN_CMP_E,
+				HIR_TOKEN_CMP_NE,
+				HIR_TOKEN_CMP_L,
+				HIR_TOKEN_CMP_LE,
+				HIR_TOKEN_CMP_G,
+				HIR_TOKEN_CMP_GE,
+				HIR_TOKEN_CMP_NOT,
 				//
-				holoir::HIR_TOKEN_OP_AND,
-				holoir::HIR_TOKEN_OP_OR,
-				holoir::HIR_TOKEN_OP_XOR,
+				HIR_TOKEN_OP_AND,
+				HIR_TOKEN_OP_OR,
+				HIR_TOKEN_OP_XOR,
 				//Bit Operators
-				holoir::HIR_TOKEN_BINOP_AND,
-				holoir::HIR_TOKEN_BINOP_OR,
-				holoir::HIR_TOKEN_BINOP_XOR,
-				holoir::HIR_TOKEN_BINOP_NOT,
+				HIR_TOKEN_BINOP_AND,
+				HIR_TOKEN_BINOP_OR,
+				HIR_TOKEN_BINOP_XOR,
+				HIR_TOKEN_BINOP_NOT,
 				//Shifts - Rotates
-				holoir::HIR_TOKEN_BINOP_SHR,
-				holoir::HIR_TOKEN_BINOP_SHL,
-				holoir::HIR_TOKEN_BINOP_SAR,
-				holoir::HIR_TOKEN_BINOP_SAL,
-				holoir::HIR_TOKEN_BINOP_ROR,
-				holoir::HIR_TOKEN_BINOP_ROL,
+				HIR_TOKEN_BINOP_SHR,
+				HIR_TOKEN_BINOP_SHL,
+				HIR_TOKEN_BINOP_SAR,
+				HIR_TOKEN_BINOP_SAL,
+				HIR_TOKEN_BINOP_ROR,
+				HIR_TOKEN_BINOP_ROL,
 				//Casts
-				holoir::HIR_TOKEN_CAST_I2F,
-				holoir::HIR_TOKEN_CAST_F2I,*/
+				HIR_TOKEN_CAST_I2F,
+				HIR_TOKEN_CAST_F2I,*/
 			}
 			printf ("Size: %d\n", expr->mod.size);
 			parseForSSA (ir, expr->append, state);
@@ -341,10 +341,10 @@ namespace holodec {
 		}
 
 
-		void labelSize (holoir::HIRRepresentation* ir, HId nodeid) {
+		void labelSize (HIRRepresentation* ir, HId nodeid) {
 			if (!nodeid)
 				return ;
-			holoir::HIRExpression* expr = ir->getExpr (nodeid);
+			HIRExpression* expr = ir->getExpr (nodeid);
 			if (!expr)
 				return ;
 			for (int i = 0; i < HIR_LOCAL_SUBEXPRESSION_COUNT; i++) {
@@ -352,63 +352,63 @@ namespace holodec {
 			}
 			switch (expr->token) {
 
-			case holoir::HIR_TOKEN_FLAG_C:
-			case holoir::HIR_TOKEN_FLAG_A:
-			case holoir::HIR_TOKEN_FLAG_P:
-			case holoir::HIR_TOKEN_FLAG_O:
-			case holoir::HIR_TOKEN_FLAG_Z:
-			case holoir::HIR_TOKEN_FLAG_S:
-			case holoir::HIR_TOKEN_CMP_E:
-			case holoir::HIR_TOKEN_CMP_NE:
-			case holoir::HIR_TOKEN_CMP_L:
-			case holoir::HIR_TOKEN_CMP_LE:
-			case holoir::HIR_TOKEN_CMP_G:
-			case holoir::HIR_TOKEN_CMP_GE:
-			case holoir::HIR_TOKEN_CMP_NOT:
-			case holoir::HIR_TOKEN_OP_AND:
-			case holoir::HIR_TOKEN_OP_OR:
-			case holoir::HIR_TOKEN_OP_XOR:
+			case HIR_TOKEN_FLAG_C:
+			case HIR_TOKEN_FLAG_A:
+			case HIR_TOKEN_FLAG_P:
+			case HIR_TOKEN_FLAG_O:
+			case HIR_TOKEN_FLAG_Z:
+			case HIR_TOKEN_FLAG_S:
+			case HIR_TOKEN_CMP_E:
+			case HIR_TOKEN_CMP_NE:
+			case HIR_TOKEN_CMP_L:
+			case HIR_TOKEN_CMP_LE:
+			case HIR_TOKEN_CMP_G:
+			case HIR_TOKEN_CMP_GE:
+			case HIR_TOKEN_CMP_NOT:
+			case HIR_TOKEN_OP_AND:
+			case HIR_TOKEN_OP_OR:
+			case HIR_TOKEN_OP_XOR:
 				expr->mod.size = 1;
 				break;
-			case holoir::HIR_TOKEN_OP_STCK:
+			case HIR_TOKEN_OP_STCK:
 				break;
-			case holoir::HIR_TOKEN_OP_TMP:
+			case HIR_TOKEN_OP_TMP:
 				break;
 
-			case holoir::HIR_TOKEN_REGISTER:
+			case HIR_TOKEN_REGISTER:
 				break;
-			case holoir::HIR_TOKEN_NUMBER:
-			case holoir::HIR_TOKEN_FLOAT:
+			case HIR_TOKEN_NUMBER:
+			case HIR_TOKEN_FLOAT:
 				break;
-			case holoir::HIR_TOKEN_VALUE:
+			case HIR_TOKEN_VALUE:
 				break;
 			//fallthrough
-			case holoir::HIR_TOKEN_MEM:
+			case HIR_TOKEN_MEM:
 				break;
 			//Arithmetic
-			case holoir::HIR_TOKEN_OP_ASSIGN:
+			case HIR_TOKEN_OP_ASSIGN:
 				expr->mod.size = 0;
 				break;
-			case holoir::HIR_TOKEN_OP_ADD:
-			case holoir::HIR_TOKEN_OP_SADD:
-			case holoir::HIR_TOKEN_OP_FADD:
-			case holoir::HIR_TOKEN_OP_SUB:
-			case holoir::HIR_TOKEN_OP_SSUB:
-			case holoir::HIR_TOKEN_OP_FSUB:
-			case holoir::HIR_TOKEN_OP_MUL:
-			case holoir::HIR_TOKEN_OP_SMUL:
-			case holoir::HIR_TOKEN_OP_FMUL:
-			case holoir::HIR_TOKEN_OP_DIV:
-			case holoir::HIR_TOKEN_OP_SDIV:
-			case holoir::HIR_TOKEN_OP_FDIV:
-			case holoir::HIR_TOKEN_BINOP_AND:
-			case holoir::HIR_TOKEN_BINOP_OR:
-			case holoir::HIR_TOKEN_BINOP_XOR:
-			case holoir::HIR_TOKEN_BINOP_NOT: {
+			case HIR_TOKEN_OP_ADD:
+			case HIR_TOKEN_OP_SADD:
+			case HIR_TOKEN_OP_FADD:
+			case HIR_TOKEN_OP_SUB:
+			case HIR_TOKEN_OP_SSUB:
+			case HIR_TOKEN_OP_FSUB:
+			case HIR_TOKEN_OP_MUL:
+			case HIR_TOKEN_OP_SMUL:
+			case HIR_TOKEN_OP_FMUL:
+			case HIR_TOKEN_OP_DIV:
+			case HIR_TOKEN_OP_SDIV:
+			case HIR_TOKEN_OP_FDIV:
+			case HIR_TOKEN_BINOP_AND:
+			case HIR_TOKEN_BINOP_OR:
+			case HIR_TOKEN_BINOP_XOR:
+			case HIR_TOKEN_BINOP_NOT: {
 				uint64_t size = 0;
 				for (int i = 0; i < HIR_LOCAL_SUBEXPRESSION_COUNT; i++) {
 					if (!expr->subexpressions[i]) break;
-					holoir::HIRExpression* sexpr = ir->getExpr (expr->subexpressions[i]);
+					HIRExpression* sexpr = ir->getExpr (expr->subexpressions[i]);
 					if (!sexpr) continue;
 					if (!sexpr->mod.size) continue;
 					if (!size) size = sexpr->mod.size;
@@ -419,39 +419,39 @@ namespace holodec {
 				expr->mod.size = size;
 			}
 			break;
-			case holoir::HIR_TOKEN_BINOP_SHR:
-			case holoir::HIR_TOKEN_BINOP_SHL:
-			case holoir::HIR_TOKEN_BINOP_SAR:
-			case holoir::HIR_TOKEN_BINOP_SAL:
-			case holoir::HIR_TOKEN_BINOP_ROR:
-			case holoir::HIR_TOKEN_BINOP_ROL: {
+			case HIR_TOKEN_BINOP_SHR:
+			case HIR_TOKEN_BINOP_SHL:
+			case HIR_TOKEN_BINOP_SAR:
+			case HIR_TOKEN_BINOP_SAL:
+			case HIR_TOKEN_BINOP_ROR:
+			case HIR_TOKEN_BINOP_ROL: {
 				if (!expr->subexpressions[0]) break;
-				holoir::HIRExpression* sexpr = ir->getExpr (expr->subexpressions[0]);
+				HIRExpression* sexpr = ir->getExpr (expr->subexpressions[0]);
 				if (!sexpr) break;
 				expr->mod.size = sexpr->mod.size;
 			}
 			break;
 				/*
 				//Call - Return
-				holoir::HIR_TOKEN_OP_JMP,
-				holoir::HIR_TOKEN_OP_CALL,
-				holoir::HIR_TOKEN_OP_RET,
-				holoir::HIR_TOKEN_OP_SYSCALL,
-				holoir::HIR_TOKEN_OP_TRAP,
+				HIR_TOKEN_OP_JMP,
+				HIR_TOKEN_OP_CALL,
+				HIR_TOKEN_OP_RET,
+				HIR_TOKEN_OP_SYSCALL,
+				HIR_TOKEN_OP_TRAP,
 				//Misc
-				holoir::HIR_TOKEN_OP_SIZE,
-				holoir::HIR_TOKEN_OP_POPCNT,
-				holoir::HIR_TOKEN_OP_LOOP,
-				holoir::HIR_TOKEN_OP_IF,
-				holoir::HIR_TOKEN_OP_REC,
-				holoir::HIR_TOKEN_OP_EXTEND,
-				holoir::HIR_TOKEN_OP_SEXTEND,
+				HIR_TOKEN_OP_SIZE,
+				HIR_TOKEN_OP_POPCNT,
+				HIR_TOKEN_OP_LOOP,
+				HIR_TOKEN_OP_IF,
+				HIR_TOKEN_OP_REC,
+				HIR_TOKEN_OP_EXTEND,
+				HIR_TOKEN_OP_SEXTEND,
 				//Memory
-				holoir::HIR_TOKEN_OP_STORE,
-				holoir::HIR_TOKEN_OP_LOAD,
+				HIR_TOKEN_OP_STORE,
+				HIR_TOKEN_OP_LOAD,
 				//Casts
-				holoir::HIR_TOKEN_CAST_I2F,
-				holoir::HIR_TOKEN_CAST_F2I,*/
+				HIR_TOKEN_CAST_I2F,
+				HIR_TOKEN_CAST_F2I,*/
 			}
 			labelSize (ir, expr->append);
 			labelSize (ir, expr->sequence);
@@ -467,16 +467,16 @@ bool holodec::holossa::HSSAGenerator::parseFunction (HFunction* function) {
 		HSSAGenState state;
 		state.arch = arch;
 		for (HInstruction& instr : bb.instructions) {
-			holoir::HIRRepresentation ir = instr.instrdef->il_string[instr.opcount];
+			HIRRepresentation ir = instr.instrdef->il_string[instr.opcount];
 			if (ir) {
 				instr.print (arch);
 				printf ("Root: %d\n", ir.rootExpr);
-				for (holoir::HIRExpression& expr : ir.expressions) {
-					if (expr.token == holoir::HIR_TOKEN_OP_ARG) {
+				for (HIRExpression& expr : ir.expressions) {
+					if (expr.token == HIR_TOKEN_OP_ARG) {
 						HInstArgument& arg = instr.operands[expr.mod.var_index - 1];
 						switch (arg.type.type) {
 						case H_LOCAL_TYPE_REGISTER:
-							expr.token = holoir::HIR_TOKEN_REGISTER;
+							expr.token = HIR_TOKEN_REGISTER;
 							expr.regacces = arg.reg;
 							expr.mod.var_index = 0;
 							{
@@ -486,12 +486,12 @@ bool holodec::holossa::HSSAGenerator::parseFunction (HFunction* function) {
 							}
 							break;
 						case H_LOCAL_TYPE_STACK:
-							expr.token = holoir::HIR_TOKEN_OP_STCK;
+							expr.token = HIR_TOKEN_OP_STCK;
 							expr.mod.var_index = arg.stackindex;
 							break;
 						case H_LOCAL_TYPE_MEM:
 							//TODO
-							expr.token = holoir::HIR_TOKEN_MEM;
+							expr.token = HIR_TOKEN_MEM;
 							expr.mem.base = arg.mem.base;
 							expr.mem.index = arg.mem.index;
 							expr.mem.disp = arg.mem.disp;
@@ -500,28 +500,28 @@ bool holodec::holossa::HSSAGenerator::parseFunction (HFunction* function) {
 							break;
 						case H_LOCAL_TYPE_IMM_SIGNED:
 						case H_LOCAL_TYPE_IMM_UNSIGNED:
-							expr.token = holoir::HIR_TOKEN_NUMBER;
+							expr.token = HIR_TOKEN_NUMBER;
 							expr.value = arg.ival;
 							expr.mod.var_index = 0;
 							break;
 						case H_LOCAL_TYPE_IMM_FLOAT:
-							expr.token = holoir::HIR_TOKEN_FLOAT;
+							expr.token = HIR_TOKEN_FLOAT;
 							expr.value = arg.fval;
 							expr.mod.var_index = 0;
 							break;
 						}
 						expr.mod.size = arg.type.size;
-					} else if (expr.token == holoir::HIR_TOKEN_OP_SIZE) {
-						holoir::HIRExpression* subexpr = ir.getExpr (expr.subexpressions[0]);
+					} else if (expr.token == HIR_TOKEN_OP_SIZE) {
+						HIRExpression* subexpr = ir.getExpr (expr.subexpressions[0]);
 						if (subexpr && subexpr->mod.size) {
-							expr.token = holoir::HIR_TOKEN_NUMBER;
+							expr.token = HIR_TOKEN_NUMBER;
 							expr.value = subexpr->mod.size;
 							expr.subexpressions[0] = 0;
 						}
 					}
 				}
 				labelSize (&ir, ir.rootExpr);
-				for (holoir::HIRExpression& expr : ir.expressions) {
+				for (HIRExpression& expr : ir.expressions) {
 					expr.print (arch);
 				}
 				printf ("SSA------------------\n");

@@ -1,4 +1,4 @@
-
+	
 #include "Hx86FunctionAnalyzer.h"
 #include "HInstrDefinition.h"
 
@@ -259,17 +259,17 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_CMPXCHG,	{
 				"cmpxchg", {
 					0, 0, 
-						"?(<>(#size(#arg[1]),8)) #skip = 3;"
+						"?(==(#size(#arg[1]),8)) #do = 3;"
 						"$zf = ==($al,#arg[1]);"
 						"?($zf) #arg[1] = #arg[2];"
 						"?(#not($zf)) #arg[1] = $al;"
-						"?(<>(#size(#arg[1]),16)) #skip = 3;"
+						"?(==(#size(#arg[1]),16)) #do = 3;"
 						"$zf = ==($ax,#arg[1]);"
 						"?($zf) #arg[1] = #arg[2];"
 						"?(#not($zf)) #arg[1] = $ax;"
-						"?(<>(#size(#arg[1]),32)) #skip = 3;"
+						"?(==(#size(#arg[1]),32)) #do = 3;"
 						"$zf = ==($eax,#arg[1]);"
-						"?($zf) #arg[1] = #arg[2];
+						"?($zf) #arg[1] = #arg[2];"
 						"?(#not($zf)) #arg[1] = $eax", 0
 				}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E
 			}
@@ -350,9 +350,9 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_IDIV,	{
 				"idiv", {
 					0,
-					"?(==(#size(#arg[1]),8)) #skip = 2;$al = #sdiv($ax,#arg[1]);$ah = #smod($ax,#arg[1]);"
-					"?(==(#size(#arg[1]),16)) #skip = 2;$ax = #sdiv($dx:$ax,#arg[1]));$dx = #smod($dx:$ax,#arg[1]);"
-					"?(==(#size(#arg[1]),32)) #skip = 2;$eax = #sdiv($edx:$eax,#arg[1]));$edx = #smod($edx:$eax,#arg[1])",
+					"?(==(#size(#arg[1]),8)) #do = 2;$al = #sdiv($ax,#arg[1]);$ah = #smod($ax,#arg[1]);"
+					"?(==(#size(#arg[1]),16)) #do = 2;$ax = #sdiv($dx:$ax,#arg[1]));$dx = #smod($dx:$ax,#arg[1]);"
+					"?(==(#size(#arg[1]),32)) #do = 2;$eax = #sdiv($edx:$eax,#arg[1]));$edx = #smod($edx:$eax,#arg[1])",
 					0, 0
 				}, H_INSTR_TYPE_DIV
 			}

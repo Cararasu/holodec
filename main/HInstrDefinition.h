@@ -100,7 +100,7 @@ namespace holodec {
 	
 	struct HInstrDefinition {//16*8 -> 128 bytes
 		HString mnemonics;
-		holoir::HIRRepresentation il_string[4];
+		HIRRepresentation il_string[4];
 		size_t type;
 		size_t type2;
 		HInstructionCondition condition;

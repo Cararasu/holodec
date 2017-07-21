@@ -4,7 +4,7 @@
 #include "HGeneral.h"
 #include "HSection.h"
 #include "HInstrDefinition.h"
-#include "HIdGenerator.h"
+#include "HId.h"
 
 
 
