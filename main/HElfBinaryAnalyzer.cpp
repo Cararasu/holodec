@@ -360,7 +360,7 @@ bool holoelf::HElfBinaryAnalyzer::parseSectionHeaderTable () {
 	void* nameentryptr = binary->data->data + sections[sectionHeaderTable.namesectionindex].offset;
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
 		HSection & section = sections[i];
-		HString s = HString::create ( (char*) (nameentryptr + nameoffset[i]));
+		HString s = HString::create ( (char*) (nameentryptr) + nameoffset[i]);
 		sections[i].name = s;
 		printf ("Name: %s\n", section.name.cstr());
 		printf ("Addr: 0x%X\n", section.offset);

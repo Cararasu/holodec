@@ -84,10 +84,10 @@ int main ( int argc, char** argv ) {
 
 	instrdef->il_string[2].print(&holox86::x86architecture);
 
-	holossa::HSSAGenerator ssaGenerator;
+	/*holossa::HSSAGenerator ssaGenerator;
 	ssaGenerator.arch = &holox86::x86architecture;
 	for ( HFunction& function : binary->functions ) {
 		ssaGenerator.parseFunction ( &function );
-	}
+	}*/
 	return 0;
 }

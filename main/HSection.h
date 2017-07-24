@@ -80,9 +80,9 @@ namespace holodec {
 		
 		void print (int indent = 0) {
 			printIndent (indent);
-			printf ("Section %s \t%x-%x\n", name.cstr(), vaddr, vaddr + size);
+			printf ("Section %s \t%llx-%llx\n", name.cstr(), vaddr, vaddr + size);
 			printIndent (indent);
-			printf ("Offset: %x Flags: %s %s %s\n", offset, srwx & 0x1 ? "H" : " ", srwx & 0x2 ? "W" : " ", srwx & 0x4 ? "X" : " ");
+			printf ("Offset: %llx Flags: %s %s %s\n", offset, srwx & 0x1 ? "H" : " ", srwx & 0x2 ? "W" : " ", srwx & 0x4 ? "X" : " ");
 			for (HSection & section : subsections) {
 				section.print (indent + 1);
 			}
