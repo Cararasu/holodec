@@ -116,21 +116,21 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 	},
 	{
 		{X86_INS_INVALID,		{"invalid", {0, 0, 0, 0}, H_INSTR_TYPE_MOV}},
-		{X86_INS_MOV,		{"mov", {0, 0, "#arg[1] = #arg[2]", 0}, H_INSTR_TYPE_MOV}},
-		{X86_INS_MOVABS,		{"movabs", {0, 0, "#arg[1] = #arg[2]", 0}, H_INSTR_TYPE_MOV}},
-		{X86_INS_MOVDQA,		{"movdqa", {0, 0, "#arg[1] = #arg[2]", 0}}},
-		{X86_INS_MOVDQU,		{"movdqu", {0, 0, "#arg[1] = #arg[2]", 0}}},
-		{X86_INS_MOVQ,	{"movq", {0, 0, "#arg[1] = #arg[2]", 0}, H_INSTR_TYPE_MOV}},
-		{X86_INS_MOVD,	{"movd", {0, 0, "#arg[1] = #arg[2]", 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_MOV,		{"mov", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_MOVABS,		{"movabs", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_MOVDQA,		{"movdqa", {0, 0, "=(#arg[1],#arg[2])", 0}}},
+		{X86_INS_MOVDQU,		{"movdqu", {0, 0, "=(#arg[1],#arg[2])", 0}}},
+		{X86_INS_MOVQ,	{"movq", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_MOVD,	{"movd", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
 
 		{
 			X86_INS_MOVBE,		{
 				"movbe", {
 					0, 0,
 					"#seq("
-					"?(==(#size(#arg[1]),16),#nop,=(#arg[1],#app(#arg[2][8,8],#arg[2][0,8]))),"
-					"?(==(#size(#arg[1]),32),#nop,=(#arg[1],#app(#arg[2][24,8],#arg[2][16,8],#arg[2][8,8],#arg[2][0,8]))),"
-					"?(==(#size(#arg[1]),64),#nop,=(#arg[1],#app(#arg[2][56,8],#arg[2][48,8],#arg[2][40,8],#arg[2][32,8],#arg[2][24,8],#arg[2][16,8],#arg[2][8,8],#arg[2][0,8])))"
+					"?(==(#bsize(#arg[1]),16),#nop,=(#arg[1],#app(#arg[2][8,8],#arg[2][0,8]))),"
+					"?(==(#bsize(#arg[1]),32),#nop,=(#arg[1],#app(#arg[2][24,8],#arg[2][16,8],#arg[2][8,8],#arg[2][0,8]))),"
+					"?(==(#bsize(#arg[1]),64),#nop,=(#arg[1],#app(#arg[2][56,8],#arg[2][48,8],#arg[2][40,8],#arg[2][32,8],#arg[2][24,8],#arg[2][16,8],#arg[2][8,8],#arg[2][0,8])))"
 					")", 0
 				}, H_INSTR_TYPE_MOV
 			}
@@ -140,8 +140,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"movddup", {
 					0, 0,
 					"#seq("
-					"?(==(#size(#arg[2]),64),#nop,=(#arg[1],#app(#arg[2],#arg[2]))),"
-					"?(==(#size(#arg[2]),128),#nop,=(#arg[1],#app(#arg[2][0,64],#arg[2][0,64])))"
+					"?(==(#bsize(#arg[2]),64),#nop,=(#arg[1],#app(#arg[2],#arg[2]))),"
+					"?(==(#bsize(#arg[2]),128),#nop,=(#arg[1],#app(#arg[2][0,64],#arg[2][0,64])))"
 					")",
 					0
 				}, H_INSTR_TYPE_MOV
@@ -153,8 +153,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"movhpd", {
 					0, 0,
 					"#seq("
-					"?(==(#size(#arg[1]),64),#nop,=(#arg[1],#arg[2][64,64])),"
-					"?(==(#size(#arg[1]),128),#nop,=(#arg[1][64,64],#arg[2]))"
+					"?(==(#bsize(#arg[1]),64),#nop,=(#arg[1],#arg[2][64,64])),"
+					"?(==(#bsize(#arg[1]),128),#nop,=(#arg[1][64,64],#arg[2]))"
 					")",
 					0
 				}, H_INSTR_TYPE_MOV
@@ -165,8 +165,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"movhps", {
 					0, 0,
 					"#seq("
-					"?(==(#size(#arg[1]),64),#nop,=(#arg[1],#arg[2][64,64])),"
-					"?(==(#size(#arg[1]),128),#nop,=(#arg[1][64,64],#arg[2]))"
+					"?(==(#bsize(#arg[1]),64),#nop,=(#arg[1],#arg[2][64,64])),"
+					"?(==(#bsize(#arg[1]),128),#nop,=(#arg[1][64,64],#arg[2]))"
 					")"
 					, 0
 				}, H_INSTR_TYPE_MOV
@@ -178,8 +178,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"movlpd", {
 					0, 0,
 					"#seq("
-					"?(==(#size(#arg[1]),64),#nop,=(#arg[1],#arg[2][0,64])),"
-					"?(==(#size(#arg[1]),128),#nop,=(#arg[1][0,64],#arg[2]))"
+					"?(==(#bsize(#arg[1]),64),#nop,=(#arg[1],#arg[2][0,64])),"
+					"?(==(#bsize(#arg[1]),128),#nop,=(#arg[1][0,64],#arg[2]))"
 					")", 0
 				}, H_INSTR_TYPE_MOV
 			}
@@ -189,8 +189,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"movlps", {
 					0, 0,
 					"#seq("
-					"?(==(#size(#arg[1]),64),#nop,=(#arg[1],#arg[2][0,64])),"
-					"?(==(#size(#arg[1]),128),#nop,=(#arg[1][0,64],#arg[2]))"
+					"?(==(#bsize(#arg[1]),64),#nop,=(#arg[1],#arg[2][0,64])),"
+					"?(==(#bsize(#arg[1]),128),#nop,=(#arg[1][0,64],#arg[2]))"
 					")", 0
 				}, H_INSTR_TYPE_MOV
 			}
@@ -206,7 +206,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_MOVNTSS,		{"movntss", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
 		{X86_INS_MOVSHDUP,		{"movshdup", {0, 0, "=(#arg[1],#app(#arg[2][32,32],#arg[2][32,32],#arg[2][96,32],#arg[2][96,32]))", 0}, H_INSTR_TYPE_MOV}},
 		{X86_INS_MOVSLDUP,		{"movsldup", {0, 0, "=(#arg[1],#app(#arg[2][0,32],#arg[2][0,32],#arg[2][64,32],#arg[2][64,32]))", 0}, H_INSTR_TYPE_MOV}},
-		{X86_INS_MOVSXD,		{"movsxd", {0, 0, "=(#arg[1],#sext(#arg[2],#size(#arg[1])))", 0}, H_INSTR_TYPE_MOV}},
+		{X86_INS_MOVSXD,		{"movsxd", {0, 0, "=(#arg[1],#sext(#arg[2],#bsize(#arg[1])))", 0}, H_INSTR_TYPE_MOV}},
 		{X86_INS_MOVUPD,		{"movupd", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
 		{X86_INS_MOVUPS,		{"movups", {0, 0, "=(#arg[1],#arg[2])", 0}, H_INSTR_TYPE_MOV}},
 
@@ -297,24 +297,24 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"cmpxchg", {
 					0, 0,
 					"#seq("
-					"?(==(#size(#arg[1]),8),#nop,"
+					"?(==(#bsize(#arg[1]),8),#nop,"
 					"#seq("
 					"=($zf,==($al,#arg[1])),"
-					"=($cf,c),=($pf,p),=($af,a),=($sf,s),=($of,o),"
+					"=($cf,#c),=($pf,#p),=($af,#a),=($sf,#s),=($of,#o),"
 					"?($zf,=(#arg[1],$al),=(#arg[1],#arg[2]))"
 					")"
 					"),"
-					"?(==(#size(#arg[1]),16),#nop,"
+					"?(==(#bsize(#arg[1]),16),#nop,"
 					"#seq("
 					"=($zf,==($ax,#arg[1])),"
-					"=($cf,c),=($pf,p),=($af,a),=($sf,s),=($of,o),"
+					"=($cf,#c),=($pf,#p),=($af,#a),=($sf,#s),=($of,#o),"
 					"?($zf,=(#arg[1],$ax),=(#arg[1],#arg[2]))"
 					")"
 					"),"
-					"?(==(#size(#arg[1]),32),#nop,"
+					"?(==(#bsize(#arg[1]),32),#nop,"
 					"#seq("
 					"=($zf,==($eax,#arg[1])),"
-					"=($cf,c),=($pf,p),=($af,a),=($sf,s),=($of,o),"
+					"=($cf,#c),=($pf,#p),=($af,#a),=($sf,#s),=($of,#o),"
 					"?($zf,=(#arg[1],$eax),=(#arg[1],#arg[2]))"
 					")"
 					")"
@@ -361,16 +361,16 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 
 		{X86_INS_HLT, {"hlt", {0, 0, 0, 0}}},
 		
-		{X86_INS_CBW,		{"cbw", {"=($ax,#sext($al,#size($ax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
-		{X86_INS_CWDE,		{"cwde", {"=($eax,#ext($ax,#size($eax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
-		{X86_INS_CDQE, 		{"cdqe", {"=($rax,#sext($eax,#size($rax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_CBW,		{"cbw", {"=($ax,#sext($al,#bsize($ax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_CWDE,		{"cwde", {"=($eax,#ext($ax,#bsize($eax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_CDQE, 		{"cdqe", {"=($rax,#sext($eax,#bsize($rax)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
 
-		{X86_INS_CWD,		{"cwd", {"=($dx,#sext($ax,#size($dx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
-		{X86_INS_CDQ,		{"cdq", {"=($edx,#sext($eax,#size($edx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
-		{X86_INS_CQO, 		{"cqo", {"=($rdx,#sext($rax,#size($rdx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_CWD,		{"cwd", {"=($dx,#sext($ax,#bsize($dx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_CDQ,		{"cdq", {"=($edx,#sext($eax,#bsize($edx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_CQO, 		{"cqo", {"=($rdx,#sext($rax,#bsize($rdx)))", 0, 0, 0}, H_INSTR_TYPE_EXTEND}},
 
-		{X86_INS_MOVSX,	{"movsx", {0, 0, "=(#arg[1],#sext(#arg[2],#size(#arg[1])))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
-		{X86_INS_MOVZX,	{"movzx", {0, 0, "=(#arg[1],#ext(#arg[2],#size(#arg[1])))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_MOVSX,	{"movsx", {0, 0, "=(#arg[1],#sext(#arg[2],#bsize(#arg[1])))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
+		{X86_INS_MOVZX,	{"movzx", {0, 0, "=(#arg[1],#ext(#arg[2],#bsize(#arg[1])))", 0}, H_INSTR_TYPE_MOV, H_INSTR_TYPE_EXTEND}},
 
 		{X86_INS_ADD,		{"add", {0, 0, "#seq(=(#arg[1],+(#arg[1],#arg[2])),=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($cf,#c),=($af,#a))", 0}, H_INSTR_TYPE_ADD}},
 		{X86_INS_ADC,		{"adc", {0, 0, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($cf,#c),=($af,#a))", 0}, H_INSTR_TYPE_ADD}},
@@ -386,9 +386,9 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"mul", {
 					0,
 					"#seq("
-					"?(==(#size(#arg[1]),8),#nop,#seq(=($ax,*($al,#arg[1])),=($cf,#c),=($of,#o))),"
-					"?(==(#size(#arg[1]),16),#nop,#seq(=(#t[1],*($ax,#arg[1])),=($cf,#c),=($of,#o),=($dx,#t[1][0,16]),=($ax,#t[1][16,16]))),"
-					"?(==(#size(#arg[1]),32),#nop,#seq(=(#t[1],*($eax,#arg[1])),=($cf,#c),=($of,#o),=($edx,#t[1][0,32]),=($eax,#t[1][32,32])))"
+					"?(==(#bsize(#arg[1]),8),#nop,#seq(=($ax,*($al,#arg[1])),=($cf,#c),=($of,#o))),"
+					"?(==(#bsize(#arg[1]),16),#nop,#seq(=(#t[1],*($ax,#arg[1])),=($cf,#c),=($of,#o),=($dx,#t[1][0,16]),=($ax,#t[1][16,16]))),"
+					"?(==(#bsize(#arg[1]),32),#nop,#seq(=(#t[1],*($eax,#arg[1])),=($cf,#c),=($of,#o),=($edx,#t[1][0,32]),=($eax,#t[1][32,32])))"
 					",#undef($sf,$zf,$af,$pf))",
 					0, 0
 				}, H_INSTR_TYPE_MUL
@@ -399,12 +399,12 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"imul", {
 					0,
 					"#seq("
-					"?(==(#size(#arg[1]),8),#nop,#seq(=($ax,*($al,#arg[1])),=($cf,#c),=($of,#o))),"
-					"?(==(#size(#arg[1]),16),#nop,#seq(=(#t[1],*($ax,#arg[1])),=($cf,#c),=($of,#o),=($dx,#t[1][0,16]),=($ax,#t[1][16,16]))),"
-					"?(==(#size(#arg[1]),32),#nop,#seq(=(#t[1],*($eax,#arg[1])),=($cf,#c),=($of,#o),=($edx,#t[1][0,32]),=($eax,#t[1][32,32]))),"
+					"?(==(#bsize(#arg[1]),8),#nop,#seq(=($ax,*($al,#arg[1])),=($cf,#c),=($of,#o))),"
+					"?(==(#bsize(#arg[1]),16),#nop,#seq(=(#t[1],*($ax,#arg[1])),=($cf,#c),=($of,#o),=($dx,#t[1][0,16]),=($ax,#t[1][16,16]))),"
+					"?(==(#bsize(#arg[1]),32),#nop,#seq(=(#t[1],*($eax,#arg[1])),=($cf,#c),=($of,#o),=($edx,#t[1][0,32]),=($eax,#t[1][32,32]))),"
 					"#undef($zf,$af,$pf))",
-					"#seq(=(#arg[1],#smul(#arg[1],#sext(#arg[2],#size(#arg[1])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))",
-					"#seq(=(#arg[1],#smul(#arg[1],#sext(#arg[3],#size(#arg[2])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"
+					"#seq(=(#arg[1],#smul(#arg[1],#sext(#arg[2],#bsize(#arg[1])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))",
+					"#seq(=(#arg[1],#smul(#arg[1],#sext(#arg[3],#bsize(#arg[2])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"
 				}, H_INSTR_TYPE_MUL
 			}
 		},
@@ -413,9 +413,9 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"idiv", {
 					0,
 					"#seq("
-					"?(==(#size(#arg[1]),8),#nop,#seq(=(#t[1],$ax),=($al,#sdiv(#t[1],#arg[1])),=($ah,#smod(#t[1],#arg[1])))),"
-					"?(==(#size(#arg[1]),16),#nop,#seq(=(#t[1],#app($dx,$ax)),=($ax,#sdiv(#t[1],#arg[1])),=($dx,#smod(#t[1],#arg[1])))),"
-					"?(==(#size(#arg[1]),32),#nop,#seq(=(#t[1],#app($edx,$eax)),=($eax,#sdiv(#t[1],#arg[1])),=($edx,#smod(#t[1],#arg[1]))))"
+					"?(==(#bsize(#arg[1]),8),#nop,#seq(=(#t[1],$ax),=($al,#sdiv(#t[1],#arg[1])),=($ah,#smod(#t[1],#arg[1])))),"
+					"?(==(#bsize(#arg[1]),16),#nop,#seq(=(#t[1],#app($dx,$ax)),=($ax,#sdiv(#t[1],#arg[1])),=($dx,#smod(#t[1],#arg[1])))),"
+					"?(==(#bsize(#arg[1]),32),#nop,#seq(=(#t[1],#app($edx,$eax)),=($eax,#sdiv(#t[1],#arg[1])),=($edx,#smod(#t[1],#arg[1]))))"
 					",#undef($cf,$of,$sf,$zf,$af,$pf))",
 					0, 0
 				}, H_INSTR_TYPE_DIV
@@ -426,9 +426,9 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 				"div", {
 					0,
 					"#seq("
-					"?(==(#size(#arg[1]),8),#nop,#seq(=(#t[1],$ax),=($eax,#div(#t[1],#arg[1])),=($edx,#mod(#t[1],#arg[1])))),"
-					"?(==(#size(#arg[1]),16),#nop,#seq(=(#t[1],#app($dx,$ax)),=($eax,#div(#t[1],#arg[1])),=($edx,#mod(#t[1],#arg[1])))),"
-					"?(==(#size(#arg[1]),32),#nop,#seq(=(#t[1],#app($edx,$eax)),=($eax,#div(#t[1],#arg[1])),=($edx,#mod(#t[1],#arg[1]))))"
+					"?(==(#bsize(#arg[1]),8),#nop,#seq(=(#t[1],$ax),=($eax,#div(#t[1],#arg[1])),=($edx,#mod(#t[1],#arg[1])))),"
+					"?(==(#bsize(#arg[1]),16),#nop,#seq(=(#t[1],#app($dx,$ax)),=($eax,#div(#t[1],#arg[1])),=($edx,#mod(#t[1],#arg[1])))),"
+					"?(==(#bsize(#arg[1]),32),#nop,#seq(=(#t[1],#app($edx,$eax)),=($eax,#div(#t[1],#arg[1])),=($edx,#mod(#t[1],#arg[1]))))"
 					",#undef($cf,$of,$sf,$zf,$af,$pf))",
 					0, 0
 				}, H_INSTR_TYPE_DIV
@@ -441,7 +441,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 
 		{X86_INS_NEG,		{"neg", {0, 0, "#seq(=($cf,<>(#arg[1],0)),=(#arg[1],-(0,#arg[1])),=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a))", 0}, H_INSTR_TYPE_NEG}},
 
-		{X86_INS_CMP,		{"cmp", {0, 0, "#seq(=(#t[1],#arg[1]),#rec[sub](#t[1],#sext(#arg[2],#size(#arg[1]))))", 0}, H_INSTR_TYPE_CMP}},
+		{X86_INS_CMP,		{"cmp", {0, 0, "#seq(=(#t[1],#arg[1]),#rec[sub](#t[1],#sext(#arg[2],#bsize(#arg[1]))))", 0}, H_INSTR_TYPE_CMP}},
 
 		{X86_INS_AND,		{"and", {0, 0, "#seq(=(#arg[1],#band(#arg[1],#arg[2])),=($of,0),=($cf,0),=($sf,#s),=($zf,#z),=($pf,#p),#undef($af))", 0}, H_INSTR_TYPE_AND}},
 		{X86_INS_ANDPD,		{"andpd", {0, 0, "=(#arg[1],#band(#arg[1],#arg[2]))", 0}}},
@@ -472,11 +472,11 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 					0,
 					"#seq(=(#t[1],#sar(#arg[1],1)),"
 					"=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),"
-					"=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))",
-					//"?(<(#arg[2],#size(#arg[1]))) #skip = 100;" Maybe not?
+					"=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))",
+					//"?(<(#arg[2],#bsize(#arg[1]))) #skip = 100;" Maybe not?
 					"#seq(=(#t[1],#sar(#arg[1],#arg[2])),"
 					"=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),"
-					"=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))", 0
+					"=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))", 0
 				}, H_INSTR_TYPE_SHH
 			}
 		},
@@ -487,11 +487,11 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 					0,
 					"#seq(=(#t[1],#shr(#arg[1],1)),"
 					"=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),"
-					"=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))",
-					//"?(<(#arg[2],#size(#arg[1]))) #skip = 100;" Maybe not?
+					"=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))",
+					//"?(<(#arg[2],#bsize(#arg[1]))) #skip = 100;" Maybe not?
 					"#seq(=(#t[1],#shr(#arg[1],#arg[2])),"
 					"=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),"
-					"=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))", 0
+					"=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))", 0
 				}, H_INSTR_TYPE_SHH
 			}
 		},
@@ -502,11 +502,11 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 					0,
 					"#seq(=(#t[1],#sal(#arg[1],1)),"
 					"=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),"
-					"=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))",
-					//"?(<(#arg[2],#size(#arg[1]))) #skip = 100;" Maybe not?
+					"=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))",
+					//"?(<(#arg[2],#bsize(#arg[1]))) #skip = 100;" Maybe not?
 					"#seq(=(#t[1],#sal(#arg[1],#arg[2])),"
 					"=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),"
-					"=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))", 0
+					"=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))", 0
 				}, H_INSTR_TYPE_SHL
 			}
 		},
@@ -517,11 +517,11 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 					0,
 					"#seq(=(#t[1],#shl(#arg[1],1)),"
 					"=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),"
-					"=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))",
-					//"?(<(#arg[2],#size(#arg[1]))) #skip = 100;" Maybe not?
+					"=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))",
+					//"?(<(#arg[2],#bsize(#arg[1]))) #skip = 100;" Maybe not?
 					"#seq(=(#t[1],#shl(#arg[1],#arg[2])),"
 					"=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),"
-					"=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))", 0
+					"=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))", 0
 				}, H_INSTR_TYPE_SHL
 			}
 		},
@@ -537,8 +537,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_RCR, {
 				"rcr", {
 					0,
-					"#seq(=(#t[1],#ror(#app(#arg[1],$cf),1)),=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))",
-					"#seq(=(#t[1],#ror(#app(#arg[1],$cf),#arg[2])),=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))", 0
+					"#seq(=(#t[1],#ror(#app(#arg[1],$cf),1)),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))",
+					"#seq(=(#t[1],#ror(#app(#arg[1],$cf),#arg[2])),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))", 0
 				}, H_INSTR_TYPE_ROR
 			}
 		},
@@ -546,8 +546,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_RCL, {
 				"rcl", {
 					0,
-					"#seq(=(#t[1],#rol(#app(#arg[1],$cf),1)),=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))",
-					"#seq(=(#t[1],#rol(#app(#arg[1],$cf),#arg[2])),=(#arg[1],#t[1]),=($cf,#t[1][#size(#arg[1])]))", 0
+					"#seq(=(#t[1],#rol(#app(#arg[1],$cf),1)),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))",
+					"#seq(=(#t[1],#rol(#app(#arg[1],$cf),#arg[2])),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1])]))", 0
 				}, H_INSTR_TYPE_ROL
 			}
 		},
@@ -569,7 +569,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_INT,	{"int", {0, "#syscall(#arg[1])", 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 		{X86_INS_INTO,	{"into", {"#syscall()", 0, 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
-		{X86_INS_BOUND,	{"bound", {0, 0, "#seq(=(#t[1],#ld(#arg[2])),=(#t[2],#ld(+(#arg[2],#div(#size(#arg[1]),8)),#size(#arg[1]))),?(#or(<(#arg[1],#t[1]),>(#arg[1],#t[2])),#nop,#trap))", 0}}},
+		{X86_INS_BOUND,	{"bound", {0, 0, "#seq(=(#t[1],#ld(#arg[2])),=(#t[2],#ld(+(#arg[2],#size(#arg[1])),#size(#arg[1]))),?(#or(<(#arg[1],#t[1]),>(#arg[1],#t[2])),#nop,#trap))", 0}}},
 
 		{X86_INS_ENTER,	{"enter", {0, "#seq(#rec[push]($ebp),#rec[mov]($ebp,$esp),#rec[sub]($esp,#arg[1]))", 0, 0}}},
 		{X86_INS_LEAVE,	{"leave", {"#seq(#rec[mov]($esp,$ebp),#rec[pop]($ebp))", 0, 0, 0}}},
@@ -661,13 +661,13 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			}
 		},
 		{X86_INS_FADD,		{"fadd", {0, "=($st0,#fadd($st0,#arg[1]))", "=(#arg[1],#fadd(#arg[1],#arg[2]))", 0}}},
-		{X86_INS_FIADD,		{"fiadd", {0, "=($st0,#fadd($st0,#fext(#arg[1],#size($st0))))", 0, 0}}},
+		{X86_INS_FIADD,		{"fiadd", {0, "=($st0,#fadd($st0,#fext(#arg[1],#bsize($st0))))", 0, 0}}},
 		{X86_INS_FADDP,		{"faddp", {"#seq(=($st0,#fadd($st0,$st1),=($rsp,+($rsp,1))))", "#seq(=($st0,#fadd($st0,#arg[1])),=($rsp,+($rsp,1)))", "#seq(=(#arg[1],#fadd(#arg[1],#arg[2])),=($rsp,+($rsp,1)))", 0}}},
 
 		{X86_INS_CVTDQ2PD, {"cvtdq2pd", {0, 0, "=(#arg[1],#app(#fext(#i2f(#arg[2][0,32]),64),#fext(#i2f(#arg[2][32,32]),64)))", 0}}},
 		{X86_INS_CVTDQ2PS, {"cvtdq2ps", {0, 0, "=(#arg[1],#app(#i2f(#arg[2][0,32]),#i2f(#arg[2][32,32]),#i2f(#arg[2][64,32]),#i2f(#arg[2][96,32])))", 0}}},
 		{X86_INS_CVTPD2DQ, {"cvtpd2dq", {0, 0, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#f2i(#arg[2][32,32]),#ext(0,64)))", 0}}},
-		{X86_INS_CVTPD2PS, {"cvtpd2ps", {0, 0, "=(#arg[1],#app(#fext(#arg[2][0,64],32),#fext(#arg[2][64,64],32)),128))", 0}}},
+		{X86_INS_CVTPD2PS, {"cvtpd2ps", {0, 0, "=(#arg[1],#app(#fext(#arg[2][0,64],32),#fext(#arg[2][64,64],32)))", 0}}},
 		{X86_INS_CVTPS2DQ, {"cvtps2dq", {0, 0, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#f2i(#arg[2][32,32]),#f2i(#arg[2][64,32]),#f2i(#arg[2][96,32])))", 0}}},
 		{X86_INS_CVTPS2PD, {"cvtps2pd", {0, 0, "=(#arg[1],#app(#fext(#arg[2][0,32],64),#fext(#arg[2][32,32],64)))", 0}}},
 		{X86_INS_CVTSD2SI, {"cvtsd2si", {0, 0, "=(#arg[1][0,32],#f2i(#arg[2][0,64],32))", 0}}},
@@ -740,10 +740,10 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_CMPSD, {"cmpsd", {0, 0, "#seq(#rec[cmp](#arg[1],#arg[2]),=($rdi,?($df,+($rdi,4),-($rdi,4))))", 0}, H_INSTR_TYPE_CMP}},
 		{X86_INS_CMPSQ, {"cmpsq", {0, 0, "#seq(#rec[cmp](#arg[1],#arg[2]),=($rdi,?($df,+($rdi,8),-($rdi,8))))", 0}, H_INSTR_TYPE_CMP}},
 
-		{X86_INS_CMPSB | CUSOM_X86_INSTR_EXTR_REPE, {"repe cmpsb", {0, 0, "#rep(#and($rcx,$zf)),#rec[scasb](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
-		{X86_INS_CMPSW | CUSOM_X86_INSTR_EXTR_REPE, {"repe cmpsw", {0, 0, "#rep(#and($rcx,$zf)),#rec[scasw](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
-		{X86_INS_CMPSD | CUSOM_X86_INSTR_EXTR_REPE, {"repe cmpsd", {0, 0, "#rep(#and($rcx,$zf)),#rec[scasd](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
-		{X86_INS_CMPSQ | CUSOM_X86_INSTR_EXTR_REPE, {"repe cmpsq", {0, 0, "#rep(#and($rcx,$zf)),#rec[scasq](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_CMPSB | CUSOM_X86_INSTR_EXTR_REPE, {"repe cmpsb", {0, 0, "#rep(#and($rcx,$zf),#rec[scasb](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_CMPSW | CUSOM_X86_INSTR_EXTR_REPE, {"repe cmpsw", {0, 0, "#rep(#and($rcx,$zf),#rec[scasw](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_CMPSD | CUSOM_X86_INSTR_EXTR_REPE, {"repe cmpsd", {0, 0, "#rep(#and($rcx,$zf),#rec[scasd](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
+		{X86_INS_CMPSQ | CUSOM_X86_INSTR_EXTR_REPE, {"repe cmpsq", {0, 0, "#rep(#and($rcx,$zf),#rec[scasq](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_E}},
 
 		{X86_INS_CMPSB | CUSOM_X86_INSTR_EXTR_REPNE, {"repne cmpsb", {0, 0, "#rep(#and($rcx,#not($zf)),#rec[scasb](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},
 		{X86_INS_CMPSW | CUSOM_X86_INSTR_EXTR_REPNE, {"repne cmpsw", {0, 0, "#rep(#and($rcx,#not($zf)),#rec[scasw](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE}},

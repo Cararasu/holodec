@@ -4,6 +4,7 @@
 #include "HGeneral.h"
 #include <limits>
 #include "HId.h"
+#include <assert.h>
 
 
 namespace holodec {
@@ -24,6 +25,7 @@ namespace holodec {
 		HIR_EXPR_NUMBER,
 
 		HIR_EXPR_SIZE,//size
+		HIR_EXPR_BSIZE,//size
 		//HIR_EXPR_POPCOUNT
 		HIR_EXPR_SEQUENCE,//seq
 		HIR_EXPR_LOOP,//rep
@@ -51,7 +53,6 @@ namespace holodec {
 		HIR_EXPR_TRAP,//trap
 
 		HIR_EXPR_VAL,//val
-		HIR_EXPR_MEM,//mem
 
 		HIR_EXPR_CAST2F,//i2f
 		HIR_EXPR_CAST2I,//f2i
@@ -142,13 +143,14 @@ namespace holodec {
 		HId id = 0;
 		HIRExpressionType type = HIR_EXPR_INVALID;
 		HIROpToken token = HIR_TOKEN_INVALID;
+		uint64_t subexprcount;
 		HId subexpressions[HIR_LOCAL_SUBEXPRESSION_COUNT] = {0};
 		union {
 			int64_t value = 0;
 			double fvalue;
 			HId regacces;
 			struct {
-				HId base, index;
+				HId base, offset;
 				int64_t disp, scale;
 			} mem;
 		};
@@ -163,12 +165,14 @@ namespace holodec {
 
 		HIRExpression& operator= (const HIRExpression& expr) = default;
 
-		void print (HArchitecture* arch);
+		void print (HArchitecture* arch, size_t indent = 0);
 
 		bool addSubExpression (HId id) {
+			assert(subexprcount < HIR_LOCAL_SUBEXPRESSION_COUNT);
 			for (int i = 0; i < HIR_LOCAL_SUBEXPRESSION_COUNT; i++) {
 				if (!subexpressions[i]) {
 					subexpressions[i] = id;
+					subexprcount++;
 					return true;
 				}
 			}
@@ -240,31 +244,6 @@ namespace holodec {
 		operator bool() {
 			return string;
 		}
-		HIRExpression* getExpr (HId id) {
-			if (expressions[id - 1].id == id) {
-				return &expressions[id - 1];
-			} else if (expressions[id - 1].id < id) {   //search upwards
-				for (size_t i = id - 1; i < expressions.size(); i++) {
-					if (expressions[i].id == id)
-						return &expressions[id - 1];
-				}
-			} else if (expressions[id - 1].id > id) {   //search downwards
-				for (int i = id - 1; i >= 0; i--) {
-					if (expressions[i].id == id)
-						return &expressions[id - 1];
-				}
-			}
-			return nullptr;
-		}
-		HId addExpr (HIRExpression expr) {
-			for (HIRExpression& expression : expressions) {   //Do CSE
-				if (expression == expr)
-					return expression.id;
-			}
-			expr.id = gen_expr.next();
-			expressions.push_back (expr);
-			return expr.id;
-		}
 		void print (HArchitecture* arch, int indent = 0) {
 			if (string) {
 				printIndent (indent);
@@ -273,9 +252,6 @@ namespace holodec {
 
 				printIndent (indent);
 				printf ("No IL-String----------------\n");
-				for (HIRExpression&	expr : expressions) {
-					expr.print (arch);
-				}
 			}
 		}
 	};

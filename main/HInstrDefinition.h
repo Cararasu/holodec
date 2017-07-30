@@ -108,8 +108,10 @@ namespace holodec {
 		size_t failcycles;
 
 		void print (int indent = 0) {
-			//printIndent (indent);
-			//printf ("Instruction: %s\n", mnemonics.cstr());
+			printIndent (indent);
+			printf ("Instruction: %s\n", mnemonics.cstr());
+			printf ("IR-Root %d, %d, %d, %d\n", il_string[0].rootExpr, il_string[1].rootExpr, il_string[2].rootExpr, il_string[3].rootExpr);
+			
 		}
 	};
 

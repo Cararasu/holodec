@@ -35,6 +35,7 @@ namespace holodec {
 
 		{"assign", { HIR_EXPR_ASSIGN, 2, 2}},
 		{"size", { HIR_EXPR_SIZE, 1, 1}},
+		{"bsize", { HIR_EXPR_BSIZE, 1, 1}},
 		{"seq", { HIR_EXPR_SEQUENCE, 1, 1}},
 		//{"popcnt", { HIR_TOKEN_POPCNT, 1, 1}},
 		{"rep", { HIR_EXPR_LOOP, 2, 2}},
@@ -93,7 +94,8 @@ namespace holodec {
 	};
 
 	void HIRParser::skipWhitespaces() {
-		while (parseCharacter (' '));
+		while (pop() == ' ');
+		pushback();
 	}
 	void HIRParser::printParseFailure (const char* str) {
 		printf ("%s\n", string.cstr());
@@ -116,6 +118,7 @@ namespace holodec {
 		return false;
 	}
 	bool HIRParser::parseCharacter (char character) {
+		skipWhitespaces();
 		if (character == pop()) {
 			return true;
 		}
@@ -124,18 +127,15 @@ namespace holodec {
 	}
 	bool HIRParser::parseIndex (HIRExpression* expr) {
 		size_t current_index = index;
-		skipWhitespaces();
 		if (parseCharacter ('[')) {
 			const char* x = string.cstr() + index;
 			if (! (expr->mod.index = parseExpression()))
 				return false;
 			x = string.cstr() + index;
-			skipWhitespaces();
 			if (parseCharacter (',')) {
 				if (! (expr->mod.size = parseExpression()))
 					return false;
 			}
-			skipWhitespaces();
 			x = string.cstr() + index;
 			if (parseCharacter (']')) {
 				return true;
@@ -147,7 +147,6 @@ namespace holodec {
 	}
 	bool HIRParser::parseNumberIndex (HIRExpression* expr) {
 		size_t current_index = index;
-		skipWhitespaces();
 		if (parseCharacter ('[')) {
 			int64_t number;
 			if (!parseNumber (&number))
@@ -164,14 +163,12 @@ namespace holodec {
 	}
 	bool HIRParser::parseStringIndex (HIRExpression* expr) {
 		size_t current_index = index;
-		skipWhitespaces();
 		if (parseCharacter ('[')) {
 			char buffer[100];
 			if (!parseIdentifier (buffer, 100))
 				return false;
 			HString s = HString::create (buffer);
 			expr->mod.name_index = s;
-			skipWhitespaces();
 			if (parseCharacter (']')) {
 				return true;
 			}
@@ -198,7 +195,6 @@ namespace holodec {
 		skipWhitespaces();
 		int i = 0;
 		if (parseCharacter ('(')) {
-			skipWhitespaces();
 			if (parseCharacter (')')) {
 				return 0;
 			}
@@ -213,9 +209,7 @@ namespace holodec {
 					printf ("Failed to parse Argument %d\n", i);
 					return -1;
 				}
-				skipWhitespaces();
 			} while (parseCharacter (','));
-			skipWhitespaces();
 			if (!parseCharacter (')')) {
 				printParseFailure ("',', ')'");
 				return -1;
@@ -362,7 +356,7 @@ namespace holodec {
 		if (!parseIndex (&expression)) {
 			return 0;
 		}
-		return rep->addExpr (expression);
+		return arch->addIrExpr (expression);
 	}
 
 
@@ -371,14 +365,16 @@ namespace holodec {
 		index = 0;
 		this->rep = rep;
 		rep->rootExpr = parseExpression();
-		/*rep->print (arch);
-		printf ("Root: %d\n", rep->rootExpr);
-		for (HIRExpression& expr : rep->expressions) {
-			expr.print (arch);
-		}*/
+
+		skipWhitespaces();
+		if (peek() != '\0') {
+			printf ("Not parsed the whole IR-String %s\n", string.cstr());
+			printf ("Not parsed: '%s'\n", string.cstr() + index);
+		}
 	}
 
-	void HIRExpression::print (HArchitecture* arch) {
+	void HIRExpression::print (HArchitecture* arch, size_t indent) {
+		printIndent (indent);
 		printf ("%lld = ", id);
 
 		for (auto& entry : tokenmap) {
@@ -400,20 +396,6 @@ namespace holodec {
 			else
 				printf ("RegFail");
 			break;
-		case HIR_EXPR_MEM:
-			printf ("[");
-			if (mem.base)
-				printf ("%s", arch->getRegister (mem.base)->name.cstr());
-			else
-				printf ("RegFail");
-			if (mem.scale && mem.index)
-				printf (" + %s", arch->getRegister (mem.index)->name.cstr());
-			if (mem.scale && mem.scale != 1)
-				printf ("*%d", mem.scale);
-			if (mem.disp)
-				printf (" + %d", mem.disp);
-			printf ("]");
-			break;
 		default:
 			break;
 		}
@@ -434,8 +416,6 @@ namespace holodec {
 		printf ("\n");
 	}
 
-
-
 	bool operator== (HIRExpression::HIRExpressionMod& expr1, HIRExpression::HIRExpressionMod& expr2) {
 		return expr1.name_index == expr2.name_index &&
 		       expr1.var_index == expr2.var_index &&
@@ -454,5 +434,4 @@ namespace holodec {
 		       expr1.regacces == expr2.regacces &&
 		       expr1.mod == expr2.mod;
 	}
-
 }

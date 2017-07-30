@@ -8,18 +8,19 @@
 
 namespace holodec {
 
+	struct HIRExpression;
+	
 	struct HArchitecture {
 		HString name;
 		HString desc;
 		uint64_t bitbase;
 
 		HList<std::function<HFunctionAnalyzer* (HBinary*) >> functionanalyzerfactories;
-		HList<HRegister> registers;
+		HIdList<HRegister> registers;
 
 		HMap<HId, HInstrDefinition> instrdefs;
 
-		HIdGenerator gen_reg;
-		//HInstructionSet
+		HIdList<HIRExpression> irExpressions;
 
 		HArchitecture() = default;
 		HArchitecture (HArchitecture&) = default;
@@ -27,9 +28,6 @@ namespace holodec {
 		~HArchitecture() = default;
 
 		void init() {
-			for (HRegister& reg : registers) {
-				labelRegister (&reg);
-			}
 			for (auto& entry : instrdefs) {
 				HIRParser parser (this);
 				for (int i = 0; i < 4; i++) {
@@ -38,12 +36,8 @@ namespace holodec {
 					}
 				}
 			}
-		}
-
-		void labelRegister (HRegister* reg) {
-			reg->id = gen_reg.next();
-			for (HRegister& subreg : reg->subregisters) {
-				labelRegister (&subreg);
+			for(HRegister& reg : registers.list){
+				reg.setParentId(reg.id);
 			}
 		}
 
@@ -60,7 +54,7 @@ namespace holodec {
 		HRegister* getRegister (const HString string) {
 			if (!string)
 				return &invalidReg;
-			for (HRegister& reg : registers) {
+			for (HRegister& reg : registers.list) {
 				if (string == reg.name)
 					return &reg;
 				HRegister* r = reg.getRegister (string);
@@ -69,7 +63,7 @@ namespace holodec {
 			return &invalidReg;
 		}
 		HRegister* getRegister (const HId id) {
-			for (HRegister& reg : registers) {
+			for (HRegister& reg : registers.list) {
 				if (id == reg.id)
 					return &reg;
 				HRegister* r = reg.getRegister (id);
@@ -78,7 +72,7 @@ namespace holodec {
 			return &invalidReg;
 		}
 		HRegister* getParentRegister (const HId id) {
-			for (HRegister& reg : registers) {
+			for (HRegister& reg : registers.list) {
 				if (id == reg.id)
 					return &reg;
 				HRegister* r = reg.getRegister (id);
@@ -87,7 +81,7 @@ namespace holodec {
 			return &invalidReg;
 		}
 		HId getParentRegisterId (const HId id) {
-			for (HRegister& reg : registers) {
+			for (HRegister& reg : registers.list) {
 				if (id == reg.id)
 					return reg.id;
 				HRegister* r = reg.getRegister (id);
@@ -110,13 +104,33 @@ namespace holodec {
 			}
 			return nullptr;
 		}
+		HIRExpression* getIrExpr (HId id) {
+			return irExpressions.get(id);
+		}
+		HId addIrExpr (HIRExpression expr) {
+			for (HIRExpression& expression : irExpressions.list) {   //Do CSE
+				if (expression == expr)
+					return expression.id;
+			}
+			irExpressions.add (expr);
+			return expr.id;
+		}
 
 		void print (int indent = 0) {
 			printIndent (indent);
 			printf ("Architecture %s\n", name.cstr());
-			for (HRegister & rr : registers) {
+			printIndent (indent);
+			printf ("Registers\n");
+			for (HRegister & rr : registers.list) {
 				rr.print (indent + 1);
 			}
+			printIndent (indent);
+			printf ("IR-Expressions\n");
+			for (HIRExpression& expr : irExpressions.list){
+				expr.print(this, indent + 1);
+			}
+			printIndent (indent);
+			printf ("Instructions\n");
 			for (auto & id : instrdefs) {
 				id.second.print (indent + 1);
 			}

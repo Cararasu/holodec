@@ -22,34 +22,62 @@ namespace holodec {
 		}
 	};
 
+/**
+ * Needs id member and relabel function
+ * 
+ */
 	template<typename T>
-	class HIdList {
-	private:
+	struct HIdList {
 		HIdGenerator gen;
 		HList<T> list;
-	public:
-		HId add ( T& ele ) {
+
+		HIdList() {}
+		HIdList (std::initializer_list<T> list) : list (list) {
+			relabel();
+		}
+		HIdList (HList<T> list) : list (list) {
+			relabel();
+		}
+
+		HId add (T& ele) {
 			ele.id = gen.next();
-			list.push_back ( ele );
+			list.push_back (ele);
 			return ele.id;
 		}
-		void sort ( std::function<void ( HId,HId ) > replacer = nullptr ) {
-			std::sort(list.begin(),list.end(),[](T& lhs,T& rhs){return lhs.id < rhs.id;});
-		}
-		void relabel ( std::function<void ( HId,HId ) > replacer = nullptr ) {
+		void relabel (std::function<void (HId, HId) > replacer = nullptr) {
 			gen.clear();
-			for ( T& ele : list ) {
+			for (T& ele : list) {
 				HId id = gen.next();
-				if ( replacer )
-					replacer ( ele.id,id );
+				if (replacer)
+					replacer (ele.id, id);
 				ele.id = id;
+				ele.relabel(&gen,replacer);
 			}
 		}
-		T* get ( HId id ) const {
-			if(list.count() >= id && list[id - 1].id == id)
-				return &list[id - 1];
-			for ( T& ele : list ) {
-				if ( ele.id == id )
+		T* get (HId id) {
+			size_t count = list.size();
+			if (count >= id) {//optimization for access
+				T& val = list[id - 1];
+				if (val.id == id)//quick return
+					return &list[id - 1];
+
+				if (val.id < id) {
+					auto it = list.begin() + id;
+					for (; it != list.end(); it++) {
+						if ( (*it).id == id)
+							return &*it;
+					}
+				}
+				if (val.id > id) {//should not happen but still...
+					auto it = list.rbegin() + (count - id);
+					for (; it != list.rend(); it++) {
+						if ( (*it).id == id)
+							return &*it;
+					}
+				}
+			}
+			for (T& ele : list) {
+				if (ele.id == id)
 					return &ele;
 			}
 			return nullptr;
@@ -58,7 +86,7 @@ namespace holodec {
 			gen.clear();
 			list.clear();
 		}
-		
+
 	};
 }
 
