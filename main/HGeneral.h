@@ -22,6 +22,28 @@ namespace holodec {
 	struct HVisibilityType{
 		HString name;
 	};
+	template<typename T, size_t BASE>
+	struct HLocalBackedLists {
+		uint64_t subexprcount = 0;
+		T subexpressions[BASE];
+		HList<T> moreExpressions = HList<T> (0);
+		T& operator[] (size_t index) {
+			if(subexprcount < BASE)
+				return subexpressions[subexprcount];
+			return moreExpressions[subexprcount - BASE];
+		}
+		void add(T ele){
+			if (subexprcount < BASE) {
+				subexpressions[subexprcount++] = ele;
+			} else {
+				moreExpressions.push_back (ele);
+				subexprcount++;
+			}
+		}
+		size_t size(){
+			return subexprcount;
+		}
+	};
 	
 	extern HVisibilityType gh_visibilityPublic;
 	extern HVisibilityType gh_visibilityProtected;

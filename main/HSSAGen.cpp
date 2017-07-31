@@ -1,52 +1,75 @@
 
-#include "HoloSSA.h"
+#include "HSSAGen.h"
 #include <assert.h>
 #include <algorithm>
+#include "HSSA.h"
 
 namespace holodec {
 
-	struct HSSARegDef {
+	struct HSSAGenRegDef {
 		HId parentRegId;
 		HId regId;//can be 0
 		uint64_t offset;
 		uint64_t size;
 		HId ssaId;
 	};
-	struct HSSAStckDef {
+	struct HSSAGenStckDef {
 		HId id;
 		uint64_t size;
 		HId ssaId;
 	};
-	struct HSSATmpDef {
+	struct HSSAGenTmpDef {
 		HId id;
 		uint64_t size;
 		HId ssaId;
 	};
 
-	bool operator< (HSSARegDef& lhs, HSSARegDef& rhs) {
+	bool operator< (HSSAGenRegDef& lhs, HSSAGenRegDef& rhs) {
 		return lhs.offset < rhs.offset;
 	}
 
-
 	struct HSSAGenState {
 		HArchitecture* arch;
-		HId flag_gen = 0;
-		HMap<HId, HId> map;//TODO remove and change into something faster
 		HIdGenerator gen;
-		HList<HSSARegDef> regDefs;
-		HList<HSSAStckDef> stackDefs;
-		HList<HSSATmpDef> tempDefs;
+		HList<HSSAGenRegDef> regDefs;
+		HList<HSSAGenStckDef> stackDefs;
+		HList<HSSAGenTmpDef> tempDefs;
 		HInstruction* instr;
 		HId lastOp;
+		
+		HSSAFunction ssaFunction;
+		HId activeBasicBlock;
+		
+		HId generateNewBasicBlock(){
+			HSSABasicBlock bb;
+			return activeBasicBlock = ssaFunction.basicblocks.add(bb);
+		}
+		void activateBasicBlock(HId id){
+			activeBasicBlock = id;
+		}
+		void addExpression(HSSAExpression expr){
+			ssaFunction.basicblocks.get(activeBasicBlock)->expressions.add(expr);
+		}
+		HSSAExpression* getExpression(HId id){
+			HSSAExpression* expr = ssaFunction.basicblocks.get(activeBasicBlock)->expressions.get(id);
+			if(expr)
+				return expr;
+			for(HSSABasicBlock& bb : ssaFunction.basicblocks.list){
+				expr = bb.expressions.get(id);
+				if(expr)
+					return expr;
+			}
+			return nullptr;
+		}
 
-		void addRegDef (HSSARegDef newdef) {
+		void addRegDef (HSSAGenRegDef newdef) {
 			//printf ("Add Reg Def\n");
 			//printf ("Id: %d P:%s - R:%s Offset: %d Size: %d\n", newdef.ssaId, arch->getRegister (newdef.parentRegId)->name.cstr(), arch->getRegister (newdef.regId)->name.cstr(), newdef.offset, newdef.size);
 			HRegister* reg = arch->getRegister (newdef.regId);
 			if (newdef.size == 0)
 				newdef.size = reg->size - newdef.offset;
 			for (auto it = regDefs.begin(); it != regDefs.end();) {
-				HSSARegDef& defit = *it;
+				HSSAGenRegDef& defit = *it;
 				if (reg->clearParentOnWrite) {//if parent is reset on write
 					if (newdef.parentRegId && newdef.parentRegId == defit.parentRegId) {//TODO don't clear everything but only things outside of register we are writing to
 						regDefs.erase (it);
@@ -56,9 +79,13 @@ namespace holodec {
 					if (newdef.parentRegId && newdef.parentRegId == defit.parentRegId) {//if same parent reg
 						if (newdef.offset < (defit.offset + defit.size) && defit.offset < (newdef.offset + newdef.size)) { //if there is an intersection
 							int count = 0;
-							HSSARegDef def[2];
+							HSSAGenRegDef def[2];
 							if (defit.offset < newdef.offset) { //if starts before
 								HId splitId = gen.next();
+								
+								HSSAExpression expr = {0,HSSA_EXPR_SPLIT,HSSA_OP_INVALID};
+								expr.subExpressions.add(defit.ssaId);
+								//expr.subExpressions.add(expr);
 								printf ("%d = LowerSplit(%d,%d,%d);\n", splitId, defit.ssaId, 0, (newdef.offset - defit.offset));
 								def[count++] = {defit.parentRegId, defit.regId, defit.offset, newdef.offset - defit.offset, splitId};
 							}
@@ -85,12 +112,12 @@ namespace holodec {
 				HRegister* parentReg = arch->getParentRegister (reg->id);
 				if (parentReg->id != reg->id) {
 					if (reg->offset) {
-						HSSARegDef def = {parentReg->id, parentReg->id, 0, reg->offset, gen.next() };
+						HSSAGenRegDef def = {parentReg->id, parentReg->id, 0, reg->offset, gen.next() };
 						regDefs.push_back (def);
 						printf ("%d = Value(0, %d);\n", def.ssaId, reg->offset);
 					}
 					if ( (reg->offset + reg->size) < (parentReg->offset + parentReg->size)) {
-						HSSARegDef def = {parentReg->id, parentReg->id, (parentReg->offset + parentReg->size), (parentReg->offset + parentReg->size) - (reg->offset + reg->size), gen.next() };
+						HSSAGenRegDef def = {parentReg->id, parentReg->id, (parentReg->offset + parentReg->size), (parentReg->offset + parentReg->size) - (reg->offset + reg->size), gen.next() };
 						regDefs.push_back (def);
 						printf ("%d = Value(0, %d);\n", def.ssaId, (parentReg->offset + parentReg->size) - (reg->offset + reg->size));
 					}
@@ -100,12 +127,12 @@ namespace holodec {
 		HId addRegDef (HId regId, uint64_t offset, uint64_t size) {
 			HRegister* parentreg = arch->getParentRegister (regId);
 			HRegister* reg = arch->getRegister (regId);
-			HSSARegDef def = {parentreg->id, regId, reg->offset + offset, size, gen.next() };
+			HSSAGenRegDef def = {parentreg->id, regId, reg->offset + offset, size, gen.next() };
 			addRegDef (def);
 			return def.ssaId;
 		}
 
-		HSSARegDef getRegUseDef (HRegister* reg, uint64_t offset, uint64_t size) {
+		HSSAGenRegDef getRegUseDef (HRegister* reg, uint64_t offset, uint64_t size) {
 			if (size == 0)
 				size = reg->size - offset;
 			HRegister* parentreg = arch->getParentRegister (reg->id);
@@ -113,9 +140,9 @@ namespace holodec {
 				return {0, 0, 0, 0, 0};
 			}
 			int localdefcount = 0;
-			HSSARegDef localdefs[20];
+			HSSAGenRegDef localdefs[20];
 			for (auto it = regDefs.begin(); it != regDefs.end();) {
-				HSSARegDef& def = *it;
+				HSSAGenRegDef& def = *it;
 				if (def.parentRegId == parentreg->id) {
 					if (def.offset == offset && def.size == size) //perfect match
 						return def;
@@ -137,7 +164,7 @@ namespace holodec {
 			}
 			//first split if needed
 			for (int i = 0; i < localdefcount; i++) {
-				HSSARegDef& def = localdefs[i];
+				HSSAGenRegDef& def = localdefs[i];
 				if (def.offset < offset) {//split of lower nibble
 					HId lowerId = gen.next(), higherId = gen.next();
 					uint64_t lowersize = offset - def.offset;
@@ -193,23 +220,24 @@ namespace holodec {
 				lastupperBound = localdefs[i].offset + localdefs[i].size;
 			}
 			printf (")\n");
+			assert(resultsize == size);
 			return {parentreg->id, 0, offset, resultsize, id};
 		};
-		HSSARegDef getRegUseDef (HRegister* reg) {
-			for (HSSARegDef& def : regDefs) {
+		HSSAGenRegDef getRegUseDef (HRegister* reg) {
+			for (HSSAGenRegDef& def : regDefs) {
 				if (def.regId == reg->id)
 					return def;
 			}
 			return getRegUseDef (reg, reg->offset, reg->size);
 		};
-		HSSARegDef getRegUseDef (HId reg, uint64_t offset, uint64_t size) {
+		HSSAGenRegDef getRegUseDef (HId reg, uint64_t offset, uint64_t size) {
 			return getRegUseDef (arch->getRegister (reg), offset, size);
 		};
-		HSSARegDef getRegUseDef (HId reg) {
+		HSSAGenRegDef getRegUseDef (HId reg) {
 			return getRegUseDef (arch->getRegister (reg));
 		};
 		HId getTempUseDef (HId id, uint64_t offset = 0, uint64_t size = 0) {
-			for (HSSATmpDef& def : tempDefs) {
+			for (HSSAGenTmpDef& def : tempDefs) {
 				if (def.id == id) {
 					if (!offset && !size) {
 						return def.ssaId;
@@ -220,7 +248,7 @@ namespace holodec {
 				}
 			}
 		}
-		void addTempDef (HSSATmpDef newdef) {
+		void addTempDef (HSSAGenTmpDef newdef) {
 			for (auto it = tempDefs.begin(); it != tempDefs.end(); it++) {
 				if ( (*it).id == newdef.id) {
 					*it = newdef;
@@ -232,7 +260,7 @@ namespace holodec {
 
 		void print (int indent = 0) {
 			printf ("Reg Defs -------------\n");
-			for (HSSARegDef& def : regDefs) {
+			for (HSSAGenRegDef& def : regDefs) {
 				printIndent (indent);
 				printf ("Id: %d P:%s - R:%s Offset: %d Size: %d\n", def.ssaId, arch->getRegister (def.parentRegId)->name.cstr(), arch->getRegister (def.regId)->name.cstr(), def.offset, def.size);
 			}
@@ -466,7 +494,7 @@ namespace holodec {
 		if (targetExpr) {
 			switch (targetExpr->type) {
 			case HIR_EXPR_TMP: {
-				HSSATmpDef tmpDef = {targetExpr->mod.var_index, 0, targetId};
+				HSSAGenTmpDef tmpDef = {targetExpr->mod.var_index, 0, targetId};
 				state->addTempDef (tmpDef);
 				return targetId;
 			}
@@ -478,7 +506,7 @@ namespace holodec {
 				switch (arg.type.type) {
 				case H_LOCAL_TYPE_REGISTER: {
 					HRegister* reg = state->arch->getRegister (arg.reg);
-					HSSARegDef regdef = {reg->parentId, reg->id, reg->offset + expr->mod.index, expr->mod.size, targetId};
+					HSSAGenRegDef regdef = {reg->parentId, reg->id, reg->offset + expr->mod.index, expr->mod.size, targetId};
 					state->addRegDef (regdef);
 					return targetId;
 				}
@@ -520,7 +548,7 @@ namespace holodec {
 			size = state->instr->operands[i - 1].type.size;
 		}
 		if (expr->type == HIR_EXPR_SIZE)
-			printf ("%d = Value(0x%x, 0)\n", id, subexpr->mod.size / state->arch->bitbase);
+			printf ("%d = Value(0x%x, 0)\n", id, subexpr->mod.size / state->arch->wordbase);
 		else if (expr->type == HIR_EXPR_BSIZE)
 			printf ("%d = Value(0x%x, 0)\n", id, subexpr->mod.size);
 		else
@@ -583,7 +611,7 @@ namespace holodec {
 			if (constDate.isConst) {
 				if (expr->subexprcount < 2) //no expressions
 					return 0;
-				if (!constDate.val && expr->subexprcount == 2) //only branch for zero, but value is not zero
+				if (constDate.val && expr->subexprcount == 2) //only branch for zero, but value is not zero
 					return 0;
 				uint64_t selectVal = constDate.val + 1;
 				if (selectVal >= expr->subexprcount) selectVal = expr->subexprcount - 1;
@@ -773,11 +801,11 @@ namespace holodec {
 		case HIR_EXPR_BSIZE: {
 			HIRExpression* subexpr = state->arch->getIrExpr (expr->subexpressions[0]);
 			if (subexpr->mod.size) {
-				return {true, subexpr->mod.size / state->arch->bitbase};
+				return {true, subexpr->mod.size / state->arch->wordbase};
 			} else {
 				uint64_t i = subexpr->mod.var_index;
 				assert (i && i <= state->instr->opcount);
-				return {true, state->instr->operands[i - 1].type.size / state->arch->bitbase};
+				return {true, state->instr->operands[i - 1].type.size / state->arch->wordbase};
 			}
 		}
 		/*case HIR_EXPR_APPEND:

@@ -4,6 +4,7 @@
 #include <vector>
 #include "HFunction.h"
 #include "HSection.h"
+#include "HId.h"
 
 namespace holodec {
 
@@ -15,35 +16,41 @@ namespace holodec {
 	struct HFunction;
 
 	struct HSubType {
-		const char* name;
-		HType* type;
+		HString name;
+		HId typeId;
 		HVisibilityType* visibility;
 
 		size_t offset;
-		size_t size;
-
 		HList<HTypeModifier> modifiers;
-		HList<HSection*> subsections;
 	};
-
+	
+	enum HTypeType{
+		H_TYPE_AGGREGATION,
+		H_TYPE_FUNCTION,
+		H_TYPE_POINTER,
+		H_TYPE_MEMORY,
+		H_TYPE_FLOAT,
+		H_TYPE_UINT,
+		H_TYPE_INT,
+		H_TYPE_UNKNOWN
+	};
 	struct HType {
-		const char* name;
-		//Aggregate
-		//Function
-		//Pointer
-		//Base
+		HId id;
+		HString name;
+		HTypeType type;
+		
 		HVisibilityType* visibility;
 
-		size_t size;//maybe not?
-
+		size_t size;
 		HList<HSubType> fields;//for aggregates
 	};
 
 	struct HClass {
-		char* name;
-		HClass* super;
+		HId id;
+		HString name;
+		HId superClassId;
 
-		HType* type;
+		HId typeId;
 		HList<HFunction*> functions;
 	};
 

@@ -1,0 +1,90 @@
+
+
+
+x87 ST-stack
+
+Caller cleanup
+
+cdecl
+	$eax, $ecx, $edx
+		caller saved
+	$st-stack empty
+	
+	arguments
+		pushed on stack
+		pushed in reverse order
+	
+	return
+		$eax für int
+		st0 für float
+
+syscall
+	$eax, $ecx, $edx
+		caller saved
+	
+	arguments
+		pushed on stack
+		pushed in reverse order
+		count in $al
+
+optlink
+	...
+	
+pascal
+
+	arguments
+		pushed on stack
+		pushed in order
+		count in $al
+
+...
+
+Microsoft x64
+
+	arguments
+		rcx/xmm0, rdx/xmm1, r8/xmm2, r9/xmm3 for int/float
+		and pushed 64 bytes
+		others pushed onto stack
+		in reverse order
+	
+	return
+		rax for int
+		xmm0 for float
+		not 0 extended
+		
+	caller saved
+		RAX, RCX, RDX, R8, R9, R10, R11
+
+vectorcall
+
+	arguments
+		rcx/xmm0/xmm0/ymm0, rdx/xmm1/xmm1/ymm1, r8/xmm2/xmm2/ymm2, r9/xmm3/xmm3/ymm3 for int/float/vector/vector
+		and pushed 64 bytes
+		others pushed onto stack
+		in reverse order
+	
+	return
+		rax for int
+		xmm0 for float
+		not 0 extended
+		
+	caller saved
+		RAX, RCX, RDX, R8, R9, R10, R11
+		
+AMD64
+	
+	arguments
+	RDI/XMM0, RSI/XMM1, RDX/XMM2, RCX/XMM3, R8/XMM4, and R9/XMM5 for int/float
+	in variadic functions rax is count of floats
+	
+	return
+		RAX and RDX
+	
+	caller saved
+		
+	callee saved
+		RBP, RBX, and R12–R15
+		
+	
+		
+callee cleanup

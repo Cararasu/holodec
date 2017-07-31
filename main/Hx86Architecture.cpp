@@ -5,7 +5,7 @@
 using namespace holodec;
 
 
-holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
+holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		[] (HBinary * binary) {
 			static HFunctionAnalyzer* analyzer = nullptr;
 			if (analyzer == nullptr) {
@@ -352,12 +352,12 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 		{X86_INS_POPAW,	{"popad", {0, "#seq(#rec[pop]($edi),#rec[pop]($esi),#rec[pop]($ebp),=($esp,+($esp,4)),#rec[pop]($ebx),#rec[pop]($edx),#rec[pop]($ecx),#rec[pop]($eax))", 0, 0}, H_INSTR_TYPE_PUSH}},
 		{X86_INS_POPAL,	{"popa", {0, "#seq(#rec[pop]($di),#rec[pop]($si),#rec[pop]($bp),=($esp,+($esp,2)),#rec[pop]($bx),#rec[pop]($dx),#rec[pop]($cx),#rec[pop]($ax))", 0, 0}, H_INSTR_TYPE_PUSH}},
 
-		{X86_INS_RET,		{"ret", {"#ret", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
-		{X86_INS_IRET, {"iret", {"#ret", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
-		{X86_INS_IRETD, {"iretd", {"#ret", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
-		{X86_INS_IRETQ, {"iretq", {"#ret", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
-		{X86_INS_RETF, {"retf", {"#ret", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
-		{X86_INS_RETFQ, {"retfq", {"#ret", 0, 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_RET,		{"ret", {"#ret", "#seq(=($rsp,-($rsp,*(#arg[1],8))),#ret)", 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_IRET, {"iret", {"#ret", "#seq(=($rsp,-($rsp,*(#arg[1],8))),#ret)", 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_IRETD, {"iretd", {"#ret", "#seq(=($rsp,-($rsp,*(#arg[1],8))),#ret)", 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_IRETQ, {"iretq", {"#ret", "#seq(=($rsp,-($rsp,*(#arg[1],8))),#ret)", 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_RETF, {"retf", {"#ret", "#seq(=($rsp,-($rsp,*(#arg[1],8))),#ret)", 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
+		{X86_INS_RETFQ, {"retfq", {"#ret", "#seq(=($rsp,-($rsp,*(#arg[1],8))),#ret)", 0, 0}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
 		{X86_INS_HLT, {"hlt", {0, 0, 0, 0}}},
 		

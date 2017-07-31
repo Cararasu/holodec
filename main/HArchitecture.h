@@ -14,6 +14,7 @@ namespace holodec {
 		HString name;
 		HString desc;
 		uint64_t bitbase;
+		uint64_t wordbase;
 
 		HList<std::function<HFunctionAnalyzer* (HBinary*) >> functionanalyzerfactories;
 		HIdList<HRegister> registers;

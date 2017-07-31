@@ -29,10 +29,9 @@ namespace holodec {
 		HString name;
 
 		const HSymbolType* symboltype;
-		HType* type;
+		HId typeId;
 
 		size_t vaddr;
-		size_t paddr;
 		size_t size;
 
 		void print (int indent = 0);
@@ -46,7 +45,6 @@ namespace holodec {
 		size_t offset;
 		//the virtual address, that section is mapped to
 		size_t vaddr;
-		//size_t paddr;needed?
 		//the size of the section
 		size_t size;
 		

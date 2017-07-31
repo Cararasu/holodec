@@ -33,30 +33,30 @@ bool holoelf::HElfBinaryAnalyzer::init (holodec::HData* file) {
 	//handle entry and exit points
 	{
 		uint32_t entrypoint = binary->data->get<uint32_t> (0x18);
-		binary->addEntrypoint (binary->addSymbol ({0,HString::create ("entry0"), &HSymbolType::symfunc, 0, entrypoint, entrypoint, 0}));
+		binary->addEntrypoint (binary->addSymbol ({0,HString::create ("entry0"), &HSymbolType::symfunc, 0, entrypoint, 0}));
 		int entrycount = 1;
 		int exitcount = 0;
 		char buffer[20];
 		if (HSection* init = binary->getSection (".init")) {
 			snprintf (buffer, 20, "entry%d", entrycount++);
-			binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, init->vaddr, init->vaddr, 0}));
+			binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, init->vaddr, 0}));
 		}
 		if (HSection* finit = binary->getSection (".finit")) {
 			snprintf (buffer, 20, "exit%d", entrycount);
-			binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, finit->vaddr, finit->vaddr, 0}));
+			binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, finit->vaddr, 0}));
 		}
 		if (HSection* init_array = binary->getSection (".init_array")) {
 			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < init_array->size; i += 4) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, "entry%d", entrycount++);
-					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
+					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, 0}));
 				}
 			} else if (binary->bitbase == 64) {
 				for (size_t i = 0; i < init_array->size; i += 8) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, "entry%d", entrycount++);
-					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
+					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, 0}));
 				}
 			}
 		}
@@ -65,14 +65,14 @@ bool holoelf::HElfBinaryAnalyzer::init (holodec::HData* file) {
 				for (size_t i = 0; i < finit_array->size; i += 4) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, "exit%d", exitcount++);
-					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
+					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, 0}));
 				}
 			} else if (binary->bitbase == 64) {
 				printf ("%p", finit_array->vaddr);
 				for (size_t i = 0; i < finit_array->size; i += 8) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, "exit%d", exitcount++);
-					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, fncptr, 0}));
+					binary->addEntrypoint (binary->addSymbol ({0,HString::create (buffer), &HSymbolType::symfunc, 0, fncptr, 0}));
 				}
 			}
 		}
@@ -107,7 +107,7 @@ bool holoelf::HElfBinaryAnalyzer::init (holodec::HData* file) {
 						sym->name = s;
 						sym->size = size;
 					}else{
-						binary->addSymbol({0,holodec::HString::create(name),&holodec::HSymbolType::symfunc,0,value,value,size});
+						binary->addSymbol({0,holodec::HString::create(name),&holodec::HSymbolType::symfunc,0,value,size});
 					}
 				}
 			}
