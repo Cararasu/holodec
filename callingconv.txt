@@ -1,7 +1,77 @@
 
+SSA generation
 
+gen def
+	iterate over defs
+	if clearParent then 
+		if register overlap -> split
+		if inside or same -> remove
+	if def overlap -> split
+	if def inside or same -> remove
+	at the end insert
+	
+gen use
+	search regdefs
+	if def then possible split
+	if multiple then combine
+	if missing and isCleared -> 0 append
+	
+	if no regdef then search input
+	if no matching input then add input
+	
+
+defs
+	regdef
+		parentId
+		clearedForRegId - 0 when not cleared is the regId that was last used for clearing
+		defs
+			regId
+			offset
+			size
+			ssaId
+	
+inputs
+	inputdef
+		parentId
+		regId
+outputs
+	inputdef
+		parentId
+		regId
+	
+
+add volatile flag to registers
+e.g. cr or dr regs
+
+For Architecture
+
+Registerstack
+e.g. st-stack for x87
+#push($st,#arg[1])
+#pop($st,8)
+#free($st)
+	name
+	size
+	maxcount
+
+Memorystack
+#push($rsp,#arg[1])
+#pop($rsp,8)
+	name
+	regId
 
 x87 ST-stack
+
+Calling Convention
+	name
+	Caller Reg Ids
+	List of RegisterArgs
+		Int
+		Ptr
+		Float
+		Vec128
+		Vec256
+	StackPolicy - R2L or L2R
 
 Caller cleanup
 

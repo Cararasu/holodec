@@ -10,8 +10,6 @@
   <VirtualDirectory Name="src">
     <File Name="main.cpp"/>
     <VirtualDirectory Name="Objects">
-      <File Name="HStringDatabase.h"/>
-      <File Name="HStringDatabase.cpp"/>
       <File Name="HSection.h"/>
       <File Name="HSection.cpp"/>
       <File Name="HFunction.h"/>
@@ -23,6 +21,14 @@
       <File Name="HBinary.h"/>
       <File Name="HBinary.cpp"/>
       <File Name="HId.h"/>
+      <File Name="HRegister.h"/>
+      <File Name="HRegister.cpp"/>
+      <File Name="HStack.h"/>
+      <File Name="HStack.cpp"/>
+      <File Name="HCallingConvention.h"/>
+      <File Name="HCallingConvention.cpp"/>
+      <File Name="HStringDatabase.cpp"/>
+      <File Name="HStringDatabase.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <File Name="HString.h"/>

@@ -79,7 +79,7 @@ namespace holodec {
 		HLocalBackedLists<HId, HSSA_LOCAL_USEID_MAX> subExpressions;
 	};
 
-	bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
+	inline bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
 		if (lhs.type == rhs.type && lhs.opType == rhs.opType && lhs.typeId == rhs.typeId && lhs.subExpressions.size() == rhs.subExpressions.size()) {
 			for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 				if (lhs.subExpressions[i] != rhs.subExpressions[i])

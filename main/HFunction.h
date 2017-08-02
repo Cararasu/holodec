@@ -12,11 +12,6 @@
 
 namespace holodec {
 
-
-
-#define H_SET_FLAG(val,flag) val |= flag
-#define H_SET_FLAGM(val,flag,mask) val = (val & ~mask) | flag
-
 	enum HLocalType {
 		H_LOCAL_TYPE_REGISTER = 1,
 		H_LOCAL_TYPE_STACK,
@@ -45,70 +40,6 @@ namespace holodec {
 		uint16_t size;
 		uint32_t flags;//is memoperand, functionptr,...
 	};
-	struct HRegister {
-		HId id;
-		HId parentId;
-		HString name;
-		size_t size;
-		size_t offset;
-		bool clearParentOnWrite;
-		HList<HRegister> subregisters;
-
-		HRegister() = default;
-		HRegister (HString name, size_t size, size_t offset) : id (0), name (name), size (size), offset (offset), clearParentOnWrite (false), subregisters (0) {};
-		HRegister (HString name, size_t size, size_t offset, bool clearParentOnWrite) : id (0), name (name), size (size), offset (offset), clearParentOnWrite (clearParentOnWrite), subregisters (0) {};
-		HRegister (HString name, size_t size, size_t offset, HList<HRegister> subregisters) : id (0), name (name), size (size), offset (offset), clearParentOnWrite (false), subregisters (subregisters) {};
-		HRegister (HString name, size_t size, size_t offset, bool clearParentOnWrite, HList<HRegister> subregisters) : id (0), name (name), size (size), offset (offset), clearParentOnWrite (clearParentOnWrite), subregisters (subregisters) {};
-		HRegister (const HRegister& reg) : id (0), name (reg.name), size (reg.size), offset (reg.offset), clearParentOnWrite (reg.clearParentOnWrite), subregisters (reg.subregisters) {}
-		HRegister (const HRegister&& reg) : id (0), name (reg.name), size (reg.size), offset (reg.offset), clearParentOnWrite (reg.clearParentOnWrite), subregisters (reg.subregisters) {}
-
-		HRegister* addRegister (HRegister* reg) {
-			subregisters.push_back (*reg);
-			return &subregisters.back();
-		};
-		HRegister* getRegister (const HString string) {
-			for (HRegister& reg : subregisters) {
-				if (string == reg.name)
-					return &reg;
-				HRegister* r = reg.getRegister (string);
-				if (r) return r;
-			}
-			return 0;
-		}
-		HRegister* getRegister (const HId id) {
-			for (HRegister& reg : subregisters) {
-				if (id == reg.id)
-					return &reg;
-				HRegister* r = reg.getRegister (id);
-				if (r) return r;
-			}
-			return 0;
-		}
-		void setParentId (HId parentId) {
-			this->parentId = parentId;
-			for (HRegister& reg : subregisters) {
-				reg.setParentId (parentId);
-			}
-		}
-		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer = nullptr) {
-			for (HRegister& reg : subregisters) {
-				HId id = gen->next();
-				if (replacer)
-					replacer (reg.id, id);
-				reg.id = id;
-				reg.relabel (gen, replacer);
-			}
-		}
-		void print (int indent = 0) {
-			printIndent (indent);
-			std::printf ("Register %d %s s: %d o: %d\n", id, name.cstr(), size, offset);
-			for (HRegister & reg : subregisters) {
-				reg.print (indent + 1);
-			}
-		}
-	};
-
-	extern HRegister invalidReg;
 
 	typedef int64_t HArgIntImmediate;
 	typedef double HArgFloatImmediate;

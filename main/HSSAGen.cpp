@@ -6,23 +6,63 @@
 
 namespace holodec {
 
-	struct HSSAGenRegDef {
-		HId parentRegId;
-		HId regId;//can be 0
+	struct HSSAGenDef {
+		HId regId;
 		uint64_t offset;
 		uint64_t size;
 		HId ssaId;
 	};
+	struct HSSAGenRegDef {
+		HId parentRegId;
+		HId clearedForRegId;
+		HList<HSSAGenDef> defs;
+		
+		void createDef(HSSAGenDef def);
+		HSSAGenDef* getDefForUse(HId regId, uint64_t offset = 0, uint64_t size = 0);
+	};
+	struct HSSAGenIODef {
+		HId parentRegId;
+		HId regId;
+		HId ssaId;
+	};
+	struct HSSAGenIO {
+		//if overlap, then phi node or create node for parent and split for child
+		HList<HSSAGenIODef> defs;
+		
+		void registerDef(HSSAGenIODef def);
+	};
+	struct HSSAGenBasicBlock{
+		HSSAGenIO inputs;
+		HSSAGenIO outputs;
+	};
+	
 	struct HSSAGenStckDef {
 		HId id;
 		uint64_t size;
 		HId ssaId;
+	};
+	struct HSSAGenStckDef {
+		uint64_t size;
+		HId ssaId;
+	};
+	struct HSSAGenStck {
+		HString name;
+		HList<HSSAGenStckDef> defs;//size - stck_index
 	};
 	struct HSSAGenTmpDef {
 		HId id;
 		uint64_t size;
 		HId ssaId;
 	};
+	struct HSSAGenTmp {
+		HList<HSSAGenTmp> defs;
+	};
+	//uint64_t index = 0;
+	//snprintf(buffer, "%s%%d", stack.name);
+	//if(sscanf(reg, buffer,&index) < 1){
+	// return 0;
+	//}
+	//return index;
 
 	bool operator< (HSSAGenRegDef& lhs, HSSAGenRegDef& rhs) {
 		return lhs.offset < rhs.offset;

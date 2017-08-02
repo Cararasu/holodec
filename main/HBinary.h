@@ -8,7 +8,6 @@
 #include "HGeneral.h"
 #include "HSection.h"
 #include "HFunction.h"
-#include "HStringDatabase.h"
 #include "HId.h"
 
 namespace holodec {

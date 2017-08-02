@@ -2,8 +2,6 @@
 #include "HArchitecture.h"
 
 
-holodec::HRegister holodec::invalidReg = {"", 0, 0};
-
 void holodec::HInstArgument::print (HArchitecture* arch) {
 	switch (type.type) {
 	case H_LOCAL_TYPE_REGISTER:

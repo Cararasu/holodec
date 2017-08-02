@@ -69,6 +69,11 @@ namespace holodec {
 		static HString create(HString ptr){
 			return ptr.copy();
 		}
+		bool staertsWith (HString arg) {
+			if(*this == arg)
+				return true;
+			return strncmp (m_cstr, arg.cstr(),strlen(m_cstr)) == 0;
+		}
 		
 		friend int64_t compare (const HString* lhs, const HString* rhs);
 	};

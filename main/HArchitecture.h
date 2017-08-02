@@ -5,6 +5,9 @@
 #include <functional>
 #include "HFunctionAnalyzer.h"
 #include "HInstrDefinition.h"
+#include "HRegister.h"
+#include "HStack.h"
+#include "HCallingConvention.h"
 
 namespace holodec {
 
@@ -18,6 +21,10 @@ namespace holodec {
 
 		HList<std::function<HFunctionAnalyzer* (HBinary*) >> functionanalyzerfactories;
 		HIdList<HRegister> registers;
+		
+		HList<HStack> stacks;
+
+		HList<HCallingConvention> callingconventions;
 
 		HMap<HId, HInstrDefinition> instrdefs;
 
