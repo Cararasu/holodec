@@ -9,6 +9,7 @@
 #include "HSection.h"
 #include "HFunction.h"
 #include "HId.h"
+#include "HStringDatabase.h"
 
 namespace holodec {
 

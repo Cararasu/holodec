@@ -326,7 +326,6 @@ namespace holodec {
 				if (reg->id) {
 					expression.type = HIR_EXPR_REG;
 					expression.regacces = reg->id;
-					expression.mod.size = reg->size;
 				} else {
 					printf ("Parsed Custom %s\n", buffer);
 				}
