@@ -34,11 +34,11 @@ namespace holodec{
 		}
 	}
 	void HRegister::relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer) {
+		HId newid = gen->next();
+		if (replacer)
+			replacer (id, newid);
+		id = newid;
 		for (HRegister& reg : subregisters) {
-			HId id = gen->next();
-			if (replacer)
-				replacer (reg.id, id);
-			reg.id = id;
 			reg.relabel (gen, replacer);
 		}
 	}

@@ -16,7 +16,6 @@ namespace holodec {
 		{"undef", { HIR_EXPR_UNDEF, 1}},
 
 		{"arg", { HIR_EXPR_ARG, 0, 0}},
-		{"stck", { HIR_EXPR_STCK, 0, 0}},
 		{"t", { HIR_EXPR_TMP, 0, 0}},
 
 		{"pop", { HIR_EXPR_POP}},
@@ -325,10 +324,18 @@ namespace holodec {
 				HRegister* reg = arch->getRegister (buffer);
 				if (reg->id) {
 					expression.type = HIR_EXPR_REG;
-					expression.regacces = reg->id;
-				} else {
-					printf ("Parsed Custom %s\n", buffer);
+					expression.reg = reg->id;
+					break;
 				}
+
+				HStack* stack = arch->getStack (buffer);
+				if (stack) {
+					expression.type = HIR_EXPR_STCK;
+					expression.stck = stack->id;
+					break;
+				}
+				expression.mod.name_index = HString::create (buffer);
+				printf ("Parsed Custom %s\n", buffer);
 				//printf ("Parsed Custom %s\n", buffer);
 			} else {
 				printf ("No custom token");
@@ -390,8 +397,8 @@ namespace holodec {
 			printf ("%d", fvalue);
 			break;
 		case HIR_EXPR_REG:
-			if (regacces)
-				printf ("$%s", arch->getRegister (regacces)->name.cstr());
+			if (reg)
+				printf ("$%s", arch->getRegister (reg)->name.cstr());
 			else
 				printf ("RegFail");
 			break;
@@ -430,7 +437,7 @@ namespace holodec {
 		return expr1.type == expr2.type &&
 		       expr1.token == expr2.token &&
 		       expr1.value == expr2.value &&
-		       expr1.regacces == expr2.regacces &&
+		       expr1.reg == expr2.reg &&
 		       expr1.mod == expr2.mod;
 	}
 }

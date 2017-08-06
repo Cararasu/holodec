@@ -148,7 +148,8 @@ namespace holodec {
 		union {
 			int64_t value = 0;
 			double fvalue;
-			HId regacces;
+			HId reg;
+			HId stck;
 			struct {
 				HId base, offset;
 				int64_t disp, scale;

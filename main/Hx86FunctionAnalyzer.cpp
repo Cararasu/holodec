@@ -114,15 +114,18 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 			printf ("Invalid\n");
 			break;
 		case X86_OP_REG:
-			instruction->operands[i].type = {H_LOCAL_TYPE_REGISTER, x86.operands[i].size, 0};
+			instruction->operands[i].type = H_LOCAL_TYPE_REGISTER;
+			instruction->operands[i].size = x86.operands[i].size;
 			instruction->operands[i].reg = arch->getRegister (cs_reg_name (handle, x86.operands[i].reg))->id;
 			break;
 		case X86_OP_IMM:
-			instruction->operands[i].type = {H_LOCAL_TYPE_IMM_UNSIGNED, x86.operands[i].size, 0};
+			instruction->operands[i].type = H_LOCAL_TYPE_IMM_UNSIGNED;
+			instruction->operands[i].size = x86.operands[i].size;
 			instruction->operands[i].ival = x86.operands[i].imm;
 			break;
 		case X86_OP_MEM:
-			instruction->operands[i].type = {H_LOCAL_TYPE_MEM, x86.operands[i].size, 0};
+			instruction->operands[i].type = H_LOCAL_TYPE_MEM;
+			instruction->operands[i].size = x86.operands[i].size;
 			instruction->operands[i].mem.segment = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment))->id;
 			if (x86.operands[i].mem.base == X86_REG_RIP || x86.operands[i].mem.base == X86_REG_EIP) {
 				x86.operands[i].mem.disp += instruction->addr;
@@ -136,13 +139,14 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 
 			break;
 		case X86_OP_FP:
-			instruction->operands[i].type = {H_LOCAL_TYPE_IMM_FLOAT, x86.operands[i].size, 0};
+			instruction->operands[i].type = H_LOCAL_TYPE_IMM_FLOAT;
+			instruction->operands[i].size = x86.operands[i].size;
 			instruction->operands[i].fval = x86.operands[i].fp;
 			break;
 		default:
 			printf ("Invalid ...\n");
 		}
-		instruction->operands[i].type.size = x86.operands[i].size * 8;
+		instruction->operands[i].size = x86.operands[i].size * 8;
 	}
 }
 
@@ -155,9 +159,9 @@ void holox86::Hx86FunctionAnalyzer::setJumpDest (HInstruction* instruction) {
 		if (instruction->condition == H_INSTR_COND_TRUE && instruction->instrdef->condition == H_INSTR_COND_TRUE) {
 			instruction->nojumpdest = 0;
 		}
-		if (instruction->operands[0].type.type == H_LOCAL_TYPE_IMM_UNSIGNED)
+		if (instruction->operands[0].type == H_LOCAL_TYPE_IMM_UNSIGNED)
 			instruction->jumpdest = instruction->operands[0].ival;
-		else if (instruction->operands[0].type.type == H_LOCAL_TYPE_IMM_SIGNED)
+		else if (instruction->operands[0].type == H_LOCAL_TYPE_IMM_SIGNED)
 			instruction->jumpdest = instruction->addr + (int64_t) instruction->operands[0].ival;
 	}
 }

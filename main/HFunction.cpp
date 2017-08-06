@@ -3,7 +3,7 @@
 
 
 void holodec::HInstArgument::print (HArchitecture* arch) {
-	switch (type.type) {
+	switch (type) {
 	case H_LOCAL_TYPE_REGISTER:
 		if (reg)
 			printf ("%s", arch->getRegister (reg)->name.cstr());
@@ -11,7 +11,7 @@ void holodec::HInstArgument::print (HArchitecture* arch) {
 			printf ("No Reg Def");
 		break;
 	case H_LOCAL_TYPE_STACK:
-		printf ("Stack[%d]", stackindex);
+		printf ("Stack-%s[%d]", arch->getStack (stack.id)->name.cstr(), stack.index);
 		break;
 	case H_LOCAL_TYPE_MEM: {
 		bool pre = false;
@@ -50,7 +50,7 @@ void holodec::HInstArgument::print (HArchitecture* arch) {
 		printf ("%f", fval);
 		break;
 	}
-	printf (" S%d", type.size);
+	printf (" S%d", size);
 }
 
 void holodec::HInstruction::print (HArchitecture* arch, int indent) {

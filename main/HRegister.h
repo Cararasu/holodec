@@ -13,7 +13,8 @@ namespace holodec {
 	};
 	enum HRegType {
 		H_REG_OTHER = 0,
-		H_REG_GPS,
+		H_REG_GPR,
+		H_REG_ADDRESS,
 		H_REG_FLOAT,
 		H_REG_VEC,
 		H_REG_STACKPTR,

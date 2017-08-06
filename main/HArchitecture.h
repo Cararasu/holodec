@@ -12,7 +12,7 @@
 namespace holodec {
 
 	struct HIRExpression;
-	
+
 	struct HArchitecture {
 		HString name;
 		HString desc;
@@ -20,9 +20,9 @@ namespace holodec {
 		uint64_t wordbase;
 
 		HList<std::function<HFunctionAnalyzer* (HBinary*) >> functionanalyzerfactories;
-		HIdList<HRegister> registers;
-		
-		HList<HStack> stacks;
+		HList<HRegister> registers;
+
+		HIdList<HStack> stacks;
 
 		HList<HCallingConvention> callingconventions;
 
@@ -36,6 +36,18 @@ namespace holodec {
 		~HArchitecture() = default;
 
 		void init() {
+			HIdGenerator gen;
+			for (HRegister& reg : registers) {
+				reg.relabel (&gen);
+				reg.setParentId (reg.id);
+			}
+			for (HStack& stack : stacks) {
+				for (HRegister& reg : stack.regs) {
+					reg.relabel (&gen);
+					reg.setParentId (reg.id);
+				}
+			}
+			
 			for (auto& entry : instrdefs) {
 				HIRParser parser (this);
 				for (int i = 0; i < 4; i++) {
@@ -43,9 +55,6 @@ namespace holodec {
 						parser.parse (&entry.second.il_string[i]);
 					}
 				}
-			}
-			for(HRegister& reg : registers.list){
-				reg.setParentId(reg.id);
 			}
 		}
 
@@ -62,40 +71,73 @@ namespace holodec {
 		HRegister* getRegister (const HString string) {
 			if (!string)
 				return &invalidReg;
-			for (HRegister& reg : registers.list) {
+			for (HRegister& reg : registers) {
 				if (string == reg.name)
 					return &reg;
 				HRegister* r = reg.getRegister (string);
 				if (r) return r;
 			}
+			for (HStack& stack : stacks) {
+				for (HRegister& reg : stack.regs) {
+					if (string == reg.name)
+						return &reg;
+					HRegister* r = reg.getRegister (string);
+					if (r) return r;
+				}
+			}
 			return &invalidReg;
 		}
 		HRegister* getRegister (const HId id) {
-			for (HRegister& reg : registers.list) {
+			for (HRegister& reg : registers) {
 				if (id == reg.id)
 					return &reg;
 				HRegister* r = reg.getRegister (id);
 				if (r) return r;
 			}
+			for (HStack& stack : stacks) {
+				for (HRegister& reg : stack.regs) {
+					if (id == reg.id)
+						return &reg;
+					HRegister* r = reg.getRegister (id);
+					if (r) return r;
+				}
+			}
 			return &invalidReg;
 		}
 		HRegister* getParentRegister (const HId id) {
-			for (HRegister& reg : registers.list) {
+			for (HRegister& reg : registers) {
 				if (id == reg.id)
 					return &reg;
 				HRegister* r = reg.getRegister (id);
 				if (r) return &reg;
 			}
+			for (HStack& stack : stacks) {
+				for (HRegister& reg : stack.regs) {
+					if (id == reg.id)
+						return &reg;
+					HRegister* r = reg.getRegister (id);
+					if (r) return &reg;
+				}
+			}
 			return &invalidReg;
 		}
-		HId getParentRegisterId (const HId id) {
-			for (HRegister& reg : registers.list) {
-				if (id == reg.id)
-					return reg.id;
-				HRegister* r = reg.getRegister (id);
-				if (r) return reg.id;
+		HStack* getStack (const HString string) {
+			if (!string)
+				return nullptr;
+			for (HStack& stack : stacks) {
+				if (string == stack.name)
+					return &stack;
 			}
-			return 0;
+			return nullptr;
+		}
+		HStack* getStack (const HId id) {
+			if (!id)
+				return nullptr;
+			for (HStack& stack : stacks) {
+				if (id == stack.id)
+					return &stack;
+			}
+			return nullptr;
 		}
 
 		HInstrDefinition* getInstrDef (HId id, HString mnemonic) {
@@ -113,7 +155,7 @@ namespace holodec {
 			return nullptr;
 		}
 		HIRExpression* getIrExpr (HId id) {
-			return irExpressions.get(id);
+			return irExpressions.get (id);
 		}
 		HId addIrExpr (HIRExpression expr) {
 			for (HIRExpression& expression : irExpressions.list) {   //Do CSE
@@ -129,13 +171,13 @@ namespace holodec {
 			printf ("Architecture %s\n", name.cstr());
 			printIndent (indent);
 			printf ("Registers\n");
-			for (HRegister & rr : registers.list) {
+			for (HRegister & rr : registers) {
 				rr.print (indent + 1);
 			}
 			printIndent (indent);
 			printf ("IR-Expressions\n");
-			for (HIRExpression& expr : irExpressions.list){
-				expr.print(this, indent + 1);
+			for (HIRExpression& expr : irExpressions.list) {
+				expr.print (this, indent + 1);
 			}
 			printIndent (indent);
 			printf ("Instructions\n");

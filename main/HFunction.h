@@ -26,20 +26,6 @@ namespace holodec {
 		H_OP_ACCESS_RW = 3,
 	};
 
-	struct HInstArgType {
-		HLocalType type;//(reg or stack or signed or unsigned)
-		//size / minimal machineword size
-		//e.g.
-		//1 -> 8 bit
-		//2 -> 16 bit
-		//4 -> 32 bit
-		//8 -> 64 bit
-		//16 -> 128 bit
-		//32 -> 256 bit
-		//64 -> 512 bit
-		uint16_t size;
-		uint32_t flags;//is memoperand, functionptr,...
-	};
 
 	typedef int64_t HArgIntImmediate;
 	typedef double HArgFloatImmediate;
@@ -51,15 +37,29 @@ namespace holodec {
 		HArgIntImmediate scale;
 		HArgIntImmediate disp;
 	};
+	struct HArgStck { //segment::[base + index*scale + disp]
+		HId id;
+		HId index;
+	};
 	struct HInstArgument {
 		union { //ordered first because of tighter memory layout
 			HArgIntImmediate ival;
 			HArgFloatImmediate fval;
 			HArgMem mem;
 			HId reg;
-			HId stackindex;
+			HArgStck stack;//change to detect which stack we are talking about
 		};
-		HInstArgType type;// size || memoperand || (reg or stack or signed or unsigned)
+		HLocalType type;//(reg or stack or signed or unsigned)
+		//size / minimal machineword size
+		//e.g.
+		//1 -> 8 bit
+		//2 -> 16 bit
+		//4 -> 32 bit
+		//8 -> 64 bit
+		//16 -> 128 bit
+		//32 -> 256 bit
+		//64 -> 512 bit
+		uint16_t size;
 
 		void print (HArchitecture* arch);
 	};

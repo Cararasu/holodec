@@ -66,21 +66,35 @@ namespace holodec {
 		HSSA_OP_ROR,
 		HSSA_OP_ROL,
 	};
+	enum HSSAType{
+		HSSA_TYPE_FLOAT,
+		HSSA_TYPE_UINT,
+		HSSA_TYPE_INT,
+		HSSA_TYPE_UNKNOWN
+	};
 
 	struct HSSAExpression {
 		HId id;
 		HSSAExprType type;
 		HSSAOperatorType opType;
-		HId typeId;//refers to the return type
+		HSSAType rettype;//refers to the return type
+		uint64_t retsize;//refers to the return type
 
 		HId regId;//what register this expression refers to
 		HId instrId;//what instruction this expression refers to
 
 		HLocalBackedLists<HId, HSSA_LOCAL_USEID_MAX> subExpressions;
 	};
+	struct HSSAPhiNode {
+		HId id;
+		HSSAExprType type;
+		HSSAOperatorType opType;
+
+		HLocalBackedLists<HId, HSSA_LOCAL_USEID_MAX> subExpressions;
+	};
 
 	inline bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
-		if (lhs.type == rhs.type && lhs.opType == rhs.opType && lhs.typeId == rhs.typeId && lhs.subExpressions.size() == rhs.subExpressions.size()) {
+		if (lhs.type == rhs.type && lhs.opType == rhs.opType && lhs.rettype == rhs.rettype && lhs.retsize == rhs.retsize && lhs.subExpressions.size() == rhs.subExpressions.size()) {
 			for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 				if (lhs.subExpressions[i] != rhs.subExpressions[i])
 					return false;
@@ -91,6 +105,7 @@ namespace holodec {
 	}
 	struct HSSABasicBlock {
 		HId id;
+		//Phi nodes
 		HIdList<HSSAExpression> expressions;
 		
 		HId bbId;//what basicblock this expression refers to

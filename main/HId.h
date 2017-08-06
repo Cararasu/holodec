@@ -45,14 +45,15 @@ namespace holodec {
 			return ele.id;
 		}
 		void relabel (std::function<void (HId, HId) > replacer = nullptr) {
-			gen.clear();
 			for (T& ele : list) {
-				HId id = gen.next();
-				if (replacer)
-					replacer (ele.id, id);
-				ele.id = id;
 				ele.relabel(&gen,replacer);
 			}
+		}
+		auto begin() -> decltype(list.begin()){
+			return list.begin();
+		}
+		auto end() -> decltype(list.end()){
+			return list.end();
 		}
 		T* get (HId id) {
 			size_t count = list.size();
