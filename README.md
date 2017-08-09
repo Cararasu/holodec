@@ -16,26 +16,18 @@ The goal of HoloDec is to write an open source decompiler for x86/x86-64 binarie
 # Current IR Specs
 The Intermediate Representation is written in prefix notation.
 ```
-#add(#arg1,#arg2)
+#add(#arg[1],#arg[2])
 ```
-A sequence of operations is defined with `&`:
+Only a range of bits in a value/register can be accessed via `['pos',size']` or in case only one bit is needed `['pos']` where `pos` is the position starting with `0` and `size` is the number of bits taken. 0 means the rest of the variable
 ```
-#shl(#arg1,1)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($a,#a)
+=(#arg1,#t[1][0,#size(#arg[1])])&=($c,#t0[#size(#arg[1])]))
 ```
-For multiple operations in a sequence the value of the expression is the value of the first operation:
+Write to a register may only happen for a whole register
 ```
-=(#arg1,+(#arg1,#arg2)&=($z,#z)&=($p,#p)&=($s,#s)&=($o,#o)&=($c,#c)&=($a,#a))
-```
-Only a range of bits in a value/register can be accessed via `['pos':'size']` or in case only one bit is needed `['pos']` where `pos` is the position starting with `0` and `size` is the number of bits taken. 
-```
-=(#arg1,#t0[0:#size(#arg1)])&=($c,#t0[#size(#arg1)]))
-```
-In case a register is accessed it can still be written to via assignment.
-```
-=(#arg1[0:32],#fsub(#arg1[0:32],#arg2[0:32]))&
-=(#arg1[32:32],#fadd(#arg1[32:32],#arg2[32:32]))&
-=(#arg1[64:32],#fsub(#arg1[64:32],#arg2[64:32]))&
-=(#arg1[96:32],#fadd(#arg1[96:32],#arg2[96:32]))
+Not like this:
+=(#arg[1],#fsub(#arg[1][0,32],#arg[2][0,32]))
+Like this:
+=(#arg[1],#app(#fadd(#arg[1][0,32],#arg[2][0,32]),#arg[1][32,0]))
 ```
 
 ## `#`-Prefix
@@ -56,13 +48,23 @@ these Flags are implicitly set After every arithmetic operation
 
 ### Variables
 * `#arg['n'] (0-ary)`
-    * The `n`th argument of the instruction.
+    * The `n`th argument of the instruction. 0 means invalid
 * `#stck['n'] (0-ary)`
-    * The `n`th element on the stack.
+    * The `n`th element on the stack. 0 means invalid
 * `#t['n'] (0-ary)`
-    * The `n`th temporary value.
+    * The `n`th temporary value. 0 means invalid
 
 ### Functions
+* `#seq (n-ary)`
+   * A sequence of operations
+```
+#seq(=(#arg[1],#shl(#arg[1],1)),($z,#z),=($p,#p),=($s,#s),=($o,#o),=($a,#a))
+```
+* `#app (n-ary)`
+   * A sequence of operations
+```
+#seq(=(#arg[1],#shl(#arg[1],1)),($z,#z),=($p,#p),=($s,#s),=($o,#o),=($a,#a))
+```
 
 * `#ret (0-ary)`
     * Defines a return from a function. This does not assume that the return address is on the stack. It is completely independant of an architecture, but it terminates a function.
@@ -94,10 +96,14 @@ these Flags are implicitly set After every arithmetic operation
 #### Arithmetic
 * `+, #add (2+-ary)`
     * Addition
+* `#sadd (2+-ary)`
+    * Signed Addition
 * `#fadd (2+-ary)`
     * Floating-point Addition
 * `-, #sub (2+-ary)`
     * Subtraction
+* `#ssub (2+-ary)`
+    * Signed Subtraction
 * `#fsub (2+-ary)`
     * Floating-point Subtraction
 * `*, #mul (2+-ary)`
@@ -164,9 +170,10 @@ these Flags are implicitly set After every arithmetic operation
     * Floating point to Integer
 
 # `$`-Prefix
-Everthing with the `$`-prefix is user defined. Registers are `0-ary`. Undefined Instructions are automatically created as `$mnemonic`
+Everthing with the `$`-prefix is user defined. Registers and Stacks are `0-ary`. Stacks may only be used with `#pop` and `#push`.
 ```
 Examples: $rax, $rbx, $rsp
+#push($mem,#t[1])
 ```
 
 
