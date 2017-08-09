@@ -138,19 +138,19 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		//x86
 		{
 			"cdecl",//name
-			H_CC_STACK_CALLER_SAVED, {"rax", "rcx", "edx"},//saved registers
+			H_CC_STACK_CALLER_SAVED, {"eax", "ecx", "edx"},//saved registers
 			{},//register parameters
 			nullptr,//register te count of parameters is passed
-			{{"rax", "rax", "st0"}},//return value
+			{{"eax", "eax", "st0"},{"edx", "edx", "st0"}},//return value
 			"mem", //backing stack
 			H_CC_STACK_R2L//
 		},
 		{
 			"syscall",
-			H_CC_STACK_CALLER_SAVED, {"rax", "rcx", "edx"},
+			H_CC_STACK_CALLER_SAVED, {"eax", "ecx", "edx"},
 			{},
 			"al",
-			{{"rax", "rax", "rax"}},
+			{{"eax", "eax", "eax"}},
 			"mem",
 			H_CC_STACK_R2L
 		},
@@ -159,7 +159,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 			H_CC_STACK_CALLER_SAVED, {},
 			{},
 			"al",
-			{{"rax", "rax", "rax"}},
+			{{"eax", "eax", "eax"}},
 			"mem",
 			H_CC_STACK_L2R
 		},
@@ -647,7 +647,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		{X86_INS_INT,	{"int", {0, "#syscall(#arg[1])", 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 		{X86_INS_INTO,	{"into", {"#syscall()", 0, 0, 0}, H_INSTR_TYPE_SYSCALL, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_TRUE}},
 
-		{X86_INS_BOUND,	{"bound", {0, 0, "#seq(=(#t[1],#ld(#arg[2])),=(#t[2],#ld(+(#arg[2],#size(#arg[1])),#size(#arg[1]))),?(#not(#or(<(#arg[1],#t[1]),>(#arg[1],#t[2]))),#trap))", 0}}},
+		{X86_INS_BOUND,	{"bound", {0, 0, "#seq(=(#t[1],#ld(#arg[2],#size(#arg[2]))),=(#t[2],#ld(+(#arg[2],#size(#arg[1])),#size(#arg[1]))),?(#not(#or(<(#arg[1],#t[1]),>(#arg[1],#t[2]))),#trap))", 0}}},
 
 		{X86_INS_ENTER,	{"enter", {0, "#seq(#rec[push]($ebp),#rec[mov]($ebp,$esp),#rec[sub]($esp,#arg[1]))", 0, 0}}},
 		{X86_INS_LEAVE,	{"leave", {"#seq(#rec[mov]($esp,$ebp),#rec[pop]($ebp))", 0, 0, 0}}},
@@ -790,10 +790,10 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		{X86_INS_OUTSD | CUSOM_X86_INSTR_EXTR_REP, {"rep outsd", {0, 0, 0, 0}}},
 		{X86_INS_OUTSW | CUSOM_X86_INSTR_EXTR_REP, {"rep outsw", {0, 0, 0, 0}}},
 
-		{X86_INS_LODSB, {"lodsb", {0, 0, "#seq(=(#arg[1],#ld(#arg[2])),=($rdi,?($df,+($rdi,1),-($rdi,1))))", 0}, H_INSTR_TYPE_LOAD}},
-		{X86_INS_LODSW, {"lodsw", {0, 0, "#seq(=(#arg[1],#ld(#arg[2])),=($rdi,?($df,+($rdi,2),-($rdi,2))))", 0}, H_INSTR_TYPE_LOAD}},
-		{X86_INS_LODSD, {"lodsd", {0, 0, "#seq(=(#arg[1],#ld(#arg[2])),=($rdi,?($df,+($rdi,4),-($rdi,4))))", 0}, H_INSTR_TYPE_LOAD}},
-		{X86_INS_LODSQ, {"lodsq", {0, 0, "#seq(=(#arg[1],#ld(#arg[2])),=($rdi,?($df,+($rdi,8),-($rdi,8))))", 0}, H_INSTR_TYPE_LOAD}},
+		{X86_INS_LODSB, {"lodsb", {0, 0, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),=($rdi,?($df,+($rdi,1),-($rdi,1))))", 0}, H_INSTR_TYPE_LOAD}},
+		{X86_INS_LODSW, {"lodsw", {0, 0, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),=($rdi,?($df,+($rdi,2),-($rdi,2))))", 0}, H_INSTR_TYPE_LOAD}},
+		{X86_INS_LODSD, {"lodsd", {0, 0, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),=($rdi,?($df,+($rdi,4),-($rdi,4))))", 0}, H_INSTR_TYPE_LOAD}},
+		{X86_INS_LODSQ, {"lodsq", {0, 0, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),=($rdi,?($df,+($rdi,8),-($rdi,8))))", 0}, H_INSTR_TYPE_LOAD}},
 
 		{X86_INS_LODSB | CUSOM_X86_INSTR_EXTR_REP, {"rep lodsb", {0, 0, "#rep($rcx,#rec[lodsb](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_LOAD}},
 		{X86_INS_LODSW | CUSOM_X86_INSTR_EXTR_REP, {"rep lodsw", {0, 0, "#rep($rcx,#rec[lodsw](#arg[1],#arg[2]))", 0}, H_INSTR_TYPE_LOAD}},
@@ -843,7 +843,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		//x87
 		{X86_INS_FADD,		{"fadd", {0, "=($st0,#fadd($st0,#fext(#arg[1],#bsize($st0))))", "=(#arg[1],#fadd(#arg[1],#arg[2]))", 0}}},
 		{X86_INS_FIADD,		{"fiadd", {0, "=($st0,#fadd($st0,#fext(#arg[1],#bsize($st0))))", 0, 0}}},
-		{X86_INS_FADDP,		{"faddp", {"#push($st,#fadd(#pop($st),#pop($st)))", 0, "#seq(=(#arg[1],#fadd(#arg[1],#arg[2])),#pop(#st))", 0}}},
+		{X86_INS_FADDP,		{"faddp", {"#push($st,#fadd(#pop($st),#pop($st)))", 0, "#seq(=(#arg[1],#fadd(#arg[1],#arg[2])),#pop($st))", 0}}},
 
 
 		{X86_INS_CMPSS, {"cmpss", {0, 0, 0, 0}}},

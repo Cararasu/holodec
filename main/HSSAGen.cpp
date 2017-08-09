@@ -18,19 +18,19 @@ namespace holodec {
 	struct HSSAGenArgument {
 		HSSAGenArgType type;
 
-		HId ssaId;
+		HSSAId ssaId;
 		struct {
 			HId base, index;//regs
-			uint64_t scale, disp;
+			int64_t scale, disp;
 		} mem;
 		HId reg;
 		HId stackid;
 		HId stackindex;
 		uint64_t value;
 		double fvalue;
-		
+
 		uint64_t size;
-		
+
 		HSSAGenArgument() = default;
 
 		HSSAGenArgument (HInstArgument arg) {
@@ -72,7 +72,7 @@ namespace holodec {
 		HId id;//for Regdef -> registerId, for stack and tmp -> index
 		uint64_t offset;
 		uint64_t size;
-		HId ssaId;
+		HSSAId ssaId;
 	};
 	struct HSSAGenRegDef {
 		HId parentRegId;
@@ -80,12 +80,14 @@ namespace holodec {
 		HList<HSSAGenDef> defs;
 	};
 	struct HSSAGenBasicBlock {
+		HId id;
 		HList<HSSAGenRegDef> inputs;
 		HList<HSSAGenRegDef> outputs;
+		HList<HSSAExpression> exprs;
 	};
 	struct HSSAGenStck {
 		HString name;
-		HList<HId> defs;//size - stck_index
+		HList<HSSAId> defs;//size - stck_index
 	};
 	struct HSSAGenTmp {
 		HList<HSSAGenDef> defs;
@@ -99,38 +101,54 @@ namespace holodec {
 		HArchitecture* arch;
 		HIdGenerator gen;
 
-		HList<HSSAGenRegDef> regDefs;
-		HSSAGenBasicBlock genBB;//per basic block
+
+		HIdList<HSSAGenBasicBlock> bbs;
+
 		HSSAGenTmp tmp;//per instruction
 
 		//HInstruction* instr;
-		HId lastOp;
+		HSSAId lastOp;
 
 		HList<HSSAGenStck> stackDefs;
 
 		HList<HSSAGenArgument> args;
 
-		HSSAFunction ssaFunction;
 		HId activeBasicBlock;
 
-		HId generateNewBasicBlock() {
-			HSSABasicBlock bb;
-			return activeBasicBlock = ssaFunction.basicblocks.add (bb);
-		}
-		void activateBasicBlock (HId id) {
+		HId genNewBasicBlock() {
+			HSSAGenBasicBlock bb = HSSAGenBasicBlock();
+			HId id = bbs.add (bb);
 			activeBasicBlock = id;
+			return id;
 		}
-		void addExpression (HSSAExpression expr) {
-			ssaFunction.basicblocks.get (activeBasicBlock)->expressions.add (expr);
+		HSSAGenBasicBlock* getActiveBasicBlock() {
+			for (HSSAGenBasicBlock& bb : bbs) {
+				if (bb.id == activeBasicBlock) {
+					return &bb;
+				}
+			}
+			return nullptr;
 		}
-		HSSAExpression* getExpression (HId id) {
-			HSSAExpression* expr = ssaFunction.basicblocks.get (activeBasicBlock)->expressions.get (id);
-			if (expr)
-				return expr;
-			for (HSSABasicBlock& bb : ssaFunction.basicblocks.list) {
-				expr = bb.expressions.get (id);
-				if (expr)
-					return expr;
+		HSSAId addSSAExpression (HSSAExpression expr) {
+			for (HSSAGenBasicBlock& bb : bbs) {
+				if (bb.id == activeBasicBlock) {
+					expr.id = gen.next();
+					bb.exprs.push_back (expr);
+					return {expr.id, activeBasicBlock};
+				}
+			}
+			assert (false);
+			return {0, 0};
+		}
+		HSSAExpression* getSSAExpression (HSSAId id) {
+			for (HSSAGenBasicBlock& bb : bbs) {
+				if (bb.id == id.bbid) {
+					for (HSSAExpression& expr : bb.exprs) {
+						if (id.id == expr.id)
+							return &expr;
+					}
+					break;
+				}
 			}
 			return nullptr;
 		}
@@ -139,13 +157,13 @@ namespace holodec {
 		HSSAGenDef createValOrInput (HSSAGenRegDef* regdef, HRegister* reg, uint64_t lowerbound, uint64_t upperbound) {
 			if (lowerbound < upperbound) {
 				if (regdef->cleared) {
-					HId id = gen.next();
-					printf ("%d = Value(0x0,%d)\n", id, upperbound - lowerbound);
+					HSSAId id = addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_TYPE_UINT, upperbound - lowerbound, 0, {HSSAArg::createArg (upperbound - lowerbound) }});
+					printf ("%d = Value(0x0,%d)\n", id.id, upperbound - lowerbound);
 					return {reg->id, lowerbound, upperbound - lowerbound, id};
 				} else {
-					HId input;
+					HSSAId input;
 					HSSAGenRegDef* foundregdef = nullptr;
-					for (HSSAGenRegDef& regdef : genBB.inputs) {
+					for (HSSAGenRegDef& regdef : getActiveBasicBlock()->inputs) {
 						if (regdef.parentRegId == reg->parentId) {
 							foundregdef = &regdef;
 							break;
@@ -158,13 +176,13 @@ namespace holodec {
 							}
 						}
 					}
-					input = gen.next();
-					printf ("%d = Input(%s,%d)\n", input, reg->name.cstr(), upperbound - lowerbound);
+					input = addSSAExpression ({0, HSSA_EXPR_INPUT, HSSA_OP_INVALID, HSSA_TYPE_UINT, upperbound - lowerbound, 0, {}});
+					printf ("%d = Input(%s,%d)\n", input.id, reg->name.cstr(), upperbound - lowerbound);
 					HSSAGenDef def = {reg->id, lowerbound, upperbound - lowerbound, input};
 					if (foundregdef) {
 						foundregdef->defs.push_back (def);
 					} else {
-						genBB.inputs.push_back ({reg->parentId, false, {def}});
+						getActiveBasicBlock()->inputs.push_back ({reg->parentId, false, {def}});
 					}
 					return def;
 				}
@@ -173,18 +191,18 @@ namespace holodec {
 		}
 
 		void removeDef (HId regId) {
-			printf ("UNDEF------------------------------------------------------------------------------ %s\n", arch->getRegister (regId)->name.cstr());
-			HId id = gen.next();
-			printf ("%d = undef();\n", id);
+			HRegister* reg = arch->getRegister (regId);
+			HSSAId id = addSSAExpression ({0, HSSA_EXPR_UNDEF, HSSA_OP_INVALID, HSSA_TYPE_UINT, reg->size, 0, {}});
+			printf ("%d = undef();\n", id.id);
 			createDef (regId, id);
 		}
-		HId getDefForUse (HId regId, uint64_t offset = 0, uint64_t size = 0) {
+		HSSAId getDefForUse (HId regId, uint64_t offset = 0, uint64_t size = 0) {
 			return getDefForUse (arch->getRegister (regId), offset, size);
 		}
-		HId getDefForUse (HRegister* reg, uint64_t offset = 0, uint64_t size = 0) {
+		HSSAId getDefForUse (HRegister* reg, uint64_t offset = 0, uint64_t size = 0) {
 			size = size == 0 ? reg->size - offset : size;
 			offset += reg->offset;//adjust for parent register
-			for (HSSAGenRegDef& regdef : regDefs) {
+			for (HSSAGenRegDef& regdef : getActiveBasicBlock()->outputs) {
 				if (regdef.parentRegId == reg->parentId) {
 					int localdefcount = 0;
 					HSSAGenDef localdefs[20];
@@ -204,7 +222,7 @@ namespace holodec {
 							if (newoffset == 0 && newsize == def.size) {
 								localdefs[localdefcount++] = def;
 							} else {
-								HId newSSA = gen.next();
+								HSSAId newSSA = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_TYPE_UINT, newsize, 0, {HSSAArg::createArg (def.ssaId), HSSAArg::createArg (def.offset + newoffset), HSSAArg::createArg (newsize) }});
 								localdefs[localdefcount++] = {def.id, def.offset + newoffset, newsize, newSSA};
 							}
 						}
@@ -239,8 +257,9 @@ namespace holodec {
 						assert (localdefs[0].offset == offset && localdefs[0].size == size);
 						return localdefs[0].ssaId;
 					} else {
-						HId id = gen.next();
-						printf ("%d = Append(", id);
+						HSSAId id = addSSAExpression ({0, HSSA_EXPR_APPEND, HSSA_OP_INVALID, HSSA_TYPE_UINT, size, 0, {}});
+						HSSAExpression* expr = getSSAExpression (id);
+						printf ("%d = Append(", id.id);
 
 						uint64_t resultsize = 0;
 						uint64_t lastupperBound = offset;
@@ -248,7 +267,8 @@ namespace holodec {
 							assert (lastupperBound == localdefs[i].offset);
 							if (i)
 								printf (", ");
-							printf ("%d", localdefs[i].ssaId);
+							expr->subExpressions.add (HSSAArg::createArg (localdefs[i].ssaId));
+							printf ("%d", localdefs[i].ssaId.id);
 							resultsize += localdefs[i].size;
 							lastupperBound = localdefs[i].offset + localdefs[i].size;
 						}
@@ -261,11 +281,11 @@ namespace holodec {
 			HSSAGenRegDef regdef = {reg->parentId, false, {}};
 			return createValOrInput (&regdef, reg, offset, offset + size).ssaId;
 		}
-		HId createDef (HId regId, HId ssaId) {
+		HSSAId createDef (HId regId, HSSAId ssaId) {
 			HRegister* reg = arch->getRegister (regId);
 			//printf ("Add Reg Def\n");
 			//printf ("%d = P:%s - R:%s Offset: %d Size: %d\n", ssaId, arch->getRegister (reg->parentId)->name.cstr(), arch->getRegister (reg->id)->name.cstr(), reg->offset, reg->size);
-			for (HSSAGenRegDef& regdef : regDefs) {
+			for (HSSAGenRegDef& regdef : getActiveBasicBlock()->outputs) {
 				if (regdef.parentRegId == reg->parentId) {
 					if (reg->clearParentOnWrite) {//clears whole register
 						regdef.cleared = true;
@@ -278,14 +298,18 @@ namespace holodec {
 								HSSAGenDef def[2];
 
 								if (defit.offset < reg->offset) { //if starts before
-									HId splitId = gen.next();
-									printf ("%d = Split(%d,%d,%d);\n", splitId, defit.ssaId, 0, (reg->offset - defit.offset));
+									uint64_t offset = 0;
+									uint64_t size = reg->offset - defit.offset;
+									HSSAId splitId = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_TYPE_UINT, size, 0, {HSSAArg::createArg (defit.ssaId), HSSAArg::createArg (offset), HSSAArg::createArg (size) }});
+									printf ("%d = Split(%d,%d,%d);\n", splitId.id, defit.ssaId.id, 0, (reg->offset - defit.offset));
 									def[count++] = {defit.id, defit.offset, reg->offset - defit.offset, splitId};
 								}
 								if ( (reg->offset + reg->size) < (defit.offset + defit.size)) {//if ends after
-									HId splitId = gen.next();
-									printf ("%d = Split(%d,%d,%d);\n", splitId, defit.ssaId, reg->offset + reg->size, (defit.offset + defit.size) - (reg->offset + reg->size));
-									def[count++] = {defit.id, reg->offset + reg->size, (defit.offset + defit.size) - (reg->offset + reg->size), splitId};
+									uint64_t offset = reg->offset + reg->size;
+									uint64_t size = (defit.offset + defit.size) - (reg->offset + reg->size);
+									HSSAId splitId = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_TYPE_UINT, size, 0, {HSSAArg::createArg (defit.ssaId), HSSAArg::createArg (offset), HSSAArg::createArg (size) }});
+									printf ("%d = Split(%d,%d,%d);\n", splitId.id, defit.ssaId.id, offset, size);
+									def[count++] = {defit.id, offset, size, splitId};
 								}
 								if (count) {
 									defit = def[0];
@@ -304,7 +328,7 @@ namespace holodec {
 					return ssaId;
 				}
 			}
-			regDefs.push_back ({reg->parentId, reg->clearParentOnWrite, {{reg->id, reg->offset, reg->size, ssaId }}});
+			getActiveBasicBlock()->outputs.push_back ({reg->parentId, reg->clearParentOnWrite, {{reg->id, reg->offset, reg->size, ssaId }}});
 			return ssaId;
 		}
 		HSSAGenStck* getStckGen (HStack* stack) {
@@ -322,8 +346,8 @@ namespace holodec {
 			return stckgenptr;
 		}
 
-		void createPush (HId stckId, HId id, uint64_t words = 1) {
-			HStack* stack = arch->getStack(stckId);
+		void createPush (HId stckId, HSSAId id, uint64_t words = 1) {
+			HStack* stack = arch->getStack (stckId);
 			assert (stack);
 			HSSAGenStck* genStck = getStckGen (stack);
 
@@ -361,28 +385,30 @@ namespace holodec {
 				HRegister* reg = arch->getRegister (stack->trackingReg);
 				assert (reg);
 
-				HId useId = getDefForUse (reg);
-				HId newstckptr = gen.next();
+				HSSAId useId = getDefForUse (reg);
+				HSSAId newstckptr;
 				switch (stack->policy) {
 				case H_STACKPOLICY_TOP:
-					printf ("%d = +(%d,0x%x);\n", newstckptr, useId, words);
+					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_ADD, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words * arch->wordbase) }});
+					printf ("%d = +(%d,0x%x);\n", newstckptr.id, useId.id, words);
 					break;
 				case H_STACKPOLICY_BOTTOM:
-					printf ("%d = -(%d,0x%x);\n", newstckptr, useId, words);
+					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_SUB, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words * arch->wordbase) }});
+					printf ("%d = -(%d,0x%x);\n", newstckptr.id, useId.id, words);
 					break;
 				}
-				HId defId = gen.next();
-				printf ("%d = st(%d,%d);\n", defId, newstckptr, id);
+				HSSAId defId = addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_TYPE_MEM, 0, 0, {HSSAArg::createArg (newstckptr), HSSAArg::createArg (id) }});
+				printf ("%d = st(%d,%d);\n", defId.id, newstckptr.id, id);
 				createDef (stack->trackingReg, newstckptr);
 			}
 		}
 
-		HId createPop (HId stckId, uint64_t words = 1) {
-			HStack* stack = arch->getStack(stckId);
+		HSSAId createPop (HId stckId, uint64_t words = 1) {
+			HStack* stack = arch->getStack (stckId);
 			assert (stack);
 			HSSAGenStck* genStck = getStckGen (stack);
 
-			HId defId;
+			HSSAId defId;
 			switch (stack->type) {
 			case H_STACK_REGISTER: {
 				switch (stack->policy) {
@@ -418,16 +444,18 @@ namespace holodec {
 				assert (stack->trackingReg);
 				HRegister* reg = arch->getRegister (stack->trackingReg);
 				assert (reg);
-				HId useId = getDefForUse (reg, 0, 0);
-				defId = gen.next();
-				printf ("%d = ld(%d,%d);\n", defId, useId, words);
-				HId newstckptr = gen.next();
+				HSSAId useId = getDefForUse (reg, 0, 0);
+				defId = addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words) }});
+				printf ("%d = ld(%d,%d);\n", defId.id, useId.id, words);
+				HSSAId newstckptr;
 				switch (stack->policy) {
 				case H_STACKPOLICY_TOP:
-					printf ("%d = -(%d,0x%x);\n", newstckptr, useId, words);
+					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_SUB, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words) }});
+					printf ("%d = -(%d,0x%x);\n", newstckptr.id, useId.id, words);
 					break;
 				case H_STACKPOLICY_BOTTOM:
-					printf ("%d = +(%d,0x%x);\n", newstckptr, useId, words);
+					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_ADD, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words) }});
+					printf ("%d = +(%d,0x%x);\n", newstckptr.id, useId.id, words);
 					break;
 				}
 				createDef (stack->trackingReg, newstckptr);
@@ -436,53 +464,57 @@ namespace holodec {
 			}
 			return defId;
 		}
-		HId getTempDef (HId id, uint64_t offset = 0, uint64_t size = 0) {
+		HSSAId getTempDef (HId id, uint64_t offset = 0, uint64_t size = 0) {
 			for (HSSAGenDef& def : tmp.defs) {
 				if (def.id == id) {
 					if (!offset && (!size || def.size == size)) {
 						return def.ssaId;
 					} else {
-						HId id = gen.next();
-						printf ("%d = Split(%d,%d,%d);\n", id, def.ssaId, offset, size ? size : def.size);
+						HSSAId id = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_TYPE_UINT, size ? size : def.size, 0, {HSSAArg::createArg (def.ssaId), HSSAArg::createArg (offset), HSSAArg::createArg (size ? size : def.size) }});
+						printf ("%d = Split(%d,%d,%d);\n", id.id, def.ssaId.id, offset, size ? size : def.size);
 						return id;
 					}
 				}
 			}
 			assert (false);
-			return 0;
+			return {0, 0};
 		}
-		HId createTempDef (HId id, uint64_t size) {
+		HSSAId createTempDef (HId id, HSSAId ssaId, uint64_t size) {
 			for (auto it = tmp.defs.begin(); it != tmp.defs.end(); it++) {
 				if ( (*it).id == id) {
-					HId ssaId = gen.next();
 					*it = {id, 0, size, ssaId};
 					return ssaId;
 				}
 			}
-			HId ssaId = gen.next();
 			tmp.defs.push_back ({id, 0, size, ssaId});
 			return ssaId;
 		}
 
 		void print (int indent = 0) {
-			printf ("Reg Defs -------------\n");
-			for (HSSAGenRegDef& regdef : regDefs) {
-				printIndent (indent);
-				printf ("Parent Reg: %s Cleared? %d\n", arch->getParentRegister (regdef.parentRegId)->name.cstr(), regdef.cleared);
-				for (HSSAGenDef& def : regdef.defs) {
+			for (HSSAGenBasicBlock& bb : bbs) {
+				printf ("Inputs\n");
+				for (HSSAGenRegDef& regdef : bb.inputs) {
+					printIndent (indent);
+					printf ("Parent Reg: %s Cleared? %d\n", arch->getParentRegister (regdef.parentRegId)->name.cstr(), regdef.cleared);
+					for (HSSAGenDef& def : regdef.defs) {
 
-					printIndent (indent + 1);
-					printf ("Id: %d R:%s Offset: %d Size: %d\n", def.ssaId, arch->getRegister (def.id)->name.cstr(), def.offset, def.size);
+						printIndent (indent + 1);
+						printf ("Id: %d R:%s Offset: %d Size: %d\n", def.ssaId, arch->getRegister (def.id)->name.cstr(), def.offset, def.size);
+					}
 				}
-			}
-			printf ("Inputs\n");
-			for (HSSAGenRegDef& regdef : genBB.inputs) {
-				printIndent (indent);
-				printf ("Parent Reg: %s Cleared? %d\n", arch->getParentRegister (regdef.parentRegId)->name.cstr(), regdef.cleared);
-				for (HSSAGenDef& def : regdef.defs) {
+				printf ("Outputs\n");
+				for (HSSAGenRegDef& regdef : bb.outputs) {
+					printIndent (indent);
+					printf ("Parent Reg: %s Cleared? %d\n", arch->getParentRegister (regdef.parentRegId)->name.cstr(), regdef.cleared);
+					for (HSSAGenDef& def : regdef.defs) {
 
-					printIndent (indent + 1);
-					printf ("Id: %d R:%s Offset: %d Size: %d\n", def.ssaId, arch->getRegister (def.id)->name.cstr(), def.offset, def.size);
+						printIndent (indent + 1);
+						printf ("Id: %d R:%s Offset: %d Size: %d\n", def.ssaId, arch->getRegister (def.id)->name.cstr(), def.offset, def.size);
+					}
+				}
+				printf ("Vals\n");
+				for (HSSAExpression& expr : bb.exprs) {
+					expr.print (indent + 1);
 				}
 			}
 		}
@@ -494,149 +526,152 @@ namespace holodec {
 		uint64_t val;
 	};
 
-	HId parseIRtoSSA (HId nodeid, HSSAGenState* state);
-	HId parseIRtoSSAExpr (HId nodeid, HSSAGenState* state);
-	HId parseIRtoSSAVal (HId nodeid, HSSAGenState* state);
-	HId parseIROptoSSA (HIRExpression* expr, HSSAGenState* state);
-	HId parseIRAssigntoSSA (HIRExpression* expr, HSSAGenState* state);
-	HId parseIRArgValtoSSA (HIRExpression* expr, HSSAGenArgument* arg, HSSAGenState* state);
-	HId parseIRSizetoSSA (HIRExpression* expr, HSSAGenState* state);
-	HId parseIRExtendtoSSA (HIRExpression* expr, HSSAGenState* state);
-	HId parseIRFlagtoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAId parseIRtoSSA (HId nodeid, HSSAGenState* state);
+	HSSAId parseIRtoSSAExpr (HId nodeid, HSSAGenState* state);
+	HSSAId parseIRtoSSAVal (HId nodeid, HSSAGenState* state);
+	HSSAId parseIROptoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAId parseIRAssigntoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAId parseIRArgValtoSSA (HIRExpression* expr, HSSAGenArgument* arg, HSSAGenState* state);
+	HSSAId parseIRSizetoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAId parseIRExtendtoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAId parseIRFlagtoSSA (HIRExpression* expr, HSSAGenState* state);
 	HSSAConstData getIRExprConst (HId nodeId, HSSAGenState* state);
 
-	HId parseIRtoSSA (HId rootId, HSSAGenState* state) {
+	HSSAId parseIRtoSSA (HId rootId, HSSAGenState* state) {
 		return parseIRtoSSAExpr (rootId, state);
 	}
-	HId parseIRtoSSAExpr (HId nodeid, HSSAGenState* state) {
+	HSSAId parseIRtoSSAExpr (HId nodeid, HSSAGenState* state) {
 		if (!nodeid)
 			assert (false);
 		HIRExpression* expr = state->arch->getIrExpr (nodeid);
 		if (!expr)
 			assert (false);
-		HId returnId = parseIRtoSSAVal (nodeid, state);
+		HSSAId returnId = parseIRtoSSAVal (nodeid, state);
 		if (expr->type == HIR_EXPR_ARG) {//if it is a memory access load the from memory
 			uint64_t i = expr->mod.var_index;
 			if (state->args[i - 1].type == HSSAGEN_TYPE_ARG_MEM) {
-				HId src = returnId;
-				returnId = state->gen.next();
-				printf ("%d = #ld(%d,%d)\n", returnId, src, state->args[i - 1].size);
+				HSSAId src = returnId;
+				returnId = state->addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_TYPE_INT, state->args[i - 1].size, 0, {HSSAArg::createArg (src), HSSAArg::createArg (state->args[i - 1].size) }});
 			}
 		}
 		return returnId;
 	}
-	HId genOp (const char* str, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
+	HSSAId genOp (HSSAOperatorType opType, HSSAType type, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
 		if ( (expr->subexprcount - offset) == 1)
 			return parseIRtoSSAExpr (expr->subexpressions[offset], state);
-		HId ids[3] = {0, 0, 0};
+		HSSAId ids[3] = {0, 0, 0};
 		ids[0] = parseIRtoSSAExpr (expr->subexpressions[offset], state);
-		ids[1] = genOp (str, expr, state, offset + 1);
-		ids[2] = state->gen.next();
-		printf ("%d = %s(%d,%d)\n", ids[2], str, ids[0], ids[1]);
+		ids[1] = genOp (opType, type, expr, state, offset + 1);
+		ids[2] = state->addSSAExpression ({0, HSSA_EXPR_OP, opType, type, 0, 0, {HSSAArg::createArg (ids[0]), HSSAArg::createArg (ids[1]) }});
 		state->lastOp = ids[2];
 		return ids[2];
 	}
-	HId genOp (const char* str1, const char* str2, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
+	HSSAId genOp (HSSAOperatorType opType1, HSSAType type1, HSSAOperatorType opType2, HSSAType type2, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
 		if ( (expr->subexprcount - offset) == 1)
 			return parseIRtoSSAExpr (expr->subexpressions[offset], state);
-		HId ids[3] = {0, 0, 0};
+		HSSAId ids[3] = {0, 0, 0};
 		ids[0] = parseIRtoSSAExpr (expr->subexpressions[offset], state);
-		ids[1] = genOp (str2, expr, state, offset + 1);
-		ids[2] = state->gen.next();
-		printf ("%d = %s(%d,%d)\n", ids[2], str1, ids[0], ids[1]);
+		ids[1] = genOp (opType2, type2, expr, state, offset + 1);
+		ids[2] = state->addSSAExpression ({0, HSSA_EXPR_OP, opType1, type1, 0, 0, {HSSAArg::createArg (ids[0]), HSSAArg::createArg (ids[1]) }});
 		state->lastOp = ids[2];
 		return ids[2];
 	}
-	HId parseIROptoSSA (HIRExpression* expr, HSSAGenState* state) {
+	HSSAId genSOp (HSSAOperatorType opType, HSSAType type, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
+		if ( (expr->subexprcount - offset) != 1)
+			assert (false);
+		HSSAId ids[2] = {0, 0};
+		ids[0] = parseIRtoSSAExpr (expr->subexpressions[offset], state);
+		ids[1] = state->addSSAExpression ({0, HSSA_EXPR_OP, opType, type, 0, 0, {HSSAArg::createArg (ids[0]) }});
+		state->lastOp = ids[1];
+		return ids[1];
+	}
+	HSSAId parseIROptoSSA (HIRExpression* expr, HSSAGenState* state) {
 		switch (expr->token) {
 		case HIR_TOKEN_ADD:
-			return genOp ("+", expr, state);
+			return genOp (HSSA_OP_ADD, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_SADD:
-			return genOp ("#sadd", expr, state);
+			return genOp (HSSA_OP_ADD, HSSA_TYPE_INT, expr, state);
 		case HIR_TOKEN_FADD:
-			return genOp ("#fadd", expr, state);
+			return genOp (HSSA_OP_ADD, HSSA_TYPE_FLOAT, expr, state);
 		case HIR_TOKEN_SUB:
-			return genOp ("-", "+", expr, state);
+			return genOp (HSSA_OP_SUB, HSSA_TYPE_UINT, HSSA_OP_ADD, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_SSUB:
-			return genOp ("#ssub", "#sadd", expr, state);
+			return genOp (HSSA_OP_SUB, HSSA_TYPE_INT, HSSA_OP_ADD, HSSA_TYPE_INT, expr, state);
 		case HIR_TOKEN_FSUB:
-			return genOp ("#fsub", "#fadd", expr, state);
+			return genOp (HSSA_OP_SUB, HSSA_TYPE_FLOAT, HSSA_OP_ADD, HSSA_TYPE_FLOAT, expr, state);
 		case HIR_TOKEN_MUL:
-			return genOp ("*", expr, state);
+			return genOp (HSSA_OP_MUL, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_SMUL:
-			return genOp ("#smul", expr, state);
+			return genOp (HSSA_OP_MUL, HSSA_TYPE_INT, expr, state);
 		case HIR_TOKEN_FMUL:
-			return genOp ("#fmul", expr, state);
+			return genOp (HSSA_OP_MUL, HSSA_TYPE_FLOAT, expr, state);
 		case HIR_TOKEN_DIV:
-			return genOp ("#div", "*", expr, state);
+			return genOp (HSSA_OP_DIV, HSSA_TYPE_UINT, HSSA_OP_MUL, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_SDIV:
-			return genOp ("#sdiv", "#smul", expr, state);
+			return genOp (HSSA_OP_DIV, HSSA_TYPE_INT, HSSA_OP_MUL, HSSA_TYPE_INT, expr, state);
 		case HIR_TOKEN_FDIV:
-			return genOp ("#fdiv", "#fmul", expr, state);
+			return genOp (HSSA_OP_DIV, HSSA_TYPE_FLOAT, HSSA_OP_MUL, HSSA_TYPE_FLOAT, expr, state);
 		case HIR_TOKEN_MOD:
-			return genOp ("#mod", "*", expr, state);
+			return genOp (HSSA_OP_MOD, HSSA_TYPE_UINT, HSSA_OP_MUL, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_SMOD:
-			return genOp ("#smod", "#smul", expr, state);
+			return genOp (HSSA_OP_MOD, HSSA_TYPE_INT, HSSA_OP_MUL, HSSA_TYPE_INT, expr, state);
 		case HIR_TOKEN_FMOD:
-			return genOp ("#fmod", "#fmul", expr, state);
+			return genOp (HSSA_OP_MOD, HSSA_TYPE_FLOAT, HSSA_OP_MUL, HSSA_TYPE_FLOAT, expr, state);
 		case HIR_TOKEN_NEG:
-			return genOp ("#neg", expr, state);
+			return genOp (HSSA_OP_BNOT, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_FNEG:
-			return genOp ("#fneg", expr, state);
+			return genOp (HSSA_OP_BNOT, HSSA_TYPE_FLOAT, expr, state);
 		//Comparison
 		case HIR_TOKEN_CMP_E:
-			return genOp ("#cmp_eq", expr, state);
+			return genOp (HSSA_OP_E, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_CMP_NE:
-			return genOp ("#cmp_neq", expr, state);
+			return genOp (HSSA_OP_NE, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_CMP_L:
-			return genOp ("#cmp_l", expr, state);
+			return genOp (HSSA_OP_L, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_CMP_LE:
-			return genOp ("#cmp_le", expr, state);
+			return genOp (HSSA_OP_LE, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_CMP_G:
-			return genOp ("#cmp_g", expr, state);
+			return genOp (HSSA_OP_G, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_CMP_GE:
-			return genOp ("#cmp_ge", expr, state);
+			return genOp (HSSA_OP_GE, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_CMP_NOT:
-			return genOp ("#cmp_not", expr, state);
+			return genSOp (HSSA_OP_NOT, HSSA_TYPE_UINT, expr, state);
 		//
 		case HIR_TOKEN_AND:
-			return genOp ("#and", expr, state);
+			return genOp (HSSA_OP_AND, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_OR:
-			return genOp ("#or", expr, state);
+			return genOp (HSSA_OP_OR, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_XOR:
-			return genOp ("#xor", expr, state);
+			return genOp (HSSA_OP_XOR, HSSA_TYPE_UINT, expr, state);
 		//Bit Operators
 		case HIR_TOKEN_BAND:
-			return genOp ("#band", expr, state);
+			return genOp (HSSA_OP_BAND, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_BOR:
-			return genOp ("#bor", expr, state);
+			return genOp (HSSA_OP_BOR, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_BXOR:
-			return genOp ("#bxor", expr, state);
+			return genOp (HSSA_OP_BXOR, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_BNOT:
-			return genOp ("#bnot", expr, state);
+			return genSOp (HSSA_OP_BNOT, HSSA_TYPE_UINT, expr, state);
 		//Shifts - Rotates
 		case HIR_TOKEN_SHR:
-			return genOp ("#shr", expr, state);
+			return genOp (HSSA_OP_SHR, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_SHL:
-			return genOp ("#shl", expr, state);
+			return genOp (HSSA_OP_SHL, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_SAR:
-			return genOp ("#sar", expr, state);
+			return genOp (HSSA_OP_SAR, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_SAL:
-			return genOp ("#sal", expr, state);
+			return genOp (HSSA_OP_SAL, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_ROR:
-			return genOp ("#ror", expr, state);
+			return genOp (HSSA_OP_ROR, HSSA_TYPE_UINT, expr, state);
 		case HIR_TOKEN_ROL:
-			return genOp ("#rol", expr, state);
+			return genOp (HSSA_OP_ROL, HSSA_TYPE_UINT, expr, state);
 		default:
 			assert (false);
 
 		}
-		//TODO properly handle instructions
-		printf ("Op...\n");
-		return 0;
+		return {0, 0};
 	}
-	HId parseIRArgValtoSSA (HIRExpression* expr, HSSAGenArgument* arg, HSSAGenState* state) {
-		HId id = 0;
+	HSSAId parseIRArgValtoSSA (HIRExpression* expr, HSSAGenArgument* arg, HSSAGenState* state) {
 		switch (arg->type) {
 		case HSSAGEN_TYPE_ARG_REG:
 			return state->getDefForUse (arg->reg, expr->mod.index, expr->mod.size);
@@ -644,78 +679,72 @@ namespace holodec {
 			//TODO
 			break;
 		case HSSAGEN_TYPE_ARG_MEM: {
-			HId base = arg->mem.base ? state->getDefForUse (arg->mem.base) : 0;
-			HId index = arg->mem.index ? state->getDefForUse (arg->mem.index) : 0;
-			id = state->gen.next();
-			printf ("%d = ", id);
-			printf ("[");
+			HSSAId base = {0, 0};
+			base = arg->mem.base ? state->getDefForUse (arg->mem.base) : base;
+			HSSAId index = {0, 0};
+			index = arg->mem.index ? state->getDefForUse (arg->mem.index) : index;
+			HSSAId id = state->addSSAExpression ({0, HSSA_EXPR_MEM, HSSA_OP_INVALID, HSSA_TYPE_UINT, state->arch->bitbase, 0, {}});
+			HSSAExpression* ssaExpr = state->getSSAExpression (id);
 			bool pre = false;
 			if (base) {
-				printf ("%d", base);
-				pre = true;
+				ssaExpr->subExpressions.add (HSSAArg::createArg (base));
+			} else {
+				ssaExpr->subExpressions.add (HSSAArg::createArg ( (uint64_t) 0));
 			}
 			if (index && arg->mem.scale) {
-				if (pre)
-					printf (" + ");
-				printf ("%d*0x%x", index, arg->mem.scale);
-				pre = true;
+				ssaExpr->subExpressions.add (HSSAArg::createArg (index));
+				ssaExpr->subExpressions.add (HSSAArg::createArg (arg->mem.scale));
+			} else {
+				ssaExpr->subExpressions.add (HSSAArg::createArg ( (uint64_t) 0));
+				ssaExpr->subExpressions.add (HSSAArg::createArg ( (uint64_t) 0));
 			}
 			if (arg->mem.disp) {
-				if (pre)
-					printf (" + ");
-				printf ("%s0x%x", arg->mem.disp < 0 ? "-" : "", arg->mem.disp < 0 ? - (unsigned) arg->mem.disp : arg->mem.disp);
+				ssaExpr->subExpressions.add (HSSAArg::createArg (arg->mem.disp));
+			} else {
+				ssaExpr->subExpressions.add (HSSAArg::createArg ( (int64_t) 0));
 			}
-			printf ("]\n");
-			break;
+			return id;
 		}
 		case HSSAGEN_TYPE_ARG_VAL:
-			id = state->gen.next();
-			printf ("%d = Value(0x%x, %d)\n", id, arg->value, arg->size);
+			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_TYPE_UINT, arg->size, 0, {HSSAArg::createArg (arg->value) }});
 			break;
 		case HSSAGEN_TYPE_ARG_FVAL:
-			id = state->gen.next();
-			printf ("%d = FValue(%f, %d)\n", id, arg->fvalue, arg->size);
+			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_TYPE_FLOAT, arg->size, 0, {HSSAArg::createArg (arg->value) }});
 			break;
 		case HSSAGEN_TYPE_ARG_SSA:
-			id = arg->ssaId;
+			return arg->ssaId;
 			break;
 		}
-		return id;
+		assert (false);
+		return {0, 0};
 	}
-	HId parseIRFlagtoSSA (HIRExpression* expr, HSSAGenState* state) {
-		HId id = state->gen.next();
+	HSSAId parseIRFlagtoSSA (HIRExpression* expr, HSSAGenState* state) {
+		HSSAId id;
 		switch (expr->token) {
 		case HIR_TOKEN_FLAG_C:
-			printf ("%d = Flag_Carry(%d)\n", id, state->lastOp);
-			return id;
+			return state->addSSAExpression ({0, HSSA_EXPR_FLAG_C, HSSA_OP_INVALID, HSSA_TYPE_UINT, 1, 0, {HSSAArg::createArg (state->lastOp) }});
 		case HIR_TOKEN_FLAG_A:
-			printf ("%d = Flag_HalfCarry(%d)\n", id, state->lastOp);
-			return id;
+			return state->addSSAExpression ({0, HSSA_EXPR_FLAG_A, HSSA_OP_INVALID, HSSA_TYPE_UINT, 1, 0, {HSSAArg::createArg (state->lastOp) }});
 		case HIR_TOKEN_FLAG_P:
-			printf ("%d = Flag_Parity(%d)\n", id, state->lastOp);
-			return id;
+			return state->addSSAExpression ({0, HSSA_EXPR_FLAG_P, HSSA_OP_INVALID, HSSA_TYPE_UINT, 1, 0, {HSSAArg::createArg (state->lastOp) }});
 		case HIR_TOKEN_FLAG_O:
-			printf ("%d = Flag_Overflow(%d)\n", id, state->lastOp);
-			return id;
+			return state->addSSAExpression ({0, HSSA_EXPR_FLAG_O, HSSA_OP_INVALID, HSSA_TYPE_UINT, 1, 0, {HSSAArg::createArg (state->lastOp) }});
 		case HIR_TOKEN_FLAG_Z:
-			printf ("%d = Flag_Zero(%d)\n", id, state->lastOp);
-			return id;
+			return state->addSSAExpression ({0, HSSA_EXPR_FLAG_Z, HSSA_OP_INVALID, HSSA_TYPE_UINT, 1, 0, {HSSAArg::createArg (state->lastOp) }});
 		case HIR_TOKEN_FLAG_S:
-			printf ("%d = Flag_Signed(%d)\n", id, state->lastOp);
-			return id;
-		default:
-			assert (false);
+			return state->addSSAExpression ({0, HSSA_EXPR_FLAG_S, HSSA_OP_INVALID, HSSA_TYPE_UINT, 1, 0, {HSSAArg::createArg (state->lastOp) }});
 		}
-		return 0;
+		assert (false);
+		return {0, 0};
 	}
-	HId parseIRAssigntoSSA (HIRExpression* expr, HSSAGenState* state) {
+	HSSAId parseIRAssigntoSSA (HIRExpression* expr, HSSAGenState* state) {
 
-		HId targetId = parseIRtoSSAExpr (expr->subexpressions[1], state);
+		HSSAId targetId = parseIRtoSSAExpr (expr->subexpressions[1], state);
 		HIRExpression* targetExpr = state->arch->getIrExpr (expr->subexpressions[0]);
 		if (targetExpr) {
 			switch (targetExpr->type) {
 			case HIR_EXPR_TMP: {
-				return state->createTempDef (targetExpr->mod.var_index, 0);
+				return state->createTempDef (targetExpr->mod.var_index, targetId, 0);
 			}
 			break;
 			case HIR_EXPR_ARG: {
@@ -727,13 +756,12 @@ namespace holodec {
 					return targetId;
 				}
 				case HSSAGEN_TYPE_ARG_STCK:
-					//TODO
+					//should not be able to assign onto stack
+					assert (false);
 					break;
 				case HSSAGEN_TYPE_ARG_MEM: {
-					HId val = parseIRArgValtoSSA (targetExpr, &arg, state);
-					HId id = state->gen.next();
-					printf ("%d = #st(%d,%d)\n", id, val, targetId);
-					return id;
+					HSSAId val = parseIRArgValtoSSA (targetExpr, &arg, state);
+					return state->addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_TYPE_MEM, 0, 0, {HSSAArg::createArg (val), HSSAArg::createArg (targetId) }});
 				}
 				case HSSAGEN_TYPE_ARG_SSA:
 					return arg.ssaId;
@@ -743,7 +771,8 @@ namespace holodec {
 			}
 			break;
 			case HIR_EXPR_STCK:
-				//TODO
+				//should not be able to assign onto stack
+				assert (false);
 				break;
 			case HIR_EXPR_REG: {
 				assert (!targetExpr->mod.index && !targetExpr->mod.size);
@@ -752,12 +781,11 @@ namespace holodec {
 			default://can not write to other expressions
 				break;
 			}
-			assert (false);
 		}
-		printf ("Assign\n");
+		assert (false);
 	}
-	HId parseIRSizetoSSA (HIRExpression* expr, HSSAGenState* state) {
-		HId id = state->gen.next();
+	HSSAId parseIRSizetoSSA (HIRExpression* expr, HSSAGenState* state) {
+		HSSAId id;
 		HIRExpression* subexpr = state->arch->getIrExpr (expr->subexpressions[0]);
 		uint64_t size = 0;
 		if (subexpr->mod.size) {
@@ -773,51 +801,46 @@ namespace holodec {
 					size = reg->size;
 			}
 		}
-		if (expr->type == HIR_EXPR_SIZE)
-			printf ("%d = Value(0x%x, 0)\n", id, subexpr->mod.size / state->arch->wordbase);
-		else if (expr->type == HIR_EXPR_BSIZE)
-			printf ("%d = Value(0x%x, 0)\n", id, subexpr->mod.size);
-		else
-			assert (false);
-		return id;
+		if (expr->type == HIR_EXPR_SIZE) {
+			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_TYPE_UINT, state->arch->bitbase, 0, {HSSAArg::createArg (subexpr->mod.size / state->arch->wordbase) }});
+		} else if (expr->type == HIR_EXPR_BSIZE) {
+			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_TYPE_UINT, state->arch->bitbase, 0, {HSSAArg::createArg (subexpr->mod.size) }});
+		}
+		assert (false);
+		return {0, 0};
 	}
-	HId parseIRExtendtoSSA (HIRExpression* expr, HSSAGenState* state) {
+	HSSAId parseIRExtendtoSSA (HIRExpression* expr, HSSAGenState* state) {
 		HSSAConstData constData = getIRExprConst (expr->subexpressions[1], state);
 
 		if (constData.isConst) {
-			HId sourceId = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			HId id = state->gen.next();
+			HSSAId sourceId = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			HSSAId id;
 			switch (expr->type) {
 			case HIR_EXPR_EXTEND:
-				printf ("%d = Extend(%d, 0x%x)\n", id, sourceId, constData.val);
-				break;
+				return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_TYPE_UINT, constData.val, 0, {HSSAArg::createArg (sourceId) }});
 			case HIR_EXPR_SEXTEND:
-				printf ("%d = SExtend(%d, 0x%x)\n", id, sourceId, constData.val);
-				break;
+				return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_TYPE_INT, constData.val, 0, {HSSAArg::createArg (sourceId) }});
 			case HIR_EXPR_FEXTEND:
-				printf ("%d = FExtend(%d, 0x%x)\n", id, sourceId, constData.val);
-				break;
+				return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_TYPE_FLOAT, constData.val, 0, {HSSAArg::createArg (sourceId) }});
 			}
 			return id;
 		} else {
+			assert (false);
 			assert (expr->subexprcount == 2);
-			HId ids[2] = {0, 0};
+			HSSAId ids[2];
 			for (size_t i = 0; i < expr->subexprcount; i++) {
 				ids[i] = parseIRtoSSAExpr (expr->subexpressions[i], state);
 			}
-			HId id = state->gen.next();
-			printf ("%d = Extend(%d, %d);\n", id, ids[0], ids[1]);
-			return id;
+			return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_TYPE_UINT, constData.val, 0, {HSSAArg::createArg (ids[0]) }});
 		}
 	}
-	HId parseIRtoSSAVal (HId nodeid, HSSAGenState* state) {
+	HSSAId parseIRtoSSAVal (HId nodeid, HSSAGenState* state) {
 		if (!nodeid)
 			assert (false);
 		HIRExpression* expr = state->arch->getIrExpr (nodeid);
 		if (!expr)
 			assert (false);
 
-		HId id = 0;
 		switch (expr->type) {
 		case HIR_EXPR_UNDEF:
 			for (int i = 0; i < expr->subexprcount; i++) {
@@ -829,22 +852,17 @@ namespace holodec {
 				else
 					assert (false);
 			}
-			return 0;
+			return {0, 0};
 		case HIR_EXPR_OP:
 			return parseIROptoSSA (expr, state);
 		case HIR_EXPR_NOP:
-			printf ("Nop\n");
 			break;
 		case HIR_EXPR_ASSIGN:
 			return parseIRAssigntoSSA (expr, state);
 		case HIR_EXPR_FLOAT:
-			id = state->gen.next();
-			printf ("%d = FValue(%f, %d)\n", id, expr->fvalue, expr->mod.size);
-			break;
+			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_TYPE_FLOAT, expr->mod.size, 0, {HSSAArg::createArg (expr->fvalue) }});
 		case HIR_EXPR_NUMBER:
-			id = state->gen.next();
-			printf ("%d = Value(%d, %d)\n", id, expr->value, expr->mod.size);
-			break;
+			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_TYPE_FLOAT, expr->mod.size, 0, {HSSAArg::createArg (expr->value) }});
 		case HIR_EXPR_SEQUENCE:
 			for (int i = 0; i < expr->subexprcount; i++) {
 				parseIRtoSSAExpr (expr->subexpressions[i], state);
@@ -873,7 +891,7 @@ namespace holodec {
 				if (selectVal >= expr->subexprcount) selectVal = expr->subexprcount - 1;
 				return parseIRtoSSAExpr (expr->subexpressions[selectVal], state);
 			} else {
-				HId cond = parseIRtoSSAExpr (expr->subexpressions[0], state);
+				HSSAId cond = parseIRtoSSAExpr (expr->subexpressions[0], state);
 				if (expr->subexprcount == 2) {
 					printf ("jz(%d,L)\n", cond);
 					parseIRtoSSAExpr (expr->subexpressions[1], state);
@@ -895,18 +913,24 @@ namespace holodec {
 					printf ("END:\n");
 				}
 			}
+			break;
 		}
-		break;
 		case HIR_EXPR_APPEND: {
-			id = state->gen.next();
-			printf ("%d = Append(", id);
+			HSSAId id = state->addSSAExpression ({0, HSSA_EXPR_APPEND, HSSA_OP_INVALID, HSSA_TYPE_FLOAT, expr->mod.size, 0, {}});
+			printf ("%d = Append(", id.id);
 			printf ("%d", parseIRtoSSAExpr (expr->subexpressions[0], state));
+			HSSAId ids[expr->subexprcount];
 			for (int i = 1; i < expr->subexprcount; i++) {
-				printf (", %d", parseIRtoSSAExpr (expr->subexpressions[i], state));
+				ids[i] = parseIRtoSSAExpr (expr->subexpressions[i], state);
+				printf (", %d", ids[i].id);
 			}
 			printf (");\n", id);
+			HSSAExpression* ssaExpr = state->getSSAExpression (id);
+			for (int i = 1; i < expr->subexprcount; i++) {
+				ssaExpr->subExpressions.add (HSSAArg::createArg (ids[i]));
+			}
+			break;
 		}
-		break;
 
 		case HIR_EXPR_EXTEND:
 		case HIR_EXPR_SEXTEND:
@@ -920,58 +944,58 @@ namespace holodec {
 			return parseIRArgValtoSSA (expr, &state->args[i - 1], state);
 		}
 		case HIR_EXPR_STCK:
+			//shouldn't happen
+			assert (false);
 			break;
-		//TODO
 		case HIR_EXPR_REG:
 			return state->getDefForUse (expr->reg, expr->mod.index, expr->mod.size);
 		case HIR_EXPR_FLAG:
 			return parseIRFlagtoSSA (expr, state);
 
-		case HIR_EXPR_REC:{
-			printf ("Rec %s\n", expr->mod.name_index.cstr());
+		case HIR_EXPR_REC: {
 			HList<HSSAGenArgument> argList;
-			
-			for(int i = 0; i < expr->subexprcount; i++){
-				HIRExpression* subexpr = state->arch->getIrExpr(expr->subexpressions[i]);
-				switch(subexpr->type){
-					case HIR_EXPR_REG:{
-						HSSAGenArgument arg;
-						arg.type = HSSAGEN_TYPE_ARG_REG;
-						arg.reg = expr->reg;
-						argList.push_back(arg);
-					}
+
+			for (int i = 0; i < expr->subexprcount; i++) {
+				HIRExpression* subexpr = state->arch->getIrExpr (expr->subexpressions[i]);
+				switch (subexpr->type) {
+				case HIR_EXPR_REG: {
+					HSSAGenArgument arg;
+					arg.type = HSSAGEN_TYPE_ARG_REG;
+					arg.reg = expr->reg;
+					argList.push_back (arg);
+				}
+				break;
+				case HIR_EXPR_STCK: {
+					HSSAGenArgument arg;
+					arg.type = HSSAGEN_TYPE_ARG_STCK;
+					arg.stackid = expr->stck;
+					arg.stackindex = expr->mod.var_index;
+					argList.push_back (arg);
+				}
+				break;
+				case HIR_EXPR_ARG:
+					argList.push_back (state->args[subexpr->mod.var_index - 1]);
 					break;
-					case HIR_EXPR_STCK:{
-						HSSAGenArgument arg;
-						arg.type = HSSAGEN_TYPE_ARG_STCK;
-						arg.stackid = expr->stck;
-						arg.stackindex = expr->mod.var_index;
-						argList.push_back(arg);
-					}
+				default:
+					HSSAGenArgument arg;
+					arg.type = HSSAGEN_TYPE_ARG_SSA;
+					arg.ssaId = parseIRtoSSAExpr (expr->subexpressions[i], state);
+					argList.push_back (arg);
 					break;
-					case HIR_EXPR_ARG:
-						argList.push_back(state->args[subexpr->mod.var_index - 1]);
-					break;
-					default:
-						HSSAGenArgument arg;
-						arg.type = HSSAGEN_TYPE_ARG_SSA;
-						arg.ssaId = parseIRtoSSAExpr (expr->subexpressions[i],state);
-						argList.push_back(arg);
-						break;
 				}
 			}
-			
+
 			HList<HSSAGenArgument> cacheList = state->args;
 			HSSAGenTmp cacheTmp = state->tmp;
 			state->tmp.defs.clear();
 			state->args = argList;
-			HInstrDefinition* def = state->arch->getInstrDef(expr->mod.name_index);
-			assert(def);
-			parseIRtoSSA(def->il_string[expr->subexprcount].rootExpr, state);
+			HInstrDefinition* def = state->arch->getInstrDef (expr->mod.name_index);
+			assert (def);
+			parseIRtoSSA (def->il_string[expr->subexprcount].rootExpr, state);
 			state->tmp = cacheTmp;
 			state->args = cacheList;
 		}
-			break;
+		break;
 		case HIR_EXPR_CUSTOM: {
 			HStack* stack = state->arch->getStack (expr->mod.name_index);
 			assert (stack);
@@ -983,39 +1007,42 @@ namespace holodec {
 		break;
 
 		case HIR_EXPR_JMP:
-			printf ("jmp(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state));
+			printf ("jmp(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state).id);
 			break;
 		case HIR_EXPR_RJMP:
-			printf ("rjmp(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state));
+			printf ("rjmp(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state).id);
 			break;
 		case HIR_EXPR_CALL:
-			printf ("call(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state));
+			printf ("call(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state).id);
 			break;
 		case HIR_EXPR_RET:
 			//TODO
-			printf ("ret(%d)\n", state->getDefForUse (state->arch->getRegister ("rax")->id));
+			printf ("ret(%d)\n", state->getDefForUse (state->arch->getRegister ("rax")->id).id);
+			//state->genNewBasicBlock();
 			break;
 		case HIR_EXPR_SYSCALL:
-			printf ("syscall(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state));
+			printf ("syscall(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state).id);
 			break;
 		case HIR_EXPR_TRAP:
-			printf ("trap(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state));
+			printf ("trap(%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state).id);
 			break;
 
 		case HIR_EXPR_VAL:
 			return parseIRtoSSAVal (expr->subexpressions[0], state);
 
-		case HIR_EXPR_CAST2F:
-			id = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			printf ("%d = Cast_to_Float(%d)\n", id, expr->subexpressions[0]);
-			break;
-		case HIR_EXPR_CAST2I:
-			id = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			printf ("%d = Cast_to_Int(%d)\n", id, expr->subexpressions[0]);
-			break;
+		case HIR_EXPR_CAST2F: {
+			HSSAId sid = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			return state->addSSAExpression ({0, HSSA_EXPR_CAST, HSSA_OP_INVALID, HSSA_TYPE_FLOAT, expr->mod.size, 0, {HSSAArg::createArg (sid) }});
+		}
+		break;
+		case HIR_EXPR_CAST2I: {
+			HSSAId sid = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			return state->addSSAExpression ({0, HSSA_EXPR_CAST, HSSA_OP_INVALID, HSSA_TYPE_UINT, expr->mod.size, 0, {HSSAArg::createArg (sid) }});
+		}
+		break;
 
 		case HIR_EXPR_PUSH: {
-			HId id = parseIRtoSSAExpr (expr->subexpressions[1], state);
+			HSSAId id = parseIRtoSSAExpr (expr->subexpressions[1], state);
 			HIRExpression* target = state->arch->getIrExpr (expr->subexpressions[0]);
 			assert (target->type == HIR_EXPR_STCK);
 			state->createPush (target->stck, id);
@@ -1031,84 +1058,31 @@ namespace holodec {
 		}
 
 		case HIR_EXPR_STORE: {
-			printf ("#st(%d,%d)\n", parseIRtoSSAExpr (expr->subexpressions[0], state), parseIRtoSSAExpr (expr->subexpressions[1], state));
+			HSSAId target = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			HSSAId value = parseIRtoSSAExpr (expr->subexpressions[1], state);
+			return state->addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_TYPE_MEM, 0, 0, {HSSAArg::createArg (target), HSSAArg::createArg (value) }});
 		}
 		break;
 		case HIR_EXPR_LOAD: {
-			HId temp = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			id = state->gen.next();
-			printf ("%d = #ld(%d)\n", id, temp);
+			HSSAId temp = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			HSSAConstData constData = getIRExprConst (expr->subexpressions[1], state);
+			assert (constData.isConst);
+			return state->addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_TYPE_UINT, constData.val, 0, {HSSAArg::createArg (temp) }});
 		}
 		break;
 		}
-		return id;
+		return {0, 0};
 	}
 
-	HSSAConstData getIRExprConst (HId nodeId, HSSAGenState* state) {
+	HSSAConstData getIRExprConst (HId nodeId, HSSAGenState * state) {
 		HIRExpression* expr = state->arch->getIrExpr (nodeId);
 
 		switch (expr->type) {
-		case HIR_EXPR_OP: {
-			/*HSSAConstData consts[expr->subexprcount];
-			for (int i = 0; i < expr->subexprcount; i++) {
-				consts[i] = getIRExprConst (expr->subexpressions[i], state);
-				if (!consts[i].isConst)
-					return {false, HSSA_CONST_INVALID, 0};
-			}
-			switch (expr->token) {
-			case HIR_TOKEN_ADD:
-			case HIR_TOKEN_SADD: {
-				uint64_t val = 0;
-				for (int i = 0; i < expr->subexprcount; i++) {
-					if (consts[i].constType != HSSA_CONST_INT)
-						return {false, HSSA_CONST_INVALID, 0};
-					val += consts[i].val;
-				}
-				return {true, HSSA_CONST_INT, val};
-			}
-			case HIR_TOKEN_FADD: {
-				double val = 0;
-				for (int i = 0; i < expr->subexprcount; i++) {
-					if (consts[i].constType != HSSA_CONST_FLOAT)
-						return {false, HSSA_CONST_INVALID, 0};
-					val += consts[i].fval;
-				}
-				return {true, HSSA_CONST_INT, 0, val};
-			}
-			case HIR_TOKEN_SUB:
-			case HIR_TOKEN_SSUB: {
-				if (consts[0].constType != HSSA_CONST_INT)
-					return {false, HSSA_CONST_INVALID, 0};
-				uint64_t val = consts[0].val;
-				for (int i = 1; i < expr->subexprcount; i++) {
-					if (consts[i].constType != HSSA_CONST_INT)
-						return {false, HSSA_CONST_INVALID, 0};
-					val -= consts[i].val;
-				}
-				return {true, HSSA_CONST_INT, val};
-			}
-			case HIR_TOKEN_FSUB: {
-				if (consts[0].constType != HSSA_CONST_FLOAT)
-					return {false, HSSA_CONST_INVALID, 0};
-				double val = consts[0].fval;
-				for (int i = 1; i < expr->subexprcount; i++) {
-					if (consts[i].constType != HSSA_CONST_FLOAT)
-						return {false, HSSA_CONST_INVALID, 0};
-					val -= consts[i].fval;
-				}
-				return {true, HSSA_CONST_INT, 0, val};
-			}
-			default:
-				return {false, HSSA_CONST_INVALID, 0};
-			}*/
-		}
 		case HIR_EXPR_NOP:
 			return {true, 0};
-		case HIR_EXPR_FLOAT:
-			return {false, 0};
 		case HIR_EXPR_NUMBER:
 			return {true, expr->value};
-		case HIR_EXPR_SIZE:{
+		case HIR_EXPR_SIZE: {
 			HIRExpression* subexpr = state->arch->getIrExpr (expr->subexpressions[0]);
 			if (subexpr->mod.size) {
 				return {true, subexpr->mod.size / state->arch->wordbase};
@@ -1116,7 +1090,7 @@ namespace holodec {
 				switch (subexpr->type) {
 				case HIR_EXPR_ARG: {
 					uint64_t i = subexpr->mod.var_index;
-					return {true, state->args[i - 1].size};
+					return {true, state->args[i - 1].size / state->arch->wordbase};
 				}
 				break;
 				case HIR_EXPR_TMP: {
@@ -1124,13 +1098,13 @@ namespace holodec {
 				}
 				break;
 				case HIR_EXPR_REG: {
-					HRegister* reg = state->arch->getRegister(subexpr->reg);
-					assert(reg);
+					HRegister* reg = state->arch->getRegister (subexpr->reg);
+					assert (reg);
 					return {true, reg->size / state->arch->wordbase};
 				}
 				case HIR_EXPR_STCK: {
-					HStack* stack = state->arch->getStack(subexpr->stck);
-					assert(stack);
+					HStack* stack = state->arch->getStack (subexpr->stck);
+					assert (stack);
 					return {true, stack->wordbitsize / state->arch->wordbase};
 				}
 				break;
@@ -1146,7 +1120,7 @@ namespace holodec {
 				switch (subexpr->type) {
 				case HIR_EXPR_ARG: {
 					uint64_t i = subexpr->mod.var_index;
-					return {true, state->args[i - 1].size * state->arch->wordbase};
+					return {true, state->args[i - 1].size};
 				}
 				break;
 				case HIR_EXPR_TMP: {
@@ -1154,13 +1128,13 @@ namespace holodec {
 				}
 				break;
 				case HIR_EXPR_REG: {
-					HRegister* reg = state->arch->getRegister(subexpr->reg);
-					assert(reg);
+					HRegister* reg = state->arch->getRegister (subexpr->reg);
+					assert (reg);
 					return {true, reg->size};
 				}
 				case HIR_EXPR_STCK: {
-					HStack* stack = state->arch->getStack(subexpr->stck);
-					assert(stack);
+					HStack* stack = state->arch->getStack (subexpr->stck);
+					assert (stack);
 					return {true, stack->wordbitsize};
 				}
 				break;
@@ -1193,9 +1167,9 @@ namespace holodec {
 		for (HStack& stack : arch->stacks) {
 			state.stackDefs.push_back ({stack.name, {}});
 		}
-
 		for (HBasicBlock& bb : function->basicblocks) {
 			printf ("Basic Block ------------------------------\n");
+			state.genNewBasicBlock();
 
 			for (HInstruction& instr : bb.instructions) {
 				HIRRepresentation ir = instr.instrdef->il_string[instr.opcount];
