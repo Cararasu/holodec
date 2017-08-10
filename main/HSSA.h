@@ -10,19 +10,19 @@ namespace holodec {
 		HSSA_EXPR_INVALID = 0,
 		HSSA_EXPR_INPUT,  // Predefined variables, correspond to input arguments
 		HSSA_EXPR_UNDEF,  // Predefined variables, correspond to input arguments
+		HSSA_EXPR_NOP,  // Predefined variables, correspond to input arguments
 
 		HSSA_EXPR_VALUE,  // Value
 
-		HSSA_EXPR_OP,  // Predefined variables, correspond to input arguments
+		HSSA_EXPR_OP,
 		// Call - Return
-		HSSA_EXPR_BR,  // Branch
+		HSSA_EXPR_BRANCH,  // For multiple possible targets
+		HSSA_EXPR_JMP, // for one target
 		HSSA_EXPR_CALL,  // a call to a function
-		HSSA_EXPR_RET,  // a return
+		HSSA_EXPR_RETURN,  // a return
 		HSSA_EXPR_SYSCALL,  // a syscall
 		HSSA_EXPR_TRAP,  // a trap
-		// Misc
-		// Int,Any... -> Any
-		HSSA_EXPR_IF,  // depending on the first value n returns the nth value(for conditional jumps/conditional moves/...)
+
 		// Any... -> Any
 		HSSA_EXPR_BUILTIN,  // call a builtin(invalidates all previous variables and creates a new def)
 		// Any  -> Any
@@ -37,7 +37,7 @@ namespace holodec {
 		// Memory
 		HSSA_EXPR_STORE, //mem = mem, addr, value
 		HSSA_EXPR_LOAD, //value = mem, addr
-		
+
 		HSSA_EXPR_FLAG_C,
 		HSSA_EXPR_FLAG_A,
 		HSSA_EXPR_FLAG_P,
@@ -77,12 +77,25 @@ namespace holodec {
 		HSSA_OP_ROR,
 		HSSA_OP_ROL,
 	};
+	enum HSSACondType {
+		HSSA_COND_NONE = 0,
+		HSSA_COND_ZERO,
+		HSSA_COND_NZERO,
+		HSSA_COND_EQ,
+		HSSA_COND_NEQ,
+		HSSA_COND_L,
+		HSSA_COND_LE,
+		HSSA_COND_G,
+		HSSA_COND_GE,
+
+	};
 	enum HSSAType {
 		HSSA_TYPE_UNKNOWN = 0,
 		HSSA_TYPE_INT,
 		HSSA_TYPE_UINT,
 		HSSA_TYPE_FLOAT,
 		HSSA_TYPE_MEM,
+		HSSA_TYPE_PC,
 	};
 
 	enum HSSAArgType {
@@ -91,15 +104,15 @@ namespace holodec {
 		HSSA_ARG_FLOAT,
 		HSSA_ARG_SSA,
 	};
-	struct HSSAId{
+	struct HSSAId {
 		HId id;
 		HId bbid;
-		
-		operator bool(){
+
+		operator bool() {
 			return id && bbid;
 		}
 	};
-	
+
 	struct HSSAArg {
 		HSSAArgType type;
 		union {
@@ -141,6 +154,7 @@ namespace holodec {
 		HId id;
 		HSSAExprType type;
 		HSSAOperatorType opType;
+		HSSACondType condType;
 		HSSAType rettype;//refers to the return type
 		uint64_t retsize;//refers to the return type
 
@@ -148,7 +162,7 @@ namespace holodec {
 
 		HLocalBackedLists<HSSAArg, HSSA_LOCAL_USEID_MAX> subExpressions;
 
-		void print (uint64_t indent = 0) {
+		void print (HId bbId, uint64_t indent = 0) {
 			printIndent (indent);
 			switch (rettype) {
 			case HSSA_TYPE_INT:
@@ -163,8 +177,11 @@ namespace holodec {
 			case HSSA_TYPE_MEM:
 				printf ("Mem ");
 				break;
+			case HSSA_TYPE_PC:
+				printf ("PC ");
+				break;
 			}
-			printf (" %d = ", id);
+			printf (" %d:%d = ", bbId, id);
 			switch (type) {
 			case HSSA_EXPR_INVALID:
 				printf ("Invalid ");
@@ -174,6 +191,9 @@ namespace holodec {
 				break;
 			case HSSA_EXPR_UNDEF:
 				printf ("Undef ");
+				break;
+			case HSSA_EXPR_NOP:
+				printf ("Nop ");
 				break;
 			case HSSA_EXPR_VALUE:
 				printf ("Value ");
@@ -264,13 +284,16 @@ namespace holodec {
 					break;
 				}
 				break;
-			case HSSA_EXPR_BR:
+			case HSSA_EXPR_JMP:
+				printf ("JMP ");
+				break;
+			case HSSA_EXPR_BRANCH:
 				printf ("Branch ");
 				break;
 			case HSSA_EXPR_CALL:
 				printf ("Call ");
 				break;
-			case HSSA_EXPR_RET:
+			case HSSA_EXPR_RETURN:
 				printf ("Ret ");
 				break;
 			case HSSA_EXPR_SYSCALL:
@@ -278,9 +301,6 @@ namespace holodec {
 				break;
 			case HSSA_EXPR_TRAP:
 				printf ("Trap ");
-				break;
-			case HSSA_EXPR_IF:
-				printf ("If ");
 				break;
 			case HSSA_EXPR_BUILTIN:
 				printf ("Builtin ");
@@ -328,8 +348,27 @@ namespace holodec {
 				printf ("Not Defined ");
 				break;
 			}
+			uint64_t subexprcount = subExpressions.size();
+			switch (condType) {
+			case HSSA_COND_NONE:
+			default:
+				break;
+			case HSSA_COND_ZERO:
+			case HSSA_COND_NZERO:
+				subexprcount--;
+				break;
+			case HSSA_COND_EQ:
+			case HSSA_COND_NEQ:
+			case HSSA_COND_L:
+			case HSSA_COND_LE:
+			case HSSA_COND_G:
+			case HSSA_COND_GE:
+				subexprcount -= 2;
+				break;
+			}
+
 			printf ("(");
-			for (int i = 0; i < subExpressions.size(); i++) {
+			for (int i = 0; i < subexprcount; i++) {
 				switch (subExpressions[i].type) {
 				case HSSA_ARG_INT:
 					printf ("%s0x%x,", subExpressions[i].val < 0 ? "-" : "", subExpressions[i].val < 0 ? subExpressions[i].val * -1 : subExpressions[i].val);
@@ -341,14 +380,66 @@ namespace holodec {
 					printf ("%f,", subExpressions[i].fval);
 					break;
 				case HSSA_ARG_SSA:
-					printf ("%d,", subExpressions[i].ssaId);
+					printf ("%d:%d,", subExpressions[i].ssaId.bbid, subExpressions[i].ssaId.id);
 					break;
 				default:
 					printf ("Invalid %d", subExpressions[i].type);
 					break;
 				}
 			}
-			printf (")\n");
+			printf (")");
+			bool cond = condType != HSSA_COND_NONE;
+			if (cond) {
+				printf(" on ");
+				switch (condType) {
+				case HSSA_COND_ZERO:
+					printf("Zero");
+					break;
+				case HSSA_COND_NZERO:
+					printf("NZero");
+					break;
+				case HSSA_COND_EQ:
+					printf("Equals");
+					break;
+				case HSSA_COND_NEQ:
+					printf("NEquals");
+					break;
+				case HSSA_COND_L:
+					printf("Lower");
+					break;
+				case HSSA_COND_LE:
+					printf("LowerEq");
+					break;
+				case HSSA_COND_G:
+					printf("Greater");
+					break;
+				case HSSA_COND_GE:
+					printf("GreaterEq");
+					break;
+				}
+				printf ("(");
+				for (int i = subexprcount; i < subExpressions.size(); i++) {
+					switch (subExpressions[i].type) {
+					case HSSA_ARG_INT:
+						printf ("%s0x%x,", subExpressions[i].val < 0 ? "-" : "", subExpressions[i].val < 0 ? subExpressions[i].val * -1 : subExpressions[i].val);
+						break;
+					case HSSA_ARG_UINT:
+						printf ("0x%x,", subExpressions[i].uval);
+						break;
+					case HSSA_ARG_FLOAT:
+						printf ("%f,", subExpressions[i].fval);
+						break;
+					case HSSA_ARG_SSA:
+						printf ("%d:%d,", subExpressions[i].ssaId.bbid, subExpressions[i].ssaId.id);
+						break;
+					default:
+						printf ("Invalid %d", subExpressions[i].type);
+						break;
+					}
+				}
+				printf (")");
+			}
+			printf ("\n");
 		}
 	};
 	struct HSSAPhiNode {

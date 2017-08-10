@@ -1,4 +1,3 @@
-
 #include "HElfBinaryAnalyzer.h"
 
 const char* instructionsets[] = {
