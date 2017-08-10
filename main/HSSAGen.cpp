@@ -159,7 +159,6 @@ namespace holodec {
 			if (lowerbound < upperbound) {
 				if (regdef->cleared) {
 					HSSAId id = addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, upperbound - lowerbound, 0, {HSSAArg::createArg (upperbound - lowerbound) }});
-					printf ("%d = Value(0x0,%d)\n", id.id, upperbound - lowerbound);
 					return {reg->id, lowerbound, upperbound - lowerbound, id};
 				} else {
 					HSSAId input;
@@ -178,7 +177,6 @@ namespace holodec {
 						}
 					}
 					input = addSSAExpression ({0, HSSA_EXPR_INPUT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, upperbound - lowerbound, 0, {}});
-					printf ("%d = Input(%s,%d)\n", input.id, reg->name.cstr(), upperbound - lowerbound);
 					HSSAGenDef def = {reg->id, lowerbound, upperbound - lowerbound, input};
 					if (foundregdef) {
 						foundregdef->defs.push_back (def);
@@ -260,20 +258,15 @@ namespace holodec {
 					} else {
 						HSSAId id = addSSAExpression ({0, HSSA_EXPR_APPEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size, 0, {}});
 						HSSAExpression* expr = getSSAExpression (id);
-						printf ("%d = Append(", id.id);
 
 						uint64_t resultsize = 0;
 						uint64_t lastupperBound = offset;
 						for (int i = 0; i < localdefcount; i++) {
 							assert (lastupperBound == localdefs[i].offset);
-							if (i)
-								printf (", ");
 							expr->subExpressions.add (HSSAArg::createArg (localdefs[i].ssaId));
-							printf ("%d", localdefs[i].ssaId.id);
 							resultsize += localdefs[i].size;
 							lastupperBound = localdefs[i].offset + localdefs[i].size;
 						}
-						printf (")\n");
 						assert (resultsize == size);
 						return id;
 					}
@@ -302,14 +295,12 @@ namespace holodec {
 									uint64_t offset = 0;
 									uint64_t size = reg->offset - defit.offset;
 									HSSAId splitId = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size, 0, {HSSAArg::createArg (defit.ssaId), HSSAArg::createArg (offset), HSSAArg::createArg (size) }});
-									printf ("%d = Split(%d,%d,%d);\n", splitId.id, defit.ssaId.id, 0, (reg->offset - defit.offset));
 									def[count++] = {defit.id, defit.offset, reg->offset - defit.offset, splitId};
 								}
 								if ( (reg->offset + reg->size) < (defit.offset + defit.size)) {//if ends after
 									uint64_t offset = reg->offset + reg->size;
 									uint64_t size = (defit.offset + defit.size) - (reg->offset + reg->size);
 									HSSAId splitId = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size, 0, {HSSAArg::createArg (defit.ssaId), HSSAArg::createArg (offset), HSSAArg::createArg (size) }});
-									printf ("%d = Split(%d,%d,%d);\n", splitId.id, defit.ssaId.id, offset, size);
 									def[count++] = {defit.id, offset, size, splitId};
 								}
 								if (count) {
@@ -391,15 +382,12 @@ namespace holodec {
 				switch (stack->policy) {
 				case H_STACKPOLICY_TOP:
 					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_ADD, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words * arch->wordbase) }});
-					printf ("%d = +(%d,0x%x);\n", newstckptr.id, useId.id, words);
 					break;
 				case H_STACKPOLICY_BOTTOM:
 					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_SUB, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words * arch->wordbase) }});
-					printf ("%d = -(%d,0x%x);\n", newstckptr.id, useId.id, words);
 					break;
 				}
 				HSSAId defId = addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_MEM, 0, 0, {HSSAArg::createArg (newstckptr), HSSAArg::createArg (id) }});
-				printf ("%d = st(%d,%d);\n", defId.id, newstckptr.id, id);
 				createDef (stack->trackingReg, newstckptr);
 			}
 		}
@@ -447,16 +435,13 @@ namespace holodec {
 				assert (reg);
 				HSSAId useId = getDefForUse (reg, 0, 0);
 				defId = addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words) }});
-				printf ("%d = ld(%d,%d);\n", defId.id, useId.id, words);
 				HSSAId newstckptr;
 				switch (stack->policy) {
 				case H_STACKPOLICY_TOP:
 					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_SUB, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words) }});
-					printf ("%d = -(%d,0x%x);\n", newstckptr.id, useId.id, words);
 					break;
 				case H_STACKPOLICY_BOTTOM:
 					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_ADD, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words) }});
-					printf ("%d = +(%d,0x%x);\n", newstckptr.id, useId.id, words);
 					break;
 				}
 				createDef (stack->trackingReg, newstckptr);
@@ -875,14 +860,18 @@ namespace holodec {
 		case HIR_EXPR_LOOP: {
 			HSSAId jmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
 			HId loopCondId = state->genNewBasicBlock();
-			HSSAId condJmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
+			HSSAId condId = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			HSSAId condJmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NZERO, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
 			HId loopBodyId = state->genNewBasicBlock();
 			for (int i = 1; i < expr->subexprcount; i++) {
 				parseIRtoSSAExpr (expr->subexpressions[i], state);
 			}
-			state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_ZERO, HSSA_TYPE_PC, state->arch->bitbase, 0, {HSSAArg::createArg ({0, loopCondId}) }});
+			state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {HSSAArg::createArg ({0, loopCondId}) }});
 			state->getSSAExpression(jmpId)->subExpressions.add(HSSAArg::createArg({0,loopCondId}));
-			state->getSSAExpression(condJmpId)->subExpressions.add(HSSAArg::createArg({0,loopBodyId}));
+			HSSAExpression* condJumpExpr = state->getSSAExpression(condJmpId);
+			condJumpExpr->subExpressions.add(HSSAArg::createArg({0,loopBodyId}));
+			condJumpExpr->subExpressions.add(HSSAArg::createArg(condId));
+			
 		}
 		break;
 		case HIR_EXPR_IF: {
@@ -908,18 +897,13 @@ namespace holodec {
 				} else {
 					HSSAId branchId = state->addSSAExpression ({0, HSSA_EXPR_BRANCH, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {HSSAArg::createArg (cond) }});
 
-					int i;
-					for (i = 1; i < expr->subexprcount; i++) {
-						printf (",L%d", i);
-					}
 					HId blockIds[expr->subexprcount];
 					HSSAId jumpIds[expr->subexprcount];
-					printf (")\n");
+					int i;
 					for (i = 1; i < expr->subexprcount; i++) {
 						blockIds[i] = state->genNewBasicBlock();
 						parseIRtoSSAExpr (expr->subexpressions[i], state);
 						jumpIds[i] = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
-						printf ("jmp(END)\n");
 					}
 					HSSAId endBlockId;
 					endBlockId.bbid = state->genNewBasicBlock();
@@ -932,7 +916,6 @@ namespace holodec {
 						branchExpr->subExpressions.add (HSSAArg::createArg (blockId));//add parameter to branch
 						state->getSSAExpression (jumpIds[i])->subExpressions.add (HSSAArg::createArg (endBlockId));
 					}
-					printf ("END:\n");
 				}
 			}
 			break;
@@ -1196,13 +1179,12 @@ namespace holodec {
 			state.stackDefs.push_back ({stack.name, {}});
 		}
 		for (HBasicBlock& bb : function->basicblocks) {
-			printf ("Basic Block ------------------------------\n");
 			state.genNewBasicBlock();
 
 			for (HInstruction& instr : bb.instructions) {
 				HIRRepresentation ir = instr.instrdef->il_string[instr.opcount];
 				if (ir) {
-					instr.print (arch);
+					//instr.print (arch);
 					//printf ("SSA------------------\n");
 
 					state.args.clear();

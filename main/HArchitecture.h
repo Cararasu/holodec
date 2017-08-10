@@ -175,7 +175,7 @@ namespace holodec {
 				rr.print (indent + 1);
 			}
 			printIndent (indent);
-			printf ("IR-Expressions\n");
+			/*printf ("IR-Expressions\n");
 			for (HIRExpression& expr : irExpressions.list) {
 				expr.print (this, indent + 1);
 			}
@@ -183,7 +183,7 @@ namespace holodec {
 			printf ("Instructions\n");
 			for (auto & id : instrdefs) {
 				id.second.print (indent + 1);
-			}
+			}*/
 		}
 	};
 
