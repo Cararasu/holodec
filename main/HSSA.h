@@ -99,7 +99,8 @@ namespace holodec {
 	};
 
 	enum HSSAArgType {
-		HSSA_ARG_INT = 1,
+		HSSA_ARG_INVALID = 0,
+		HSSA_ARG_INT,
 		HSSA_ARG_UINT,
 		HSSA_ARG_FLOAT,
 		HSSA_ARG_SSA,
@@ -116,27 +117,35 @@ namespace holodec {
 	struct HSSAArg {
 		HSSAArgType type;
 		union {
-			int64_t val;
-			uint64_t uval;
-			double fval;
+			struct {
+				union {
+					int64_t val;
+					uint64_t uval;
+					double fval;
+				};
+				uint64_t size;
+			};
 			HSSAId ssaId;
 		};
-		static HSSAArg createArg (int64_t val) {
+		static HSSAArg createArg (int64_t val, uint64_t size) {
 			HSSAArg arg;
 			arg.type = HSSA_ARG_INT;
 			arg.val = val;
+			arg.size = size;
 			return arg;
 		}
-		static HSSAArg createArg (uint64_t val) {
+		static HSSAArg createArg (uint64_t val, uint64_t size) {
 			HSSAArg arg;
 			arg.type = HSSA_ARG_UINT;
 			arg.uval = val;
+			arg.size = size;
 			return arg;
 		}
-		static HSSAArg createArg (double val) {
+		static HSSAArg createArg (double val, uint64_t size) {
 			HSSAArg arg;
 			arg.type = HSSA_ARG_FLOAT;
 			arg.fval = val;
+			arg.size = size;
 			return arg;
 		}
 		static HSSAArg createArg (HSSAId val) {
@@ -144,6 +153,14 @@ namespace holodec {
 			arg.type = HSSA_ARG_SSA;
 			arg.ssaId = val;
 			return arg;
+		}
+		static HSSAArg createArg () {
+			HSSAArg arg;
+			arg.type = HSSA_ARG_INVALID;
+			return arg;
+		}
+		operator bool() {
+			return !type;
 		}
 	};
 	inline bool operator != (HSSAArg& lhs, HSSAArg& rhs) {
@@ -390,31 +407,31 @@ namespace holodec {
 			printf (")");
 			bool cond = condType != HSSA_COND_NONE;
 			if (cond) {
-				printf(" on ");
+				printf (" on ");
 				switch (condType) {
 				case HSSA_COND_ZERO:
-					printf("Zero");
+					printf ("Zero");
 					break;
 				case HSSA_COND_NZERO:
-					printf("NZero");
+					printf ("NZero");
 					break;
 				case HSSA_COND_EQ:
-					printf("Equals");
+					printf ("Equals");
 					break;
 				case HSSA_COND_NEQ:
-					printf("NEquals");
+					printf ("NEquals");
 					break;
 				case HSSA_COND_L:
-					printf("Lower");
+					printf ("Lower");
 					break;
 				case HSSA_COND_LE:
-					printf("LowerEq");
+					printf ("LowerEq");
 					break;
 				case HSSA_COND_G:
-					printf("Greater");
+					printf ("Greater");
 					break;
 				case HSSA_COND_GE:
-					printf("GreaterEq");
+					printf ("GreaterEq");
 					break;
 				}
 				printf ("(");

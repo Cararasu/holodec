@@ -4,6 +4,11 @@
 #include <algorithm>
 #include "HSSA.h"
 
+//TODO replace HSSAId with HSSAArg in algorithm to make some kind of Constant Propagation
+
+
+
+
 namespace holodec {
 
 	enum HSSAGenArgType {
@@ -18,7 +23,7 @@ namespace holodec {
 	struct HSSAGenArgument {
 		HSSAGenArgType type;
 
-		HSSAId ssaId;
+		HSSAArg def;
 		struct {
 			HId base, index;//regs
 			int64_t scale, disp;
@@ -72,7 +77,7 @@ namespace holodec {
 		HId id;//for Regdef -> registerId, for stack and tmp -> index
 		uint64_t offset;
 		uint64_t size;
-		HSSAId ssaId;
+		HSSAArg def;//TODO HSSAId -> HSSAArg
 	};
 	struct HSSAGenRegDef {
 		HId parentRegId;
@@ -87,7 +92,7 @@ namespace holodec {
 	};
 	struct HSSAGenStck {
 		HString name;
-		HList<HSSAId> defs;//size - stck_index
+		HList<HSSAArg> defs;//size - stck_index
 	};
 	struct HSSAGenTmp {
 		HList<HSSAGenDef> defs;
@@ -131,15 +136,15 @@ namespace holodec {
 			}
 			return nullptr;
 		}
-		HSSAId addSSAExpression (HSSAExpression expr) {
+		HSSAArg addSSAExpression (HSSAExpression expr) {
 			for (HSSAGenBasicBlock& bb : bbs) {
 				if (bb.id == activeBasicBlock) {
 					bb.exprs.add (expr);
-					return {expr.id, activeBasicBlock};
+					return HSSAArg::createArg ({expr.id, activeBasicBlock});
 				}
 			}
 			assert (false);
-			return {0, 0};
+			return HSSAArg::createArg();
 		}
 		HSSAExpression* getSSAExpression (HSSAId id) {
 			for (HSSAGenBasicBlock& bb : bbs) {
@@ -158,10 +163,10 @@ namespace holodec {
 		HSSAGenDef createValOrInput (HSSAGenRegDef* regdef, HRegister* reg, uint64_t lowerbound, uint64_t upperbound) {
 			if (lowerbound < upperbound) {
 				if (regdef->cleared) {
-					HSSAId id = addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, upperbound - lowerbound, 0, {HSSAArg::createArg (upperbound - lowerbound) }});
-					return {reg->id, lowerbound, upperbound - lowerbound, id};
+					HSSAArg arg = HSSAArg::createArg ( (uint64_t) 0, upperbound - lowerbound);
+					return {reg->id, lowerbound, upperbound - lowerbound, arg};
 				} else {
-					HSSAId input;
+					HSSAArg input;
 					HSSAGenRegDef* foundregdef = nullptr;
 					for (HSSAGenRegDef& regdef : getActiveBasicBlock()->inputs) {
 						if (regdef.parentRegId == reg->parentId) {
@@ -186,19 +191,19 @@ namespace holodec {
 					return def;
 				}
 			}
-			return {0, 0, 0, 0};
+			assert (false);
+			return {0, 0, 0, HSSAArg::createArg() };
 		}
 
 		void removeDef (HId regId) {
 			HRegister* reg = arch->getRegister (regId);
-			HSSAId id = addSSAExpression ({0, HSSA_EXPR_UNDEF, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, reg->size, 0, {}});
-			printf ("%d = undef();\n", id.id);
-			createDef (regId, id);
+			HSSAArg arg = addSSAExpression ({0, HSSA_EXPR_UNDEF, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, reg->size, 0, {}});
+			createDef (regId, arg);
 		}
-		HSSAId getDefForUse (HId regId, uint64_t offset = 0, uint64_t size = 0) {
+		HSSAArg getDefForUse (HId regId, uint64_t offset = 0, uint64_t size = 0) {
 			return getDefForUse (arch->getRegister (regId), offset, size);
 		}
-		HSSAId getDefForUse (HRegister* reg, uint64_t offset = 0, uint64_t size = 0) {
+		HSSAArg getDefForUse (HRegister* reg, uint64_t offset = 0, uint64_t size = 0) {
 			size = size == 0 ? reg->size - offset : size;
 			offset += reg->offset;//adjust for parent register
 			for (HSSAGenRegDef& regdef : getActiveBasicBlock()->outputs) {
@@ -208,7 +213,7 @@ namespace holodec {
 					for (auto it = regdef.defs.begin(); it != regdef.defs.end();) {
 						HSSAGenDef& def = *it;
 						if (def.offset == offset && def.size == size) //perfect match
-							return def.ssaId;
+							return def.def;
 						if (offset < (def.offset + def.size) && def.offset < (offset + size)) { //start after
 							uint64_t newoffset = 0, newsize = def.size;
 							if (def.offset < offset) {//split of lower nibble
@@ -221,7 +226,7 @@ namespace holodec {
 							if (newoffset == 0 && newsize == def.size) {
 								localdefs[localdefcount++] = def;
 							} else {
-								HSSAId newSSA = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, newsize, 0, {HSSAArg::createArg (def.ssaId), HSSAArg::createArg (def.offset + newoffset), HSSAArg::createArg (newsize) }});
+								HSSAArg newSSA = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, newsize, 0, {def.def, HSSAArg::createArg (def.offset + newoffset, 0), HSSAArg::createArg (newsize, 0) }});
 								localdefs[localdefcount++] = {def.id, def.offset + newoffset, newsize, newSSA};
 							}
 						}
@@ -251,31 +256,31 @@ namespace holodec {
 						std::sort (localdefs, localdefs + localdefcount);
 
 					if (localdefcount == 0) {
-						return createValOrInput (&regdef, reg, offset, offset + size).ssaId;
+						return createValOrInput (&regdef, reg, offset, offset + size).def;
 					} else if (localdefcount == 1) { //this case is the most likely
 						assert (localdefs[0].offset == offset && localdefs[0].size == size);
-						return localdefs[0].ssaId;
+						return localdefs[0].def;
 					} else {
-						HSSAId id = addSSAExpression ({0, HSSA_EXPR_APPEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size, 0, {}});
-						HSSAExpression* expr = getSSAExpression (id);
+						HSSAArg arg = addSSAExpression ({0, HSSA_EXPR_APPEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size, 0, {}});
+						HSSAExpression* expr = getSSAExpression (arg.ssaId);
 
 						uint64_t resultsize = 0;
 						uint64_t lastupperBound = offset;
 						for (int i = 0; i < localdefcount; i++) {
 							assert (lastupperBound == localdefs[i].offset);
-							expr->subExpressions.add (HSSAArg::createArg (localdefs[i].ssaId));
+							expr->subExpressions.add (localdefs[i].def);
 							resultsize += localdefs[i].size;
 							lastupperBound = localdefs[i].offset + localdefs[i].size;
 						}
 						assert (resultsize == size);
-						return id;
+						return arg;
 					}
 				}
 			}
 			HSSAGenRegDef regdef = {reg->parentId, false, {}};
-			return createValOrInput (&regdef, reg, offset, offset + size).ssaId;
+			return createValOrInput (&regdef, reg, offset, offset + size).def;
 		}
-		HSSAId createDef (HId regId, HSSAId ssaId) {
+		HSSAArg createDef (HId regId, HSSAArg arg) {
 			HRegister* reg = arch->getRegister (regId);
 			//printf ("Add Reg Def\n");
 			//printf ("%d = P:%s - R:%s Offset: %d Size: %d\n", ssaId, arch->getRegister (reg->parentId)->name.cstr(), arch->getRegister (reg->id)->name.cstr(), reg->offset, reg->size);
@@ -294,13 +299,13 @@ namespace holodec {
 								if (defit.offset < reg->offset) { //if starts before
 									uint64_t offset = 0;
 									uint64_t size = reg->offset - defit.offset;
-									HSSAId splitId = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size, 0, {HSSAArg::createArg (defit.ssaId), HSSAArg::createArg (offset), HSSAArg::createArg (size) }});
+									HSSAArg splitId = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size, 0, {defit.def, HSSAArg::createArg (offset, arch->bitbase), HSSAArg::createArg (size, arch->bitbase) }});
 									def[count++] = {defit.id, defit.offset, reg->offset - defit.offset, splitId};
 								}
 								if ( (reg->offset + reg->size) < (defit.offset + defit.size)) {//if ends after
 									uint64_t offset = reg->offset + reg->size;
 									uint64_t size = (defit.offset + defit.size) - (reg->offset + reg->size);
-									HSSAId splitId = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size, 0, {HSSAArg::createArg (defit.ssaId), HSSAArg::createArg (offset), HSSAArg::createArg (size) }});
+									HSSAArg splitId = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size, 0, {defit.def, HSSAArg::createArg (offset, arch->bitbase), HSSAArg::createArg (size, arch->bitbase) }});
 									def[count++] = {defit.id, offset, size, splitId};
 								}
 								if (count) {
@@ -315,13 +320,13 @@ namespace holodec {
 							++it;
 						}
 					}
-					HSSAGenDef def = {reg->id, reg->offset, reg->size, ssaId };
+					HSSAGenDef def = {reg->id, reg->offset, reg->size, arg };
 					regdef.defs.push_back (def);
-					return ssaId;
+					return arg;
 				}
 			}
-			getActiveBasicBlock()->outputs.push_back ({reg->parentId, reg->clearParentOnWrite, {{reg->id, reg->offset, reg->size, ssaId }}});
-			return ssaId;
+			getActiveBasicBlock()->outputs.push_back ({reg->parentId, reg->clearParentOnWrite, {{reg->id, reg->offset, reg->size, arg }}});
+			return arg;
 		}
 		HSSAGenStck* getStckGen (HStack* stack) {
 			HSSAGenStck* stckgenptr = nullptr;
@@ -338,7 +343,8 @@ namespace holodec {
 			return stckgenptr;
 		}
 
-		void createPush (HId stckId, HSSAId id, uint64_t words = 1) {
+		void createPush (HId stckId, HSSAArg arg, HSSAArg words) {
+			assert (words.type == HSSA_ARG_UINT);
 			HStack* stack = arch->getStack (stckId);
 			assert (stack);
 			HSSAGenStck* genStck = getStckGen (stack);
@@ -349,11 +355,11 @@ namespace holodec {
 			case H_STACK_REGISTER: {
 				switch (stack->policy) {
 				case H_STACKPOLICY_TOP:
-					genStck->defs.push_back (id);
-					createDef (stack->regs[stacksize].id, id);
+					genStck->defs.push_back (arg);
+					createDef (stack->regs[stacksize].id, arg);
 					break;
 				case H_STACKPOLICY_BOTTOM:
-					genStck->defs.insert (genStck->defs.begin(), id);
+					genStck->defs.insert (genStck->defs.begin(), arg);
 					for (int i = 0; i < genStck->defs.size(); i++) {
 						createDef (stack->regs[i].id, genStck->defs[i]);
 					}
@@ -364,10 +370,10 @@ namespace holodec {
 			case H_STACK_BUILTIN: {
 				switch (stack->policy) {
 				case H_STACKPOLICY_TOP:
-					genStck->defs.push_back (id);
+					genStck->defs.push_back (arg);
 					break;
 				case H_STACKPOLICY_BOTTOM:
-					genStck->defs.insert (genStck->defs.begin(), id);
+					genStck->defs.insert (genStck->defs.begin(), arg);
 					break;
 				}
 			}
@@ -377,27 +383,28 @@ namespace holodec {
 				HRegister* reg = arch->getRegister (stack->trackingReg);
 				assert (reg);
 
-				HSSAId useId = getDefForUse (reg);
-				HSSAId newstckptr;
+				HSSAArg useId = getDefForUse (reg);
+				HSSAArg newstckptr;
 				switch (stack->policy) {
 				case H_STACKPOLICY_TOP:
-					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_ADD, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words * arch->wordbase) }});
+					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_ADD, HSSA_COND_NONE, HSSA_TYPE_UINT, words.uval * arch->wordbase, 0, {useId, HSSAArg::createArg (words.uval * arch->wordbase, words.size) }});
 					break;
 				case H_STACKPOLICY_BOTTOM:
-					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_SUB, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words * arch->wordbase) }});
+					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_SUB, HSSA_COND_NONE, HSSA_TYPE_UINT, words.uval * arch->wordbase, 0, {useId, HSSAArg::createArg (words.uval * arch->wordbase,  words.size) }});
 					break;
 				}
-				HSSAId defId = addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_MEM, 0, 0, {HSSAArg::createArg (newstckptr), HSSAArg::createArg (id) }});
+				HSSAArg defId = addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_MEM, 0, 0, {newstckptr, arg }});
 				createDef (stack->trackingReg, newstckptr);
 			}
 		}
 
-		HSSAId createPop (HId stckId, uint64_t words = 1) {
+		HSSAArg createPop (HId stckId, HSSAArg words) {
+			assert (words.type == HSSA_ARG_UINT);
 			HStack* stack = arch->getStack (stckId);
 			assert (stack);
 			HSSAGenStck* genStck = getStckGen (stack);
 
-			HSSAId defId;
+			HSSAArg defId;
 			switch (stack->type) {
 			case H_STACK_REGISTER: {
 				switch (stack->policy) {
@@ -433,15 +440,15 @@ namespace holodec {
 				assert (stack->trackingReg);
 				HRegister* reg = arch->getRegister (stack->trackingReg);
 				assert (reg);
-				HSSAId useId = getDefForUse (reg, 0, 0);
-				defId = addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words) }});
-				HSSAId newstckptr;
+				HSSAArg useId = getDefForUse (reg, 0, 0);
+				defId = addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, words.uval * arch->wordbase, 0, {useId, HSSAArg::createArg (words.uval, arch->bitbase) }});
+				HSSAArg newstckptr;
 				switch (stack->policy) {
 				case H_STACKPOLICY_TOP:
-					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_SUB, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words) }});
+					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_SUB, HSSA_COND_NONE, HSSA_TYPE_UINT, words.uval * arch->wordbase, 0, {useId, HSSAArg::createArg (words.uval, arch->bitbase) }});
 					break;
 				case H_STACKPOLICY_BOTTOM:
-					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_ADD, HSSA_COND_NONE, HSSA_TYPE_UINT, words * arch->wordbase, 0, {HSSAArg::createArg (useId), HSSAArg::createArg (words) }});
+					newstckptr = addSSAExpression ({0, HSSA_EXPR_OP, HSSA_OP_ADD, HSSA_COND_NONE, HSSA_TYPE_UINT, words.uval * arch->wordbase, 0, {useId, HSSAArg::createArg (words.uval, arch->bitbase) }});
 					break;
 				}
 				createDef (stack->trackingReg, newstckptr);
@@ -450,30 +457,28 @@ namespace holodec {
 			}
 			return defId;
 		}
-		HSSAId getTempDef (HId id, uint64_t offset = 0, uint64_t size = 0) {
+		HSSAArg getTempDef (HId id, uint64_t offset = 0, uint64_t size = 0) {
 			for (HSSAGenDef& def : tmp.defs) {
 				if (def.id == id) {
 					if (!offset && (!size || def.size == size)) {
-						return def.ssaId;
+						return def.def;
 					} else {
-						HSSAId id = addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size ? size : def.size, 0, {HSSAArg::createArg (def.ssaId), HSSAArg::createArg (offset), HSSAArg::createArg (size ? size : def.size) }});
-						printf ("%d = Split(%d,%d,%d);\n", id.id, def.ssaId.id, offset, size ? size : def.size);
-						return id;
+						return addSSAExpression ({0, HSSA_EXPR_SPLIT, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size ? size : def.size, 0, {def.def, HSSAArg::createArg (offset, arch->bitbase), HSSAArg::createArg (size ? size : def.size, arch->bitbase) }});
 					}
 				}
 			}
 			assert (false);
-			return {0, 0};
+			return HSSAArg::createArg();
 		}
-		HSSAId createTempDef (HId id, HSSAId ssaId, uint64_t size) {
+		HId createTempDef (HId id, HSSAArg arg, uint64_t size) {
 			for (auto it = tmp.defs.begin(); it != tmp.defs.end(); it++) {
 				if ( (*it).id == id) {
-					*it = {id, 0, size, ssaId};
-					return ssaId;
+					*it = {id, 0, size, arg};
+					return arg;
 				}
 			}
-			tmp.defs.push_back ({id, 0, size, ssaId});
-			return ssaId;
+			tmp.defs.push_back ({id, 0, size, arg});
+			return id;
 		}
 
 		void print (int indent = 0) {
@@ -485,7 +490,22 @@ namespace holodec {
 					for (HSSAGenDef& def : regdef.defs) {
 
 						printIndent (indent + 1);
-						printf ("Id: %d R:%s Offset: %d Size: %d\n", def.ssaId, arch->getRegister (def.id)->name.cstr(), def.offset, def.size);
+						printf ("Id: ");
+						switch (def.def.type) {
+						case HSSA_ARG_INT:
+							printf ("%d", def.def.val);
+							break;
+						case HSSA_ARG_UINT:
+							printf ("%x", def.def.uval);
+							break;
+						case HSSA_ARG_FLOAT:
+							printf ("%d", def.def.fval);
+							break;
+						case HSSA_ARG_SSA:
+							printf ("%d:%d", def.def.ssaId.id, def.def.ssaId.bbid);
+							break;
+						}
+						printf (" R:%s Offset: %d Size: %d\n", arch->getRegister (def.id)->name.cstr(), def.offset, def.size);
 					}
 				}
 				printf ("Outputs\n");
@@ -495,7 +515,22 @@ namespace holodec {
 					for (HSSAGenDef& def : regdef.defs) {
 
 						printIndent (indent + 1);
-						printf ("Id: %d R:%s Offset: %d Size: %d\n", def.ssaId, arch->getRegister (def.id)->name.cstr(), def.offset, def.size);
+						printf ("Id: ");
+						switch (def.def.type) {
+						case HSSA_ARG_INT:
+							printf ("%d", def.def.val);
+							break;
+						case HSSA_ARG_UINT:
+							printf ("%x", def.def.uval);
+							break;
+						case HSSA_ARG_FLOAT:
+							printf ("%d", def.def.fval);
+							break;
+						case HSSA_ARG_SSA:
+							printf ("%d:%d", def.def.ssaId.id, def.def.ssaId.bbid);
+							break;
+						}
+						printf (" R:%s Offset: %d Size: %d\n", arch->getRegister (def.id)->name.cstr(), def.offset, def.size);
 					}
 				}
 				printf ("Vals\n");
@@ -512,66 +547,65 @@ namespace holodec {
 		uint64_t val;
 	};
 
-	HSSAId parseIRtoSSA (HId nodeid, HSSAGenState* state);
-	HSSAId parseIRtoSSAExpr (HId nodeid, HSSAGenState* state);
-	HSSAId parseIRtoSSAVal (HId nodeid, HSSAGenState* state);
-	HSSAId parseIROptoSSA (HIRExpression* expr, HSSAGenState* state);
-	HSSAId parseIRAssigntoSSA (HIRExpression* expr, HSSAGenState* state);
-	HSSAId parseIRArgValtoSSA (HIRExpression* expr, HSSAGenArgument* arg, HSSAGenState* state);
-	HSSAId parseIRSizetoSSA (HIRExpression* expr, HSSAGenState* state);
-	HSSAId parseIRExtendtoSSA (HIRExpression* expr, HSSAGenState* state);
-	HSSAId parseIRFlagtoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAArg parseIRtoSSA (HId nodeid, HSSAGenState* state);
+	HSSAArg parseIRtoSSAExpr (HId nodeid, HSSAGenState* state);
+	HSSAArg parseIRtoSSAVal (HId nodeid, HSSAGenState* state);
+	HSSAArg parseIROptoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAArg parseIRAssigntoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAArg parseIRArgValtoSSA (HIRExpression* expr, HSSAGenArgument* arg, HSSAGenState* state);
+	HSSAArg parseIRSizetoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAArg parseIRExtendtoSSA (HIRExpression* expr, HSSAGenState* state);
+	HSSAArg parseIRFlagtoSSA (HIRExpression* expr, HSSAGenState* state);
 	HSSAConstData getIRExprConst (HId nodeId, HSSAGenState* state);
 
-	HSSAId parseIRtoSSA (HId rootId, HSSAGenState* state) {
+	HSSAArg parseIRtoSSA (HId rootId, HSSAGenState* state) {
 		return parseIRtoSSAExpr (rootId, state);
 	}
-	HSSAId parseIRtoSSAExpr (HId nodeid, HSSAGenState* state) {
+	HSSAArg parseIRtoSSAExpr (HId nodeid, HSSAGenState* state) {
 		if (!nodeid)
 			assert (false);
 		HIRExpression* expr = state->arch->getIrExpr (nodeid);
 		if (!expr)
 			assert (false);
-		HSSAId returnId = parseIRtoSSAVal (nodeid, state);
+		HSSAArg returnId = parseIRtoSSAVal (nodeid, state);
 		if (expr->type == HIR_EXPR_ARG) {//if it is a memory access load the from memory
 			uint64_t i = expr->mod.var_index;
 			if (state->args[i - 1].type == HSSAGEN_TYPE_ARG_MEM) {
-				HSSAId src = returnId;
-				returnId = state->addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_INT, state->args[i - 1].size, 0, {HSSAArg::createArg (src), HSSAArg::createArg (state->args[i - 1].size) }});
+				returnId = state->addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_INT, state->args[i - 1].size, 0, {returnId, HSSAArg::createArg (state->args[i - 1].size, state->arch->bitbase) }});
 			}
 		}
 		return returnId;
 	}
-	HSSAId genOp (HSSAOperatorType opType, HSSAType type, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
+	HSSAArg genOp (HSSAOperatorType opType, HSSAType type, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
 		if ( (expr->subexprcount - offset) == 1)
 			return parseIRtoSSAExpr (expr->subexpressions[offset], state);
-		HSSAId ids[3] = {0, 0, 0};
+		HSSAArg ids[3];
 		ids[0] = parseIRtoSSAExpr (expr->subexpressions[offset], state);
 		ids[1] = genOp (opType, type, expr, state, offset + 1);
-		ids[2] = state->addSSAExpression ({0, HSSA_EXPR_OP, opType, HSSA_COND_NONE, type, 0, 0, {HSSAArg::createArg (ids[0]), HSSAArg::createArg (ids[1]) }});
-		state->lastOp = ids[2];
+		ids[2] = state->addSSAExpression ({0, HSSA_EXPR_OP, opType, HSSA_COND_NONE, type, 0, 0, {ids[0], ids[1]}});
+		state->lastOp = ids[2].ssaId;
 		return ids[2];
 	}
-	HSSAId genOp (HSSAOperatorType opType1, HSSAOperatorType opType2, HSSAType type, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
+	HSSAArg genOp (HSSAOperatorType opType1, HSSAOperatorType opType2, HSSAType type, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
 		if ( (expr->subexprcount - offset) == 1)
 			return parseIRtoSSAExpr (expr->subexpressions[offset], state);
-		HSSAId ids[3] = {0, 0, 0};
+		HSSAArg ids[3];;
 		ids[0] = parseIRtoSSAExpr (expr->subexpressions[offset], state);
 		ids[1] = genOp (opType2, type, expr, state, offset + 1);
-		ids[2] = state->addSSAExpression ({0, HSSA_EXPR_OP, opType1, HSSA_COND_NONE, type, 0, 0, {HSSAArg::createArg (ids[0]), HSSAArg::createArg (ids[1]) }});
-		state->lastOp = ids[2];
+		ids[2] = state->addSSAExpression ({0, HSSA_EXPR_OP, opType1, HSSA_COND_NONE, type, 0, 0, {ids[0], ids[1] }});
+		state->lastOp = ids[2].ssaId;
 		return ids[2];
 	}
-	HSSAId genSOp (HSSAOperatorType opType, HSSAType type, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
+	HSSAArg genSOp (HSSAOperatorType opType, HSSAType type, HIRExpression* expr, HSSAGenState* state, uint64_t offset = 0) {
 		if ( (expr->subexprcount - offset) != 1)
 			assert (false);
-		HSSAId ids[2] = {0, 0};
+		HSSAArg ids[2];
 		ids[0] = parseIRtoSSAExpr (expr->subexpressions[offset], state);
-		ids[1] = state->addSSAExpression ({0, HSSA_EXPR_OP, opType, HSSA_COND_NONE, type, 0, 0, {HSSAArg::createArg (ids[0]) }});
-		state->lastOp = ids[1];
+		ids[1] = state->addSSAExpression ({0, HSSA_EXPR_OP, opType, HSSA_COND_NONE, type, 0, 0, {ids[0]}});
+		state->lastOp = ids[1].ssaId;
 		return ids[1];
 	}
-	HSSAId parseIROptoSSA (HIRExpression* expr, HSSAGenState* state) {
+	HSSAArg parseIROptoSSA (HIRExpression* expr, HSSAGenState* state) {
 		switch (expr->token) {
 		case HIR_TOKEN_ADD:
 			return genOp (HSSA_OP_ADD, HSSA_TYPE_UINT, expr, state);
@@ -655,9 +689,10 @@ namespace holodec {
 			assert (false);
 
 		}
-		return {0, 0};
+		assert (false);
+		return HSSAArg::createArg();
 	}
-	HSSAId parseIRArgValtoSSA (HIRExpression* expr, HSSAGenArgument* arg, HSSAGenState* state) {
+	HSSAArg parseIRArgValtoSSA (HIRExpression* expr, HSSAGenArgument* arg, HSSAGenState* state) {
 		switch (arg->type) {
 		case HSSAGEN_TYPE_ARG_REG:
 			return state->getDefForUse (arg->reg, expr->mod.index, expr->mod.size);
@@ -665,47 +700,32 @@ namespace holodec {
 			//TODO
 			break;
 		case HSSAGEN_TYPE_ARG_MEM: {
-			HSSAId base = {0, 0};
-			base = arg->mem.base ? state->getDefForUse (arg->mem.base) : base;
-			HSSAId index = {0, 0};
-			index = arg->mem.index ? state->getDefForUse (arg->mem.index) : index;
-			HSSAId id = state->addSSAExpression ({0, HSSA_EXPR_MEM, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, state->arch->bitbase, 0, {}});
-			HSSAExpression* ssaExpr = state->getSSAExpression (id);
+			HSSAArg base = arg->mem.base ? state->getDefForUse (arg->mem.base) : HSSAArg::createArg ( (uint64_t) 0, state->arch->bitbase);
+			HSSAArg index = arg->mem.index ? state->getDefForUse (arg->mem.index) : HSSAArg::createArg ( (uint64_t) 0, state->arch->bitbase);
+			HSSAArg id = state->addSSAExpression ({0, HSSA_EXPR_MEM, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, state->arch->bitbase, 0, {}});
+			HSSAExpression* ssaExpr = state->getSSAExpression (id.ssaId);
 			bool pre = false;
-			if (base) {
-				ssaExpr->subExpressions.add (HSSAArg::createArg (base));
-			} else {
-				ssaExpr->subExpressions.add (HSSAArg::createArg ( (uint64_t) 0));
-			}
-			if (index && arg->mem.scale) {
-				ssaExpr->subExpressions.add (HSSAArg::createArg (index));
-				ssaExpr->subExpressions.add (HSSAArg::createArg (arg->mem.scale));
-			} else {
-				ssaExpr->subExpressions.add (HSSAArg::createArg ( (uint64_t) 0));
-				ssaExpr->subExpressions.add (HSSAArg::createArg ( (uint64_t) 0));
-			}
-			if (arg->mem.disp) {
-				ssaExpr->subExpressions.add (HSSAArg::createArg (arg->mem.disp));
-			} else {
-				ssaExpr->subExpressions.add (HSSAArg::createArg ( (int64_t) 0));
-			}
+			ssaExpr->subExpressions.add (base);
+			ssaExpr->subExpressions.add (index);
+			ssaExpr->subExpressions.add (HSSAArg::createArg (arg->mem.scale, state->arch->bitbase));
+			ssaExpr->subExpressions.add (HSSAArg::createArg (arg->mem.disp, state->arch->bitbase));
 			return id;
 		}
 		case HSSAGEN_TYPE_ARG_VAL:
-			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, arg->size, 0, {HSSAArg::createArg (arg->value) }});
+			return HSSAArg::createArg (arg->value, arg->size);
 			break;
 		case HSSAGEN_TYPE_ARG_FVAL:
-			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, arg->size, 0, {HSSAArg::createArg (arg->value) }});
+			return HSSAArg::createArg (arg->fvalue, arg->size);
 			break;
 		case HSSAGEN_TYPE_ARG_SSA:
-			return arg->ssaId;
+			return arg->def;
 			break;
 		}
 		assert (false);
-		return {0, 0};
+		return HSSAArg::createArg();
 	}
-	HSSAId parseIRFlagtoSSA (HIRExpression* expr, HSSAGenState* state) {
-		HSSAId id;
+	HSSAArg parseIRFlagtoSSA (HIRExpression* expr, HSSAGenState* state) {
+		HSSAArg id;
 		switch (expr->token) {
 		case HIR_TOKEN_FLAG_C:
 			return state->addSSAExpression ({0, HSSA_EXPR_FLAG_C, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, 1, 0, {HSSAArg::createArg (state->lastOp) }});
@@ -721,16 +741,17 @@ namespace holodec {
 			return state->addSSAExpression ({0, HSSA_EXPR_FLAG_S, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, 1, 0, {HSSAArg::createArg (state->lastOp) }});
 		}
 		assert (false);
-		return {0, 0};
+		return HSSAArg::createArg();
 	}
-	HSSAId parseIRAssigntoSSA (HIRExpression* expr, HSSAGenState* state) {
+	HSSAArg parseIRAssigntoSSA (HIRExpression* expr, HSSAGenState* state) {
 
-		HSSAId targetId = parseIRtoSSAExpr (expr->subexpressions[1], state);
+		HSSAArg targetId = parseIRtoSSAExpr (expr->subexpressions[1], state);
 		HIRExpression* targetExpr = state->arch->getIrExpr (expr->subexpressions[0]);
 		if (targetExpr) {
 			switch (targetExpr->type) {
 			case HIR_EXPR_TMP: {
-				return state->createTempDef (targetExpr->mod.var_index, targetId, 0);
+				state->createTempDef (targetExpr->mod.var_index, targetId, 0);
+				return targetId;
 			}
 			break;
 			case HIR_EXPR_ARG: {
@@ -746,11 +767,10 @@ namespace holodec {
 					assert (false);
 					break;
 				case HSSAGEN_TYPE_ARG_MEM: {
-					HSSAId val = parseIRArgValtoSSA (targetExpr, &arg, state);
-					return state->addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_MEM, 0, 0, {HSSAArg::createArg (val), HSSAArg::createArg (targetId) }});
+					return state->addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_MEM, 0, 0, { parseIRArgValtoSSA (targetExpr, &arg, state), targetId }});
 				}
 				case HSSAGEN_TYPE_ARG_SSA:
-					return arg.ssaId;
+					return arg.def;
 				default:
 					assert (false);
 				}
@@ -769,9 +789,9 @@ namespace holodec {
 			}
 		}
 		assert (false);
+		return HSSAArg::createArg();
 	}
-	HSSAId parseIRSizetoSSA (HIRExpression* expr, HSSAGenState* state) {
-		HSSAId id;
+	HSSAArg parseIRSizetoSSA (HIRExpression* expr, HSSAGenState* state) {
 		HIRExpression* subexpr = state->arch->getIrExpr (expr->subexpressions[0]);
 		uint64_t size = 0;
 		if (subexpr->mod.size) {
@@ -788,39 +808,30 @@ namespace holodec {
 			}
 		}
 		if (expr->type == HIR_EXPR_SIZE) {
-			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, state->arch->bitbase, 0, {HSSAArg::createArg (subexpr->mod.size / state->arch->wordbase) }});
+			return HSSAArg::createArg (subexpr->mod.size / state->arch->wordbase, state->arch->bitbase);
 		} else if (expr->type == HIR_EXPR_BSIZE) {
-			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, state->arch->bitbase, 0, {HSSAArg::createArg (subexpr->mod.size) }});
+			return HSSAArg::createArg (subexpr->mod.size, state->arch->bitbase);
 		}
 		assert (false);
-		return {0, 0};
+		return HSSAArg::createArg();
 	}
-	HSSAId parseIRExtendtoSSA (HIRExpression* expr, HSSAGenState* state) {
-		HSSAConstData constData = getIRExprConst (expr->subexpressions[1], state);
+	HSSAArg parseIRExtendtoSSA (HIRExpression* expr, HSSAGenState* state) {
+		HSSAArg size = parseIRtoSSAExpr (expr->subexpressions[1], state);
+		assert (size.type == HSSA_TYPE_UINT);
 
-		if (constData.isConst) {
-			HSSAId sourceId = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			HSSAId id;
-			switch (expr->type) {
-			case HIR_EXPR_EXTEND:
-				return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, constData.val, 0, {HSSAArg::createArg (sourceId) }});
-			case HIR_EXPR_SEXTEND:
-				return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_INT, constData.val, 0, {HSSAArg::createArg (sourceId) }});
-			case HIR_EXPR_FEXTEND:
-				return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, constData.val, 0, {HSSAArg::createArg (sourceId) }});
-			}
-			return id;
-		} else {
-			assert (false);
-			assert (expr->subexprcount == 2);
-			HSSAId ids[2];
-			for (size_t i = 0; i < expr->subexprcount; i++) {
-				ids[i] = parseIRtoSSAExpr (expr->subexpressions[i], state);
-			}
-			return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, constData.val, 0, {HSSAArg::createArg (ids[0]) }});
+		HSSAArg sourceId = parseIRtoSSAExpr (expr->subexpressions[0], state);
+		HSSAArg id;
+		switch (expr->type) {
+		case HIR_EXPR_EXTEND:
+			return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, size.uval, 0, {sourceId }});
+		case HIR_EXPR_SEXTEND:
+			return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_INT, size.uval, 0, {sourceId }});
+		case HIR_EXPR_FEXTEND:
+			return state->addSSAExpression ({0, HSSA_EXPR_EXTEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, size.uval, 0, {sourceId }});
 		}
+		return id;
 	}
-	HSSAId parseIRtoSSAVal (HId nodeid, HSSAGenState* state) {
+	HSSAArg parseIRtoSSAVal (HId nodeid, HSSAGenState* state) {
 		if (!nodeid)
 			assert (false);
 		HIRExpression* expr = state->arch->getIrExpr (nodeid);
@@ -838,7 +849,7 @@ namespace holodec {
 				else
 					assert (false);
 			}
-			return {0, 0};
+			return HSSAArg::createArg();
 		case HIR_EXPR_OP:
 			return parseIROptoSSA (expr, state);
 		case HIR_EXPR_NOP:
@@ -846,9 +857,9 @@ namespace holodec {
 		case HIR_EXPR_ASSIGN:
 			return parseIRAssigntoSSA (expr, state);
 		case HIR_EXPR_FLOAT:
-			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, expr->mod.size, 0, {HSSAArg::createArg (expr->fvalue) }});
+			return HSSAArg::createArg (expr->fvalue, expr->mod.size);
 		case HIR_EXPR_NUMBER:
-			return state->addSSAExpression ({0, HSSA_EXPR_VALUE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, expr->mod.size, 0, {HSSAArg::createArg (expr->value) }});
+			return HSSAArg::createArg (expr->value, expr->mod.size);
 		case HIR_EXPR_SEQUENCE:
 			for (int i = 0; i < expr->subexprcount; i++) {
 				parseIRtoSSAExpr (expr->subexpressions[i], state);
@@ -858,77 +869,73 @@ namespace holodec {
 		case HIR_EXPR_BSIZE:
 			return parseIRSizetoSSA (expr, state);
 		case HIR_EXPR_LOOP: {
-			HSSAId jmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
+			HSSAArg jmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
 			HId loopCondId = state->genNewBasicBlock();
-			HSSAId condId = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			HSSAId condJmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NZERO, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
+			HSSAArg condId = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			HSSAArg condJmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NZERO, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
 			HId loopBodyId = state->genNewBasicBlock();
 			for (int i = 1; i < expr->subexprcount; i++) {
 				parseIRtoSSAExpr (expr->subexpressions[i], state);
 			}
 			state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {HSSAArg::createArg ({0, loopCondId}) }});
-			state->getSSAExpression(jmpId)->subExpressions.add(HSSAArg::createArg({0,loopCondId}));
-			HSSAExpression* condJumpExpr = state->getSSAExpression(condJmpId);
-			condJumpExpr->subExpressions.add(HSSAArg::createArg({0,loopBodyId}));
-			condJumpExpr->subExpressions.add(HSSAArg::createArg(condId));
-			
+			state->getSSAExpression (jmpId.ssaId)->subExpressions.add (HSSAArg::createArg ({0, loopCondId}));
+			HSSAExpression* condJumpExpr = state->getSSAExpression (condJmpId.ssaId);
+			condJumpExpr->subExpressions.add (HSSAArg::createArg ({0, loopBodyId}));
+			condJumpExpr->subExpressions.add (condId);
+
 		}
 		break;
 		case HIR_EXPR_IF: {
-			HSSAConstData constDate = getIRExprConst (expr->subexpressions[0], state);
-			if (constDate.isConst) {
-				assert (expr->subexprcount >= 2); //no expressions
-				assert (! (constDate.val && expr->subexprcount == 2)); //only branch for zero, but value is not zero
 
-				uint64_t selectVal = constDate.val + 1;
+			HSSAArg cond = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			if (cond.type == HSSA_TYPE_UINT) {
+				assert (expr->subexprcount >= 2); //no expressions
+				assert (! (cond.val && expr->subexprcount == 2)); //only branch for zero, but value is not zero
+
+				uint64_t selectVal = cond.val + 1;
 				if (selectVal >= expr->subexprcount) selectVal = expr->subexprcount - 1;
 				return parseIRtoSSAExpr (expr->subexpressions[selectVal], state);
 			} else {
 				assert (expr->subexprcount >= 2);
-				HSSAId cond = parseIRtoSSAExpr (expr->subexpressions[0], state);
 				if (expr->subexprcount == 2) {
-					HSSAId jmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_ZERO, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
+					HSSAArg jmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_ZERO, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
 					state->genNewBasicBlock();
 					parseIRtoSSAExpr (expr->subexpressions[1], state);
 					HId blockId = state->genNewBasicBlock();
-					HSSAExpression* jumpexpr = state->getSSAExpression (jmpId);
+					HSSAExpression* jumpexpr = state->getSSAExpression (jmpId.ssaId);
 					jumpexpr->subExpressions.add (HSSAArg::createArg ({0, blockId}));
-					jumpexpr->subExpressions.add (HSSAArg::createArg (cond));
+					jumpexpr->subExpressions.add (cond);
 				} else {
-					HSSAId branchId = state->addSSAExpression ({0, HSSA_EXPR_BRANCH, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {HSSAArg::createArg (cond) }});
+					HSSAArg branchId = state->addSSAExpression ({0, HSSA_EXPR_BRANCH, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {cond }});
 
 					HId blockIds[expr->subexprcount];
-					HSSAId jumpIds[expr->subexprcount];
+					HSSAArg jumpIds[expr->subexprcount];
 					int i;
 					for (i = 1; i < expr->subexprcount; i++) {
 						blockIds[i] = state->genNewBasicBlock();
 						parseIRtoSSAExpr (expr->subexpressions[i], state);
 						jumpIds[i] = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
 					}
-					HSSAId endBlockId;
-					endBlockId.bbid = state->genNewBasicBlock();
-					endBlockId.id = 0;
-					HSSAExpression* branchExpr = state->getSSAExpression (branchId);
+					HSSAArg endBlockId = HSSAArg::createArg ({0, state->genNewBasicBlock() });
+					HSSAExpression* branchExpr = state->getSSAExpression (branchId.ssaId);
 					for (i = 1; i < expr->subexprcount; i++) {
-						HSSAId blockId;
-						blockId.bbid = blockIds[i];
-						blockId.id = 0;
-						branchExpr->subExpressions.add (HSSAArg::createArg (blockId));//add parameter to branch
-						state->getSSAExpression (jumpIds[i])->subExpressions.add (HSSAArg::createArg (endBlockId));
+						HSSAArg blockId = HSSAArg::createArg ({0, blockIds[i]});
+						branchExpr->subExpressions.add (blockId);//add parameter to branch
+						state->getSSAExpression (jumpIds[i].ssaId)->subExpressions.add (endBlockId);
 					}
 				}
 			}
 			break;
 		}
 		case HIR_EXPR_APPEND: {
-			HSSAId id = state->addSSAExpression ({0, HSSA_EXPR_APPEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, expr->mod.size, 0, {}});
-			HSSAId ids[expr->subexprcount];
+			HSSAArg id = state->addSSAExpression ({0, HSSA_EXPR_APPEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, expr->mod.size, 0, {}});
+			HSSAArg ids[expr->subexprcount];
 			for (int i = 0; i < expr->subexprcount; i++) {
 				ids[i] = parseIRtoSSAExpr (expr->subexpressions[i], state);
 			}
-			HSSAExpression* ssaExpr = state->getSSAExpression (id);
+			HSSAExpression* ssaExpr = state->getSSAExpression (id.ssaId);
 			for (int i = 1; i < expr->subexprcount; i++) {
-				ssaExpr->subExpressions.add (HSSAArg::createArg (ids[i]));
+				ssaExpr->subExpressions.add (ids[i]);
 			}
 			break;
 		}
@@ -980,7 +987,7 @@ namespace holodec {
 				default:
 					HSSAGenArgument arg;
 					arg.type = HSSAGEN_TYPE_ARG_SSA;
-					arg.ssaId = parseIRtoSSAExpr (expr->subexpressions[i], state);
+					arg.def = parseIRtoSSAExpr (expr->subexpressions[i], state);
 					argList.push_back (arg);
 					break;
 				}
@@ -1007,169 +1014,61 @@ namespace holodec {
 		}
 		break;
 
-		case HIR_EXPR_JMP: {
-			HSSAConstData constData = getIRExprConst (expr->subexpressions[0], state);
-			if (constData.isConst) {
-				return state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, 0, 0, {HSSAArg::createArg (constData.val) }});
-			}
-			return state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, 0, 0, {HSSAArg::createArg (parseIRtoSSAExpr (expr->subexpressions[0], state)) }});
-		}
+		case HIR_EXPR_JMP: 
+			return state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, 0, 0, {parseIRtoSSAExpr (expr->subexpressions[0], state) }});
 
-		case HIR_EXPR_RJMP: {
-			HSSAConstData constData = getIRExprConst (expr->subexpressions[0], state);
-			if (constData.isConst) {
-				return state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, 0, 0, {HSSAArg::createArg (constData.val) }});
-			}
-			return state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, 0, 0, {HSSAArg::createArg (parseIRtoSSAExpr (expr->subexpressions[0], state)) }});
-		}
+		case HIR_EXPR_RJMP: 
+			return state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, 0, 0, {parseIRtoSSAExpr (expr->subexpressions[0], state) }});
 		case HIR_EXPR_CALL:
 			//todo define all return values
-			return state->addSSAExpression ({0, HSSA_EXPR_CALL, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UNKNOWN, 0, 0, {HSSAArg::createArg (parseIRtoSSAExpr (expr->subexpressions[0], state)) }});
+			return state->addSSAExpression ({0, HSSA_EXPR_CALL, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UNKNOWN, 0, 0, {parseIRtoSSAExpr (expr->subexpressions[0], state) }});
 		case HIR_EXPR_RET:
-			return state->addSSAExpression ({0, HSSA_EXPR_RETURN, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UNKNOWN, 0, 0, {HSSAArg::createArg (state->getDefForUse (state->arch->getRegister ("rax")->id)) }});
+			return state->addSSAExpression ({0, HSSA_EXPR_RETURN, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UNKNOWN, 0, 0, {state->getDefForUse (state->arch->getRegister ("rax")->id) }});
 		case HIR_EXPR_SYSCALL:
-			return state->addSSAExpression ({0, HSSA_EXPR_SYSCALL, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UNKNOWN, 0, 0, {HSSAArg::createArg (parseIRtoSSAExpr (expr->subexpressions[0], state)) }});
+			return state->addSSAExpression ({0, HSSA_EXPR_SYSCALL, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UNKNOWN, 0, 0, {parseIRtoSSAExpr (expr->subexpressions[0], state) }});
 		case HIR_EXPR_TRAP:
-			return state->addSSAExpression ({0, HSSA_EXPR_TRAP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UNKNOWN, 0, 0, {HSSAArg::createArg (parseIRtoSSAExpr (expr->subexpressions[0], state)) }});
+			return state->addSSAExpression ({0, HSSA_EXPR_TRAP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UNKNOWN, 0, 0, {parseIRtoSSAExpr (expr->subexpressions[0], state) }});
 
 		case HIR_EXPR_VAL:
 			return parseIRtoSSAVal (expr->subexpressions[0], state);
 
-		case HIR_EXPR_CAST2F: {
-			HSSAId sid = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			return state->addSSAExpression ({0, HSSA_EXPR_CAST, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, expr->mod.size, 0, {HSSAArg::createArg (sid) }});
-		}
-		break;
-		case HIR_EXPR_CAST2I: {
-			HSSAId sid = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			return state->addSSAExpression ({0, HSSA_EXPR_CAST, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, expr->mod.size, 0, {HSSAArg::createArg (sid) }});
-		}
-		break;
+		case HIR_EXPR_CAST2F:
+			return state->addSSAExpression ({0, HSSA_EXPR_CAST, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, expr->mod.size, 0, {parseIRtoSSAExpr (expr->subexpressions[0], state) }});
+			break;
+		case HIR_EXPR_CAST2I:
+			return state->addSSAExpression ({0, HSSA_EXPR_CAST, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, expr->mod.size, 0, {parseIRtoSSAExpr (expr->subexpressions[0], state) }});
+			break;
 
 		case HIR_EXPR_PUSH: {
-			HSSAId id = parseIRtoSSAExpr (expr->subexpressions[1], state);
+			HSSAArg id = parseIRtoSSAExpr (expr->subexpressions[1], state);
 			HIRExpression* target = state->arch->getIrExpr (expr->subexpressions[0]);
 			assert (target->type == HIR_EXPR_STCK);
-			state->createPush (target->stck, id);
+			state->createPush (target->stck, id, HSSAArg::createArg ( (uint64_t) 1, state->arch->bitbase));
 		}
 		break;
 		case HIR_EXPR_POP: {
-			HSSAConstData constdata = getIRExprConst (expr->subexpressions[1], state);
-			assert (constdata.isConst);
-
+			HSSAArg id = parseIRtoSSAExpr (expr->subexpressions[1], state);
 			HIRExpression* target = state->arch->getIrExpr (expr->subexpressions[0]);
 			assert (target->type == HIR_EXPR_STCK);
-			return state->createPop (target->stck, constdata.val);
+			return state->createPop (target->stck, id);
 		}
 
 		case HIR_EXPR_STORE: {
-			HSSAId target = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			HSSAId value = parseIRtoSSAExpr (expr->subexpressions[1], state);
-			return state->addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_MEM, 0, 0, {HSSAArg::createArg (target), HSSAArg::createArg (value) }});
+			HSSAArg target = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			HSSAArg value = parseIRtoSSAExpr (expr->subexpressions[1], state);
+			return state->addSSAExpression ({0, HSSA_EXPR_STORE, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_MEM, 0, 0, {target, value }});
 		}
 		break;
 		case HIR_EXPR_LOAD: {
-			HSSAId temp = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			HSSAConstData constData = getIRExprConst (expr->subexpressions[1], state);
-			assert (constData.isConst);
-			return state->addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, constData.val, 0, {HSSAArg::createArg (temp) }});
+			HSSAArg temp = parseIRtoSSAExpr (expr->subexpressions[0], state);
+			HSSAArg target = parseIRtoSSAExpr (expr->subexpressions[1], state);
+			assert (target.type == HSSA_TYPE_UINT);
+			return state->addSSAExpression ({0, HSSA_EXPR_LOAD, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_UINT, target.uval, 0, {temp}});
 		}
 		break;
 		}
-		return {0, 0};
+		return HSSAArg::createArg();
 	}
-
-	HSSAConstData getIRExprConst (HId nodeId, HSSAGenState * state) {
-		HIRExpression* expr = state->arch->getIrExpr (nodeId);
-
-		switch (expr->type) {
-		case HIR_EXPR_NOP:
-			return {true, 0};
-		case HIR_EXPR_NUMBER:
-			return {true, expr->value};
-		case HIR_EXPR_SIZE: {
-			HIRExpression* subexpr = state->arch->getIrExpr (expr->subexpressions[0]);
-			if (subexpr->mod.size) {
-				return {true, subexpr->mod.size / state->arch->wordbase};
-			} else {
-				switch (subexpr->type) {
-				case HIR_EXPR_ARG: {
-					uint64_t i = subexpr->mod.var_index;
-					return {true, state->args[i - 1].size / state->arch->wordbase};
-				}
-				break;
-				case HIR_EXPR_TMP: {
-					//TODO
-				}
-				break;
-				case HIR_EXPR_REG: {
-					HRegister* reg = state->arch->getRegister (subexpr->reg);
-					assert (reg);
-					return {true, reg->size / state->arch->wordbase};
-				}
-				case HIR_EXPR_STCK: {
-					HStack* stack = state->arch->getStack (subexpr->stck);
-					assert (stack);
-					return {true, stack->wordbitsize / state->arch->wordbase};
-				}
-				break;
-				}
-			}
-		}
-		break;
-		case HIR_EXPR_BSIZE: {
-			HIRExpression* subexpr = state->arch->getIrExpr (expr->subexpressions[0]);
-			if (subexpr->mod.size) {
-				return {true, subexpr->mod.size};
-			} else {
-				switch (subexpr->type) {
-				case HIR_EXPR_ARG: {
-					uint64_t i = subexpr->mod.var_index;
-					return {true, state->args[i - 1].size};
-				}
-				break;
-				case HIR_EXPR_TMP: {
-					//TODO
-				}
-				break;
-				case HIR_EXPR_REG: {
-					HRegister* reg = state->arch->getRegister (subexpr->reg);
-					assert (reg);
-					return {true, reg->size};
-				}
-				case HIR_EXPR_STCK: {
-					HStack* stack = state->arch->getStack (subexpr->stck);
-					assert (stack);
-					return {true, stack->wordbitsize};
-				}
-				break;
-				}
-			}
-		}
-		break;
-		case HIR_EXPR_ARG: {
-			uint64_t i = expr->mod.var_index;
-			if (state->args[i - 1].type == HSSAGEN_TYPE_ARG_VAL)
-				return {true, state->args[i - 1].value};
-		}
-		break;
-		/*case HIR_EXPR_APPEND:
-		case HIR_EXPR_EXTEND:
-		case HIR_EXPR_SEXTEND:
-		case HIR_EXPR_FEXTEND:
-		case HIR_EXPR_TMP:
-		case HIR_EXPR_ARG:
-		case HIR_EXPR_STCK:
-		case HIR_EXPR_VAL:
-		case HIR_EXPR_MEM:
-		case HIR_EXPR_CAST2F:
-		case HIR_EXPR_CAST2I:*/
-		default:
-			return {false, 0};
-		}
-		return {false, 0};
-	}
-
 
 	bool HSSAGenerator::parseFunction (HFunction * function) {
 		HSSAGenState state;
