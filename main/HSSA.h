@@ -6,30 +6,84 @@
 
 namespace holodec {
 
+	//Input??
+	//Undef
+	//Nop
+	//Ident - arg
+	//Phi - args
+
+	//Op - OpType - arg...
+	//Cond. Expr - CondType - arg
+
+	//Jmp - arg
+	//Call
+	//Return
+	//Syscall
+	//Trap
+
+	//Builtin - name - arg...
+	//Extend - arg
+	//Split - arg, uval, uval
+	//Append - arg...
+	//Cast - arg
+
+	//Mem - base + index*scale + disp
+	//Store - mem, ptr, value
+	//Load - mem, ptr, value
+
+	//Push - stack, arg
+	//Pop - stack, arg
+
+	//Sequence - ssa...
+
+	//Flag - FlagType - ssa
+
+	//CondType Zero/NZero
+	//Arg
+	//Type
+	//Size
+	//SubExpressions
+	//Mod
+	//	Offset, Size
+	//	- FlagType
+	//	- Index
+	//	- RegisterId
+	//	- OpType
+	//	- Type
+	//	- CondType
+	//	- Name
+
+	//Arg - 256bit
+	//	ArgType - int,uint,float,ssa,stack,arg,argcount,tmp,reg
+	//	InstructionId
+	//	-
+	//		blockId, ssaId
+	//		value, size
+	//		index
+	//		stackId
+	//		registerId
 	enum HSSAExprType {
+
 		HSSA_EXPR_INVALID = 0,
 		HSSA_EXPR_INPUT,  // Predefined variables, correspond to input arguments
-		HSSA_EXPR_UNDEF,  // Predefined variables, correspond to input arguments
-		HSSA_EXPR_NOP,  // Predefined variables, correspond to input arguments
+		HSSA_EXPR_UNDEF,
+		HSSA_EXPR_NOP,
 
-		HSSA_EXPR_VALUE,  // Value
+		HSSA_EXPR_ASSIGN,
+		HSSA_EXPR_IDENT,
+		HSSA_EXPR_PHI,
 
 		HSSA_EXPR_OP,
+		HSSA_EXPR_COND,
 		// Call - Return
-		HSSA_EXPR_BRANCH,  // For multiple possible targets
-		HSSA_EXPR_JMP, // for one target
 		HSSA_EXPR_CALL,  // a call to a function
 		HSSA_EXPR_RETURN,  // a return
 		HSSA_EXPR_SYSCALL,  // a syscall
 		HSSA_EXPR_TRAP,  // a trap
 
-		// Any... -> Any
 		HSSA_EXPR_BUILTIN,  // call a builtin(invalidates all previous variables and creates a new def)
-		// Any  -> Any
 		HSSA_EXPR_EXTEND,  // zero extend a value
-		// Any -> Int
 		HSSA_EXPR_SPLIT,  // access to part of a variable
-		// Any -> Any
 		HSSA_EXPR_APPEND,  // combine variables
 		HSSA_EXPR_CAST,  // cast to other type
 
@@ -38,14 +92,14 @@ namespace holodec {
 		HSSA_EXPR_STORE, //mem = mem, addr, value
 		HSSA_EXPR_LOAD, //value = mem, addr
 
-		HSSA_EXPR_FLAG_C,
-		HSSA_EXPR_FLAG_A,
-		HSSA_EXPR_FLAG_P,
-		HSSA_EXPR_FLAG_O,
-		HSSA_EXPR_FLAG_Z,
-		HSSA_EXPR_FLAG_S,
+		HSSA_EXPR_PUSH,
+		HSSA_EXPR_POP,
+		
+		HSSA_EXPR_SEQUENCE,//only for ir gets resolved in ssa generation
+		
+		HSSA_EXPR_FLAG,
 	};
-	enum HSSAOperatorType {
+	enum HSSAOpType {
 		HSSA_OP_INVALID = 0,
 		HSSA_OP_ADD,
 		HSSA_OP_SUB,
@@ -77,18 +131,6 @@ namespace holodec {
 		HSSA_OP_ROR,
 		HSSA_OP_ROL,
 	};
-	enum HSSACondType {
-		HSSA_COND_NONE = 0,
-		HSSA_COND_ZERO,
-		HSSA_COND_NZERO,
-		HSSA_COND_EQ,
-		HSSA_COND_NEQ,
-		HSSA_COND_L,
-		HSSA_COND_LE,
-		HSSA_COND_G,
-		HSSA_COND_GE,
-
-	};
 	enum HSSAType {
 		HSSA_TYPE_UNKNOWN = 0,
 		HSSA_TYPE_INT,
@@ -97,14 +139,83 @@ namespace holodec {
 		HSSA_TYPE_MEM,
 		HSSA_TYPE_PC,
 	};
-
-	enum HSSAArgType {
-		HSSA_ARG_INVALID = 0,
-		HSSA_ARG_INT,
-		HSSA_ARG_UINT,
-		HSSA_ARG_FLOAT,
-		HSSA_ARG_SSA,
+	enum HSSAArgType{
+		HSSA_ARGTYPE_INT,
+		HSSA_ARGTYPE_UINT,
+		HSSA_ARGTYPE_FLOAT,
+		HSSA_ARGTYPE_SSA,
+		HSSA_ARGTYPE_STACK,//only for ir
+		HSSA_ARGTYPE_ARG,//only for ir
+		HSSA_ARGTYPE_TMP,//only for ir
+		HSSA_ARGTYPE_REG//only for ir
 	};
+	enum HSSAExprCond{
+		HSSA_EXPRCOND_NONE,
+		HSSA_EXPRCOND_ZERO,//maybe not
+		HSSA_EXPRCOND_NZERO,
+	};
+	enum HSSAFlagType{
+		HSSA_FLAG_C,
+		HSSA_FLAG_A,
+		HSSA_FLAG_P,
+		HSSA_FLAG_O,
+		HSSA_FLAG_Z,
+		HSSA_FLAG_S,
+	};
+	struct HSSAId {
+		HId id;
+		HId bbid;
+
+		operator bool() {
+			return id && bbid;
+		}
+	};
+	struct HStackId {
+		HId id;
+		HId index;
+
+		operator bool() {
+			return id && index;
+		}
+	};
+	struct HSSAArg{//196 bit
+		HSSAArgType type;
+		union{//128 bit
+			HSSAId ssaId;
+			struct{//128 bit
+				union{
+					int64_t sval;
+					uint64_t uval;
+					double fval;
+				};
+				uint64_t size;
+			};
+			HId index;
+			HStackId stackId;
+			HId registerId;
+		};
+	};
+	struct HSSAExpression{
+		HSSAExprType type;
+		HSSAExprCond cond;
+		HSSAArg condArg;
+		uint64_t size;
+		HSSAType exprtype;
+		struct{//196 bit
+			uint64_t offset,size;
+			union{//64 bit
+				HSSAFlagType flagType;
+				HId index;
+				HId registerId;
+				HSSAOpType opType;
+				HId builtinId;
+			};
+		}mod;
+		HLocalBackedLists<HSSAArg, HSSA_LOCAL_USEID_MAX> subExpressions;
+		
+		
+	};
+/*
 	struct HSSAId {
 		HId id;
 		HId bbid;
@@ -489,6 +600,6 @@ namespace holodec {
 		HIdList<HSSABasicBlock> basicblocks;
 
 		HId funcId;//what function this expression refers to
-	};
+	};*/
 
 }
