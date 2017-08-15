@@ -51,8 +51,8 @@ namespace holodec {
 			for (auto& entry : instrdefs) {
 				HIRParser parser (this);
 				for (int i = 0; i < 4; i++) {
-					if (entry.second.il_string[i]) {
-						parser.parse (&entry.second.il_string[i]);
+					if (entry.second.irs[i]) {
+						parser.parse (&entry.second.irs[i]);
 					}
 				}
 			}

@@ -367,7 +367,7 @@ namespace holodec {
 
 
 	void HIRParser::parse (HIRRepresentation* rep) {
-		string = rep->string;
+		string = rep->ir;
 		index = 0;
 		this->rep = rep;
 		rep->rootExpr = parseExpression();

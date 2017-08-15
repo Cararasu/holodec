@@ -32,7 +32,7 @@ namespace holodec {
 		HIR_EXPR_IF,//if,?
 
 		HIR_EXPR_APPEND,//app
-		
+
 		HIR_EXPR_EXTEND,//ext
 		HIR_EXPR_SEXTEND,//sext
 		HIR_EXPR_FEXTEND,//fext
@@ -69,7 +69,7 @@ namespace holodec {
 
 	enum HIROpToken {
 		HIR_TOKEN_INVALID = 0,
-		
+
 		HIR_TOKEN_FLAG_C,
 		HIR_TOKEN_FLAG_A,
 		HIR_TOKEN_FLAG_P,
@@ -127,13 +127,13 @@ namespace holodec {
 		size_t minargs = 0;
 		size_t maxargs = std::numeric_limits<size_t>::max();
 
-		HIRTokenType (HIRExpressionType type) : type(type) {}
-		HIRTokenType (HIRExpressionType type, size_t minargs) : type(type), minargs (minargs) {}
-		HIRTokenType (HIRExpressionType type, size_t minargs, size_t maxargs) : type(type), minargs (minargs), maxargs (maxargs) {}
-		
-		HIRTokenType (HIRExpressionType type, HIROpToken token) : type(type), token (token) {}
-		HIRTokenType (HIRExpressionType type, HIROpToken token, size_t minargs) : type(type), token (token), minargs (minargs) {}
-		HIRTokenType (HIRExpressionType type, HIROpToken token, size_t minargs, size_t maxargs) : type(type), token (token), minargs (minargs), maxargs (maxargs) {}
+		HIRTokenType (HIRExpressionType type) : type (type) {}
+		HIRTokenType (HIRExpressionType type, size_t minargs) : type (type), minargs (minargs) {}
+		HIRTokenType (HIRExpressionType type, size_t minargs, size_t maxargs) : type (type), minargs (minargs), maxargs (maxargs) {}
+
+		HIRTokenType (HIRExpressionType type, HIROpToken token) : type (type), token (token) {}
+		HIRTokenType (HIRExpressionType type, HIROpToken token, size_t minargs) : type (type), token (token), minargs (minargs) {}
+		HIRTokenType (HIRExpressionType type, HIROpToken token, size_t minargs, size_t maxargs) : type (type), token (token), minargs (minargs), maxargs (maxargs) {}
 	};
 	extern HMap<HString, HIRTokenType> tokenmap;
 
@@ -169,7 +169,7 @@ namespace holodec {
 		void print (HArchitecture* arch, size_t indent = 0);
 
 		bool addSubExpression (HId id) {
-			assert(subexprcount < HIR_LOCAL_SUBEXPRESSION_COUNT);
+			assert (subexprcount < HIR_LOCAL_SUBEXPRESSION_COUNT);
 			for (int i = 0; i < HIR_LOCAL_SUBEXPRESSION_COUNT; i++) {
 				if (!subexpressions[i]) {
 					subexpressions[i] = id;
@@ -228,29 +228,31 @@ namespace holodec {
 	};
 
 	struct HIRRepresentation {
-		HString string;
+		int64_t argcount;
+		HString cond;
+		HString ir;
 		HList<HIRExpression> expressions;
 
 		HId rootExpr;
 		HIdGenerator gen_expr;
 
-		HIRRepresentation() : string (0) {}
-		HIRRepresentation (int i) : string (0) {}
-		HIRRepresentation (const char* ptr) : string (ptr) {}
-		HIRRepresentation (HString string) : string (string) {}
+		HIRRepresentation() : HIRRepresentation (-1, nullptr, nullptr) {}
+		HIRRepresentation (HString ir) :  HIRRepresentation (-1, nullptr, ir) {}
+		HIRRepresentation (int64_t argcount, HString ir) : HIRRepresentation (argcount, nullptr, ir) {}
+		HIRRepresentation (HString cond, HString ir) : HIRRepresentation (-1, cond, ir) {}
+		HIRRepresentation (int64_t argcount, HString cond, HString ir) : argcount (argcount), cond (cond), ir (ir) {}
 
 		bool operator!() {
-			return !string;
+			return !ir;
 		}
 		operator bool() {
-			return string;
+			return ir;
 		}
 		void print (HArchitecture* arch, int indent = 0) {
-			if (string) {
+			if (ir) {
 				printIndent (indent);
-				printf ("IL-String: %s\n", string.cstr());
+				printf ("IL-String: %s\n", ir.cstr());
 			} else {
-
 				printIndent (indent);
 				printf ("No IL-String----------------\n");
 			}

@@ -61,7 +61,7 @@ void holodec::HInstruction::print (HArchitecture* arch, int indent) {
 			printf (" Args%d: ", i + 1);
 			operands[i].print (arch);
 		}
-		instrdef->il_string[opcount].print (arch, indent + 1);
+		instrdef->irs[opcount].print (arch, indent + 1);
 	} else {
 		printIndent (indent);
 		printf ("No Def\n");
