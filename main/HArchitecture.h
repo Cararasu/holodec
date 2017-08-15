@@ -8,6 +8,7 @@
 #include "HRegister.h"
 #include "HStack.h"
 #include "HCallingConvention.h"
+#include "HSSA.h"
 
 namespace holodec {
 
@@ -29,6 +30,7 @@ namespace holodec {
 		HMap<HId, HInstrDefinition> instrdefs;
 
 		HIdList<HIRExpression> irExpressions;
+		HIdList<HSSAExpression> ssaExpressions;
 
 		HArchitecture() = default;
 		HArchitecture (HArchitecture&) = default;
@@ -163,6 +165,17 @@ namespace holodec {
 					return expression.id;
 			}
 			irExpressions.add (expr);
+			return expr.id;
+		}
+		HSSAExpression* getSSAExpr (HId id) {
+			return ssaExpressions.get (id);
+		}
+		HId addSSAExpr (HSSAExpression expr) {
+			for (HSSAExpression& expression : ssaExpressions.list) {   //Do CSE
+				if (expression == expr)
+					return expression.id;
+			}
+			ssaExpressions.add (expr);
 			return expr.id;
 		}
 

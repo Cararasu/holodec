@@ -1,4 +1,7 @@
 
+#ifndef HSSA_H
+#define HSSA_H
+
 #include "HId.h"
 #include "HClass.h"
 
@@ -6,161 +9,106 @@
 
 namespace holodec {
 
-	//Input??
-	//Undef
-	//Nop
-	//Ident - arg
-	//Phi - args
-
-	//Op - OpType - arg...
-	//Cond. Expr - CondType - arg
-
-	//Jmp - arg
-	//Call
-	//Return
-	//Syscall
-	//Trap
-
-	//Builtin - name - arg...
-	//Extend - arg
-	//Split - arg, uval, uval
-	//Append - arg...
-	//Cast - arg
-
-	//Mem - base + index*scale + disp
-	//Store - mem, ptr, value
-	//Load - mem, ptr, value
-
-	//Push - stack, arg
-	//Pop - stack, arg
-
-	//Sequence - ssa...
-
-	//Flag - FlagType - ssa
-
-	//CondType Zero/NZero
-	//Arg
-	//Type
-	//Size
-	//SubExpressions
-	//Mod
-	//	Offset, Size
-	//	- FlagType
-	//	- Index
-	//	- RegisterId
-	//	- OpType
-	//	- Type
-	//	- CondType
-	//	- Name
-
-	//Arg - 256bit
-	//	ArgType - int,uint,float,ssa,stack,arg,argcount,tmp,reg
-	//	InstructionId
-	//	-
-	//		blockId, ssaId
-	//		value, size
-	//		index
-	//		stackId
-	//		registerId
 	enum HSSAExprType {
 
-		HSSA_EXPR_INVALID = 0,
-		HSSA_EXPR_INPUT,  // Predefined variables, correspond to input arguments
-		HSSA_EXPR_UNDEF,
-		HSSA_EXPR_NOP,
+	    HSSA_EXPR_INVALID = 0,
+	    HSSA_EXPR_INPUT,  // Predefined variables, correspond to input arguments
+	    HSSA_EXPR_UNDEF,
+	    HSSA_EXPR_NOP,
 
-		HSSA_EXPR_ASSIGN,
-		HSSA_EXPR_IDENT,
-		HSSA_EXPR_PHI,
+	    HSSA_EXPR_ATTACH,//attaches SSA val to a reg/arg/tmp/stack
+	    HSSA_EXPR_IDENT,
+	    HSSA_EXPR_PHI,
 
-		HSSA_EXPR_OP,
-		HSSA_EXPR_COND,
-		// Call - Return
-		HSSA_EXPR_CALL,  // a call to a function
-		HSSA_EXPR_RETURN,  // a return
-		HSSA_EXPR_SYSCALL,  // a syscall
-		HSSA_EXPR_TRAP,  // a trap
+	    HSSA_EXPR_OP,
+	    HSSA_EXPR_COND,
+	    // Call - Return
+	    HSSA_EXPR_CALL,  // a call to a function
+	    HSSA_EXPR_RETURN,  // a return
+	    HSSA_EXPR_SYSCALL,  // a syscall
+	    HSSA_EXPR_TRAP,  // a trap
 
-		HSSA_EXPR_BUILTIN,  // call a builtin(invalidates all previous variables and creates a new def)
-		HSSA_EXPR_EXTEND,  // zero extend a value
-		HSSA_EXPR_SPLIT,  // access to part of a variable
-		HSSA_EXPR_APPEND,  // combine variables
-		HSSA_EXPR_CAST,  // cast to other type
+	    HSSA_EXPR_BUILTIN,  // call a builtin(invalidates all previous variables and creates a new def)
+	    HSSA_EXPR_EXTEND,  // zero extend a value
+	    HSSA_EXPR_SPLIT,  // access to part of a variable
+	    HSSA_EXPR_APPEND,  // combine variables
+	    HSSA_EXPR_CAST,  // cast to other type
 
-		HSSA_EXPR_MEM,  // addr = base, index, scale, disp
-		// Memory
-		HSSA_EXPR_STORE, //mem = mem, addr, value
-		HSSA_EXPR_LOAD, //value = mem, addr
+	    HSSA_EXPR_MEM,  // addr = base, index, scale, disp
+	    // Memory
+	    HSSA_EXPR_STORE, //mem = mem, addr, value
+	    HSSA_EXPR_LOAD, //value = mem, addr
 
-		HSSA_EXPR_PUSH,
-		HSSA_EXPR_POP,
-		
-		HSSA_EXPR_SEQUENCE,//only for ir gets resolved in ssa generation
-		
-		HSSA_EXPR_FLAG,
+	    HSSA_EXPR_PUSH,
+	    HSSA_EXPR_POP,
+
+	    HSSA_EXPR_SEQUENCE,//only for ir gets resolved in ssa generation
+
+	    HSSA_EXPR_FLAG,
 	};
 	enum HSSAOpType {
-		HSSA_OP_INVALID = 0,
-		HSSA_OP_ADD,
-		HSSA_OP_SUB,
-		HSSA_OP_MUL,
-		HSSA_OP_DIV,
-		HSSA_OP_MOD,
+	    HSSA_OP_INVALID = 0,
+	    HSSA_OP_ADD,
+	    HSSA_OP_SUB,
+	    HSSA_OP_MUL,
+	    HSSA_OP_DIV,
+	    HSSA_OP_MOD,
 
-		HSSA_OP_AND,
-		HSSA_OP_OR,
-		HSSA_OP_XOR,
-		HSSA_OP_NOT,
+	    HSSA_OP_AND,
+	    HSSA_OP_OR,
+	    HSSA_OP_XOR,
+	    HSSA_OP_NOT,
 
-		HSSA_OP_E,
-		HSSA_OP_NE,
-		HSSA_OP_L,
-		HSSA_OP_LE,
-		HSSA_OP_G,
-		HSSA_OP_GE,
+	    HSSA_OP_E,
+	    HSSA_OP_NE,
+	    HSSA_OP_L,
+	    HSSA_OP_LE,
+	    HSSA_OP_G,
+	    HSSA_OP_GE,
 
-		HSSA_OP_BAND,
-		HSSA_OP_BOR,
-		HSSA_OP_BXOR,
-		HSSA_OP_BNOT,
+	    HSSA_OP_BAND,
+	    HSSA_OP_BOR,
+	    HSSA_OP_BXOR,
+	    HSSA_OP_BNOT,
 
-		HSSA_OP_SHR,
-		HSSA_OP_SHL,
-		HSSA_OP_SAR,
-		HSSA_OP_SAL,
-		HSSA_OP_ROR,
-		HSSA_OP_ROL,
+	    HSSA_OP_SHR,
+	    HSSA_OP_SHL,
+	    HSSA_OP_SAR,
+	    HSSA_OP_SAL,
+	    HSSA_OP_ROR,
+	    HSSA_OP_ROL,
 	};
 	enum HSSAType {
-		HSSA_TYPE_UNKNOWN = 0,
-		HSSA_TYPE_INT,
-		HSSA_TYPE_UINT,
-		HSSA_TYPE_FLOAT,
-		HSSA_TYPE_MEM,
-		HSSA_TYPE_PC,
+	    HSSA_TYPE_UNKNOWN = 0,
+	    HSSA_TYPE_INT,
+	    HSSA_TYPE_UINT,
+	    HSSA_TYPE_FLOAT,
+	    HSSA_TYPE_MEM,
+	    HSSA_TYPE_PC,
 	};
-	enum HSSAArgType{
-		HSSA_ARGTYPE_INT,
-		HSSA_ARGTYPE_UINT,
-		HSSA_ARGTYPE_FLOAT,
-		HSSA_ARGTYPE_SSA,
-		HSSA_ARGTYPE_STACK,//only for ir
-		HSSA_ARGTYPE_ARG,//only for ir
-		HSSA_ARGTYPE_TMP,//only for ir
-		HSSA_ARGTYPE_REG//only for ir
+	enum HSSAArgType {
+	    HSSA_ARGTYPE_INVALID = 0,
+	    HSSA_ARGTYPE_INT,
+	    HSSA_ARGTYPE_UINT,
+	    HSSA_ARGTYPE_FLOAT,
+	    HSSA_ARGTYPE_SSA,
+	    HSSA_ARGTYPE_STACK,//only for ir
+	    HSSA_ARGTYPE_ARG,//only for ir
+	    HSSA_ARGTYPE_TMP,//only for ir
+	    HSSA_ARGTYPE_REG//only for ir
 	};
-	enum HSSAExprCond{
-		HSSA_EXPRCOND_NONE,
-		HSSA_EXPRCOND_ZERO,//maybe not
-		HSSA_EXPRCOND_NZERO,
+	enum HSSAExprCond {
+	    HSSA_EXPRCOND_NONE,
+	    HSSA_EXPRCOND_ZERO,//maybe not
+	    HSSA_EXPRCOND_NZERO,
 	};
-	enum HSSAFlagType{
-		HSSA_FLAG_C,
-		HSSA_FLAG_A,
-		HSSA_FLAG_P,
-		HSSA_FLAG_O,
-		HSSA_FLAG_Z,
-		HSSA_FLAG_S,
+	enum HSSAFlagType {
+	    HSSA_FLAG_C,
+	    HSSA_FLAG_A,
+	    HSSA_FLAG_P,
+	    HSSA_FLAG_O,
+	    HSSA_FLAG_Z,
+	    HSSA_FLAG_S,
 	};
 	struct HSSAId {
 		HId id;
@@ -178,375 +126,389 @@ namespace holodec {
 			return id && index;
 		}
 	};
-	struct HSSAArg{//196 bit
-		HSSAArgType type;
-		union{//128 bit
-			HSSAId ssaId;
-			struct{//128 bit
-				union{
+	struct HSSAArg { //196 bit
+		HSSAArgType type = HSSA_ARGTYPE_INVALID;
+		union { //128 bit
+			struct { //UInt/Int/Float
+				union {
 					int64_t sval;
 					uint64_t uval;
 					double fval;
 				};
 				uint64_t size;
 			};
-			HId index;
-			HStackId stackId;
-			HId registerId;
+			HSSAId ssaId;
+			HId index;//Tmp/Arg
+			HStackId stackId;//Stack
+			HId registerId;//Register
 		};
+		bool operator!(){
+			return type == HSSA_ARGTYPE_INVALID;
+		}
+		operator bool(){
+			return type != HSSA_ARGTYPE_INVALID;
+		}
 	};
-	struct HSSAExpression{
+	struct HSSAExpression {
+		HId id;
 		HSSAExprType type;
 		HSSAExprCond cond;
 		HSSAArg condArg;
 		uint64_t size;
 		HSSAType exprtype;
-		struct{//196 bit
-			uint64_t offset,size;
-			union{//64 bit
+		struct { //196 bit
+			union { //64 bit
 				HSSAFlagType flagType;
 				HId index;
-				HId registerId;
 				HSSAOpType opType;
 				HId builtinId;
+				HSSAExprCond condType;
 			};
-		}mod;
+		} mod;
 		HLocalBackedLists<HSSAArg, HSSA_LOCAL_USEID_MAX> subExpressions;
 		
-		
-	};
-/*
-	struct HSSAId {
-		HId id;
-		HId bbid;
-
-		operator bool() {
-			return id && bbid;
+		bool operator!(){
+			return type == HSSA_EXPR_INVALID;
+		}
+		operator bool(){
+			return type != HSSA_EXPR_INVALID;
 		}
 	};
-
-	struct HSSAArg {
-		HSSAArgType type;
-		union {
-			struct {
-				union {
-					int64_t val;
-					uint64_t uval;
-					double fval;
-				};
-				uint64_t size;
-			};
-			HSSAId ssaId;
-		};
-		static HSSAArg createArg (int64_t val, uint64_t size) {
-			HSSAArg arg;
-			arg.type = HSSA_ARG_INT;
-			arg.val = val;
-			arg.size = size;
-			return arg;
-		}
-		static HSSAArg createArg (uint64_t val, uint64_t size) {
-			HSSAArg arg;
-			arg.type = HSSA_ARG_UINT;
-			arg.uval = val;
-			arg.size = size;
-			return arg;
-		}
-		static HSSAArg createArg (double val, uint64_t size) {
-			HSSAArg arg;
-			arg.type = HSSA_ARG_FLOAT;
-			arg.fval = val;
-			arg.size = size;
-			return arg;
-		}
-		static HSSAArg createArg (HSSAId val) {
-			HSSAArg arg;
-			arg.type = HSSA_ARG_SSA;
-			arg.ssaId = val;
-			return arg;
-		}
-		static HSSAArg createArg () {
-			HSSAArg arg;
-			arg.type = HSSA_ARG_INVALID;
-			return arg;
-		}
-		operator bool() {
-			return !type;
-		}
-	};
-	inline bool operator != (HSSAArg& lhs, HSSAArg& rhs) {
-		return lhs.type != rhs.type || lhs.val != rhs.val;
+	inline bool operator== ( HSSAId& lhs,HSSAId& rhs ) {
+		return lhs.id == rhs.id && lhs.bbid == rhs.bbid;
 	}
-
-	struct HSSAExpression {
-		HId id;
-		HSSAExprType type;
-		HSSAOperatorType opType;
-		HSSACondType condType;
-		HSSAType rettype;//refers to the return type
-		uint64_t retsize;//refers to the return type
-
-		HId instrId;//what instruction this expression refers to
-
-		HLocalBackedLists<HSSAArg, HSSA_LOCAL_USEID_MAX> subExpressions;
-
-		void print (HId bbId, uint64_t indent = 0) {
-			printIndent (indent);
-			switch (rettype) {
-			case HSSA_TYPE_INT:
-				printf ("Int%d ", retsize);
-				break;
-			case HSSA_TYPE_UINT:
-				printf ("Uint%d ", retsize);
-				break;
-			case HSSA_TYPE_FLOAT:
-				printf ("Float%d ", retsize);
-				break;
-			case HSSA_TYPE_MEM:
-				printf ("Mem ");
-				break;
-			case HSSA_TYPE_PC:
-				printf ("PC ");
-				break;
+	inline bool operator== ( HStackId& lhs,HStackId& rhs ) {
+		return lhs.id == rhs.id && lhs.index == rhs.index;
+	}
+	inline bool operator== ( HSSAArg& lhs,HSSAArg& rhs ) {
+		if ( lhs.type == rhs.type ) {
+			switch ( lhs.type ) {
+			case HSSA_ARGTYPE_INT:
+				return lhs.sval == rhs.sval && lhs.size == rhs.size;
+			case HSSA_ARGTYPE_UINT:
+				return lhs.uval == rhs.uval && lhs.size == rhs.size;
+			case HSSA_ARGTYPE_FLOAT:
+				return lhs.fval == rhs.fval && lhs.size == rhs.size;
+			case HSSA_ARGTYPE_SSA:
+				return lhs.ssaId == rhs.ssaId;
+			case HSSA_ARGTYPE_STACK:
+				return lhs.stackId == rhs.stackId;
+			case HSSA_ARGTYPE_ARG:
+			case HSSA_ARGTYPE_TMP:
+				return lhs.index == rhs.index;
+			case HSSA_ARGTYPE_REG:
+				return lhs.registerId == rhs.registerId;
 			}
-			printf (" %d:%d = ", bbId, id);
-			switch (type) {
-			case HSSA_EXPR_INVALID:
-				printf ("Invalid ");
-				break;
-			case HSSA_EXPR_INPUT:
-				printf ("Input ");
-				break;
-			case HSSA_EXPR_UNDEF:
-				printf ("Undef ");
-				break;
-			case HSSA_EXPR_NOP:
-				printf ("Nop ");
-				break;
-			case HSSA_EXPR_VALUE:
-				printf ("Value ");
-				break;
+		}
+		return false;
+	}
+	inline bool operator!= ( HSSAArg& lhs,HSSAArg& rhs ) {
+		return ! ( lhs == rhs );
+	}
+	inline bool operator== ( HSSAExpression& lhs,HSSAExpression& rhs ) {
+		if ( lhs.type == rhs.type && lhs.cond == rhs.cond && lhs.condArg == rhs.condArg &&
+		        lhs.size == rhs.size && lhs.exprtype == rhs.exprtype ) {
+			if ( lhs.subExpressions.size() == rhs.subExpressions.size() ) {
+				for ( int i = 0; i < lhs.subExpressions.size(); i++ ) {
+					if ( lhs.subExpressions[i] != rhs.subExpressions[i] )
+						return false;
+				}
+			}
+			switch ( rhs.type ) {
+			case HSSA_EXPR_FLAG:
+				return lhs.mod.flagType == rhs.mod.flagType;
+			case HSSA_EXPR_COND:
+				return lhs.mod.condType == rhs.mod.condType;
 			case HSSA_EXPR_OP:
-				printf ("Op ");
-				switch (opType) {
-				case HSSA_OP_INVALID:
-				default:
-					printf ("Inval-Op ");
-					break;
-				case HSSA_OP_ADD:
-					printf ("+ ");
-					break;
-				case HSSA_OP_SUB:
-					printf ("- ");
-					break;
-				case HSSA_OP_MUL:
-					printf ("* ");
-					break;
-				case HSSA_OP_DIV:
-					printf ("/ ");
-					break;
-				case HSSA_OP_MOD:
-					printf ("% ");
-					break;
-				case HSSA_OP_AND:
-					printf ("& ");
-					break;
-				case HSSA_OP_OR:
-					printf ("| ");
-					break;
-				case HSSA_OP_XOR:
-					printf ("^ ");
-					break;
-				case HSSA_OP_NOT:
-					printf ("~ ");
-					break;
-
-				case HSSA_OP_E:
-					printf ("== ");
-					break;
-				case HSSA_OP_NE:
-					printf ("!= ");
-					break;
-				case HSSA_OP_L:
-					printf ("< ");
-					break;
-				case HSSA_OP_LE:
-					printf ("<= ");
-					break;
-				case HSSA_OP_G:
-					printf ("> ");
-					break;
-				case HSSA_OP_GE:
-					printf (">= ");
-					break;
-				case HSSA_OP_BAND:
-					printf ("& ");
-					break;
-				case HSSA_OP_BOR:
-					printf ("| ");
-					break;
-				case HSSA_OP_BXOR:
-					printf ("^ ");
-					break;
-				case HSSA_OP_BNOT:
-					printf ("~ ");
-					break;
-
-				case HSSA_OP_SHR:
-					printf (">> ");
-					break;
-				case HSSA_OP_SHL:
-					printf ("<< ");
-					break;
-				case HSSA_OP_SAR:
-					printf ("pow ");
-					break;
-				case HSSA_OP_SAL:
-					printf ("log2 ");
-					break;
-				case HSSA_OP_ROR:
-					printf ("ror ");
-					break;
-				case HSSA_OP_ROL:
-					printf ("rol ");
-					break;
-				}
-				break;
-			case HSSA_EXPR_JMP:
-				printf ("JMP ");
-				break;
-			case HSSA_EXPR_BRANCH:
-				printf ("Branch ");
-				break;
-			case HSSA_EXPR_CALL:
-				printf ("Call ");
-				break;
-			case HSSA_EXPR_RETURN:
-				printf ("Ret ");
-				break;
-			case HSSA_EXPR_SYSCALL:
-				printf ("Syscall ");
-				break;
-			case HSSA_EXPR_TRAP:
-				printf ("Trap ");
-				break;
+				return lhs.mod.opType == rhs.mod.opType;
 			case HSSA_EXPR_BUILTIN:
-				printf ("Builtin ");
-				break;
-			case HSSA_EXPR_EXTEND:
-				printf ("Extend ");
-				break;
-			case HSSA_EXPR_SPLIT:
-				printf ("Split ");
-				break;
-			case HSSA_EXPR_APPEND:
-				printf ("Append ");
-				break;
-			case HSSA_EXPR_CAST:
-				printf ("Cast ");
-				break;
-			case HSSA_EXPR_MEM:
-				printf ("Mem ");
-				break;
-			case HSSA_EXPR_STORE:
-				printf ("Store ");
-				break;
-			case HSSA_EXPR_LOAD:
-				printf ("Load ");
-				break;
-			case HSSA_EXPR_FLAG_C:
-				printf ("Flag_C ");
-				break;
-			case HSSA_EXPR_FLAG_A:
-				printf ("Flag_A ");
-				break;
-			case HSSA_EXPR_FLAG_P:
-				printf ("Flag_P ");
-				break;
-			case HSSA_EXPR_FLAG_O:
-				printf ("Flag_O ");
-				break;
-			case HSSA_EXPR_FLAG_Z:
-				printf ("Flag_Z ");
-				break;
-			case HSSA_EXPR_FLAG_S:
-				printf ("Flag_S ");
-				break;
-			default:
-				printf ("Not Defined ");
-				break;
+				return lhs.mod.index == rhs.mod.index;
 			}
-			uint64_t subexprcount = subExpressions.size();
-			switch (condType) {
-			case HSSA_COND_NONE:
-			default:
-				break;
-			case HSSA_COND_ZERO:
-			case HSSA_COND_NZERO:
-				subexprcount--;
-				break;
-			case HSSA_COND_EQ:
-			case HSSA_COND_NEQ:
-			case HSSA_COND_L:
-			case HSSA_COND_LE:
-			case HSSA_COND_G:
-			case HSSA_COND_GE:
-				subexprcount -= 2;
-				break;
-			}
+		}
+		return false;
+	}
+	/*
+		struct HSSAId {
+			HId id;
+			HId bbid;
 
-			printf ("(");
-			for (int i = 0; i < subexprcount; i++) {
-				switch (subExpressions[i].type) {
-				case HSSA_ARG_INT:
-					printf ("%s0x%x,", subExpressions[i].val < 0 ? "-" : "", subExpressions[i].val < 0 ? subExpressions[i].val * -1 : subExpressions[i].val);
+			operator bool() {
+				return id && bbid;
+			}
+		};
+
+		struct HSSAArg {
+			HSSAArgType type;
+			union {
+				struct {
+					union {
+						int64_t val;
+						uint64_t uval;
+						double fval;
+					};
+					uint64_t size;
+				};
+				HSSAId ssaId;
+			};
+			static HSSAArg createArg (int64_t val, uint64_t size) {
+				HSSAArg arg;
+				arg.type = HSSA_ARG_INT;
+				arg.val = val;
+				arg.size = size;
+				return arg;
+			}
+			static HSSAArg createArg (uint64_t val, uint64_t size) {
+				HSSAArg arg;
+				arg.type = HSSA_ARG_UINT;
+				arg.uval = val;
+				arg.size = size;
+				return arg;
+			}
+			static HSSAArg createArg (double val, uint64_t size) {
+				HSSAArg arg;
+				arg.type = HSSA_ARG_FLOAT;
+				arg.fval = val;
+				arg.size = size;
+				return arg;
+			}
+			static HSSAArg createArg (HSSAId val) {
+				HSSAArg arg;
+				arg.type = HSSA_ARG_SSA;
+				arg.ssaId = val;
+				return arg;
+			}
+			static HSSAArg createArg () {
+				HSSAArg arg;
+				arg.type = HSSA_ARG_INVALID;
+				return arg;
+			}
+			operator bool() {
+				return !type;
+			}
+		};
+		inline bool operator != (HSSAArg& lhs, HSSAArg& rhs) {
+			return lhs.type != rhs.type || lhs.val != rhs.val;
+		}
+
+		struct HSSAExpression {
+			HId id;
+			HSSAExprType type;
+			HSSAOperatorType opType;
+			HSSACondType condType;
+			HSSAType rettype;//refers to the return type
+			uint64_t retsize;//refers to the return type
+
+			HId instrId;//what instruction this expression refers to
+
+			HLocalBackedLists<HSSAArg, HSSA_LOCAL_USEID_MAX> subExpressions;
+
+			void print (HId bbId, uint64_t indent = 0) {
+				printIndent (indent);
+				switch (rettype) {
+				case HSSA_TYPE_INT:
+					printf ("Int%d ", retsize);
 					break;
-				case HSSA_ARG_UINT:
-					printf ("0x%x,", subExpressions[i].uval);
+				case HSSA_TYPE_UINT:
+					printf ("Uint%d ", retsize);
 					break;
-				case HSSA_ARG_FLOAT:
-					printf ("%f,", subExpressions[i].fval);
+				case HSSA_TYPE_FLOAT:
+					printf ("Float%d ", retsize);
 					break;
-				case HSSA_ARG_SSA:
-					printf ("%d:%d,", subExpressions[i].ssaId.bbid, subExpressions[i].ssaId.id);
+				case HSSA_TYPE_MEM:
+					printf ("Mem ");
 					break;
-				default:
-					printf ("Invalid %d", subExpressions[i].type);
+				case HSSA_TYPE_PC:
+					printf ("PC ");
 					break;
 				}
-			}
-			printf (")");
-			bool cond = condType != HSSA_COND_NONE;
-			if (cond) {
-				printf (" on ");
-				switch (condType) {
-				case HSSA_COND_ZERO:
-					printf ("Zero");
+				printf (" %d:%d = ", bbId, id);
+				switch (type) {
+				case HSSA_EXPR_INVALID:
+					printf ("Invalid ");
 					break;
+				case HSSA_EXPR_INPUT:
+					printf ("Input ");
+					break;
+				case HSSA_EXPR_UNDEF:
+					printf ("Undef ");
+					break;
+				case HSSA_EXPR_NOP:
+					printf ("Nop ");
+					break;
+				case HSSA_EXPR_VALUE:
+					printf ("Value ");
+					break;
+				case HSSA_EXPR_OP:
+					printf ("Op ");
+					switch (opType) {
+					case HSSA_OP_INVALID:
+					default:
+						printf ("Inval-Op ");
+						break;
+					case HSSA_OP_ADD:
+						printf ("+ ");
+						break;
+					case HSSA_OP_SUB:
+						printf ("- ");
+						break;
+					case HSSA_OP_MUL:
+						printf ("* ");
+						break;
+					case HSSA_OP_DIV:
+						printf ("/ ");
+						break;
+					case HSSA_OP_MOD:
+						printf ("% ");
+						break;
+					case HSSA_OP_AND:
+						printf ("& ");
+						break;
+					case HSSA_OP_OR:
+						printf ("| ");
+						break;
+					case HSSA_OP_XOR:
+						printf ("^ ");
+						break;
+					case HSSA_OP_NOT:
+						printf ("~ ");
+						break;
+
+					case HSSA_OP_E:
+						printf ("== ");
+						break;
+					case HSSA_OP_NE:
+						printf ("!= ");
+						break;
+					case HSSA_OP_L:
+						printf ("< ");
+						break;
+					case HSSA_OP_LE:
+						printf ("<= ");
+						break;
+					case HSSA_OP_G:
+						printf ("> ");
+						break;
+					case HSSA_OP_GE:
+						printf (">= ");
+						break;
+					case HSSA_OP_BAND:
+						printf ("& ");
+						break;
+					case HSSA_OP_BOR:
+						printf ("| ");
+						break;
+					case HSSA_OP_BXOR:
+						printf ("^ ");
+						break;
+					case HSSA_OP_BNOT:
+						printf ("~ ");
+						break;
+
+					case HSSA_OP_SHR:
+						printf (">> ");
+						break;
+					case HSSA_OP_SHL:
+						printf ("<< ");
+						break;
+					case HSSA_OP_SAR:
+						printf ("pow ");
+						break;
+					case HSSA_OP_SAL:
+						printf ("log2 ");
+						break;
+					case HSSA_OP_ROR:
+						printf ("ror ");
+						break;
+					case HSSA_OP_ROL:
+						printf ("rol ");
+						break;
+					}
+					break;
+				case HSSA_EXPR_JMP:
+					printf ("JMP ");
+					break;
+				case HSSA_EXPR_BRANCH:
+					printf ("Branch ");
+					break;
+				case HSSA_EXPR_CALL:
+					printf ("Call ");
+					break;
+				case HSSA_EXPR_RETURN:
+					printf ("Ret ");
+					break;
+				case HSSA_EXPR_SYSCALL:
+					printf ("Syscall ");
+					break;
+				case HSSA_EXPR_TRAP:
+					printf ("Trap ");
+					break;
+				case HSSA_EXPR_BUILTIN:
+					printf ("Builtin ");
+					break;
+				case HSSA_EXPR_EXTEND:
+					printf ("Extend ");
+					break;
+				case HSSA_EXPR_SPLIT:
+					printf ("Split ");
+					break;
+				case HSSA_EXPR_APPEND:
+					printf ("Append ");
+					break;
+				case HSSA_EXPR_CAST:
+					printf ("Cast ");
+					break;
+				case HSSA_EXPR_MEM:
+					printf ("Mem ");
+					break;
+				case HSSA_EXPR_STORE:
+					printf ("Store ");
+					break;
+				case HSSA_EXPR_LOAD:
+					printf ("Load ");
+					break;
+				case HSSA_EXPR_FLAG_C:
+					printf ("Flag_C ");
+					break;
+				case HSSA_EXPR_FLAG_A:
+					printf ("Flag_A ");
+					break;
+				case HSSA_EXPR_FLAG_P:
+					printf ("Flag_P ");
+					break;
+				case HSSA_EXPR_FLAG_O:
+					printf ("Flag_O ");
+					break;
+				case HSSA_EXPR_FLAG_Z:
+					printf ("Flag_Z ");
+					break;
+				case HSSA_EXPR_FLAG_S:
+					printf ("Flag_S ");
+					break;
+				default:
+					printf ("Not Defined ");
+					break;
+				}
+				uint64_t subexprcount = subExpressions.size();
+				switch (condType) {
+				case HSSA_COND_NONE:
+				default:
+					break;
+				case HSSA_COND_ZERO:
 				case HSSA_COND_NZERO:
-					printf ("NZero");
+					subexprcount--;
 					break;
 				case HSSA_COND_EQ:
-					printf ("Equals");
-					break;
 				case HSSA_COND_NEQ:
-					printf ("NEquals");
-					break;
 				case HSSA_COND_L:
-					printf ("Lower");
-					break;
 				case HSSA_COND_LE:
-					printf ("LowerEq");
-					break;
 				case HSSA_COND_G:
-					printf ("Greater");
-					break;
 				case HSSA_COND_GE:
-					printf ("GreaterEq");
+					subexprcount -= 2;
 					break;
 				}
+
 				printf ("(");
-				for (int i = subexprcount; i < subExpressions.size(); i++) {
+				for (int i = 0; i < subexprcount; i++) {
 					switch (subExpressions[i].type) {
 					case HSSA_ARG_INT:
 						printf ("%s0x%x,", subExpressions[i].val < 0 ? "-" : "", subExpressions[i].val < 0 ? subExpressions[i].val * -1 : subExpressions[i].val);
@@ -566,40 +528,92 @@ namespace holodec {
 					}
 				}
 				printf (")");
+				bool cond = condType != HSSA_COND_NONE;
+				if (cond) {
+					printf (" on ");
+					switch (condType) {
+					case HSSA_COND_ZERO:
+						printf ("Zero");
+						break;
+					case HSSA_COND_NZERO:
+						printf ("NZero");
+						break;
+					case HSSA_COND_EQ:
+						printf ("Equals");
+						break;
+					case HSSA_COND_NEQ:
+						printf ("NEquals");
+						break;
+					case HSSA_COND_L:
+						printf ("Lower");
+						break;
+					case HSSA_COND_LE:
+						printf ("LowerEq");
+						break;
+					case HSSA_COND_G:
+						printf ("Greater");
+						break;
+					case HSSA_COND_GE:
+						printf ("GreaterEq");
+						break;
+					}
+					printf ("(");
+					for (int i = subexprcount; i < subExpressions.size(); i++) {
+						switch (subExpressions[i].type) {
+						case HSSA_ARG_INT:
+							printf ("%s0x%x,", subExpressions[i].val < 0 ? "-" : "", subExpressions[i].val < 0 ? subExpressions[i].val * -1 : subExpressions[i].val);
+							break;
+						case HSSA_ARG_UINT:
+							printf ("0x%x,", subExpressions[i].uval);
+							break;
+						case HSSA_ARG_FLOAT:
+							printf ("%f,", subExpressions[i].fval);
+							break;
+						case HSSA_ARG_SSA:
+							printf ("%d:%d,", subExpressions[i].ssaId.bbid, subExpressions[i].ssaId.id);
+							break;
+						default:
+							printf ("Invalid %d", subExpressions[i].type);
+							break;
+						}
+					}
+					printf (")");
+				}
+				printf ("\n");
 			}
-			printf ("\n");
-		}
-	};
-	struct HSSAPhiNode {
-		HId id;
-		HSSAExprType type;
-		HSSAOperatorType opType;
+		};
+		struct HSSAPhiNode {
+			HId id;
+			HSSAExprType type;
+			HSSAOperatorType opType;
 
-		HLocalBackedLists<HId, HSSA_LOCAL_USEID_MAX> subExpressions;
-	};
+			HLocalBackedLists<HId, HSSA_LOCAL_USEID_MAX> subExpressions;
+		};
 
-	inline bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
-		if (lhs.type == rhs.type && lhs.opType == rhs.opType && lhs.rettype == rhs.rettype && lhs.retsize == rhs.retsize && lhs.subExpressions.size() == rhs.subExpressions.size()) {
-			for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
-				if (lhs.subExpressions[i] != rhs.subExpressions[i])
-					return false;
+		inline bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
+			if (lhs.type == rhs.type && lhs.opType == rhs.opType && lhs.rettype == rhs.rettype && lhs.retsize == rhs.retsize && lhs.subExpressions.size() == rhs.subExpressions.size()) {
+				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
+					if (lhs.subExpressions[i] != rhs.subExpressions[i])
+						return false;
+				}
+				return true;
 			}
-			return true;
+			return false;
 		}
-		return false;
-	}
-	struct HSSABasicBlock {
-		HId id;
-		//Phi nodes
-		HIdList<HSSAExpression> expressions;
+		struct HSSABasicBlock {
+			HId id;
+			//Phi nodes
+			HIdList<HSSAExpression> expressions;
 
-		HId bbId;//what basicblock this expression refers to
-	};
-	struct HSSAFunction {
-		HId id;
-		HIdList<HSSABasicBlock> basicblocks;
+			HId bbId;//what basicblock this expression refers to
+		};
+		struct HSSAFunction {
+			HId id;
+			HIdList<HSSABasicBlock> basicblocks;
 
-		HId funcId;//what function this expression refers to
-	};*/
+			HId funcId;//what function this expression refers to
+		};*/
 
 }
+
+#endif //HSSA_H

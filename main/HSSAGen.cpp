@@ -1,3 +1,302 @@
+
+#include "HSSAGen.h"
+
+namespace holodec {
+	void HSSAParser::skipWhitespaces() {
+		while ( pop() == ' ' );
+		pushback();
+	}
+	void HSSAParser::printParseFailure ( const char* str ) {
+		printf ( "%s\n", string.cstr() );
+		printf ( "Invalid Token at '%s' expected %s\n", string.cstr() + index, str );
+	}
+	bool HSSAParser::parseIdentifier ( char *buffer, size_t buffersize ) {
+		size_t current_index = index;
+		for ( size_t i = 0; i < buffersize; i++ ) {
+			char c = peek();
+			if ( ( 'a' <= c && c <= 'z' ) || ( '0' <= c && c <= '9' ) || ( 'A' <= c && c <= 'Z' ) ) {
+				buffer[i] = c;
+			} else {
+				buffer[i] = '\0';
+				if ( i == 0 )
+					return false;
+				return true;
+			}
+			consume();
+		}
+		return false;
+	}
+	bool HSSAParser::parseCharacter ( char character ) {
+		skipWhitespaces();
+		if ( character == pop() ) {
+			return true;
+		}
+		pushback();
+		return false;
+	}
+	HSSAArg HSSAParser::parseIndex ( HSSAArg* arg ) {
+		size_t current_index = index;
+		if ( parseCharacter ( '[' ) ) {
+			const char* x = string.cstr() + index;
+			HSSAArg offset,size;
+			if ( ! ( offset = parseExpression() ) )
+				return HSSAArg();//false;
+			x = string.cstr() + index;
+			if ( parseCharacter ( ',' ) ) {
+				if ( ! ( size = parseExpression() ) )
+					return HSSAArg();//false;
+			}
+			x = string.cstr() + index;
+			if ( parseCharacter ( ']' ) ) {
+				return HSSAArg();//true;
+			}
+			printParseFailure ( "']'" );
+			return HSSAArg();//false;
+		}
+		return HSSAArg();//true;
+	}
+	int64_t HSSAParser::parseNumberIndex () {
+		size_t current_index = index;
+		if ( parseCharacter ( '[' ) ) {
+			int64_t number;
+			if ( !parseNumber ( &number ) )
+				return 0;
+			return number;
+			if ( parseCharacter ( ']' ) ) {
+				return number;
+			}
+			printParseFailure ( "']'" );
+			return 0;
+		} else {
+			return 0;
+		}
+	}
+	bool HSSAParser::parseStringIndex ( HSSAArg* arg ) {
+		size_t current_index = index;
+		if ( parseCharacter ( '[' ) ) {
+			char buffer[100];
+			if ( !parseIdentifier ( buffer, 100 ) )
+				return false;
+			HString s = HString::create ( buffer );
+			printf ( "%s\n",s.cstr() );
+			if ( parseCharacter ( ']' ) ) {
+				return true;
+			}
+			printParseFailure ( "']'" );
+			return false;
+		} else {
+			return true;
+		}
+	}
+	bool HSSAParser::parseNumber ( int64_t* num ) {
+		size_t current_index = index;
+		skipWhitespaces();
+		int64_t pos;
+		int parsed = sscanf ( string.cstr() + index, "%d%n", num, &pos );
+		if ( parsed != 1 ) {
+			return false;
+		} else {
+			consume ( pos );
+		}
+		return true;
+	}
+	int HSSAParser::parseArguments ( HSSAExpression* expr ) {
+		size_t current_index = index;
+		skipWhitespaces();
+		int i = 0;
+		if ( parseCharacter ( '(' ) ) {
+			if ( parseCharacter ( ')' ) ) {
+				return 0;
+			}
+			do {
+				i++;
+				HSSAArg subexpr = parseExpression();
+				if ( expr && subexpr )
+					expr->subExpressions.add ( subexpr );
+				else {
+					printf ( "%s\n", string.cstr() );
+					printf ( "%s\n", string.cstr() + index );
+					printf ( "Failed to parse Argument %d\n", i );
+					return -1;
+				}
+			} while ( parseCharacter ( ',' ) );
+			if ( !parseCharacter ( ')' ) ) {
+				printParseFailure ( "',', ')'" );
+				return -1;
+			}
+		}
+		return i;
+	}
+	HSSAArg HSSAParser::parseBuiltin() {
+		size_t current_index = index;
+		char buffer[100];
+		if ( parseIdentifier ( buffer, 100 ) ) {
+			HString string ( buffer );
+			auto i = tokenmap.find ( string );
+			if ( i != tokenmap.end() ) {
+				//printf ("Parsed Identifier: %s\n", buffer);
+				return HSSAArg();
+			}
+		}
+		printParseFailure ( "Token" );
+		return HSSAArg();
+	}
+	HSSAArg HSSAParser::parseExpression() {
+		size_t current_index = index;
+
+		HSSAExpression expression;
+		skipWhitespaces();
+		char c;
+		if ( c = pop() ) {
+			size_t current_index = index;
+			switch ( c ) {
+			case '#':
+				return parseBuiltin();
+			case '$': {
+				char buffer[100];
+				if ( parseIdentifier ( buffer, 100 ) ) {
+					HRegister* reg = arch->getRegister ( buffer );
+					if ( reg->id ) {
+						HSSAArg arg;
+						arg.type = HSSA_ARGTYPE_REG;
+						arg.registerId = reg->id;
+						return arg;
+					}
+
+					HStack* stack = arch->getStack ( buffer );
+					if ( stack ) {
+						HSSAArg arg;
+						arg.type = HSSA_ARGTYPE_STACK;
+						arg.stackId.id = stack->id;
+						arg.stackId.index = parseNumberIndex();
+						return arg;
+					}
+					printf ( "Parsed Custom %s\n", buffer );
+					printParseFailure ( "Custom" );
+					//printf ("Parsed Custom %s\n", buffer);
+				} else {
+					printf ( "No custom token" );
+				}
+				return HSSAArg();
+			}
+			case '?':
+				//printf ("Parsed If\n");
+
+				return HSSAArg();//{HIR_EXPR_IF, 1, 3};
+			case '+':
+				//printf ("Parsed Add\n");
+				return HSSAArg();//{HIR_EXPR_OP, HIR_TOKEN_ADD, 2};
+			case '*':
+				//printf ("Parsed Mul\n");
+				return HSSAArg();//{HIR_EXPR_OP, HIR_TOKEN_MUL, 2};
+			case '=':
+				if ( parseCharacter ( '=' ) ) {
+					//printf ("Parsed Eq\n");
+					return HSSAArg();//{HIR_EXPR_OP, HIR_TOKEN_CMP_E, 2, 2};
+				}
+				//printf ("Parsed Assign\n");
+				return HSSAArg();//{HIR_EXPR_ASSIGN, 2, 2};
+				break;
+			case '<':
+				if ( parseCharacter ( '=' ) ) {
+					//printf ("Parsed LE\n");
+					return HSSAArg();//{HIR_EXPR_OP, HIR_TOKEN_CMP_LE, 2, 2};
+				} else if ( parseCharacter ( '>' ) ) {
+					//printf ("Parsed NE\n");
+					return HSSAArg();//{HIR_EXPR_OP, HIR_TOKEN_CMP_NE, 2, 2};
+				}
+				//printf ("Parsed L\n");
+				return HSSAArg();//{HIR_EXPR_OP, HIR_TOKEN_CMP_L, 2, 2};
+			case '>':
+				if ( parseCharacter ( '=' ) ) {
+					//printf ("Parsed GE\n");
+					return HSSAArg();//{HIR_EXPR_OP, HIR_TOKEN_CMP_GE, 2, 2};
+				}
+				//printf ("Parsed G\n");
+				return HSSAArg();//{HIR_EXPR_OP, HIR_TOKEN_CMP_G, 2, 2};
+			case ' ':
+				break;
+			case '-': {
+				char c2 = peek();
+				if ( c2 < '0' || '9' < c2 ) {
+					expression.type = HSSA_EXPR_OP;
+					expression.opType = HSSA_OP_SUB;
+					//printf ("Parsed Sub\n");
+					break;
+				}
+			}
+			default: {
+				int64_t num;
+				pushback();
+				if ( !parseNumber ( &num ) ) {
+					printParseFailure ( "Number" );
+					return HSSAArg();//HIR_EXPR_INVALID;
+				}
+				HSSAArg arg;
+				arg.type = HSSA_ARGTYPE_SVAL;
+				arg.sval = num;
+				//printf ("Parsed Number %d\n", num);
+				return arg;
+			}
+			}
+			parseArguments(&expression);
+			HId id = arch->addSSAExpr ( expression );
+			HSSAArg arg;
+			arg.type = HSSA_ARGTYPE_SSA;
+			arg.ssaId.id = id;
+			arg.ssaId.bbid = 0;
+			return HSSAArg();//HIR_EXPR_INVALID;
+		}
+		printf ( "Parsed Invalid Char '%c'", c );
+
+		/*
+		switch ( expr.type ) {
+		case HIR_EXPR_OP:
+		case HIR_EXPR_FLAG:
+			break;
+		case HIR_EXPR_REC:
+			if ( !parseStringIndex ( &expression ) ) {
+				return HSSAArg()//0;
+			}
+			break;
+		case HIR_EXPR_INVALID:
+			assert ( false );
+
+			break;
+		case HIR_EXPR_ARG:
+		case HIR_EXPR_STCK:
+		case HIR_EXPR_TMP:
+			if ( !parseNumberIndex ( &expression ) ) {
+				return HSSAArg()//0;
+			}
+			break;
+		default:
+			break;
+		}
+		int i = parseArguments ( &expression );
+
+		if ( !parseIndex ( &expression ) ) {
+			return HSSAArg()//0;
+		}
+		return HSSAArg()//arch->addIrExpr ( expression );*/
+	}
+
+
+	void HSSAParser::parse ( HIRRepresentation* rep ) {
+		string = rep->ir;
+		index = 0;
+		this->rep = rep;
+		rep->rootExpr = parseExpression();
+
+		skipWhitespaces();
+		if ( peek() != '\0' ) {
+			printf ( "Not parsed the whole IR-String %s\n", string.cstr() );
+			printf ( "Not parsed: '%s'\n", string.cstr() + index );
+		}
+	}
+}
+
+
 /*
 #include "HSSAGen.h"
 #include <assert.h>
@@ -880,51 +1179,7 @@ namespace holodec {
 
 		}
 		break;
-		case HIR_EXPR_IF: {
-
-			HSSAArg cond = parseIRtoSSAExpr (expr->subexpressions[0], state);
-			if (cond.type == HSSA_TYPE_UINT) {
-				assert (expr->subexprcount >= 2); //no expressions
-				assert (! (cond.val && expr->subexprcount == 2)); //only branch for zero, but value is not zero
-
-				uint64_t selectVal = cond.val + 1;
-				if (selectVal >= expr->subexprcount) selectVal = expr->subexprcount - 1;
-				return parseIRtoSSAExpr (expr->subexpressions[selectVal], state);
-			} else {
-				assert (expr->subexprcount >= 2);
-				if (expr->subexprcount == 2) {
-					HSSAArg jmpId = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_ZERO, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
-					state->genNewBasicBlock();
-					HSSAArg arg = parseIRtoSSAExpr (expr->subexpressions[1], state);
-					HId blockId = state->genNewBasicBlock();
-					HSSAExpression* jumpexpr = state->getSSAExpression (jmpId.ssaId);
-					jumpexpr->subExpressions.add (HSSAArg::createArg ({0, blockId}));
-					jumpexpr->subExpressions.add (cond);
-					return arg;
-				} else {
-					HSSAArg branchId = state->addSSAExpression ({0, HSSA_EXPR_BRANCH, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {cond }});
-
-					HId blockIds[expr->subexprcount];
-					HSSAArg blockExpr[expr->subexprcount];
-					HSSAArg jumpIds[expr->subexprcount];
-					int i;
-					for (i = 1; i < expr->subexprcount; i++) {
-						blockIds[i] = state->genNewBasicBlock();
-						blockExpr[i] = parseIRtoSSAExpr (expr->subexpressions[i], state);
-						jumpIds[i] = state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, state->arch->bitbase, 0, {}});
-					}
-					HSSAArg endBlockId = HSSAArg::createArg ({0, state->genNewBasicBlock() });
-					HSSAExpression* branchExpr = state->getSSAExpression (branchId.ssaId);
-					for (i = 1; i < expr->subexprcount; i++) {
-						HSSAArg blockId = HSSAArg::createArg ({0, blockIds[i]});
-						branchExpr->subExpressions.add (blockId);//add parameter to branch
-						state->getSSAExpression (jumpIds[i].ssaId)->subExpressions.add (endBlockId);
-					}
-					//return phi node?
-				}
-			}
-			break;
-		}
+		case HIR_EXPR_IF:
 		case HIR_EXPR_APPEND: {
 			HSSAArg id = state->addSSAExpression ({0, HSSA_EXPR_APPEND, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_FLOAT, expr->mod.size, 0, {}});
 			HSSAArg ids[expr->subexprcount];
@@ -945,7 +1200,7 @@ namespace holodec {
 
 		case HIR_EXPR_TMP:
 			return state->getTempDef (expr->mod.var_index, expr->mod.index, expr->mod.size);
-		case HIR_EXPR_ARG: 
+		case HIR_EXPR_ARG:
 			return parseIRArgValtoSSA (expr, &state->args[expr->mod.var_index - 1], state);
 		case HIR_EXPR_STCK:
 			//shouldn't happen
@@ -1010,10 +1265,10 @@ namespace holodec {
 		}
 		break;
 
-		case HIR_EXPR_JMP: 
+		case HIR_EXPR_JMP:
 			return state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, 0, 0, {parseIRtoSSAExpr (expr->subexpressions[0], state) }});
 
-		case HIR_EXPR_RJMP: 
+		case HIR_EXPR_RJMP:
 			return state->addSSAExpression ({0, HSSA_EXPR_JMP, HSSA_OP_INVALID, HSSA_COND_NONE, HSSA_TYPE_PC, 0, 0, {parseIRtoSSAExpr (expr->subexpressions[0], state) }});
 		case HIR_EXPR_CALL:
 			//todo define all return values
