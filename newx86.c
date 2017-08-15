@@ -361,9 +361,9 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, {
 			X86_INS_DIV,	{
 				"div", {
 					0,
-					"?(==(#size(#arg[1]),8)) #skip = 2;$al = #div($ax,#arg[1]);$ah = #mod($ax,#arg[1]);"
-					"?(==(#size(#arg[1]),16)) #skip = 2;$ax = #div($dx:$ax,#arg[1]);$dx = #mod($dx:$ax,#arg[1]);"
-					"?(==(#size(#arg[1]),32)) #skip = 2;$eax = #div($edx:$eax,#arg[1]);$edx = #mod($edx:$eax,#arg[1]);",
+					"?(==(#size(#arg[1]),8)) #do = 2;$al = #div($ax,#arg[1]);$ah = #mod($ax,#arg[1]);"
+					"?(==(#size(#arg[1]),16)) #do = 2;$ax = #div($dx:$ax,#arg[1]);$dx = #mod($dx:$ax,#arg[1]);"
+					"?(==(#size(#arg[1]),32)) #do = 2;$eax = #div($edx:$eax,#arg[1]);$edx = #mod($edx:$eax,#arg[1]);",
 					0, 0
 				}, H_INSTR_TYPE_DIV
 			}
