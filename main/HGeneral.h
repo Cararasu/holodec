@@ -22,6 +22,22 @@ namespace holodec {
 	struct HVisibilityType {
 		HString name;
 	};
+	
+	template <typename Key, typename Value>
+	class HIdMap : public HMap<Key,Value>{
+	public:
+		HIdMap(std::initializer_list<Value> list){
+			for(Value val : list){
+				insert(val);
+			}
+		}
+		void insert(Value& val){
+			std::pair<const Key,Value> pair = std::pair<const Key,Value>(val.id,val);
+			HMap<Key,Value>::insert(pair);
+		}
+	};
+	
+	
 	template<typename T, size_t BASE>
 	struct HLocalBackedLists {
 		uint64_t subexprcount = 0;

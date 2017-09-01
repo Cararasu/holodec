@@ -168,17 +168,6 @@ namespace holodec {
 
 		void print (HArchitecture* arch, size_t indent = 0);
 
-		bool addSubExpression (HId id) {
-			assert (subexprcount < HIR_LOCAL_SUBEXPRESSION_COUNT);
-			for (int i = 0; i < HIR_LOCAL_SUBEXPRESSION_COUNT; i++) {
-				if (!subexpressions[i]) {
-					subexpressions[i] = id;
-					subexprcount++;
-					return true;
-				}
-			}
-			return false;
-		}
 	};
 	bool operator== (HIRExpression::HIRExpressionMod& expr1, HIRExpression::HIRExpressionMod& expr2);
 
@@ -227,37 +216,6 @@ namespace holodec {
 		void parse (HIRRepresentation* rep);
 	};
 
-	struct HIRRepresentation {
-		int64_t argcount;
-		HString cond;
-		HString ir;
-		HList<HIRExpression> expressions;
-
-		HId rootExpr;
-		HIdGenerator gen_expr;
-
-		HIRRepresentation() : HIRRepresentation (-1, nullptr, nullptr) {}
-		HIRRepresentation (HString ir) :  HIRRepresentation (-1, nullptr, ir) {}
-		HIRRepresentation (int64_t argcount, HString ir) : HIRRepresentation (argcount, nullptr, ir) {}
-		HIRRepresentation (HString cond, HString ir) : HIRRepresentation (-1, cond, ir) {}
-		HIRRepresentation (int64_t argcount, HString cond, HString ir) : argcount (argcount), cond (cond), ir (ir) {}
-
-		bool operator!() {
-			return !ir;
-		}
-		operator bool() {
-			return ir;
-		}
-		void print (HArchitecture* arch, int indent = 0) {
-			if (ir) {
-				printIndent (indent);
-				printf ("IL-String: %s\n", ir.cstr());
-			} else {
-				printIndent (indent);
-				printf ("No IL-String----------------\n");
-			}
-		}
-	};
 }
 
 #endif // HIRPARSER_H

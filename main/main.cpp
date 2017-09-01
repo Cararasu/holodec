@@ -6,7 +6,7 @@
 #include "HMain.h"
 #include "HFileFormat.h"
 #include "HArchitecture.h"
-#include "HSSAGen.h"
+#include "HIRGen.h"
 
 using namespace holodec;
 

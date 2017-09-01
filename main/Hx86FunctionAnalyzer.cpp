@@ -67,7 +67,7 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 		if (count > 0) {
 			for (size_t i = 0; i < count; i++) {
 				memset (&instruction, 0, sizeof (HInstruction));
-				instruction.addr = addr;
+				instruction.addr = insn[i].address;
 				instruction.size = insn[i].size;
 				setOperands (&instruction, insn[i].detail);
 
@@ -85,7 +85,7 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 					printf ("ID: %d\n", insn[i].id);
 
 				setJumpDest (&instruction);
-				addr += insn[i].size;
+				addr = insn[i].address + insn[i].size;
 				if (!this->postInstruction (&instruction)) {
 					running = false;
 					break;
@@ -94,7 +94,7 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 
 			cs_free (insn, count);
 		} else {
-			printf ("ERROR:: Failed to disassemble given code!\n");
+			printf ("ERROR:: Failed to disassemble given code at address : 0x%x!\n",addr);
 			running = false;
 		}
 	} while (running);

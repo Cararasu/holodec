@@ -5,7 +5,8 @@
 #include "HString.h"
 #include <stdint.h>
 #include "HGeneral.h"
-#include "HoloIR.h"
+#include "HId.h"
+#include "HIR.h"
 
 namespace holodec {
 
@@ -99,6 +100,7 @@ namespace holodec {
 
 	
 	struct HInstrDefinition {//16*8 -> 128 bytes
+		HId id;
 		HString mnemonics;
 		HLocalBackedLists<HIRRepresentation,4> irs;
 		size_t type;

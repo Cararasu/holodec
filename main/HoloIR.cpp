@@ -1,3 +1,4 @@
+/*
 #include "HoloIR.h"
 #include "HArchitecture.h"
 #include "HFunction.h"
@@ -441,3 +442,5 @@ namespace holodec {
 		       expr1.mod == expr2.mod;
 	}
 }
+
+*/

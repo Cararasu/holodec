@@ -42,12 +42,14 @@
       <File Name="HConsole.h"/>
       <File Name="HGeneral.cpp"/>
       <File Name="HConsole.cpp"/>
-      <File Name="HoloIR.h"/>
-      <File Name="HoloIR.cpp"/>
+      <File Name="HIR.h"/>
+      <File Name="HIR.cpp"/>
+      <File Name="HIRGen.cpp"/>
+      <File Name="HIRGen.h"/>
+      <File Name="HSSA.h"/>
       <File Name="HSSA.cpp"/>
       <File Name="HSSAGen.h"/>
       <File Name="HSSAGen.cpp"/>
-      <File Name="HSSA.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="DataAnalyzer">
       <File Name="HBinaryAnalyzer.cpp"/>
@@ -82,11 +84,10 @@
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
-    <Configuration Name="Debug" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Debug" CompilerType="MinGW ( mingw64 )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-O0" C_Options="-g;-O0" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../capstone/include"/>
-        <IncludePath Value="../cpython/Include"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <LibraryPath Value="../capstone/build"/>

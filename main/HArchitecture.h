@@ -8,7 +8,8 @@
 #include "HRegister.h"
 #include "HStack.h"
 #include "HCallingConvention.h"
-#include "HSSA.h"
+#include "HIRGen.h"
+#include "HIR.h"
 
 namespace holodec {
 
@@ -27,38 +28,16 @@ namespace holodec {
 
 		HList<HCallingConvention> callingconventions;
 
-		HMap<HId, HInstrDefinition> instrdefs;
+		HIdMap<HId, HInstrDefinition> instrdefs;
 
 		HIdList<HIRExpression> irExpressions;
-		HIdList<HSSAExpression> ssaExpressions;
 
 		HArchitecture() = default;
 		HArchitecture (HArchitecture&) = default;
 		HArchitecture (HArchitecture&&) = default;
 		~HArchitecture() = default;
 
-		void init() {
-			HIdGenerator gen;
-			for (HRegister& reg : registers) {
-				reg.relabel (&gen);
-				reg.setParentId (reg.id);
-			}
-			for (HStack& stack : stacks) {
-				for (HRegister& reg : stack.regs) {
-					reg.relabel (&gen);
-					reg.setParentId (reg.id);
-				}
-			}
-			
-			for (auto& entry : instrdefs) {
-				HIRParser parser (this);
-				for (int i = 0; i < 4; i++) {
-					if (entry.second.irs[i]) {
-						parser.parse (&entry.second.irs[i]);
-					}
-				}
-			}
-		}
+		void init();
 
 		HFunctionAnalyzer* createFunctionAnalyzer (HBinary* binary) {
 			for (std::function<HFunctionAnalyzer* (HBinary*) >& fac : functionanalyzerfactories) {
@@ -165,17 +144,6 @@ namespace holodec {
 					return expression.id;
 			}
 			irExpressions.add (expr);
-			return expr.id;
-		}
-		HSSAExpression* getSSAExpr (HId id) {
-			return ssaExpressions.get (id);
-		}
-		HId addSSAExpr (HSSAExpression expr) {
-			for (HSSAExpression& expression : ssaExpressions.list) {   //Do CSE
-				if (expression == expr)
-					return expression.id;
-			}
-			ssaExpressions.add (expr);
 			return expr.id;
 		}
 
