@@ -14,6 +14,8 @@ namespace holodec {
 	
 	enum HSSAExprType {
 		HSSA_EXPR_INVALID = 0,
+		HSSA_EXPR_LABEL,//1st Argument is address of 
+		
 		HSSA_EXPR_INPUT,  // Predefined variables, correspond to input arguments
 		HSSA_EXPR_UNDEF,
 		HSSA_EXPR_NOP,
@@ -21,6 +23,9 @@ namespace holodec {
 		HSSA_EXPR_PHI,
 		HSSA_EXPR_ASSIGN,//assign to label = jump to branch, assign to pc = jump to other memory location
 
+		HSSA_EXPR_JMP,
+		HSSA_EXPR_CJMP,
+		
 		HSSA_EXPR_OP,
 		HSSA_EXPR_COND,
 		
@@ -107,6 +112,14 @@ namespace holodec {
 			return id && index;
 		}
 	};
+	struct HSSAId {
+		HId id;
+		HId label;
+
+		operator bool() {
+			return id && label;
+		}
+	};
 	struct HSSAArg { //196 bit
 		HSSAArgType type = HSSA_ARGTYPE_INVALID;
 		union { //128 bit
@@ -118,10 +131,7 @@ namespace holodec {
 				};
 				uint64_t size;
 			};
-			HId ssaId;
-			HId index;//Tmp/Arg
-			HId regId;//Register
-			HStackId stackId;//Stack
+			HSSAId ssaId;
 		};
 		HSSAArg() = default;
 		bool operator!() {
@@ -157,10 +167,10 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline HSSAArg createSSA (HId id) {
+		static inline HSSAArg createSSA (HSSAId ssaId) {
 			HSSAArg arg;
 			arg.type = HSSA_ARGTYPE_SSA;
-			arg.ssaId = id;
+			arg.ssaId = ssaId;
 			arg.size = 0;
 			return arg;
 		}
@@ -171,16 +181,15 @@ namespace holodec {
 		HSSAExprType type;
 		uint64_t size;
 		HSSAType exprtype;
-		struct { //196 bit
-			union { //64 bit
-				HSSAFlagType flagType;
-				HId index;
-				HSSAOpType opType;
-				HId builtinId;
-				HId instrId;
-			};
-		} mod;
-		HLocalBackedLists<HSSAArg, HSSA_LOCAL_USEID_MAX> subExpressions;
+		union { //64 bit
+			HSSAFlagType flagType;
+			HId index;
+			HSSAOpType opType;
+			HId builtinId;
+			HId instrId;
+		};
+		//regId/stackId,index
+		HLocalBackedList<HSSAArg, HSSA_LOCAL_USEID_MAX> subExpressions;
 
 		bool operator!() {
 			return type == HSSA_EXPR_INVALID;
@@ -221,11 +230,11 @@ namespace holodec {
 			}
 			switch (rhs.type) {
 			case HSSA_EXPR_FLAG:
-				return lhs.mod.flagType == rhs.mod.flagType;
+				return lhs.flagType == rhs.flagType;
 			case HSSA_EXPR_OP:
-				return lhs.mod.opType == rhs.mod.opType;
+				return lhs.opType == rhs.opType;
 			case HSSA_EXPR_BUILTIN:
-				return lhs.mod.index == rhs.mod.index;
+				return lhs.index == rhs.index;
 			}
 		}
 		return false;

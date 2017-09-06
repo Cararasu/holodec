@@ -12,7 +12,7 @@
 
 namespace holodec {
 
-	enum HLocalType {
+	enum HInstrArgType {
 		H_LOCAL_TYPE_REGISTER = 1,
 		H_LOCAL_TYPE_STACK,
 		H_LOCAL_TYPE_MEM,
@@ -20,12 +20,6 @@ namespace holodec {
 		H_LOCAL_TYPE_IMM_UNSIGNED,
 		H_LOCAL_TYPE_IMM_FLOAT,
 	};
-	enum HOpAccess {
-		H_OP_ACCESS_READ = 1,
-		H_OP_ACCESS_WRITE = 2,
-		H_OP_ACCESS_RW = 3,
-	};
-
 
 	typedef int64_t HArgIntImmediate;
 	typedef double HArgFloatImmediate;
@@ -37,9 +31,9 @@ namespace holodec {
 		HArgIntImmediate scale;
 		HArgIntImmediate disp;
 	};
-	struct HArgStck { //segment::[base + index*scale + disp]
-		HId id;
-		HId index;
+	struct HArgStck {
+		HId id;//id of the stack
+		HId index;//index into the stack or 0 for whole stack
 	};
 	struct HInstArgument {
 		union { //ordered first because of tighter memory layout
@@ -49,17 +43,8 @@ namespace holodec {
 			HId reg;
 			HArgStck stack;//change to detect which stack we are talking about
 		};
-		HLocalType type;//(reg or stack or signed or unsigned)
-		//size / minimal machineword size
-		//e.g.
-		//1 -> 8 bit
-		//2 -> 16 bit
-		//4 -> 32 bit
-		//8 -> 64 bit
-		//16 -> 128 bit
-		//32 -> 256 bit
-		//64 -> 512 bit
-		uint16_t size;
+		HInstrArgType type;//(reg or stack or signed or unsigned)
+		uint64_t size;
 
 		void print (HArchitecture* arch);
 	};
@@ -74,8 +59,7 @@ namespace holodec {
 		size_t jumpdest;//if condition is true
 		size_t calldest;//if call succeeds -> creates new function symbol
 
-		size_t opcount;
-		HInstArgument operands[HINSTRUCTION_MAX_OPERANDS];
+		HLocalBackedList<HInstArgument,HINSTRUCTION_MAX_OPERANDS> operands;
 
 		void print (HArchitecture* arch, int indent = 0);
 	};

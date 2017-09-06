@@ -128,6 +128,13 @@ namespace holodec {
 			printf ("%s not found\n", mnemonic.cstr());
 			return nullptr;
 		}
+		HInstrDefinition* getInstrDef (HId id) {
+			auto it = instrdefs.find (id);
+			if (it != instrdefs.end())
+				return & (*it).second;
+			printf ("%d Instruction not found\n", id);
+			return nullptr;
+		}
 		HInstrDefinition* getInstrDef (HString mnemonic) {
 			for (auto& entry : instrdefs) {
 				if (entry.second.mnemonics == mnemonic)

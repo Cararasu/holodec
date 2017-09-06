@@ -2,19 +2,21 @@
 #define H_FUNCTIONANALYZEH_H
 
 #include "HSection.h"
-#include "HBinary.h"
 #include "HFunction.h"
 #include "HGeneral.h"
 #include <algorithm>
+#include "HSSAGen.h"
 
 namespace holodec {
 
 #define HFUNCANAL_BUFFERSIZE (128)
 	class HArchitecture;
+	class HBinary;
 
 	struct HFunctionAnalyzer {
 		HArchitecture* arch;
 		HBinary* binary;
+		HSSAGen ssaGen;
 
 		struct {
 			uint8_t dataBuffer[HFUNCANAL_BUFFERSIZE];

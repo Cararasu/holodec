@@ -159,7 +159,7 @@ namespace holodec {
 					HString string (buffer);
 					if (string == "seq") {
 						expression.type = HIR_EXPR_SEQUENCE;
-						expression.exprtype = HIR_TYPE_UNKNOWN;
+						expression.exprtype = HSSA_TYPE_UNKNOWN;
 					} else if (string == "arg") {
 						HIRArg arg = HIRArg::createArg (parseNumberIndex());
 						return parseIndex (arg);
@@ -168,207 +168,210 @@ namespace holodec {
 						return parseIndex (arg);
 					} else if (string == "z") {
 						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HIR_FLAG_Z;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.flagType = HSSA_FLAG_Z;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "p") {
 						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HIR_FLAG_P;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.flagType = HSSA_FLAG_P;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "o") {
 						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HIR_FLAG_O;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.flagType = HSSA_FLAG_O;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					}  else if (string == "s") {
 						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HIR_FLAG_S;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.flagType = HSSA_FLAG_S;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "c") {
 						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HIR_FLAG_C;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.flagType = HSSA_FLAG_C;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "a") {
 						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HIR_FLAG_A;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.flagType = HSSA_FLAG_A;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					}  else if (string == "app") {
 						expression.type = HIR_EXPR_APPEND;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "undef") {
 						expression.type = HIR_EXPR_UNDEF;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "sadd") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_ADD;
-						expression.exprtype = HIR_TYPE_INT;
+						expression.mod.opType = HSSA_OP_ADD;
+						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fadd") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_ADD;
-						expression.exprtype = HIR_TYPE_FLOAT;
+						expression.mod.opType = HSSA_OP_ADD;
+						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "sub") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_SUB;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_SUB;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "ssub") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_SUB;
-						expression.exprtype = HIR_TYPE_INT;
+						expression.mod.opType = HSSA_OP_SUB;
+						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fsub") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_SUB;
-						expression.exprtype = HIR_TYPE_FLOAT;
+						expression.mod.opType = HSSA_OP_SUB;
+						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "mul") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_MUL;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_MUL;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "smul") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_MUL;
-						expression.exprtype = HIR_TYPE_INT;
+						expression.mod.opType = HSSA_OP_MUL;
+						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fmul") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_MUL;
-						expression.exprtype = HIR_TYPE_FLOAT;
+						expression.mod.opType = HSSA_OP_MUL;
+						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "div") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_DIV;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_DIV;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "sdiv") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_DIV;
-						expression.exprtype = HIR_TYPE_INT;
+						expression.mod.opType = HSSA_OP_DIV;
+						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fdiv") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_DIV;
-						expression.exprtype = HIR_TYPE_FLOAT;
+						expression.mod.opType = HSSA_OP_DIV;
+						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "mod") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_MOD;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_MOD;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "smod") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_MOD;
-						expression.exprtype = HIR_TYPE_INT;
+						expression.mod.opType = HSSA_OP_MOD;
+						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fmod") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_MOD;
-						expression.exprtype = HIR_TYPE_FLOAT;
+						expression.mod.opType = HSSA_OP_MOD;
+						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "shr") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_SHR;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_SHR;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "shl") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_SHL;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_SHL;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "sar") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_SAR;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_SAR;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "sal") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_SAL;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_SAL;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "ror") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_ROR;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_ROR;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "rol") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_ROL;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_ROL;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "ext") {
 						expression.type = HIR_EXPR_EXTEND;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "sext") {
 						expression.type = HIR_EXPR_EXTEND;
-						expression.exprtype = HIR_TYPE_INT;
+						expression.exprtype = HSSA_TYPE_INT;
 					}  else if (string == "i2f") {
 						expression.type = HIR_EXPR_CAST;
-						expression.exprtype = HIR_TYPE_FLOAT;
+						expression.exprtype = HSSA_TYPE_FLOAT;
 					}  else if (string == "f2i") {
 						expression.type = HIR_EXPR_CAST;
-						expression.exprtype = HIR_TYPE_INT;
+						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "push") {
 						expression.type = HIR_EXPR_PUSH;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "pop") {
 						expression.type = HIR_EXPR_POP;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "ld") {
 						expression.type = HIR_EXPR_LOAD;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "st") {
 						expression.type = HIR_EXPR_STORE;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "fext") {
 						expression.type = HIR_EXPR_EXTEND;
-						expression.exprtype = HIR_TYPE_FLOAT;
+						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "and") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_AND;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_AND;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "or") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_OR;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_OR;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "xor") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_XOR;
+						expression.mod.opType = HSSA_OP_XOR;
 						expression.size = 1;
 					} else if (string == "not") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_NOT;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_NOT;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "band") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_BAND;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_BAND;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "bor") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_BOR;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_BOR;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "bxor") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_BXOR;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_BXOR;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "bnot") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HIR_OP_BNOT;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.mod.opType = HSSA_OP_BNOT;
+						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "fext") {
 						expression.type = HIR_EXPR_EXTEND;
-						expression.exprtype = HIR_TYPE_FLOAT;
+						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "trap") {
 						expression.type = HIR_EXPR_TRAP;
-						expression.exprtype = HIR_TYPE_UNKNOWN;
+						expression.exprtype = HSSA_TYPE_UNKNOWN;
 					} else if (string == "syscall") {
 						expression.type = HIR_EXPR_SYSCALL;
-						expression.exprtype = HIR_TYPE_UNKNOWN;
+						expression.exprtype = HSSA_TYPE_UNKNOWN;
 					} else if (string == "call") {
 						expression.type = HIR_EXPR_CALL;
-						expression.exprtype = HIR_TYPE_UNKNOWN;
+						expression.exprtype = HSSA_TYPE_UNKNOWN;
 					} else if (string == "jmp") {
 						expression.type = HIR_EXPR_JMP;
-						expression.exprtype = HIR_TYPE_PC;
+						expression.exprtype = HSSA_TYPE_PC;
+					} else if (string == "cjmp") {
+						expression.type = HIR_EXPR_CJMP;
+						expression.exprtype = HSSA_TYPE_PC;
 					} else if (string == "ret") {
 						expression.type = HIR_EXPR_RETURN;
-						expression.exprtype = HIR_TYPE_UNKNOWN;
+						expression.exprtype = HSSA_TYPE_UNKNOWN;
 					} else if (string == "val") {
 						expression.type = HIR_EXPR_VALUE;
-						expression.exprtype = HIR_TYPE_UINT;
+						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = arch->bitbase;
 					} else if (string == "nop") {
 						expression.type = HIR_EXPR_NOP;
-						expression.exprtype = HIR_TYPE_UNKNOWN;
+						expression.exprtype = HSSA_TYPE_UNKNOWN;
 						hasArgs = false;
 					} else if (string == "bsize") {
 						parseArguments (&expression);
@@ -392,7 +395,7 @@ namespace holodec {
 						//TODO do the recursion here already
 					} else if (string == "rep") {
 						expression.type = HIR_EXPR_REP;
-						expression.exprtype = HIR_TYPE_UNKNOWN;
+						expression.exprtype = HSSA_TYPE_UNKNOWN;
 					} else {
 						printf ("Invalid Token %s\n", buffer);
 						printParseFailure ("Token");
@@ -429,19 +432,19 @@ namespace holodec {
 				break;
 			case '+':
 				expression.type = HIR_EXPR_OP;
-				expression.mod.opType = HIR_OP_ADD;
-				expression.exprtype = HIR_TYPE_UINT;
+				expression.mod.opType = HSSA_OP_ADD;
+				expression.exprtype = HSSA_TYPE_UINT;
 				break;
 			case '*':
 				expression.type = HIR_EXPR_OP;
-				expression.mod.opType = HIR_OP_MUL;
-				expression.exprtype = HIR_TYPE_UINT;
+				expression.mod.opType = HSSA_OP_MUL;
+				expression.exprtype = HSSA_TYPE_UINT;
 				break;
 			case '=':
 				if (parseCharacter ('=')) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HIR_OP_E;
-					expression.exprtype = HIR_TYPE_UINT;
+					expression.mod.opType = HSSA_OP_E;
+					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 					break;
 				}
@@ -450,31 +453,31 @@ namespace holodec {
 			case '<':
 				if (parseCharacter ('=')) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HIR_OP_LE;
-					expression.exprtype = HIR_TYPE_UINT;
+					expression.mod.opType = HSSA_OP_LE;
+					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				} else if (parseCharacter ('>')) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HIR_OP_NE;
-					expression.exprtype = HIR_TYPE_UINT;
+					expression.mod.opType = HSSA_OP_NE;
+					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				} else {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HIR_OP_L;
-					expression.exprtype = HIR_TYPE_UINT;
+					expression.mod.opType = HSSA_OP_L;
+					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				}
 				break;
 			case '>':
 				if (parseCharacter ('=')) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HIR_OP_GE;
-					expression.exprtype = HIR_TYPE_UINT;
+					expression.mod.opType = HSSA_OP_GE;
+					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				} else {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HIR_OP_G;
-					expression.exprtype = HIR_TYPE_UINT;
+					expression.mod.opType = HSSA_OP_G;
+					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				}
 				break;
@@ -485,7 +488,7 @@ namespace holodec {
 				char c2 = peek();
 				if (c2 < '0' || '9' < c2) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HIR_OP_SUB;
+					expression.mod.opType = HSSA_OP_SUB;
 					//printf ("Parsed Sub\n");
 					break;
 				}

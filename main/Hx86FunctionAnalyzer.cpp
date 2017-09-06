@@ -5,6 +5,7 @@
 #include <string.h>
 #include "HArchitecture.h"
 #include "HString.h"
+#include "HBinary.h"
 
 
 #define CODE "\x55\x48\x8b\x05\xb8\x13\x00\x00"
@@ -106,47 +107,44 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_detail* csdetail) {
 
 	cs_x86& x86 = csdetail->x86;
-	instruction->opcount = x86.op_count;
 
 	for (uint8_t i = 0; i < x86.op_count; i++) {
+		HInstArgument arg;
 		switch (x86.operands[i].type) {
 		case X86_OP_INVALID:
 			printf ("Invalid\n");
 			break;
 		case X86_OP_REG:
-			instruction->operands[i].type = H_LOCAL_TYPE_REGISTER;
-			instruction->operands[i].size = x86.operands[i].size;
-			instruction->operands[i].reg = arch->getRegister (cs_reg_name (handle, x86.operands[i].reg))->id;
+			arg.type = H_LOCAL_TYPE_REGISTER;
+			arg.reg = arch->getRegister (cs_reg_name (handle, x86.operands[i].reg))->id;
 			break;
 		case X86_OP_IMM:
-			instruction->operands[i].type = H_LOCAL_TYPE_IMM_UNSIGNED;
-			instruction->operands[i].size = x86.operands[i].size;
-			instruction->operands[i].ival = x86.operands[i].imm;
+			arg.type = H_LOCAL_TYPE_IMM_UNSIGNED;
+			arg.ival = x86.operands[i].imm;
 			break;
 		case X86_OP_MEM:
-			instruction->operands[i].type = H_LOCAL_TYPE_MEM;
-			instruction->operands[i].size = x86.operands[i].size;
-			instruction->operands[i].mem.segment = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment))->id;
+			arg.type = H_LOCAL_TYPE_MEM;
+			arg.mem.segment = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment))->id;
 			if (x86.operands[i].mem.base == X86_REG_RIP || x86.operands[i].mem.base == X86_REG_EIP) {
 				x86.operands[i].mem.disp += instruction->addr;
-				instruction->operands[i].mem.base = 0;
+				arg.mem.base = 0;
 			} else {
-				instruction->operands[i].mem.base = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base))->id;
+				arg.mem.base = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base))->id;
 			}
-			instruction->operands[i].mem.disp = x86.operands[i].mem.disp;
-			instruction->operands[i].mem.index = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index))->id;
-			instruction->operands[i].mem.scale = x86.operands[i].mem.scale;
+			arg.mem.disp = x86.operands[i].mem.disp;
+			arg.mem.index = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index))->id;
+			arg.mem.scale = x86.operands[i].mem.scale;
 
 			break;
 		case X86_OP_FP:
-			instruction->operands[i].type = H_LOCAL_TYPE_IMM_FLOAT;
-			instruction->operands[i].size = x86.operands[i].size;
-			instruction->operands[i].fval = x86.operands[i].fp;
+			arg.type = H_LOCAL_TYPE_IMM_FLOAT;
+			arg.fval = x86.operands[i].fp;
 			break;
 		default:
 			printf ("Invalid ...\n");
 		}
-		instruction->operands[i].size = x86.operands[i].size * 8;
+		arg.size = x86.operands[i].size * 8;
+		instruction->operands.add(arg);
 	}
 }
 

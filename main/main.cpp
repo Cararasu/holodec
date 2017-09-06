@@ -7,6 +7,7 @@
 #include "HFileFormat.h"
 #include "HArchitecture.h"
 #include "HIRGen.h"
+#include "HSSAGen.h"
 
 using namespace holodec;
 
@@ -84,10 +85,11 @@ int main ( int argc, char** argv ) {
 
 	instrdef->irs[2].print(&holox86::x86architecture);
 
-	//HSSAGenerator ssaGenerator;
-	//ssaGenerator.arch = &holox86::x86architecture;
+	/*HSSAGen ssaGenerator(&holox86::x86architecture);
 	for ( HFunction& function : binary->functions ) {
-		//ssaGenerator.parseFunction ( &function );
-	}
+		for( HBasicBlock& basicblock : function->bbs){
+			ssaGenerator.parseExpression ( &function );
+		}
+	}*/
 	return 0;
 }

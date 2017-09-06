@@ -39,13 +39,13 @@ namespace holodec {
 	
 	
 	template<typename T, size_t BASE>
-	struct HLocalBackedLists {
+	struct HLocalBackedList {
 		uint64_t subexprcount = 0;
 		T subexpressions[BASE];
 		HList<T> moreExpressions = HList<T> (0);
 
-		HLocalBackedLists() = default;
-		HLocalBackedLists (std::initializer_list<T> list) {
+		HLocalBackedList() = default;
+		HLocalBackedList (std::initializer_list<T> list) {
 			for (const T& ele : list) {
 				add (ele);
 			}

@@ -1,6 +1,7 @@
 #include "HFunctionAnalyzer.h"
+#include "HBinary.h"
 
-holodec::HFunctionAnalyzer::HFunctionAnalyzer (HArchitecture* arch) : binary (0), arch (arch) {
+holodec::HFunctionAnalyzer::HFunctionAnalyzer (HArchitecture* arch) : binary (0), arch (arch), ssaGen (arch) {
 }
 
 holodec::HFunctionAnalyzer::~HFunctionAnalyzer() {
@@ -17,10 +18,22 @@ void holodec::HFunctionAnalyzer::prepareBuffer (size_t addr) {
 	}
 }
 bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
-	if(state.function.findBasicBlockDeep(instruction->addr + instruction->size))
+	if (state.function.findBasicBlockDeep (instruction->addr + instruction->size))
 		return false;
 
 	state.instructions.push_back (*instruction);
+	
+	HIRRepresentation* rep = ssaGen.matchIr(instruction);
+	if(rep){
+		ssaGen.parseExpression(rep->rootExpr);
+	}else{
+		printf("Could not find IR-Match for Instruction\n");
+		instruction->print(arch);
+	}
+	
+	//instruction->instrdef->irs
+	//ssaGen.parseExpression()
+
 	if (instruction->instrdef) {
 		switch (instruction->instrdef->type) {
 		case H_INSTR_TYPE_JMP:

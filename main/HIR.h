@@ -2,6 +2,7 @@
 #ifndef HIR_H
 #define HIR_H
 
+#include "HSSA.h"
 #include "HId.h"
 #include "HStack.h"
 #include "HRegister.h"
@@ -14,7 +15,6 @@ namespace holodec {
 	
 	enum HIRExprType {
 		HIR_EXPR_INVALID = 0,
-		//HIR_EXPR_INPUT,  // Predefined variables, correspond to input arguments
 		HIR_EXPR_UNDEF,
 		HIR_EXPR_NOP,
 
@@ -22,8 +22,8 @@ namespace holodec {
 
 		HIR_EXPR_IF,
 		HIR_EXPR_JMP,//jump depending on value
+		HIR_EXPR_CJMP,
 		HIR_EXPR_OP,
-		HIR_EXPR_COND,
 		// Call - Return
 		HIR_EXPR_CALL,  // a call to a function
 		HIR_EXPR_RETURN,  // a return
@@ -54,73 +54,16 @@ namespace holodec {
 
 		HIR_EXPR_FLAG,
 	};
-	enum HIROpType {
-		HIR_OP_INVALID = 0,
-		HIR_OP_ADD,
-		HIR_OP_SUB,
-		HIR_OP_MUL,
-		HIR_OP_DIV,
-		HIR_OP_MOD,
-
-		HIR_OP_AND,
-		HIR_OP_OR,
-		HIR_OP_XOR,
-		HIR_OP_NOT,
-
-		HIR_OP_E,
-		HIR_OP_NE,
-		HIR_OP_L,
-		HIR_OP_LE,
-		HIR_OP_G,
-		HIR_OP_GE,
-
-		HIR_OP_BAND,
-		HIR_OP_BOR,
-		HIR_OP_BXOR,
-		HIR_OP_BNOT,
-
-		HIR_OP_SHR,
-		HIR_OP_SHL,
-		HIR_OP_SAR,
-		HIR_OP_SAL,
-		HIR_OP_ROR,
-		HIR_OP_ROL,
-	};
-	enum HIRType {
-		HIR_TYPE_UNKNOWN = 0,
-		HIR_TYPE_INT,
-		HIR_TYPE_UINT,
-		HIR_TYPE_FLOAT,
-		HIR_TYPE_MEM,
-		HIR_TYPE_PC,
-	};
 	enum HIRArgType {
 		HIR_ARGTYPE_INVALID = 0,
 		HIR_ARGTYPE_INT,
 		HIR_ARGTYPE_UINT,
 		HIR_ARGTYPE_FLOAT,
 		HIR_ARGTYPE_IR,
-		HIR_ARGTYPE_STACK,
+		HIR_ARGTYPE_REG,
 		HIR_ARGTYPE_ARG,
 		HIR_ARGTYPE_TMP,
-		HIR_ARGTYPE_REG,
-		HIR_ARGTYPE_REC,
-	};
-	enum HIRFlagType {
-		HIR_FLAG_C,
-		HIR_FLAG_A,
-		HIR_FLAG_P,
-		HIR_FLAG_O,
-		HIR_FLAG_Z,
-		HIR_FLAG_S,
-	};
-	struct HStackId {
-		HId id;
-		HId index;
-
-		operator bool() {
-			return id && index;
-		}
+		HIR_ARGTYPE_STACK,
 	};
 	struct HIRArg { //196 bit
 		HIRArgType type = HIR_ARGTYPE_INVALID;
@@ -214,17 +157,17 @@ namespace holodec {
 		HId id;
 		HIRExprType type;
 		uint64_t size;
-		HIRType exprtype;
+		HSSAType exprtype;
 		struct { //196 bit
 			union { //64 bit
-				HIRFlagType flagType;
+				HSSAFlagType flagType;
 				HId index;
-				HIROpType opType;
+				HSSAOpType opType;
 				HId builtinId;
 				HId instrId;
 			};
 		} mod;
-		HLocalBackedLists<HIRArg, HIR_LOCAL_USEID_MAX> subExpressions;
+		HLocalBackedList<HIRArg, HIR_LOCAL_USEID_MAX> subExpressions;
 
 		bool operator!() {
 			return type == HIR_EXPR_INVALID;
@@ -234,9 +177,6 @@ namespace holodec {
 		}
 		void print(HArchitecture* arch, int indent = 0);
 	};
-	inline bool operator== (HStackId& lhs, HStackId& rhs) {
-		return lhs.id == rhs.id && lhs.index == rhs.index;
-	}
 	inline bool operator== (HIRArg& lhs, HIRArg& rhs) {
 		if (lhs.type == rhs.type) {
 			switch (lhs.type) {

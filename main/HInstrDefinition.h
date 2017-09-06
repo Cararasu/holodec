@@ -102,7 +102,7 @@ namespace holodec {
 	struct HInstrDefinition {//16*8 -> 128 bytes
 		HId id;
 		HString mnemonics;
-		HLocalBackedLists<HIRRepresentation,4> irs;
+		HLocalBackedList<HIRRepresentation,4> irs;
 		size_t type;
 		size_t type2;
 		HInstructionCondition condition;

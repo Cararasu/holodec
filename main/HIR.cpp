@@ -12,8 +12,8 @@ namespace holodec {
 			}
 		}
 
-		printf("%d = ", this->id);
-		
+		printf ("%d = ", this->id);
+
 		switch (this->type) {
 		case HIR_EXPR_INVALID:
 			printf ("Inv");
@@ -34,11 +34,11 @@ namespace holodec {
 		case HIR_EXPR_JMP://jump depending on value
 			printf ("Jmp");
 			break;
+		case HIR_EXPR_CJMP://jump depending on value
+			printf ("C_Jmp");
+			break;
 		case HIR_EXPR_OP:
 			printf ("Op");
-			break;
-		case HIR_EXPR_COND:
-			printf ("Cond");
 			break;
 		// Call - Return
 		case HIR_EXPR_CALL:  // a call to a function
@@ -93,7 +93,7 @@ namespace holodec {
 			printf ("Val");
 			break;
 		case HIR_EXPR_REC:
-			printf ("Rec");
+			printf ("Rec[%s]", arch->getInstrDef (this->mod.instrId)->mnemonics.cstr());
 			break;
 		case HIR_EXPR_REP:
 			printf ("Rep");
@@ -109,7 +109,27 @@ namespace holodec {
 			break;
 
 		case HIR_EXPR_FLAG:
-			printf ("Flag");
+			printf ("Flag ");
+			switch (this->mod.flagType) {
+			case HSSA_FLAG_C:
+				printf ("C");
+				break;
+			case HSSA_FLAG_A:
+				printf ("A");
+				break;
+			case HSSA_FLAG_P:
+				printf ("P");
+				break;
+			case HSSA_FLAG_O:
+				printf ("O");
+				break;
+			case HSSA_FLAG_Z:
+				printf ("Z");
+				break;
+			case HSSA_FLAG_S:
+				printf ("S");
+				break;
+			}
 			break;
 		}
 		printf ("(");
@@ -122,35 +142,35 @@ namespace holodec {
 	void HIRArg::print (HArchitecture* arch, int indent) {
 		printIndent (indent);
 		switch (this->type) {
+		case HIR_ARGTYPE_INVALID:
+			printf ("None");
+			break;
 		case HIR_ARGTYPE_INT:
-			printf("%d",this->sval);
+			printf ("%d", this->sval);
 			break;
 		case HIR_ARGTYPE_UINT:
-			printf("0x%x",this->uval);
+			printf ("0x%x", this->uval);
 			break;
 		case HIR_ARGTYPE_FLOAT:
-			printf("%f",this->fval);
+			printf ("%f", this->fval);
 			break;
 		case HIR_ARGTYPE_IR:
-			printf("IR: %d",this->irId);
+			printf ("IR: %d", this->irId);
 			break;
 		case HIR_ARGTYPE_STACK:
-			if(this->stackId.index)
-				printf("%s[%d]",arch->getStack(this->stackId.id)->name.cstr(),this->stackId.index);
+			if (this->stackId.index)
+				printf ("%s[%d]", arch->getStack (this->stackId.id)->name.cstr(), this->stackId.index);
 			else
-				printf("%s",arch->getStack(this->stackId.id)->name.cstr());
+				printf ("%s", arch->getStack (this->stackId.id)->name.cstr());
 			break;
 		case HIR_ARGTYPE_ARG:
-			printf("arg[%d]",this->index);
+			printf ("arg[%d]", this->index);
 			break;
 		case HIR_ARGTYPE_TMP:
-			printf("tmp[%d]",this->index);
+			printf ("tmp[%d]", this->index);
 			break;
 		case HIR_ARGTYPE_REG:
-			printf("%s",arch->getRegister(this->regId)->name.cstr());
-			break;
-		case HIR_ARGTYPE_REC:
-			printf("rec");
+			printf ("%s", arch->getRegister (this->regId)->name.cstr());
 			break;
 		}
 	}
