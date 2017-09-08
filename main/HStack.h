@@ -8,7 +8,6 @@
 namespace holodec {
 
 	enum HStackType {
-		H_STACK_REGISTER,//register backed
 		H_STACK_BUILTIN,
 		H_STACK_MEMORY
 	};
@@ -21,16 +20,11 @@ namespace holodec {
 		HString name;
 		HStackType type;
 		HStackPolicy policy;
-		HList<HRegister> regs;
+		uint64_t count;
 		uint64_t wordbitsize;
 		HString trackingReg;
-
-		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer = nullptr) {
-			HId newid = gen->next();
-			if(replacer)
-				replacer(id,newid);
-			id = newid;
-		}
+		
+		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer = nullptr);
 	};
 
 }

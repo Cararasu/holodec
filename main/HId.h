@@ -8,7 +8,7 @@
 
 namespace holodec {
 
-	typedef uint64_t HId;
+	typedef uint32_t HId;
 
 	class HIdGenerator {
 	private:
@@ -54,6 +54,12 @@ namespace holodec {
 		}
 		auto end() -> decltype(list.end()){
 			return list.end();
+		}
+		auto size() -> decltype(list.size()){
+			return list.size();
+		}
+		auto back() -> decltype(list.back()){
+			return list.back();
 		}
 		T* get (HId id) {
 			size_t count = list.size();

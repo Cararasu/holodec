@@ -75,7 +75,7 @@ int main ( int argc, char** argv ) {
 	}
 
 	printf ( "%d\n", sizeof ( HInstruction ) );
-	printf ( "%d\n", sizeof ( HInstArgument ) );
+	printf ( "%d\n", sizeof ( HArgument ) );
 
 	HRegister* rax = holox86::x86architecture.getRegister ( "rax" );
 	HRegister* rbx = holox86::x86architecture.getRegister ( "rbx" );

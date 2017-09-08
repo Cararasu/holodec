@@ -72,22 +72,22 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		{"cr4",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr5",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr6",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr7",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0},
 //sw,cw,tw,fp_ip,...
 
-		{"zmm0", H_REG_VEC, 512, 0, true, {{"ymm0", 512, 0, true, {{"xmm0", 128, 0, true}}}}},
-		{"zmm1", H_REG_VEC, 512, 0, true, {{"ymm1", 512, 0, true, {{"xmm1", 128, 0, true}}}}},
-		{"zmm2", H_REG_VEC, 512, 0, true, {{"ymm2", 512, 0, true, {{"xmm2", 128, 0, true}}}}},
-		{"zmm3", H_REG_VEC, 512, 0, true, {{"ymm3", 512, 0, true, {{"xmm3", 128, 0, true}}}}},
-		{"zmm4", H_REG_VEC, 512, 0, true, {{"ymm4", 512, 0, true, {{"xmm4", 128, 0, true}}}}},
-		{"zmm5", H_REG_VEC, 512, 0, true, {{"ymm5", 512, 0, true, {{"xmm5", 128, 0, true}}}}},
-		{"zmm6", H_REG_VEC, 512, 0, true, {{"ymm6", 512, 0, true, {{"xmm6", 128, 0, true}}}}},
-		{"zmm7", H_REG_VEC, 512, 0, true, {{"ymm7", 512, 0, true, {{"xmm7", 128, 0, true}}}}},
-		{"zmm8", H_REG_VEC, 512, 0, true, {{"ymm8", 512, 0, true, {{"xmm8", 128, 0, true}}}}},
-		{"zmm9", H_REG_VEC, 512, 0, true, {{"ymm9", 512, 0, true, {{"xmm9", 128, 0, true}}}}},
-		{"zmm10", H_REG_VEC, 512, 0, true, {{"ymm10", 512, 0, true, {{"xmm10", 128, 0, true}}}}},
-		{"zmm11", H_REG_VEC, 512, 0, true, {{"ymm11", 512, 0, true, {{"xmm11", 128, 0, true}}}}},
-		{"zmm12", H_REG_VEC, 512, 0, true, {{"ymm12", 512, 0, true, {{"xmm12", 128, 0, true}}}}},
-		{"zmm13", H_REG_VEC, 512, 0, true, {{"ymm13", 512, 0, true, {{"xmm13", 128, 0, true}}}}},
-		{"zmm14", H_REG_VEC, 512, 0, true, {{"ymm14", 512, 0, true, {{"xmm14", 128, 0, true}}}}},
-		{"zmm15", H_REG_VEC, 512, 0, true, {{"ymm15", 512, 0, true, {{"xmm15", 128, 0, true}}}}},
+		{"zmm0", H_REG_VEC, 512, 0, true, {{"ymm0", 256, 0, true, {{"xmm0", 128, 0, true}}}}},
+		{"zmm1", H_REG_VEC, 512, 0, true, {{"ymm1", 256, 0, true, {{"xmm1", 128, 0, true}}}}},
+		{"zmm2", H_REG_VEC, 512, 0, true, {{"ymm2", 256, 0, true, {{"xmm2", 128, 0, true}}}}},
+		{"zmm3", H_REG_VEC, 512, 0, true, {{"ymm3", 256, 0, true, {{"xmm3", 128, 0, true}}}}},
+		{"zmm4", H_REG_VEC, 512, 0, true, {{"ymm4", 256, 0, true, {{"xmm4", 128, 0, true}}}}},
+		{"zmm5", H_REG_VEC, 512, 0, true, {{"ymm5", 256, 0, true, {{"xmm5", 128, 0, true}}}}},
+		{"zmm6", H_REG_VEC, 512, 0, true, {{"ymm6", 256, 0, true, {{"xmm6", 128, 0, true}}}}},
+		{"zmm7", H_REG_VEC, 512, 0, true, {{"ymm7", 256, 0, true, {{"xmm7", 128, 0, true}}}}},
+		{"zmm8", H_REG_VEC, 512, 0, true, {{"ymm8", 256, 0, true, {{"xmm8", 128, 0, true}}}}},
+		{"zmm9", H_REG_VEC, 512, 0, true, {{"ymm9", 256, 0, true, {{"xmm9", 128, 0, true}}}}},
+		{"zmm10", H_REG_VEC, 512, 0, true, {{"ymm10", 256, 0, true, {{"xmm10", 128, 0, true}}}}},
+		{"zmm11", H_REG_VEC, 512, 0, true, {{"ymm11", 256, 0, true, {{"xmm11", 128, 0, true}}}}},
+		{"zmm12", H_REG_VEC, 512, 0, true, {{"ymm12", 256, 0, true, {{"xmm12", 128, 0, true}}}}},
+		{"zmm13", H_REG_VEC, 512, 0, true, {{"ymm13", 256, 0, true, {{"xmm13", 128, 0, true}}}}},
+		{"zmm14", H_REG_VEC, 512, 0, true, {{"ymm14", 256, 0, true, {{"xmm14", 128, 0, true}}}}},
+		{"zmm15", H_REG_VEC, 512, 0, true, {{"ymm15", 256, 0, true, {{"xmm15", 128, 0, true}}}}},
 		{"zmm16", H_REG_VEC, 512, 0, true},
 		{"zmm17", H_REG_VEC, 512, 0, true},
 		{"zmm18", H_REG_VEC, 512, 0, true},
@@ -103,7 +103,27 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		{"zmm28", H_REG_VEC, 512, 0, true},
 		{"zmm29", H_REG_VEC, 512, 0, true},
 		{"zmm30", H_REG_VEC, 512, 0, true},
-		{"zmm31", H_REG_VEC, 512, 0, true}
+		{"zmm31", H_REG_VEC, 512, 0, true},
+		
+		//the mmx registers share the lower 64 bits of the st[n], but we ignore this dependency, because they should normally be used together
+		{"mm0", H_REG_FLOAT, 64, 0},
+		{"mm1", H_REG_FLOAT, 64, 0},
+		{"mm2", H_REG_FLOAT, 64, 0},
+		{"mm3", H_REG_FLOAT, 64, 0},
+		{"mm4", H_REG_FLOAT, 64, 0},
+		{"mm5", H_REG_FLOAT, 64, 0},
+		{"mm6", H_REG_FLOAT, 64, 0},
+		{"mm7", H_REG_FLOAT, 64, 0}
+		/* The proper way to set up the st[n] registers but they conflict with the st-stack
+		{"st0", H_REG_FLOAT, 80, 0, { {"mm0", 64, 0}}},
+		{"st1", H_REG_FLOAT, 80, 0, { {"mm1", 64, 0}}},
+		{"st2", H_REG_FLOAT, 80, 0, { {"mm2", 64, 0}}},
+		{"st3", H_REG_FLOAT, 80, 0, { {"mm3", 64, 0}}},
+		{"st4", H_REG_FLOAT, 80, 0, { {"mm4", 64, 0}}},
+		{"st5", H_REG_FLOAT, 80, 0, { {"mm5", 64, 0}}},
+		{"st6", H_REG_FLOAT, 80, 0, { {"mm6", 64, 0}}},
+		{"st7", H_REG_FLOAT, 80, 0, { {"mm7", 64, 0}}},
+		 */
 	},
 	{
 		{
@@ -111,8 +131,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 			"mem",//name
 			H_STACK_MEMORY,//what backs the memory
 			H_STACKPOLICY_BOTTOM,//where to add new elements
-			{},//no register backing it
-			8,//maxcount, wordbitsize
+			0,8,//maxcount(0 = infinite), wordbitsize
 			"rsp"//stackptr
 		},
 		{
@@ -120,18 +139,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 			"st",
 			H_STACK_BUILTIN,
 			H_STACKPOLICY_BOTTOM,
-			{
-				//st are the backint registers and mm are just parts
-				{"st0", H_REG_FLOAT, 80, 0, { {"mm0", 64, 0}}},
-				{"st1", H_REG_FLOAT, 80, 0, { {"mm1", 64, 0}}},
-				{"st2", H_REG_FLOAT, 80, 0, { {"mm2", 64, 0}}},
-				{"st3", H_REG_FLOAT, 80, 0, { {"mm3", 64, 0}}},
-				{"st4", H_REG_FLOAT, 80, 0, { {"mm4", 64, 0}}},
-				{"st5", H_REG_FLOAT, 80, 0, { {"mm5", 64, 0}}},
-				{"st6", H_REG_FLOAT, 80, 0, { {"mm6", 64, 0}}},
-				{"st7", H_REG_FLOAT, 80, 0, { {"mm7", 64, 0}}},
-			},
-			80,
+			8,80,
 			nullptr
 		},
 	},
@@ -568,7 +576,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		{X86_INS_DAA, "daa", {}},
 		{X86_INS_DAS, "das", {}},
 
-		{X86_INS_FABS, "fabs", {{0, "=($st0,#fmul($st0,-1))"}}},
+		{X86_INS_FABS, "fabs", {{0, "=($st[0],#fmul($st[0],-1))"}}},
 		{X86_INS_ADDPD, "addpd", {{2, "=(#arg[1],#app(#fadd(#arg[1][0,64],#arg[2][0,64]),#fadd(#arg[1][64,64],#arg[2][64,64])))"}}},
 		{
 			X86_INS_ADDPS,
@@ -694,8 +702,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		{X86_INS_SCASQ | CUSOM_X86_INSTR_EXTR_REPNE, "repne scasq", {{2, "#rep(#and($rcx,#not($zf)),#rec[scasq](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_CMP, H_INSTR_TYPE_UNKNOWN, H_INSTR_COND_NE},
 
 //x87
-		{X86_INS_FADD, "fadd", {{1, "=($st0,#fadd($st0,#fext(#arg[1],#bsize($st0))))"}, {2, "=(#arg[1],#fadd(#arg[1],#arg[2]))"}}},
-		{X86_INS_FIADD, "fiadd", {{1, "=($st0,#fadd($st0,#fext(#arg[1],#bsize($st0))))"}}},
+		{X86_INS_FADD, "fadd", {{1, "=($st[0],#fadd($st[0],#fext(#arg[1],#bsize($st[0]))))"}, {2, "=(#arg[1],#fadd(#arg[1],#arg[2]))"}}},
+		{X86_INS_FIADD, "fiadd", {{1, "=($st[0],#fadd($st[0],#fext(#arg[1],#bsize($st[0]))))"}}},
 		{X86_INS_FADDP, "faddp", {{0, "#push($st,#fadd(#pop($st),#pop($st)))"}, {2, "#seq(=(#arg[1],#fadd(#arg[1],#arg[2])),#pop($st))"}}},
 
 //TODO add missing instructions

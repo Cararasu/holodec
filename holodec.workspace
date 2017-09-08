@@ -14,7 +14,7 @@
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Debug Windows" Selected="yes">
       <Environment/>
-      <Project Name="main" ConfigName="Debug"/>
+      <Project Name="main" ConfigName="Debug Windows"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

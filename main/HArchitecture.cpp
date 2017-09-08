@@ -9,12 +9,6 @@ namespace holodec {
 			reg.relabel (&gen);
 			reg.setParentId (reg.id);
 		}
-		for (HStack& stack : stacks) {
-			for (HRegister& reg : stack.regs) {
-				reg.relabel (&gen);
-				reg.setParentId (reg.id);
-			}
-		}
 
 		for (auto& entry : instrdefs) {
 			printf("Parsing Instruction %s!\n",entry.second.mnemonics.cstr());

@@ -5,6 +5,7 @@
 #include "HId.h"
 #include "HStack.h"
 #include "HRegister.h"
+#include "HArgument.h"
 
 #define HSSA_LOCAL_USEID_MAX (4)
 
@@ -21,7 +22,7 @@ namespace holodec {
 		HSSA_EXPR_NOP,
 
 		HSSA_EXPR_PHI,
-		HSSA_EXPR_ASSIGN,//assign to label = jump to branch, assign to pc = jump to other memory location
+		HSSA_EXPR_IDENT,//assign to label = jump to branch, assign to pc = jump to other memory location
 
 		HSSA_EXPR_JMP,
 		HSSA_EXPR_CJMP,
@@ -29,6 +30,8 @@ namespace holodec {
 		HSSA_EXPR_OP,
 		HSSA_EXPR_COND,
 		
+		HSSA_EXPR_PUSH,
+		HSSA_EXPR_POP,
 		// Call - Return
 		HSSA_EXPR_CALL,  // a call to a function
 		HSSA_EXPR_RETURN,  // a return
@@ -40,8 +43,6 @@ namespace holodec {
 		HSSA_EXPR_SPLIT,  // access to part of a variable
 		HSSA_EXPR_APPEND,  // combine variables
 		HSSA_EXPR_CAST,  // cast to other type
-
-		HSSA_EXPR_MEM,  // addr = base, index, scale, disp, ?segment?
 		// Memory
 		HSSA_EXPR_STORE, //mem = mem, addr, value
 		HSSA_EXPR_LOAD, //value = mem, addr
@@ -88,93 +89,14 @@ namespace holodec {
 		HSSA_TYPE_MEM,
 		HSSA_TYPE_PC,
 	};
-	enum HSSAArgType {
-		HSSA_ARGTYPE_INVALID = 0,
-		HSSA_ARGTYPE_INT,
-		HSSA_ARGTYPE_UINT,
-		HSSA_ARGTYPE_FLOAT,
-		HSSA_ARGTYPE_SSA,
-		HSSA_ARGTYPE_LABEL,
-	};
 	enum HSSAFlagType {
 		HSSA_FLAG_C,
 		HSSA_FLAG_A,
 		HSSA_FLAG_P,
 		HSSA_FLAG_O,
+		HSSA_FLAG_U,
 		HSSA_FLAG_Z,
 		HSSA_FLAG_S,
-	};
-	struct HStackId {
-		HId id;
-		HId index;
-
-		operator bool() {
-			return id && index;
-		}
-	};
-	struct HSSAId {
-		HId id;
-		HId label;
-
-		operator bool() {
-			return id && label;
-		}
-	};
-	struct HSSAArg { //196 bit
-		HSSAArgType type = HSSA_ARGTYPE_INVALID;
-		union { //128 bit
-			struct { //UInt/Int/Float
-				union {
-					int64_t sval;
-					uint64_t uval;
-					double fval;
-				};
-				uint64_t size;
-			};
-			HSSAId ssaId;
-		};
-		HSSAArg() = default;
-		bool operator!() {
-			return type == HSSA_ARGTYPE_INVALID;
-		}
-		operator bool() {
-			return type != HSSA_ARGTYPE_INVALID;
-		}
-		bool isConst() {
-			return type == HSSA_ARGTYPE_INT || type == HSSA_ARGTYPE_UINT || type == HSSA_ARGTYPE_FLOAT;
-		}
-		static inline HSSAArg create() {
-			return HSSAArg();
-		}
-		static inline HSSAArg createVal (int64_t val, uint64_t size) {
-			HSSAArg arg;
-			arg.type = HSSA_ARGTYPE_INT;
-			arg.sval = val;
-			arg.size = size;
-			return arg;
-		}
-		static inline HSSAArg createVal (uint64_t val, uint64_t size) {
-			HSSAArg arg;
-			arg.type = HSSA_ARGTYPE_UINT;
-			arg.uval = val;
-			arg.size = size;
-			return arg;
-		}
-		static inline HSSAArg createVal (double val, uint64_t size) {
-			HSSAArg arg;
-			arg.type = HSSA_ARGTYPE_FLOAT;
-			arg.fval = val;
-			arg.size = size;
-			return arg;
-		}
-		static inline HSSAArg createSSA (HSSAId ssaId) {
-			HSSAArg arg;
-			arg.type = HSSA_ARGTYPE_SSA;
-			arg.ssaId = ssaId;
-			arg.size = 0;
-			return arg;
-		}
-		void print(HArchitecture* arch, int indent = 0);
 	};
 	struct HSSAExpression {
 		HId id;
@@ -188,8 +110,10 @@ namespace holodec {
 			HId builtinId;
 			HId instrId;
 		};
-		//regId/stackId,index
-		HLocalBackedList<HSSAArg, HSSA_LOCAL_USEID_MAX> subExpressions;
+		HId regId = 0;
+		HArgStck stackId = {0,0};
+		
+		HLocalBackedList<HArgument, HSSA_LOCAL_USEID_MAX> subExpressions;
 
 		bool operator!() {
 			return type == HSSA_EXPR_INVALID;
@@ -199,27 +123,6 @@ namespace holodec {
 		}
 		void print(HArchitecture* arch, int indent = 0);
 	};
-	inline bool operator== (HStackId& lhs, HStackId& rhs) {
-		return lhs.id == rhs.id && lhs.index == rhs.index;
-	}
-	inline bool operator== (HSSAArg& lhs, HSSAArg& rhs) {
-		if (lhs.type == rhs.type) {
-			switch (lhs.type) {
-			case HSSA_ARGTYPE_INT:
-				return lhs.sval == rhs.sval && lhs.size == rhs.size;
-			case HSSA_ARGTYPE_UINT:
-				return lhs.uval == rhs.uval && lhs.size == rhs.size;
-			case HSSA_ARGTYPE_FLOAT:
-				return lhs.fval == rhs.fval && lhs.size == rhs.size;
-			case HSSA_ARGTYPE_SSA:
-				return lhs.ssaId == rhs.ssaId;
-			}
-		}
-		return false;
-	}
-	inline bool operator!= (HSSAArg& lhs, HSSAArg& rhs) {
-		return ! (lhs == rhs);
-	}
 	inline bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
 		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
@@ -247,8 +150,8 @@ namespace holodec {
 		HString ssastring;
 		HList<HSSAExpression> expressions;
 
-		HSSAArg condExpr = HSSAArg::create();
-		HSSAArg rootExpr = HSSAArg::create();
+		HArgument condExpr = HArgument::create();
+		HArgument rootExpr = HArgument::create();
 		HIdGenerator gen_expr;
 
 		HSSARepresentation() : HSSARepresentation (-1, nullptr, nullptr) {}

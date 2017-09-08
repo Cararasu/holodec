@@ -58,14 +58,6 @@ namespace holodec {
 				HRegister* r = reg.getRegister (string);
 				if (r) return r;
 			}
-			for (HStack& stack : stacks) {
-				for (HRegister& reg : stack.regs) {
-					if (string == reg.name)
-						return &reg;
-					HRegister* r = reg.getRegister (string);
-					if (r) return r;
-				}
-			}
 			return &invalidReg;
 		}
 		HRegister* getRegister (const HId id) {
@@ -75,14 +67,6 @@ namespace holodec {
 				HRegister* r = reg.getRegister (id);
 				if (r) return r;
 			}
-			for (HStack& stack : stacks) {
-				for (HRegister& reg : stack.regs) {
-					if (id == reg.id)
-						return &reg;
-					HRegister* r = reg.getRegister (id);
-					if (r) return r;
-				}
-			}
 			return &invalidReg;
 		}
 		HRegister* getParentRegister (const HId id) {
@@ -91,14 +75,6 @@ namespace holodec {
 					return &reg;
 				HRegister* r = reg.getRegister (id);
 				if (r) return &reg;
-			}
-			for (HStack& stack : stacks) {
-				for (HRegister& reg : stack.regs) {
-					if (id == reg.id)
-						return &reg;
-					HRegister* r = reg.getRegister (id);
-					if (r) return &reg;
-				}
 			}
 			return &invalidReg;
 		}

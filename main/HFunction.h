@@ -5,6 +5,7 @@
 #include "HSection.h"
 #include "HInstrDefinition.h"
 #include "HId.h"
+#include "HArgument.h"
 
 
 
@@ -12,42 +13,6 @@
 
 namespace holodec {
 
-	enum HInstrArgType {
-		H_LOCAL_TYPE_REGISTER = 1,
-		H_LOCAL_TYPE_STACK,
-		H_LOCAL_TYPE_MEM,
-		H_LOCAL_TYPE_IMM_SIGNED,
-		H_LOCAL_TYPE_IMM_UNSIGNED,
-		H_LOCAL_TYPE_IMM_FLOAT,
-	};
-
-	typedef int64_t HArgIntImmediate;
-	typedef double HArgFloatImmediate;
-	typedef uint64_t HArgStack;
-	struct HArgMem { //segment::[base + index*scale + disp]
-		HId segment;
-		HId base;
-		HId index;
-		HArgIntImmediate scale;
-		HArgIntImmediate disp;
-	};
-	struct HArgStck {
-		HId id;//id of the stack
-		HId index;//index into the stack or 0 for whole stack
-	};
-	struct HInstArgument {
-		union { //ordered first because of tighter memory layout
-			HArgIntImmediate ival;
-			HArgFloatImmediate fval;
-			HArgMem mem;
-			HId reg;
-			HArgStck stack;//change to detect which stack we are talking about
-		};
-		HInstrArgType type;//(reg or stack or signed or unsigned)
-		uint64_t size;
-
-		void print (HArchitecture* arch);
-	};
 	struct HInstruction {
 		size_t addr;
 		size_t size;
@@ -59,7 +24,7 @@ namespace holodec {
 		size_t jumpdest;//if condition is true
 		size_t calldest;//if call succeeds -> creates new function symbol
 
-		HLocalBackedList<HInstArgument,HINSTRUCTION_MAX_OPERANDS> operands;
+		HLocalBackedList<HArgument,HINSTRUCTION_MAX_OPERANDS> operands;
 
 		void print (HArchitecture* arch, int indent = 0);
 	};

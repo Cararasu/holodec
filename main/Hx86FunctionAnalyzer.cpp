@@ -95,7 +95,7 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 
 			cs_free (insn, count);
 		} else {
-			printf ("ERROR:: Failed to disassemble given code at address : 0x%x!\n",addr);
+			printf ("ERROR:: Failed to disassemble given code at address : 0x%x!\n", addr);
 			running = false;
 		}
 	} while (running);
@@ -109,42 +109,50 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 	cs_x86& x86 = csdetail->x86;
 
 	for (uint8_t i = 0; i < x86.op_count; i++) {
-		HInstArgument arg;
+		HArgument arg;
 		switch (x86.operands[i].type) {
 		case X86_OP_INVALID:
 			printf ("Invalid\n");
 			break;
-		case X86_OP_REG:
-			arg.type = H_LOCAL_TYPE_REGISTER;
-			arg.reg = arch->getRegister (cs_reg_name (handle, x86.operands[i].reg))->id;
+		case X86_OP_REG:{
+			const char* regname = cs_reg_name (handle, x86.operands[i].reg);
+			int index;
+			int res = sscanf(regname,"st%d", &index);
+			if(res == 1){
+				arg = HArgument::createStck (arch->getStack ("st"),index);
+			}else{
+				arg = HArgument::createReg (arch->getRegister (regname));
+			}
 			break;
+		}
 		case X86_OP_IMM:
-			arg.type = H_LOCAL_TYPE_IMM_UNSIGNED;
-			arg.ival = x86.operands[i].imm;
+			arg = HArgument::createVal ( (uint64_t) x86.operands[i].imm, x86.operands[i].size * 8);
 			break;
-		case X86_OP_MEM:
-			arg.type = H_LOCAL_TYPE_MEM;
-			arg.mem.segment = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment))->id;
+		case X86_OP_MEM: {
+			uint64_t disp = 0;
+			HRegister* baseReg;
 			if (x86.operands[i].mem.base == X86_REG_RIP || x86.operands[i].mem.base == X86_REG_EIP) {
 				x86.operands[i].mem.disp += instruction->addr;
-				arg.mem.base = 0;
+				baseReg = nullptr;
 			} else {
-				arg.mem.base = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base))->id;
+				baseReg = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base));
 			}
-			arg.mem.disp = x86.operands[i].mem.disp;
-			arg.mem.index = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index))->id;
-			arg.mem.scale = x86.operands[i].mem.scale;
-
-			break;
+			arg = HArgument::createMem ( //HRegister* segment, HRegister* base, HRegister* index
+						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
+						baseReg,
+						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),
+						x86.operands[i].mem.disp, x86.operands[i].mem.scale,
+						x86.operands[i].size * 8
+					);
+		}
+		break;
 		case X86_OP_FP:
-			arg.type = H_LOCAL_TYPE_IMM_FLOAT;
-			arg.fval = x86.operands[i].fp;
+			arg = HArgument::createVal ( (double) x86.operands[i].fp, x86.operands[i].size * 8);
 			break;
 		default:
 			printf ("Invalid ...\n");
 		}
-		arg.size = x86.operands[i].size * 8;
-		instruction->operands.add(arg);
+		instruction->operands.add (arg);
 	}
 }
 
@@ -157,9 +165,9 @@ void holox86::Hx86FunctionAnalyzer::setJumpDest (HInstruction* instruction) {
 		if (instruction->condition == H_INSTR_COND_TRUE && instruction->instrdef->condition == H_INSTR_COND_TRUE) {
 			instruction->nojumpdest = 0;
 		}
-		if (instruction->operands[0].type == H_LOCAL_TYPE_IMM_UNSIGNED)
-			instruction->jumpdest = instruction->operands[0].ival;
-		else if (instruction->operands[0].type == H_LOCAL_TYPE_IMM_SIGNED)
-			instruction->jumpdest = instruction->addr + (int64_t) instruction->operands[0].ival;
+		if (instruction->operands[0].type == H_ARGTYPE_UINT)
+			instruction->jumpdest = instruction->operands[0].uval;
+		else if (instruction->operands[0].type == H_ARGTYPE_SINT)
+			instruction->jumpdest = instruction->addr + instruction->operands[0].sval;
 	}
 }

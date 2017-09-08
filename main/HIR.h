@@ -6,6 +6,7 @@
 #include "HId.h"
 #include "HStack.h"
 #include "HRegister.h"
+#include "HArgument.h"
 
 #define HIR_LOCAL_USEID_MAX (4)
 
@@ -54,105 +55,6 @@ namespace holodec {
 
 		HIR_EXPR_FLAG,
 	};
-	enum HIRArgType {
-		HIR_ARGTYPE_INVALID = 0,
-		HIR_ARGTYPE_INT,
-		HIR_ARGTYPE_UINT,
-		HIR_ARGTYPE_FLOAT,
-		HIR_ARGTYPE_IR,
-		HIR_ARGTYPE_REG,
-		HIR_ARGTYPE_ARG,
-		HIR_ARGTYPE_TMP,
-		HIR_ARGTYPE_STACK,
-	};
-	struct HIRArg { //196 bit
-		HIRArgType type = HIR_ARGTYPE_INVALID;
-		union { //128 bit
-			struct { //UInt/Int/Float
-				union {
-					int64_t sval;
-					uint64_t uval;
-					double fval;
-				};
-				uint64_t size;
-			};
-			HId irId;
-			HId index;//Tmp/Arg
-			HId regId;//Register
-			HStackId stackId;//Stack
-		};
-		HIRArg() = default;
-		bool operator!() {
-			return type == HIR_ARGTYPE_INVALID;
-		}
-		operator bool() {
-			return type != HIR_ARGTYPE_INVALID;
-		}
-		bool isConst() {
-			return type == HIR_ARGTYPE_INT || type == HIR_ARGTYPE_UINT || type == HIR_ARGTYPE_FLOAT;
-		}
-		static inline HIRArg create() {
-			return HIRArg();
-		}
-		static inline HIRArg createVal (int64_t val, uint64_t size) {
-			HIRArg arg;
-			arg.type = HIR_ARGTYPE_INT;
-			arg.sval = val;
-			arg.size = size;
-			return arg;
-		}
-		static inline HIRArg createVal (uint64_t val, uint64_t size) {
-			HIRArg arg;
-			arg.type = HIR_ARGTYPE_UINT;
-			arg.uval = val;
-			arg.size = size;
-			return arg;
-		}
-		static inline HIRArg createVal (double val, uint64_t size) {
-			HIRArg arg;
-			arg.type = HIR_ARGTYPE_FLOAT;
-			arg.fval = val;
-			arg.size = size;
-			return arg;
-		}
-		static inline HIRArg createIR (HId id) {
-			HIRArg arg;
-			arg.type = HIR_ARGTYPE_IR;
-			arg.irId = id;
-			arg.size = 0;
-			return arg;
-		}
-		static inline HIRArg createTmp (HId index) {
-			HIRArg arg;
-			arg.type = HIR_ARGTYPE_TMP;
-			arg.index = index;
-			arg.size = 0;
-			return arg;
-		}
-		static inline HIRArg createArg (HId index) {
-			HIRArg arg;
-			arg.type = HIR_ARGTYPE_ARG;
-			arg.index = index;
-			arg.size = 0;
-			return arg;
-		}
-		static inline HIRArg createReg (HRegister* reg) {
-			HIRArg arg;
-			arg.type = HIR_ARGTYPE_REG;
-			arg.regId = reg->id;
-			arg.size = reg->size;
-			return arg;
-		}
-		static inline HIRArg createStck (HStack* stack, HId index) {
-			HIRArg arg;
-			arg.type = HIR_ARGTYPE_STACK;
-			arg.stackId.id = stack->id;
-			arg.stackId.index = index;
-			arg.size = stack->wordbitsize;
-			return arg;
-		}
-		void print(HArchitecture* arch, int indent = 0);
-	};
 	struct HIRExpression {
 		HId id;
 		HIRExprType type;
@@ -167,7 +69,7 @@ namespace holodec {
 				HId instrId;
 			};
 		} mod;
-		HLocalBackedList<HIRArg, HIR_LOCAL_USEID_MAX> subExpressions;
+		HLocalBackedList<HArgument, HIR_LOCAL_USEID_MAX> subExpressions;
 
 		bool operator!() {
 			return type == HIR_EXPR_INVALID;
@@ -175,33 +77,8 @@ namespace holodec {
 		operator bool() {
 			return type != HIR_EXPR_INVALID;
 		}
-		void print(HArchitecture* arch, int indent = 0);
+		void print(HArchitecture* arch, int indent = 0, bool recursive = true);
 	};
-	inline bool operator== (HIRArg& lhs, HIRArg& rhs) {
-		if (lhs.type == rhs.type) {
-			switch (lhs.type) {
-			case HIR_ARGTYPE_INT:
-				return lhs.sval == rhs.sval && lhs.size == rhs.size;
-			case HIR_ARGTYPE_UINT:
-				return lhs.uval == rhs.uval && lhs.size == rhs.size;
-			case HIR_ARGTYPE_FLOAT:
-				return lhs.fval == rhs.fval && lhs.size == rhs.size;
-			case HIR_ARGTYPE_IR:
-				return lhs.irId == rhs.irId;
-			case HIR_ARGTYPE_STACK:
-				return lhs.stackId == rhs.stackId;
-			case HIR_ARGTYPE_ARG:
-			case HIR_ARGTYPE_TMP:
-				return lhs.index == rhs.index;
-			case HIR_ARGTYPE_REG:
-				return lhs.regId == rhs.regId;
-			}
-		}
-		return false;
-	}
-	inline bool operator!= (HIRArg& lhs, HIRArg& rhs) {
-		return ! (lhs == rhs);
-	}
 	inline bool operator== (HIRExpression& lhs, HIRExpression& rhs) {
 		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
@@ -228,8 +105,8 @@ namespace holodec {
 		HString condstring;
 		HString irstring;
 
-		HIRArg condExpr = HIRArg::create();
-		HIRArg rootExpr = HIRArg::create();
+		HArgument condExpr = HArgument::create();
+		HArgument rootExpr = HArgument::create();
 
 		HIRRepresentation() : HIRRepresentation (-1, nullptr, nullptr) {}
 		HIRRepresentation (HString irstring) :  HIRRepresentation (-1, nullptr, irstring) {}

@@ -25,6 +25,11 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 	
 	HIRRepresentation* rep = ssaGen.matchIr(instruction);
 	if(rep){
+		ssaGen.arguments.clear();
+		ssaGen.tmpdefs.clear();
+		for(int i = 0; i < instruction->operands.size();i++){
+			ssaGen.arguments.push_back(instruction->operands[i]);
+		}
 		ssaGen.parseExpression(rep->rootExpr);
 	}else{
 		printf("Could not find IR-Match for Instruction\n");
@@ -144,6 +149,7 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
 		if (trySplitBasicBlock (addr))
 			continue;
 
+		ssaGen.createNewBlock();
 		analyzeInsts (addr);
 
 		if (!state.instructions.empty()) {

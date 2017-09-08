@@ -4,11 +4,12 @@
 #include "HArchitecture.h"
 namespace holodec {
 
-	void HIRExpression::print (HArchitecture* arch, int indent) {
-
-		for (int i = 0; i < this->subExpressions.size(); i++) {
-			if (this->subExpressions[i].type == HIR_ARGTYPE_IR) {
-				arch->getIrExpr (this->subExpressions[i].irId)->print (arch);
+	void HIRExpression::print (HArchitecture* arch, int indent, bool recursive) {
+		if (recursive) {
+			for (int i = 0; i < this->subExpressions.size(); i++) {
+				if (this->subExpressions[i].type == H_ARGTYPE_ID) {
+					arch->getIrExpr (this->subExpressions[i].id)->print (arch);
+				}
 			}
 		}
 
@@ -27,7 +28,6 @@ namespace holodec {
 		case HIR_EXPR_ASSIGN:
 			printf ("Assign");
 			break;
-
 		case HIR_EXPR_IF://jump depending on value
 			printf ("If");
 			break;
@@ -135,43 +135,8 @@ namespace holodec {
 		printf ("(");
 		for (int i = 0; i < this->subExpressions.size(); i++) {
 			this->subExpressions[i].print (arch);
-			printf (",");
+			printf (", ");
 		}
 		printf (")\n");
-	}
-	void HIRArg::print (HArchitecture* arch, int indent) {
-		printIndent (indent);
-		switch (this->type) {
-		case HIR_ARGTYPE_INVALID:
-			printf ("None");
-			break;
-		case HIR_ARGTYPE_INT:
-			printf ("%d", this->sval);
-			break;
-		case HIR_ARGTYPE_UINT:
-			printf ("0x%x", this->uval);
-			break;
-		case HIR_ARGTYPE_FLOAT:
-			printf ("%f", this->fval);
-			break;
-		case HIR_ARGTYPE_IR:
-			printf ("IR: %d", this->irId);
-			break;
-		case HIR_ARGTYPE_STACK:
-			if (this->stackId.index)
-				printf ("%s[%d]", arch->getStack (this->stackId.id)->name.cstr(), this->stackId.index);
-			else
-				printf ("%s", arch->getStack (this->stackId.id)->name.cstr());
-			break;
-		case HIR_ARGTYPE_ARG:
-			printf ("arg[%d]", this->index);
-			break;
-		case HIR_ARGTYPE_TMP:
-			printf ("tmp[%d]", this->index);
-			break;
-		case HIR_ARGTYPE_REG:
-			printf ("%s", arch->getRegister (this->regId)->name.cstr());
-			break;
-		}
 	}
 }

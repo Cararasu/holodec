@@ -35,37 +35,37 @@ namespace holodec {
 		pushback();
 		return false;
 	}
-	HIRArg HIRParser::parseIndex (HIRArg arg) {
+	HArgument HIRParser::parseIndex (HArgument arg) {
 		size_t current_index = index;
 		if (parseCharacter ('[')) {
 			const char* x = string.cstr() + index;
-			HIRArg offset, size;
+			HArgument offset, size;
 			bool hasSize = false;
-			if (! (offset = parseExpression())) {
+			if (! (offset = parseIRExpression())) {
 				printf ("Cannot parse Offset\n");
-				return HIRArg::create();//false;
+				return HArgument::create();//false;
 			}
 			x = string.cstr() + index;
 			if (parseCharacter (',')) {
 				hasSize = true;
-				if (! (size = parseExpression())) {
+				if (! (size = parseIRExpression())) {
 					printf ("Cannot parse Size\n");
-					return HIRArg::create();
+					return HArgument::create();
 				}
-			}else{
-				size = HIRArg::createVal((uint64_t)0,arch->bitbase);
+			} else {
+				size = HArgument::createVal ( (uint64_t) 0, arch->bitbase);
 			}
 			x = string.cstr() + index;
 			if (parseCharacter (']')) {
 				HIRExpression expression;
 				expression.type = HIR_EXPR_SPLIT;
-				expression.subExpressions.add(arg);
-				expression.subExpressions.add(offset);
-				expression.subExpressions.add(size);
-				return HIRArg::createIR(arch->addIrExpr(expression));
+				expression.subExpressions.add (arg);
+				expression.subExpressions.add (offset);
+				expression.subExpressions.add (size);
+				return HArgument::createId (arch->addIrExpr (expression));
 			}
 			printParseFailure ("']'");
-			return HIRArg::create();
+			return HArgument::create();
 		}
 		return arg;
 	}
@@ -92,7 +92,7 @@ namespace holodec {
 				return false;
 			HString s = HString::create (buffer);
 			//TODO check for nullptr
-			expression->mod.instrId = arch->getInstrDef(s)->id;
+			expression->mod.instrId = arch->getInstrDef (s)->id;
 			if (parseCharacter (']')) {
 				return true;
 			}
@@ -124,7 +124,7 @@ namespace holodec {
 			}
 			do {
 				i++;
-				HIRArg subexpr = parseExpression();
+				HArgument subexpr = parseIRExpression();
 				if (expr && subexpr) {
 					expr->subExpressions.add (subexpr);
 				} else {
@@ -141,7 +141,7 @@ namespace holodec {
 		}
 		return i;
 	}
-	HIRArg HIRParser::parseExpression() {
+	HArgument HIRParser::parseIRExpression() {
 		size_t current_index = index;
 
 		HIRExpression expression;
@@ -161,10 +161,10 @@ namespace holodec {
 						expression.type = HIR_EXPR_SEQUENCE;
 						expression.exprtype = HSSA_TYPE_UNKNOWN;
 					} else if (string == "arg") {
-						HIRArg arg = HIRArg::createArg (parseNumberIndex());
+						HArgument arg = HArgument::createIndex (HIR_ARGTYPE_ARG, parseNumberIndex());
 						return parseIndex (arg);
 					} else if (string == "tmp" || string == "t") {
-						HIRArg arg = HIRArg::createTmp (parseNumberIndex());
+						HArgument arg = HArgument::createIndex (HIR_ARGTYPE_TMP, parseNumberIndex());
 						return parseIndex (arg);
 					} else if (string == "z") {
 						expression.type = HIR_EXPR_FLAG;
@@ -377,7 +377,7 @@ namespace holodec {
 						parseArguments (&expression);
 						assert (expression.subExpressions.size() == 1);
 						if (expression.subExpressions[0].size)
-							return HIRArg::createVal ( (uint64_t) (expression.subExpressions[0].size), arch->bitbase);
+							return HArgument::createVal ( (uint64_t) (expression.subExpressions[0].size), arch->bitbase);
 						else {
 							expression.type = HIR_EXPR_BSIZE;
 						}
@@ -385,13 +385,13 @@ namespace holodec {
 						parseArguments (&expression);
 						assert (expression.subExpressions.size() == 1);
 						if (expression.subExpressions[0].size)
-							return HIRArg::createVal ( (uint64_t) (expression.subExpressions[0].size / arch->wordbase), arch->bitbase);
+							return HArgument::createVal ( (uint64_t) (expression.subExpressions[0].size / arch->wordbase), arch->bitbase);
 						else {
 							expression.type = HIR_EXPR_SIZE;
 						}
 					} else if (string == "rec") {
 						expression.type = HIR_EXPR_REC;
-						parseStringIndex(&expression);
+						parseStringIndex (&expression);
 						//TODO do the recursion here already
 					} else if (string == "rep") {
 						expression.type = HIR_EXPR_REP;
@@ -408,16 +408,12 @@ namespace holodec {
 				if (parseIdentifier (buffer, 100)) {
 					HRegister* reg = arch->getRegister (buffer);
 					if (reg->id) {
-						return HIRArg::createReg (reg);
+						return HArgument::createReg (reg);
 					}
 
 					HStack* stack = arch->getStack (buffer);
 					if (stack) {
-						HIRArg arg;
-						arg.type = HIR_ARGTYPE_STACK;
-						arg.stackId.id = stack->id;
-						arg.stackId.index = parseNumberIndex();
-						return arg;
+						return HArgument::createStck (stack, parseNumberIndex());
 					}
 					printf ("Parsed Custom %s\n", buffer);
 					printParseFailure ("Custom");
@@ -425,7 +421,7 @@ namespace holodec {
 				} else {
 					printf ("No custom token");
 				}
-				return HIRArg();
+				return HArgument::create();
 			}
 			case '?':
 				expression.type = HIR_EXPR_IF;
@@ -449,6 +445,7 @@ namespace holodec {
 					break;
 				}
 				expression.type = HIR_EXPR_ASSIGN;
+				expression.exprtype = HSSA_TYPE_UNKNOWN;
 				break;
 			case '<':
 				if (parseCharacter ('=')) {
@@ -498,16 +495,12 @@ namespace holodec {
 				pushback();
 				if (!parseNumber (&num)) {
 					printParseFailure ("Number");
-					return HIRArg();//HIR_EXPR_INVALID;
+					return HArgument::create();//HIR_EXPR_INVALID;
 				}
-				HIRArg arg;
-				arg.type = HIR_ARGTYPE_INT;
-				arg.sval = num;
-				//printf ("Parsed Number %d\n", num);
-				return arg;
+				return HArgument::createVal ( (uint64_t) num, arch->bitbase);
 			}
 			}
-			if(hasArgs)
+			if (hasArgs)
 				parseArguments (&expression);
 			switch (expression.type) {
 			case HIR_EXPR_LOAD:
@@ -524,10 +517,7 @@ namespace holodec {
 				break;
 			}
 			HId id = arch->addIrExpr (expression);
-			HIRArg arg;
-			arg.type = HIR_ARGTYPE_IR;
-			arg.irId = id;
-			return parseIndex (arg);
+			return parseIndex (HArgument::createId (id));
 		}
 		printf ("Parsed Invalid Char '%c'", c);
 
@@ -536,25 +526,25 @@ namespace holodec {
 
 	void HIRParser::parse (HIRRepresentation* rep) {
 		this->rep = rep;
-		if(rep->condstring){
+		if (rep->condstring) {
 			string = rep->condstring;
 			index = 0;
 			printf ("%s\n", string.cstr());
-			rep->condExpr = parseExpression();
-			if(rep->condExpr.type == HIR_ARGTYPE_IR)
-				this->arch->getIrExpr(rep->condExpr.irId)->print(this->arch);
+			rep->condExpr = parseIRExpression();
+			if (rep->condExpr.type == H_ARGTYPE_ID)
+				this->arch->getIrExpr (rep->condExpr.id)->print (this->arch);
 		}
 		string = rep->irstring;
 		index = 0;
 		printf ("%s\n", string.cstr());
-		rep->rootExpr = parseExpression();
+		rep->rootExpr = parseIRExpression();
 		skipWhitespaces();
 		if (peek() != '\0') {
 			printf ("Not parsed the whole IR-String %s\n", string.cstr());
 			printf ("Not parsed: '%s'\n", string.cstr() + index);
 		}
-		
-		if(rep->rootExpr.type == HIR_ARGTYPE_IR)
-			this->arch->getIrExpr(rep->rootExpr.irId)->print(this->arch);
+
+		if (rep->rootExpr.type == H_ARGTYPE_ID)
+			this->arch->getIrExpr (rep->rootExpr.id)->print (this->arch);
 	}
 }
