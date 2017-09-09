@@ -30,7 +30,7 @@
       <File Name="HStringDatabase.cpp"/>
       <File Name="HStringDatabase.h"/>
       <File Name="HArgument.h"/>
-      <File Name="HArgument1.cpp"/>
+      <File Name="HArgument.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <File Name="HString.h"/>
