@@ -25,12 +25,26 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 	
 	HIRRepresentation* rep = ssaGen.matchIr(instruction);
 	if(rep){
-		ssaGen.arguments.clear();
-		ssaGen.tmpdefs.clear();
+		ssaGen.setupForInstr();
+		rep->print(arch);
+		printf("Args: ");
 		for(int i = 0; i < instruction->operands.size();i++){
 			ssaGen.arguments.push_back(instruction->operands[i]);
+			instruction->operands[i].print(arch);
+			printf(", ");
 		}
+		printf("\n");
+		ssaGen.insertLabel(instruction->addr);
 		ssaGen.parseExpression(rep->rootExpr);
+		if(ssaGen.endOfBlock){
+			for(uint64_t addr : ssaGen.addressesToAnalyze){
+				state.addrToAnalyze.push_back(addr);
+			}
+			if(ssaGen.fallthrough){
+				state.addrToAnalyze.push_back(instruction->addr + instruction->size);
+			}
+			return false;
+		}
 	}else{
 		printf("Could not find IR-Match for Instruction\n");
 		instruction->print(arch);
@@ -124,6 +138,8 @@ bool holodec::HFunctionAnalyzer::trySplitBasicBlock (size_t splitaddr) {
 
 bool holodec::HFunctionAnalyzer::postFunction (HFunction* function) {
 	printf ("Post Function\n");
+	ssaGen.print();
+	ssaGen.clear();
 	binary->addFunction (*function);
 }
 
@@ -149,7 +165,7 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
 		if (trySplitBasicBlock (addr))
 			continue;
 
-		ssaGen.createNewBlock();
+		ssaGen.activateBlock(ssaGen.createNewBlock());
 		analyzeInsts (addr);
 
 		if (!state.instructions.empty()) {
@@ -177,7 +193,7 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
 			}
 		}
 	}
-	binary->addFunction (state.function);
+	postFunction(&state.function);
 	state.function.clear();
 	postAnalysis();
 }

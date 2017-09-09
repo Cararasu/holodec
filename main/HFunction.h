@@ -14,15 +14,15 @@
 namespace holodec {
 
 	struct HInstruction {
-		size_t addr;
-		size_t size;
+		uint64_t addr;
+		uint64_t size;
 		HInstrDefinition* instrdef;
 
 		HInstructionCondition condition;
 
-		size_t nojumpdest;//fall through dst
-		size_t jumpdest;//if condition is true
-		size_t calldest;//if call succeeds -> creates new function symbol
+		uint64_t nojumpdest;//fall through dst
+		uint64_t jumpdest;//if condition is true
+		uint64_t calldest;//if call succeeds -> creates new function symbol
 
 		HLocalBackedList<HArgument,HINSTRUCTION_MAX_OPERANDS> operands;
 
@@ -30,13 +30,13 @@ namespace holodec {
 	};
 	struct HJumpTable {
 		struct HEntry {
-			size_t addr;//where the entry is in memory
-			size_t targetaddr;//the target of the jump
+			uint64_t addr;//where the entry is in memory
+			uint64_t targetaddr;//the target of the jump
 			HId bb_id;
 		};
 
 		HId id;
-		size_t addr;
+		uint64_t addr;
 		HList<HEntry> entries;
 
 		void print (int indent = 0) {
@@ -57,8 +57,8 @@ namespace holodec {
 		HId jumptable;
 
 		HInstructionCondition cond;
-		size_t addr;
-		size_t size;
+		uint64_t addr;
+		uint64_t size;
 
 		void print (HArchitecture* arch, int indent = 0) {
 			printIndent (indent);

@@ -6,9 +6,11 @@ namespace holodec {
 
 
 	void HSSAExpression::print (HArchitecture* arch, int indent) {
+		printIndent(indent);
 		switch(type){
 		case HSSA_EXPR_INVALID:
-			printf("Invalid ");
+			printf("---------------------------------------");
+			printf("Invalid%d ",type);
 			break;
 		case HSSA_EXPR_LABEL:
 			printf("Label ");
@@ -36,6 +38,7 @@ namespace holodec {
 			break;
 		case HSSA_EXPR_OP:
 			printf("Op ");
+			
 			break;
 		case HSSA_EXPR_COND:
 			printf("Cond ");
@@ -68,7 +71,7 @@ namespace holodec {
 			printf("Cast ");
 			break;
 		case HSSA_EXPR_STORE:
-			printf("Invalid ");
+			printf("Store ");
 			break;
 		case HSSA_EXPR_LOAD:
 			printf("Load ");

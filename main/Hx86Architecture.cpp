@@ -105,7 +105,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 32, 8, {
 		{"zmm30", H_REG_VEC, 512, 0, true},
 		{"zmm31", H_REG_VEC, 512, 0, true},
 		
-		//the mmx registers share the lower 64 bits of the st[n], but we ignore this dependency, because they should normally be used together
+		//the mmx registers share the lower 64 bits of the st[n], but we ignore this dependency, because they shouldn't normally be used together
 		{"mm0", H_REG_FLOAT, 64, 0},
 		{"mm1", H_REG_FLOAT, 64, 0},
 		{"mm2", H_REG_FLOAT, 64, 0},

@@ -63,7 +63,21 @@ namespace holodec {
 		HSSAGen (HArchitecture* arch);
 		~HSSAGen();
 
-		void insertLabel (uint64_t address, HId instructionId);
+		void clear(){
+			addressesToAnalyze.clear();
+			expressions.clear();
+			genBBs.clear();
+			setupForInstr();
+		}
+		void setupForInstr(){
+			endOfBlock = false;
+			fallthrough = false;
+			arguments.clear();
+			tmpdefs.clear();
+			addressesToAnalyze.clear();
+		}
+		HArgument replaceArg (HArgument arg);
+		void insertLabel (uint64_t address, HId instructionId = 0);
 		HId addExpression (HSSAExpression* expression);
 		HId createNewBlock ();
 		HSSAGenBB* getBlock (HId blockId);
@@ -74,10 +88,10 @@ namespace holodec {
 		HIRRepresentation* matchIr (HInstruction* instr);
 
 		HArgument parseConstExpression (HArgument argExpr, HInstruction* instr);
-
-		void insertLabel(uint64_t address);
 		
 		HArgument parseExpression (HArgument exprId);
+		
+		void print(int indent = 0);
 	};
 
 }

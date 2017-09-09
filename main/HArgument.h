@@ -111,13 +111,6 @@ namespace holodec {
 			arg.size = 0;
 			return arg;
 		}
-		static inline HArgument createExtId (uint32_t type, HId id) {
-			HArgument arg;
-			arg.type = type;
-			arg.id = id;
-			arg.size = 0;
-			return arg;
-		}
 		static inline HArgument createReg (HRegister* reg) {
 			HArgument arg;
 			arg.type = H_ARGTYPE_REG;
