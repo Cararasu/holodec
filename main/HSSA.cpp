@@ -4,9 +4,9 @@
 
 namespace holodec {
 
-
 	void HSSAExpression::print (HArchitecture* arch, int indent) {
 		printIndent(indent);
+		printf("0x%x:",instrAddr);
 		switch(type){
 		case HSSA_EXPR_INVALID:
 			printf("---------------------------------------");

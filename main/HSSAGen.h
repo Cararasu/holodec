@@ -24,58 +24,56 @@ namespace holodec {
 	struct HSSAGenBB {
 		HId id;
 		HId fallthroughId = 0;
-		
-		HArchitecture* arch;
-		
-		HList<HId> expressionIds;
-		HList<HSSAGenRegDefs> regInputs;
-		HList<HSSAGenRegDefs> regdefslist;
+		uint64_t startaddr = 0;
+		uint64_t endaddr = 0;
+
+		HList<HId> exprIds;
+
+		HSSAGenBB() {}
+		HSSAGenBB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds) :id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds){}
 
 		HId getInputSSA (HRegister* reg);
-
-		HArgument createSSARegDef (HRegister* reg);
-		HArgument getSSARegUse (HRegister* reg);
-		HArgument createSSATmpDef (HId index, uint64_t size);
-		HArgument getSSATmpDef (HId index);
-		void clearSSATmpDefs ();
-		HArgument createSSAStckDef (HId id, HId index);
-		HArgument getSSAStckDef (HId id, HId index);
 	};
 
 	struct HSSAGen {
 		HArchitecture* arch;
 
+		HInstruction* instruction;
+
 		HId activeBlockId = 0;
 		HId lastOp = 0;
 		bool endOfBlock = false;
 		bool fallthrough = true;
-		
+
 		HSSAGenBB* activeblock = nullptr;
-		
+
 		HIdList<HSSAGenBB> genBBs;
 		HIdList<HSSAExpression> expressions;
-		
+
 		HList<uint64_t> addressesToAnalyze;
-		
+
 		HList<HSSAGenDef> tmpdefs;
 		HList<HArgument> arguments;
 
 		HSSAGen (HArchitecture* arch);
 		~HSSAGen();
 
-		void clear(){
+		void clear() {
 			addressesToAnalyze.clear();
 			expressions.clear();
 			genBBs.clear();
 			setupForInstr();
 		}
-		void setupForInstr(){
+		void setupForInstr() {
 			endOfBlock = false;
 			fallthrough = false;
 			arguments.clear();
 			tmpdefs.clear();
 			addressesToAnalyze.clear();
 		}
+
+		HId splitBasicBlock (uint64_t addr);
+
 		HArgument replaceArg (HArgument arg);
 		void insertLabel (uint64_t address, HId instructionId = 0);
 		HId addExpression (HSSAExpression* expression);
@@ -84,14 +82,15 @@ namespace holodec {
 		HSSAGenBB* getActiveBlock ();
 		void setActiveBlock ();
 		void activateBlock (HId block);
-	
+
 		HIRRepresentation* matchIr (HInstruction* instr);
 
-		HArgument parseConstExpression (HArgument argExpr, HInstruction* instr);
-		
+		template<typename ARGLIST>
+		HArgument parseConstExpression (HArgument argExpr, ARGLIST* arglist);
+
 		HArgument parseExpression (HArgument exprId);
-		
-		void print(int indent = 0);
+
+		void print (int indent = 0);
 	};
 
 }

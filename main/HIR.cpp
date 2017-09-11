@@ -7,7 +7,7 @@ namespace holodec {
 	void HIRExpression::print (HArchitecture* arch, int indent, bool recursive) {
 		if (recursive) {
 			for (int i = 0; i < this->subExpressions.size(); i++) {
-				if (this->subExpressions[i].type == H_ARGTYPE_ID) {
+				if (this->subExpressions[i].type == HIR_ARGTYPE_ID) {
 					arch->getIrExpr (this->subExpressions[i].id)->print (arch);
 				}
 			}

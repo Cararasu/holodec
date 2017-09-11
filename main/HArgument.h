@@ -15,15 +15,17 @@ namespace holodec {
 #define H_ARGTYPE_REG 		0x00001
 #define H_ARGTYPE_STACK		0x00002
 #define H_ARGTYPE_MEM 		0x00004
-#define H_ARGTYPE_ID 		0x00005
 #define H_ARGTYPE_SINT		0x00006
 #define H_ARGTYPE_UINT 		0x00007
 #define H_ARGTYPE_FLOAT		0x00008
 
-#define HIR_ARGTYPE_ARG 	0x10001
-#define HIR_ARGTYPE_TMP 	0x10002
+#define HIR_ARGTYPE_ID 		0x10001
+#define HIR_ARGTYPE_INSTR 	0x10002
+#define HIR_ARGTYPE_ARG 	0x10003
+#define HIR_ARGTYPE_TMP 	0x10004
 
-#define HSSA_ARGTYPE_BLOCK	0x20001
+#define HSSA_ARGTYPE_ID 	0x20001
+#define HSSA_ARGTYPE_BLOCK	0x20002
 
 	typedef int64_t HArgSInt;
 	typedef int64_t HArgUInt;
@@ -97,9 +99,9 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline HArgument createId (HId id) {
+		static inline HArgument createId (uint32_t type,HId id) {
 			HArgument arg;
-			arg.type = H_ARGTYPE_ID;
+			arg.type = type;
 			arg.id = id;
 			arg.size = 0;
 			return arg;

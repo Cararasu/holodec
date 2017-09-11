@@ -112,6 +112,7 @@ namespace holodec {
 		};
 		HId regId = 0;
 		HArgStck stackId = {0,0};
+		uint64_t instrAddr;
 		
 		HLocalBackedList<HArgument, HSSA_LOCAL_USEID_MAX> subExpressions;
 

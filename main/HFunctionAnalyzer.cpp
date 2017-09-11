@@ -1,5 +1,6 @@
 #include "HFunctionAnalyzer.h"
 #include "HBinary.h"
+#include <assert.h>
 
 holodec::HFunctionAnalyzer::HFunctionAnalyzer (HArchitecture* arch) : binary (0), arch (arch), ssaGen (arch) {
 }
@@ -22,34 +23,30 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 		return false;
 
 	state.instructions.push_back (*instruction);
-	
-	HIRRepresentation* rep = ssaGen.matchIr(instruction);
-	if(rep){
+
+	HIRRepresentation* rep = ssaGen.matchIr (instruction);
+	if (rep) {
 		ssaGen.setupForInstr();
-		rep->print(arch);
-		printf("Args: ");
-		for(int i = 0; i < instruction->operands.size();i++){
-			ssaGen.arguments.push_back(instruction->operands[i]);
-			instruction->operands[i].print(arch);
-			printf(", ");
+		ssaGen.instruction = instruction;
+		for (int i = 0; i < instruction->operands.size(); i++) {
+			ssaGen.arguments.push_back (instruction->operands[i]);
 		}
-		printf("\n");
-		ssaGen.insertLabel(instruction->addr);
-		ssaGen.parseExpression(rep->rootExpr);
-		if(ssaGen.endOfBlock){
-			for(uint64_t addr : ssaGen.addressesToAnalyze){
-				state.addrToAnalyze.push_back(addr);
+		ssaGen.insertLabel (instruction->addr);
+		ssaGen.parseExpression (rep->rootExpr);
+		if (ssaGen.endOfBlock) {
+			for (uint64_t addr : ssaGen.addressesToAnalyze) {
+				state.addrToAnalyze.push_back (addr);
 			}
-			if(ssaGen.fallthrough){
-				state.addrToAnalyze.push_back(instruction->addr + instruction->size);
+			if (ssaGen.fallthrough) {
+				state.addrToAnalyze.push_back (instruction->addr + instruction->size);
 			}
 			return false;
 		}
-	}else{
-		printf("Could not find IR-Match for Instruction\n");
-		instruction->print(arch);
+	} else {
+		printf ("Could not find IR-Match for Instruction\n");
+		instruction->print (arch);
 	}
-	
+
 	//instruction->instrdef->irs
 	//ssaGen.parseExpression()
 
@@ -130,8 +127,10 @@ bool holodec::HFunctionAnalyzer::trySplitBasicBlock (size_t splitaddr) {
 		if (basicblock.addr == splitaddr)
 			return true;
 		if (basicblock.addr <= splitaddr && splitaddr < (basicblock.addr + basicblock.size))
-			if (splitBasicBlock (&basicblock, splitaddr))
+			if (splitBasicBlock (&basicblock, splitaddr)){
+				assert (ssaGen.splitBasicBlock (splitaddr));
 				return true;
+			}
 	}
 	return false;
 }
@@ -162,10 +161,10 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
 		size_t addr = state.addrToAnalyze.back();
 		state.addrToAnalyze.pop_back();
 
-		if (trySplitBasicBlock (addr))
+		if (trySplitBasicBlock (addr)) 
 			continue;
 
-		ssaGen.activateBlock(ssaGen.createNewBlock());
+		ssaGen.activateBlock (ssaGen.createNewBlock());
 		analyzeInsts (addr);
 
 		if (!state.instructions.empty()) {
@@ -193,7 +192,7 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
 			}
 		}
 	}
-	postFunction(&state.function);
+	postFunction (&state.function);
 	state.function.clear();
 	postAnalysis();
 }

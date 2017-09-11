@@ -52,8 +52,14 @@ namespace holodec {
 		case H_ARGTYPE_FLOAT:
 			printf ("%f", fval);
 			break;
-		case H_ARGTYPE_ID:
-			printf ("%d", id);
+		case HIR_ARGTYPE_ID:
+			printf ("IR: %d", id);
+			break;
+		case HSSA_ARGTYPE_ID:
+			printf ("SSA: %d", id);
+			break;
+		case HIR_ARGTYPE_INSTR:
+			printf ("instr[%s]", arch->getInstrDef(index)->mnemonics.cstr());
 			break;
 		case HIR_ARGTYPE_ARG:
 			printf ("arg[%d]", index);
@@ -67,6 +73,4 @@ namespace holodec {
 		}
 		printf (" S%d", size);
 	}
-
-
 }

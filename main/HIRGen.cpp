@@ -62,7 +62,7 @@ namespace holodec {
 				expression.subExpressions.add (arg);
 				expression.subExpressions.add (offset);
 				expression.subExpressions.add (size);
-				return HArgument::createId (arch->addIrExpr (expression));
+				return HArgument::createId (HIR_ARGTYPE_ID, arch->addIrExpr (expression));
 			}
 			printParseFailure ("']'");
 			return HArgument::create();
@@ -91,7 +91,6 @@ namespace holodec {
 			if (!parseIdentifier (buffer, 100))
 				return false;
 			HString s = HString::create (buffer);
-			//TODO check for nullptr
 			expression->mod.instrId = arch->getInstrDef (s)->id;
 			if (parseCharacter (']')) {
 				return true;
@@ -517,7 +516,7 @@ namespace holodec {
 				break;
 			}
 			HId id = arch->addIrExpr (expression);
-			return parseIndex (HArgument::createId (id));
+			return parseIndex (HArgument::createId (HSSA_ARGTYPE_ID, id));
 		}
 		printf ("Parsed Invalid Char '%c'", c);
 
@@ -531,7 +530,7 @@ namespace holodec {
 			index = 0;
 			printf ("%s\n", string.cstr());
 			rep->condExpr = parseIRExpression();
-			if (rep->condExpr.type == H_ARGTYPE_ID)
+			if (rep->condExpr.type == HIR_ARGTYPE_ID)
 				this->arch->getIrExpr (rep->condExpr.id)->print (this->arch);
 		}
 		string = rep->irstring;
@@ -544,7 +543,7 @@ namespace holodec {
 			printf ("Not parsed: '%s'\n", string.cstr() + index);
 		}
 
-		if (rep->rootExpr.type == H_ARGTYPE_ID)
+		if (rep->rootExpr.type == HIR_ARGTYPE_ID)
 			this->arch->getIrExpr (rep->rootExpr.id)->print (this->arch);
 	}
 }
