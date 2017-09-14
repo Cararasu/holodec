@@ -13,34 +13,12 @@ namespace holodec {
 #define H_AHG_IN (0x100)
 #define H_AHG_OUT (0x200)
 
-	enum HInstructionCondition {
-		H_INSTR_COND_TRUE = 	0x0,//always executed/jumped
-		H_INSTR_COND_E,	//equals
-		H_INSTR_COND_NE,	//non equals
-		H_INSTR_COND_G,	//greater signed
-		H_INSTR_COND_GE,	//greater equals signed
-		H_INSTR_COND_L,	//lower signed
-		H_INSTR_COND_LE,	//lower equals signed
-		H_INSTR_COND_A,	//above unsigned
-		H_INSTR_COND_AE,	//above equals unsigned
-		H_INSTR_COND_B,	//below unsigned
-		H_INSTR_COND_BE,	//below equals unsigned
-		H_INSTR_COND_C,	//carry
-		H_INSTR_COND_NC,	//non carry
-		H_INSTR_COND_O,	//overflow
-		H_INSTR_COND_NO,	//non overflow
-		H_INSTR_COND_NEG,//negative
-		H_INSTR_COND_POS,//positive
-		H_INSTR_COND_UNK,//unknown
-		H_INSTR_COND_FALSE = 0x80000,//not executed/jumped
-	};
-
 	enum HInstructionType {
 		H_INSTR_TYPE_UNKNOWN = 0,
 
 		H_INSTR_TYPE_NOP,
 		H_INSTR_TYPE_JMP,
-		H_INSTR_TYPE_RJMP,
+		H_INSTR_TYPE_CJMP,
 		H_INSTR_TYPE_CALL,
 		H_INSTR_TYPE_RCALL,
 		H_INSTR_TYPE_RET,
@@ -103,11 +81,8 @@ namespace holodec {
 		HId id;
 		HString mnemonics;
 		HLocalBackedList<HIRRepresentation,4> irs;
-		size_t type;
-		size_t type2;
-		HInstructionCondition condition;
-		size_t cycles;
-		size_t failcycles;
+		HInstructionType type;
+		HInstructionType type2;
 
 		void print (int indent = 0) {
 			printIndent (indent);

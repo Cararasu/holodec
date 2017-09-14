@@ -5,92 +5,115 @@
 namespace holodec {
 
 	void HSSAExpression::print (HArchitecture* arch, int indent) {
-		printIndent(indent);
-		printf("0x%x:",instrAddr);
-		switch(type){
+		printIndent (indent);
+		printf ("0x%x:", instrAddr);
+
+		switch (this->exprtype) {
+		case HSSA_TYPE_UNKNOWN:
+			printf ("Unknown Type");
+			break;
+		case HSSA_TYPE_INT:
+			printf ("int");
+			break;
+		case HSSA_TYPE_UINT:
+			printf ("uint");
+			break;
+		case HSSA_TYPE_FLOAT:
+			printf ("float");
+			break;
+		case HSSA_TYPE_PC:
+			printf ("pc");
+			break;
+		case HSSA_TYPE_MEM:
+			printf ("mem");
+			break;
+		}
+		printf ("%d ", this->size);
+
+		switch (type) {
 		case HSSA_EXPR_INVALID:
-			printf("---------------------------------------");
-			printf("Invalid%d ",type);
+			printf ("---------------------------------------");
+			printf ("Invalid%d ", type);
 			break;
 		case HSSA_EXPR_LABEL:
-			printf("Label ");
+			printf ("Label ");
 			break;
 		case HSSA_EXPR_INPUT:
-			printf("Input ");
+			printf ("Input ");
 			break;
 		case HSSA_EXPR_UNDEF:
-			printf("Undef ");
+			printf ("Undef ");
 			break;
 		case HSSA_EXPR_NOP:
-			printf("Nop ");
+			printf ("Nop ");
 			break;
 		case HSSA_EXPR_PHI:
-			printf("Phi ");
+			printf ("Phi ");
 			break;
 		case HSSA_EXPR_IDENT:
-			printf("Ident ");
+			printf ("Ident ");
 			break;
 		case HSSA_EXPR_JMP:
-			printf("Jmp ");
+			printf ("Jmp ");
 			break;
 		case HSSA_EXPR_CJMP:
-			printf("Cjmp ");
+			printf ("Cjmp ");
 			break;
 		case HSSA_EXPR_OP:
-			printf("Op ");
-			
+			printf ("Op ");
+
 			break;
 		case HSSA_EXPR_COND:
-			printf("Cond ");
+			printf ("Cond ");
 			break;
 		case HSSA_EXPR_CALL:
-			printf("Call ");
+			printf ("Call ");
 			break;
 		case HSSA_EXPR_RETURN:
-			printf("Return ");
+			printf ("Return ");
 			break;
 		case HSSA_EXPR_SYSCALL:
-			printf("Syscall ");
+			printf ("Syscall ");
 			break;
 		case HSSA_EXPR_TRAP:
-			printf("Trap ");
+			printf ("Trap ");
 			break;
 		case HSSA_EXPR_BUILTIN:
-			printf("Builtin ");
+			printf ("Builtin ");
 			break;
 		case HSSA_EXPR_EXTEND:
-			printf("Extend ");
+			printf ("Extend ");
 			break;
 		case HSSA_EXPR_SPLIT:
-			printf("Split ");
+			printf ("Split ");
 			break;
 		case HSSA_EXPR_APPEND:
-			printf("Append ");
+			printf ("Append ");
 			break;
 		case HSSA_EXPR_CAST:
-			printf("Cast ");
+			printf ("Cast ");
 			break;
 		case HSSA_EXPR_STORE:
-			printf("Store ");
+			printf ("Store ");
 			break;
 		case HSSA_EXPR_LOAD:
-			printf("Load ");
+			printf ("Load ");
 			break;
 		case HSSA_EXPR_FLAG:
-			printf("Flag ");
+			printf ("Flag ");
 			break;
 		}
-		if(regId){
-			printf("Reg %s ",arch->getRegister(regId)->name.cstr());
+		if (regId) {
+			printf ("Reg %s ", arch->getRegister (regId)->name.cstr());
 		}
-		if(stackId.id){
-			printf("Stack %s[%d] ",arch->getStack(stackId.id)->name.cstr(),stackId.index);
+		if (stackId.id) {
+			printf ("Stack %s[%d] ", arch->getStack (stackId.id)->name.cstr(), stackId.index);
 		}
-		printf("%d = ",id);
-		for(int i = 0; i < subExpressions.size();i++){
-			subExpressions[i].print(arch);
-			printf(", ");
+		printf ("%d = ", id);
+		for (int i = 0; i < subExpressions.size(); i++) {
+			subExpressions[i].print (arch);
+			printf (", ");
 		}
-		printf("\n");
+		printf ("\n");
 	}
 }

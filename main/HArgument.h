@@ -91,19 +91,19 @@ namespace holodec {
 		static inline HArgument createMem (HRegister* segment, HRegister* base, HRegister* index, HArgSInt scale, HArgSInt disp, uint64_t size) {
 			HArgument arg;
 			arg.type = H_ARGTYPE_MEM;
-			arg.mem.segment = segment ? segment->id : 0;
-			arg.mem.base = base ? base->id : 0;
-			arg.mem.index = index ? index->id : 0;
+			arg.mem.segment = segment->id;
+			arg.mem.base = base->id;
+			arg.mem.index = index->id;
 			arg.mem.scale = scale;
 			arg.mem.disp = disp;
 			arg.size = size;
 			return arg;
 		}
-		static inline HArgument createId (uint32_t type,HId id) {
+		static inline HArgument createId (uint32_t type,HId id,uint64_t size) {
 			HArgument arg;
 			arg.type = type;
 			arg.id = id;
-			arg.size = 0;
+			arg.size = size;
 			return arg;
 		}
 		static inline HArgument createIndex (uint32_t type, HId index) {

@@ -50,49 +50,53 @@ namespace holodec {
 		}
 
 		HRegister* getRegister (const HString string) {
-			if (!string)
-				return &invalidReg;
-			for (HRegister& reg : registers) {
-				if (string == reg.name)
-					return &reg;
-				HRegister* r = reg.getRegister (string);
-				if (r) return r;
+			if (string) {
+				for (HRegister& reg : registers) {
+					if (string == reg.name)
+						return &reg;
+					HRegister* r = reg.getRegister (string);
+					if (r) return r;
+				}
 			}
 			return &invalidReg;
 		}
 		HRegister* getRegister (const HId id) {
-			for (HRegister& reg : registers) {
-				if (id == reg.id)
-					return &reg;
-				HRegister* r = reg.getRegister (id);
-				if (r) return r;
+			if (id) {
+				for (HRegister& reg : registers) {
+					if (id == reg.id)
+						return &reg;
+					HRegister* r = reg.getRegister (id);
+					if (r) return r;
+				}
 			}
 			return &invalidReg;
 		}
 		HRegister* getParentRegister (const HId id) {
-			for (HRegister& reg : registers) {
-				if (id == reg.id)
-					return &reg;
-				HRegister* r = reg.getRegister (id);
-				if (r) return &reg;
+			if (id) {
+				for (HRegister& reg : registers) {
+					if (id == reg.id)
+						return &reg;
+					HRegister* r = reg.getRegister (id);
+					if (r) return &reg;
+				}
 			}
 			return &invalidReg;
 		}
 		HStack* getStack (const HString string) {
-			if (!string)
-				return nullptr;
-			for (HStack& stack : stacks) {
-				if (string == stack.name)
-					return &stack;
+			if (string) {
+				for (HStack& stack : stacks) {
+					if (string == stack.name)
+						return &stack;
+				}
 			}
 			return nullptr;
 		}
 		HStack* getStack (const HId id) {
-			if (!id)
-				return nullptr;
-			for (HStack& stack : stacks) {
-				if (id == stack.id)
-					return &stack;
+			if (id) {
+				for (HStack& stack : stacks) {
+					if (id == stack.id)
+						return &stack;
+				}
 			}
 			return nullptr;
 		}

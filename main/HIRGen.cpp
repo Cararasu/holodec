@@ -62,7 +62,7 @@ namespace holodec {
 				expression.subExpressions.add (arg);
 				expression.subExpressions.add (offset);
 				expression.subExpressions.add (size);
-				return HArgument::createId (HIR_ARGTYPE_ID, arch->addIrExpr (expression));
+				return HArgument::createId (HIR_ARGTYPE_ID, arch->addIrExpr (expression), expression.size);
 			}
 			printParseFailure ("']'");
 			return HArgument::create();
@@ -515,8 +515,7 @@ namespace holodec {
 			default:
 				break;
 			}
-			HId id = arch->addIrExpr (expression);
-			return parseIndex (HArgument::createId (HSSA_ARGTYPE_ID, id));
+			return parseIndex (HArgument::createId (HIR_ARGTYPE_ID, arch->addIrExpr (expression), expression.size));
 		}
 		printf ("Parsed Invalid Char '%c'", c);
 

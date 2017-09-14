@@ -18,8 +18,6 @@ namespace holodec {
 		uint64_t size;
 		HInstrDefinition* instrdef;
 
-		HInstructionCondition condition;
-
 		uint64_t nojumpdest;//fall through dst
 		uint64_t jumpdest;//if condition is true
 		uint64_t calldest;//if call succeeds -> creates new function symbol
@@ -56,7 +54,6 @@ namespace holodec {
 
 		HId jumptable;
 
-		HInstructionCondition cond;
 		uint64_t addr;
 		uint64_t size;
 

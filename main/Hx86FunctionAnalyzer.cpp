@@ -132,18 +132,22 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 			uint64_t disp = 0;
 			HRegister* baseReg;
 			if (x86.operands[i].mem.base == X86_REG_RIP || x86.operands[i].mem.base == X86_REG_EIP) {
-				x86.operands[i].mem.disp += instruction->addr;
-				baseReg = nullptr;
-			} else {
-				baseReg = arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base));
-			}
-			arg = HArgument::createMem ( //HRegister* segment, HRegister* base, HRegister* index
+				arg = HArgument::createMem ( //HRegister* segment, HRegister* base, HRegister* index
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
-						baseReg,
+						arch->getRegister (0),
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),
-						x86.operands[i].mem.disp, x86.operands[i].mem.scale,
+						x86.operands[i].mem.scale, x86.operands[i].mem.disp + instruction->addr,
 						x86.operands[i].size * 8
 					);
+			} else {
+				arg = HArgument::createMem ( //HRegister* segment, HRegister* base, HRegister* index
+						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
+						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base)),
+						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),
+						x86.operands[i].mem.scale, x86.operands[i].mem.disp,
+						x86.operands[i].size * 8
+					);
+			}
 		}
 		break;
 		case X86_OP_FP:
@@ -157,14 +161,13 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 }
 
 void holox86::Hx86FunctionAnalyzer::setJumpDest (HInstruction* instruction) {
-	if (instruction->instrdef && instruction->instrdef->type == H_INSTR_TYPE_RET && instruction->instrdef->condition == H_INSTR_COND_TRUE)
+	if (instruction->instrdef && instruction->instrdef->type == H_INSTR_TYPE_RET)
 		return;
 
 	instruction->nojumpdest = instruction->addr + instruction->size;
-	if (instruction->instrdef && (instruction->instrdef->type == H_INSTR_TYPE_JMP || instruction->instrdef->type2 == H_INSTR_TYPE_JMP)) {
-		if (instruction->condition == H_INSTR_COND_TRUE && instruction->instrdef->condition == H_INSTR_COND_TRUE) {
+	if (instruction->instrdef){
+		if(instruction->instrdef->type == H_INSTR_TYPE_JMP || instruction->instrdef->type2 == H_INSTR_TYPE_JMP)
 			instruction->nojumpdest = 0;
-		}
 		if (instruction->operands[0].type == H_ARGTYPE_UINT)
 			instruction->jumpdest = instruction->operands[0].uval;
 		else if (instruction->operands[0].type == H_ARGTYPE_SINT)

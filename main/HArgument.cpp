@@ -27,18 +27,18 @@ namespace holodec {
 				pre = true;
 			}
 			if (mem.index && mem.scale) {
-				if (pre)
-					printf (" + ");
+				if (pre) printf (" + ");
 				printf ("%s*%d", arch->getRegister (mem.index)->name.cstr(), mem.scale);
 				pre = true;
 			}
 			if (mem.disp) {
-				if (pre)
-					printf (" + ");
-				if (mem.disp >= 0)
+				if (mem.disp >= 0) {
+					if (pre) printf (" + ");
 					printf ("0x%X", mem.disp);
-				else
-					printf ("%d", mem.disp);
+				} else {
+					if (pre) printf (" - ");
+					printf ("%d", mem.disp * -1);
+				}
 			}
 			printf ("]");
 		}
@@ -53,13 +53,13 @@ namespace holodec {
 			printf ("%f", fval);
 			break;
 		case HIR_ARGTYPE_ID:
-			printf ("IR: %d", id);
+			printf ("IR");
 			break;
 		case HSSA_ARGTYPE_ID:
-			printf ("SSA: %d", id);
+			printf ("SSA");
 			break;
 		case HIR_ARGTYPE_INSTR:
-			printf ("instr[%s]", arch->getInstrDef(index)->mnemonics.cstr());
+			printf ("instr[%s]", arch->getInstrDef (index)->mnemonics.cstr());
 			break;
 		case HIR_ARGTYPE_ARG:
 			printf ("arg[%d]", index);
@@ -67,10 +67,11 @@ namespace holodec {
 		case HIR_ARGTYPE_TMP:
 			printf ("tmp[%d]", index);
 			break;
-			
+
 		default:
-			printf("Unknown Argtype %d ", type);
+			printf ("Unknown Argtype %d ", type);
 		}
-		printf (" S%d", size);
+		if (id) printf (" ID: %d", id);
+		if (size) printf (" S%d", size);
 	}
 }

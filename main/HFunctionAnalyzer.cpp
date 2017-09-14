@@ -35,7 +35,9 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 		ssaGen.parseExpression (rep->rootExpr);
 		if (ssaGen.endOfBlock) {
 			for (uint64_t addr : ssaGen.addressesToAnalyze) {
-				state.addrToAnalyze.push_back (addr);
+				if (std::find(state.addrToAnalyze.begin(), state.addrToAnalyze.end(), addr) != state.addrToAnalyze.end()){
+					state.addrToAnalyze.push_back (addr);
+				}
 			}
 			if (ssaGen.fallthrough) {
 				state.addrToAnalyze.push_back (instruction->addr + instruction->size);
@@ -47,17 +49,16 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 		instruction->print (arch);
 	}
 
-	//instruction->instrdef->irs
-	//ssaGen.parseExpression()
-
 	if (instruction->instrdef) {
 		switch (instruction->instrdef->type) {
 		case H_INSTR_TYPE_JMP:
+		case H_INSTR_TYPE_CJMP:
 		case H_INSTR_TYPE_RET:
 			return false;
 		}
 		switch (instruction->instrdef->type2) {
 		case H_INSTR_TYPE_JMP:
+		case H_INSTR_TYPE_CJMP:
 		case H_INSTR_TYPE_RET:
 			return false;
 		}
@@ -68,17 +69,13 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 
 bool holodec::HFunctionAnalyzer::postBasicBlock (HBasicBlock* basicblock) {
 	HInstruction& i = basicblock->instructions.back();
-	if (i.instrdef && (i.instrdef->type == H_INSTR_TYPE_JMP || i.instrdef->type2 == H_INSTR_TYPE_JMP)) {
-		if (i.condition != H_INSTR_COND_TRUE) {//if not default value then Instruction overwrites InstructionDefinition
-			if (i.condition != H_INSTR_COND_FALSE && i.jumpdest)
-				registerBasicBlock (i.jumpdest);
-			if (i.condition != H_INSTR_COND_TRUE && i.nojumpdest)
-				registerBasicBlock (i.nojumpdest);
-		} else {
-			if (i.instrdef->condition != H_INSTR_COND_FALSE && i.jumpdest)
-				registerBasicBlock (i.jumpdest);
-			if (i.instrdef->condition != H_INSTR_COND_TRUE && i.nojumpdest)
-				registerBasicBlock (i.nojumpdest);
+	if (i.instrdef) {
+		if(i.instrdef->type == H_INSTR_TYPE_JMP || i.instrdef->type2 == H_INSTR_TYPE_JMP){
+			registerBasicBlock (i.jumpdest);
+		}
+		else if(i.instrdef->type == H_INSTR_TYPE_CJMP || i.instrdef->type2 == H_INSTR_TYPE_CJMP){
+			registerBasicBlock (i.jumpdest);
+			registerBasicBlock (i.nojumpdest);
 		}
 	}
 	state.function.addBasicBlock (*basicblock);
@@ -104,12 +101,10 @@ bool holodec::HFunctionAnalyzer::splitBasicBlock (HBasicBlock* basicblock, size_
 				basicblock->nextblock,
 				basicblock->nextcondblock,
 				basicblock->jumptable,
-				basicblock->cond,
 				instruction.addr,
 				(basicblock->addr + basicblock->size) - instruction.addr
 			};
 			basicblock->size = basicblock->size - newbb.size;
-			basicblock->cond = H_INSTR_COND_TRUE;
 			basicblock->nextblock = 0;
 			basicblock->nextcondblock = 0;
 			basicblock->jumptable = 0;
@@ -170,7 +165,7 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
 		if (!state.instructions.empty()) {
 			HInstruction* firstI = &state.instructions.front();
 			HInstruction* lastI = &state.instructions.back();
-			HBasicBlock basicblock = {0, state.instructions, 0, 0, 0, lastI->condition, firstI->addr, (lastI->addr + lastI->size) - firstI->addr};
+			HBasicBlock basicblock = {0, state.instructions, 0, 0, 0, firstI->addr, (lastI->addr + lastI->size) - firstI->addr};
 			postBasicBlock (&basicblock);
 			state.instructions.clear();
 		}

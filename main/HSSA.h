@@ -86,8 +86,8 @@ namespace holodec {
 		HSSA_TYPE_INT,
 		HSSA_TYPE_UINT,
 		HSSA_TYPE_FLOAT,
-		HSSA_TYPE_MEM,
 		HSSA_TYPE_PC,
+		HSSA_TYPE_MEM,
 	};
 	enum HSSAFlagType {
 		HSSA_FLAG_C,
@@ -99,10 +99,10 @@ namespace holodec {
 		HSSA_FLAG_S,
 	};
 	struct HSSAExpression {
-		HId id;
-		HSSAExprType type;
-		uint64_t size;
-		HSSAType exprtype;
+		HId id = 0;
+		HSSAExprType type = HSSA_EXPR_INVALID;
+		uint64_t size = 0;
+		HSSAType exprtype = HSSA_TYPE_UNKNOWN;
 		union { //64 bit
 			HSSAFlagType flagType;
 			HId index;
