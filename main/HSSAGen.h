@@ -47,6 +47,7 @@ namespace holodec {
 
 		HSSAGenBB* activeblock = nullptr;
 
+		HList<HId> inputIds;
 		HIdList<HSSAGenBB> genBBs;
 		HIdList<HSSAExpression> expressions;
 
@@ -58,19 +59,8 @@ namespace holodec {
 		HSSAGen (HArchitecture* arch);
 		~HSSAGen();
 
-		void clear() {
-			addressesToAnalyze.clear();
-			expressions.clear();
-			genBBs.clear();
-			setupForInstr();
-		}
-		void setupForInstr() {
-			endOfBlock = false;
-			fallthrough = false;
-			arguments.clear();
-			tmpdefs.clear();
-			addressesToAnalyze.clear();
-		}
+		void clear();
+		void setupForInstr();
 
 		HId splitBasicBlock (uint64_t addr);
 

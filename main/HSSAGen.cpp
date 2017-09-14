@@ -227,6 +227,29 @@ namespace holodec {
 		activeblock->exprIds.push_back (expressions.back().id);
 		return expressions.back().id;
 	}
+	void HSSAGen::clear() {
+		addressesToAnalyze.clear();
+		expressions.clear();
+		genBBs.clear();
+		inputIds.clear();
+		for(HRegister& reg : arch->registers){
+			HSSAExpression expression;
+			expression.type = HSSA_EXPR_INPUT;
+			expression.exprtype = HSSA_TYPE_UINT;
+			expression.regId = reg.id;
+			expressions.add (expression);
+			inputIds.push_back (expressions.back().id);
+		}
+		setupForInstr();
+	}
+	void HSSAGen::setupForInstr() {
+		endOfBlock = false;
+		fallthrough = false;
+		arguments.clear();
+		tmpdefs.clear();
+		addressesToAnalyze.clear();
+	}
+
 	HId HSSAGen::splitBasicBlock (uint64_t addr) {
 		for (HSSAGenBB& bb : genBBs) {
 			if (bb.startaddr == addr)
@@ -305,11 +328,11 @@ namespace holodec {
 			if (expr->type == HIR_EXPR_UNDEF) { //undef
 				for (int i = 0; i < subexpressioncount; i++) {
 					assert (expr->subExpressions[i].type == HIR_ARGTYPE_ARG ||
-						expr->subExpressions[i].type == H_ARGTYPE_REG || 
-						expr->subExpressions[i].type == H_ARGTYPE_STACK || 
-						expr->subExpressions[i].type == HIR_ARGTYPE_TMP);
-					HArgument arg = replaceArg(expr->subExpressions[i]);
-					
+					        expr->subExpressions[i].type == H_ARGTYPE_REG ||
+					        expr->subExpressions[i].type == H_ARGTYPE_STACK ||
+					        expr->subExpressions[i].type == HIR_ARGTYPE_TMP);
+					HArgument arg = replaceArg (expr->subExpressions[i]);
+
 					HSSAExpression expression;
 					expression.type = HSSA_EXPR_UNDEF;
 					expression.exprtype = HSSA_TYPE_UINT;
@@ -319,13 +342,13 @@ namespace holodec {
 						expression.size = arg.size;
 						break;
 					case H_ARGTYPE_STACK:
-						expression.stackId = {arg.stack.id,arg.stack.index};
+						expression.stackId = {arg.stack.id, arg.stack.index};
 						expression.size = arg.size;
 						break;
 					case HIR_ARGTYPE_TMP:
-						for(auto it = tmpdefs.begin();it != tmpdefs.end();++it){
-							if((*it).id == arg.index){
-								tmpdefs.erase(it);
+						for (auto it = tmpdefs.begin(); it != tmpdefs.end(); ++it) {
+							if ( (*it).id == arg.index) {
+								tmpdefs.erase (it);
 								break;
 							}
 						}
@@ -369,7 +392,7 @@ namespace holodec {
 						return HArgument::create();
 					}
 					expression.exprtype = ssaExpr->exprtype;
-				}else{
+				} else {
 					expression.exprtype = HSSA_TYPE_UINT;
 				}
 				expression.size = srcArg.size;
@@ -502,7 +525,21 @@ namespace holodec {
 					expression.exprtype = expr->exprtype;
 					assert (subexpressioncount == 1);
 					expression.subExpressions.add (parseExpression (expr->subExpressions[0]));
-					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
+					
+					for(HRegister& reg : arch->registers){
+						expression.subExpressions.add (HArgument::createReg(&reg));
+					}
+					HArgument arg = HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
+					
+					for(HRegister& reg : arch->registers){
+						HSSAExpression regResult;
+						regResult.type = HSSA_EXPR_INPUT;
+						regResult.exprtype = HSSA_TYPE_UINT;
+						regResult.regId = reg.id;
+						regResult.subExpressions.add(arg);
+						addExpression(&regResult);
+					}
+					return arg;
 				}
 				case HIR_EXPR_RETURN: {
 					HSSAExpression expression;
@@ -567,10 +604,10 @@ namespace holodec {
 					HSSAExpression expression;
 					expression.type = HSSA_EXPR_CAST;
 					expression.exprtype = expr->exprtype;
-					assert(subexpressioncount == 2);
+					assert (subexpressioncount == 2);
 					expression.subExpressions.add (parseExpression (expr->subExpressions[0]));
 					HArgument sizeArg = replaceArg (expr->subExpressions[1]);
-					assert(sizeArg.type = H_ARGTYPE_UINT);
+					assert (sizeArg.type = H_ARGTYPE_UINT);
 					expression.size = sizeArg;
 					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
 				}
@@ -684,8 +721,8 @@ namespace holodec {
 					HSSAExpression expression;
 					expression.type = HSSA_EXPR_IDENT;
 					assert (subexpressioncount == 1);
-					HArgument arg = replaceArg(expr->subExpressions[0]);
-					assert(arg.type == H_ARGTYPE_MEM);
+					HArgument arg = replaceArg (expr->subExpressions[0]);
+					assert (arg.type == H_ARGTYPE_MEM);
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = arch->bitbase;
 					expression.subExpressions.add (arg);
@@ -781,6 +818,11 @@ namespace holodec {
 		printf ("------------------\n");
 		printIndent (indent);
 		printf ("Printing SSA-Gen Data\n");
+		printIndent (indent + 1);
+		printf ("Inputs\n");
+		for (HId id : inputIds) {
+			expressions.get (id)->print (arch, indent + 2);
+		}
 		for (HSSAGenBB& bb : genBBs) {
 			printIndent (indent + 1);
 			printf ("Block bb Id: %d 0x%x - 0x%x\n", bb.id, bb.startaddr, bb.endaddr);
