@@ -557,7 +557,20 @@ namespace holodec {
 					for (int i = 0; i < subexpressioncount; i++) {
 						expression.subExpressions.add (parseExpression (expr->subExpressions[i]));
 					}
-					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
+					for(HRegister& reg : arch->registers){
+						expression.subExpressions.add (HArgument::createReg(&reg));
+					}
+					HArgument arg = HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
+					
+					for(HRegister& reg : arch->registers){
+						HSSAExpression regResult;
+						regResult.type = HSSA_EXPR_INPUT;
+						regResult.exprtype = HSSA_TYPE_UINT;
+						regResult.regId = reg.id;
+						regResult.subExpressions.add(arg);
+						addExpression(&regResult);
+					}
+					return arg;
 				}
 				case HIR_EXPR_TRAP: {
 					HSSAExpression expression;
