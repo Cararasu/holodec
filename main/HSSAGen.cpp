@@ -714,15 +714,13 @@ namespace holodec {
 							}
 						}
 					}
-					if (i <  instrdef->irs.size()) {
-						printf ("Found No Match %s\n", instrdef->mnemonics.cstr());
-						printf ("Could not find IR-Match for Instruction %s in\n", instrdef->mnemonics.cstr());
+					if (i ==  instrdef->irs.size()) {
+						printf ("Found No Recursive Match %s in parsing instruction: ", instrdef->mnemonics.cstr());
 						instruction->print (arch);
 					}
 					this->arguments = cachedArgs;
 					this->tmpdefs = cachedTemps;
 				}
-				printf ("HIR_EXPR_REC\n");
 				return HArgument::create ();
 				case HIR_EXPR_REP: {
 					HId startBlock = activeBlockId;
