@@ -57,9 +57,9 @@ namespace holodec {
 	};
 	struct HIRExpression {
 		HId id;
-		HIRExprType type;
-		uint64_t size;
-		HSSAType exprtype;
+		HIRExprType type = HIR_EXPR_INVALID;
+		uint64_t size = 0;
+		HSSAType exprtype = HSSA_TYPE_UNKNOWN;
 		struct { //196 bit
 			union { //64 bit
 				HSSAFlagType flagType;
@@ -82,7 +82,7 @@ namespace holodec {
 	inline bool operator== (HIRExpression& lhs, HIRExpression& rhs) {
 		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
-				for (int i = 0; i < lhs.subExpressions.size(); i++) {
+				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 					if (lhs.subExpressions[i] != rhs.subExpressions[i])
 						return false;
 				}

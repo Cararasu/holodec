@@ -71,19 +71,11 @@ int main ( int argc, char** argv ) {
 	holox86::x86architecture.print();
 
 	for ( HId& id : binary->entrypoints ) {
-		func_analyzer->analyzeFunction ( binary->getSymbol ( id ) );
+		HId functionid = func_analyzer->analyzeFunction ( binary->getSymbol ( id ) );
+		
+		printf("0x%x\n",binary->getFunction(functionid));
+		binary->getFunction(functionid)->print(&holox86::x86architecture);
 	}
-
-	printf ( "%d\n", sizeof ( HInstruction ) );
-	printf ( "%d\n", sizeof ( HArgument ) );
-
-	HRegister* rax = holox86::x86architecture.getRegister ( "rax" );
-	HRegister* rbx = holox86::x86architecture.getRegister ( "rbx" );
-
-
-	HInstrDefinition* instrdef = holox86::x86architecture.getInstrDef ( "mov" );
-
-	instrdef->irs[2].print(&holox86::x86architecture);
 
 	/*HSSAGen ssaGenerator(&holox86::x86architecture);
 	for ( HFunction& function : binary->functions ) {

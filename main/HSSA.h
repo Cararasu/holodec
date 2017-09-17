@@ -127,7 +127,7 @@ namespace holodec {
 	inline bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
 		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
-				for (int i = 0; i < lhs.subExpressions.size(); i++) {
+				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 					if (lhs.subExpressions[i] != rhs.subExpressions[i])
 						return false;
 				}
@@ -139,47 +139,41 @@ namespace holodec {
 				return lhs.opType == rhs.opType;
 			case HSSA_EXPR_BUILTIN:
 				return lhs.index == rhs.index;
+			default:
+				return true;
 			}
 		}
 		return false;
 	}
 
+	struct HSSABB {
+		HId id;
+		HId fallthroughId = 0;
+		uint64_t startaddr = (uint64_t)-1;
+		uint64_t endaddr = 0;
+		HList<HId> exprIds;
+
+		HSSABB() {}
+		HSSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds) :id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds){}
+		~HSSABB() = default;
+
+
+		HId getInputSSA (HRegister* reg);
+	};
+
 
 	struct HSSARepresentation {
-		int64_t argcount;
-		HString condstring;
-		HString ssastring;
-		HList<HSSAExpression> expressions;
+		HList<HId> inputs;
+		HIdList<HSSABB> bbs;
+		HIdList<HSSAExpression> expressions;
 
-		HArgument condExpr = HArgument::create();
-		HArgument rootExpr = HArgument::create();
-		HIdGenerator gen_expr;
+		void clear(){
+			inputs.clear();
+			bbs.clear();
+			expressions.clear();
+		}
 
-		HSSARepresentation() : HSSARepresentation (-1, nullptr, nullptr) {}
-		HSSARepresentation (HString ssastring) :  HSSARepresentation (-1, nullptr, ssastring) {}
-		HSSARepresentation (int64_t argcount, HString ssastring) : HSSARepresentation (argcount, nullptr, ssastring) {}
-		HSSARepresentation (HString condstring, HString ssastring) : HSSARepresentation (-1, condstring, ssastring) {}
-		HSSARepresentation (int64_t argcount, HString condstring, HString ssastring) : argcount (argcount), condstring (condstring), ssastring (ssastring) {}
-
-		bool operator!() {
-			return !ssastring;
-		}
-		operator bool() {
-			return ssastring;
-		}
-		void print (HArchitecture* arch, int indent = 0) {
-			if (condstring) {
-				printIndent (indent);
-				printf ("Cond-String: %s\n", condstring.cstr());
-			}
-			if (ssastring) {
-				printIndent (indent);
-				printf ("IL-String: %s\n", ssastring.cstr());
-			} else {
-				printIndent (indent);
-				printf ("No IL-String----------------\n");
-			}
-		}
+		void print (HArchitecture* arch, int indent = 0);
 	};
 }
 

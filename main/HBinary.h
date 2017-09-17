@@ -16,14 +16,11 @@ namespace holodec {
 	struct HBinary {
 		HData* data;
 		
-		HIdGenerator gen_symbols;
-		HIdGenerator gen_sections;
-		HIdGenerator gen_functions;
-		
 		HList<HId> entrypoints;
-		HList<HSymbol> symbols;
-		HList<HSection> sections;
-		HList<HFunction> functions;
+		HIdList<HSymbol> symbols;
+		HIdGenerator gen_sections;
+		HIdList<HSection> sections;
+		HIdList<HFunction> functions;
 		//which architecture
 		//global string
 		size_t bitbase;
@@ -65,6 +62,8 @@ namespace holodec {
 		HSymbol* getSymbol (HId id);
 		HSymbol* findSymbol(size_t addr,const HSymbolType* type);
 		HId addFunction (HFunction function);
+		HFunction* getFunction (HString string);
+		HFunction* getFunction (HId id);
 		bool addEntrypoint (HId name);
 
 		void print (int indent = 0) {

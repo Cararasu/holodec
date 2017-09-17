@@ -11,7 +11,6 @@ namespace holodec {
 		}
 
 		for (auto& entry : instrdefs) {
-			printf("Parsing Instruction %s!\n",entry.second.mnemonics.cstr());
 			HIRParser parser (this);
 			for (int i = 0; i < entry.second.irs.size(); i++) {
 				if (entry.second.irs[i]) {

@@ -199,15 +199,15 @@ namespace holodec {
 		expression.subExpressions.add (HArgument::createVal (address, arch->bitbase));
 		addExpression (&expression);
 	}
-	HSSAGenBB* HSSAGen::getBlock (HId blockId) {
-		for (HSSAGenBB& bbs : genBBs) {
-			if (bbs.id == blockId) {
-				return &bbs;
+	HSSABB* HSSAGen::getBlock (HId blockId) {
+		for (HSSABB& bb : ssaRepresentation->bbs) {
+			if (bb.id == blockId) {
+				return &bb;
 			}
 		}
 		return nullptr;
 	}
-	HSSAGenBB* HSSAGen::getActiveBlock () {
+	HSSABB* HSSAGen::getActiveBlock () {
 		if (!activeblock)
 			activeblock = getBlock (activeBlockId);
 		return activeblock;
@@ -218,53 +218,54 @@ namespace holodec {
 	}
 	HId HSSAGen::addExpression (HSSAExpression* expression) {
 		setActiveBlock();
-		if (!activeblock->startaddr) {
+		if (activeblock->startaddr > instruction->addr)
 			activeblock->startaddr = instruction->addr;
-		}
-		activeblock->endaddr = instruction->addr + instruction->size;
+		if (activeblock->endaddr < instruction->addr)
+			activeblock->endaddr = instruction->addr;
 		expression->instrAddr = instruction->addr;
-		expressions.add (*expression);
-		activeblock->exprIds.push_back (expressions.back().id);
-		return expressions.back().id;
+		ssaRepresentation->expressions.add (*expression);
+		activeblock->exprIds.push_back (ssaRepresentation->expressions.back().id);
+		return ssaRepresentation->expressions.back().id;
 	}
-	void HSSAGen::clear() {
-		addressesToAnalyze.clear();
-		expressions.clear();
-		genBBs.clear();
-		inputIds.clear();
-		for(HRegister& reg : arch->registers){
+	void HSSAGen::reset() {
+		ssaRepresentation = nullptr;
+	}
+	void HSSAGen::setup (HSSARepresentation* ssaReg) {
+		ssaRepresentation = ssaReg;
+		for (HRegister& reg : arch->registers) {
 			HSSAExpression expression;
 			expression.type = HSSA_EXPR_INPUT;
 			expression.exprtype = HSSA_TYPE_UINT;
 			expression.regId = reg.id;
-			expressions.add (expression);
-			inputIds.push_back (expressions.back().id);
+			ssaRepresentation->expressions.add (expression);
+			ssaRepresentation->inputs.push_back (ssaRepresentation->expressions.back().id);
 		}
-		setupForInstr();
 	}
 	void HSSAGen::setupForInstr() {
 		endOfBlock = false;
-		fallthrough = false;
 		arguments.clear();
 		tmpdefs.clear();
-		addressesToAnalyze.clear();
 	}
 
 	HId HSSAGen::splitBasicBlock (uint64_t addr) {
-		for (HSSAGenBB& bb : genBBs) {
-			if (bb.startaddr == addr)
+		for (HSSABB& bb : ssaRepresentation->bbs) {
+			if (bb.startaddr == addr) {
 				return bb.id;
-			if (bb.startaddr < addr && addr < bb.endaddr) {
+			}
+			if (bb.startaddr < addr && addr <= bb.endaddr) {
 				for (auto it = bb.exprIds.begin(); it != bb.exprIds.end(); ++it) {
-					HSSAExpression* expr = expressions.get (*it);
-					if (expr->type == HSSA_EXPR_LABEL && expr->subExpressions[0].type == H_ARGTYPE_UINT && expr->subExpressions[0].uval == addr) {
-						HSSAGenBB newbb (bb.fallthroughId, addr, bb.endaddr, HList<HId> (it, bb.exprIds.end()));
-						HId retId = bb.id;
-						genBBs.add (newbb);
-						bb.endaddr = addr;
-						bb.fallthroughId = genBBs.back().id;
-						bb.exprIds.erase (it, bb.exprIds.end());
-						return retId;
+					HSSAExpression* expr = ssaRepresentation->expressions.get (*it);
+					assert (expr);
+					if (expr->type == HSSA_EXPR_LABEL && expr->subExpressions.size() > 0 && expr->subExpressions[0].type == H_ARGTYPE_UINT) {
+						if (expr->subExpressions[0].uval == addr) {
+							HSSABB createdbb (bb.fallthroughId, addr, bb.endaddr, HList<HId> (it, bb.exprIds.end()));
+							ssaRepresentation->bbs.add (createdbb);
+							HSSABB* newbb = &ssaRepresentation->bbs.back();
+							bb.endaddr = addr;
+							bb.fallthroughId = newbb->id;
+							bb.exprIds.erase (it, bb.exprIds.end());
+							return bb.fallthroughId;
+						}
 					}
 				}
 			}
@@ -273,9 +274,9 @@ namespace holodec {
 	}
 	HId HSSAGen::createNewBlock () {
 		activeblock = nullptr;
-		HSSAGenBB block;
-		genBBs.add (block);
-		return genBBs.list.back().id;
+		HSSABB block;
+		ssaRepresentation->bbs.add (block);
+		return ssaRepresentation->bbs.list.back().id;
 	}
 	void HSSAGen::activateBlock (HId block) {
 		activeblock = nullptr;
@@ -309,7 +310,7 @@ namespace holodec {
 		}
 		case HIR_ARGTYPE_TMP: {
 			assert (exprId.index);
-			for (HSSAGenDef& def : tmpdefs) {
+			for (HSSATmpDef& def : tmpdefs) {
 				if (def.id == exprId.index) {
 					return def.arg;
 				}
@@ -368,7 +369,7 @@ namespace holodec {
 				HArgument srcArg = parseExpression (expr->subExpressions[1]);
 
 				if (srcArg.type == HSSA_ARGTYPE_ID) {
-					HSSAExpression* ssaExpr = expressions.get (srcArg.id);
+					HSSAExpression* ssaExpr = ssaRepresentation->expressions.get (srcArg.id);
 					assert (ssaExpr);
 					if (dstArg.type == H_ARGTYPE_REG || dstArg.type == H_ARGTYPE_STACK) {
 						if (!ssaExpr->regId && !ssaExpr->stackId.id && ssaExpr->size == dstArg.size) {
@@ -382,13 +383,13 @@ namespace holodec {
 						}
 					} else if (dstArg.type == HIR_ARGTYPE_TMP) {
 						HArgument arg = HArgument::createId (HSSA_ARGTYPE_ID, ssaExpr->id, ssaExpr->size);
-						for (HSSAGenDef& def : tmpdefs) {
+						for (HSSATmpDef& def : tmpdefs) {
 							if (def.id == dstArg.index) {
 								def.arg = arg;
 								return HArgument::create();
 							}
 						}
-						tmpdefs.push_back ({dstArg.index, 0, arg.size, arg});
+						tmpdefs.push_back ({dstArg.index, arg});
 						return HArgument::create();
 					}
 					expression.exprtype = ssaExpr->exprtype;
@@ -401,13 +402,13 @@ namespace holodec {
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.subExpressions.add (srcArg);
 					HArgument arg = HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
-					for (HSSAGenDef& def : tmpdefs) {
+					for (HSSATmpDef& def : tmpdefs) {
 						if (def.id == dstArg.index) {
 							def.arg = arg;
 							return HArgument::create();
 						}
 					}
-					tmpdefs.push_back ({dstArg.index, 0, arg.size, arg});
+					tmpdefs.push_back ({dstArg.index, arg});
 					return HArgument::create();
 				}
 				case H_ARGTYPE_MEM:
@@ -475,7 +476,6 @@ namespace holodec {
 					activateBlock (endBlockId);
 					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
 				}
-				break;
 				case HIR_EXPR_JMP: {
 					HSSAExpression expression;
 					expression.type = HSSA_EXPR_JMP;
@@ -484,11 +484,8 @@ namespace holodec {
 
 					assert (subexpressioncount == 1);
 					expression.subExpressions.add (parseExpression (expr->subExpressions[0]));
-					if (expression.subExpressions[0].type == H_ARGTYPE_UINT)
-						addressesToAnalyze.push_back (expression.subExpressions[0].uval);
 
 					endOfBlock = true;
-					fallthrough = false;
 					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
 				}
 				case HIR_EXPR_CJMP: {
@@ -500,11 +497,8 @@ namespace holodec {
 					assert (subexpressioncount == 2);
 					expression.subExpressions.add (parseExpression (expr->subExpressions[0]));
 					expression.subExpressions.add (parseExpression (expr->subExpressions[1]));
-					if (expression.subExpressions[1].type == H_ARGTYPE_UINT)
-						addressesToAnalyze.push_back (expression.subExpressions[1].uval);
 
 					endOfBlock = true;
-					fallthrough = true;
 					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
 				}
 				case HIR_EXPR_OP: {
@@ -525,20 +519,9 @@ namespace holodec {
 					expression.exprtype = expr->exprtype;
 					assert (subexpressioncount == 1);
 					expression.subExpressions.add (parseExpression (expr->subExpressions[0]));
-					
-					for(HRegister& reg : arch->registers){
-						expression.subExpressions.add (HArgument::createReg(&reg));
-					}
+
 					HArgument arg = HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
-					
-					for(HRegister& reg : arch->registers){
-						HSSAExpression regResult;
-						regResult.type = HSSA_EXPR_INPUT;
-						regResult.exprtype = HSSA_TYPE_UINT;
-						regResult.regId = reg.id;
-						regResult.subExpressions.add(arg);
-						addExpression(&regResult);
-					}
+
 					return arg;
 				}
 				case HIR_EXPR_RETURN: {
@@ -548,7 +531,6 @@ namespace holodec {
 					expression.size = arch->bitbase;
 					assert (!subexpressioncount);
 					endOfBlock = true;
-					fallthrough = false;
 					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
 				}
 				case HIR_EXPR_SYSCALL: {
@@ -557,19 +539,8 @@ namespace holodec {
 					for (int i = 0; i < subexpressioncount; i++) {
 						expression.subExpressions.add (parseExpression (expr->subExpressions[i]));
 					}
-					for(HRegister& reg : arch->registers){
-						expression.subExpressions.add (HArgument::createReg(&reg));
-					}
 					HArgument arg = HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
-					
-					for(HRegister& reg : arch->registers){
-						HSSAExpression regResult;
-						regResult.type = HSSA_EXPR_INPUT;
-						regResult.exprtype = HSSA_TYPE_UINT;
-						regResult.regId = reg.id;
-						regResult.subExpressions.add(arg);
-						addExpression(&regResult);
-					}
+
 					return arg;
 				}
 				case HIR_EXPR_TRAP: {
@@ -746,7 +717,7 @@ namespace holodec {
 					for (int i = 0; i < subexpressioncount; i++) {
 						args.push_back (parseExpression (expr->subExpressions[i]));
 					}
-					HList<HSSAGenDef> cachedTemps = this->tmpdefs;
+					HList<HSSATmpDef> cachedTemps = this->tmpdefs;
 					HList<HArgument> cachedArgs = this->arguments;
 
 					tmpdefs.clear();
@@ -815,7 +786,7 @@ namespace holodec {
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 
-					expression.subExpressions.add (HArgument::createId (HSSA_ARGTYPE_ID, lastOp, expressions.get (lastOp)->size));
+					expression.subExpressions.add (HArgument::createId (HSSA_ARGTYPE_ID, lastOp, ssaRepresentation->expressions.get (lastOp)->size));
 					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
 				}
 				}
@@ -827,24 +798,6 @@ namespace holodec {
 	}
 
 	void HSSAGen::print (int indent) {
-		printIndent (indent);
-		printf ("------------------\n");
-		printIndent (indent);
-		printf ("Printing SSA-Gen Data\n");
-		printIndent (indent + 1);
-		printf ("Inputs\n");
-		for (HId id : inputIds) {
-			expressions.get (id)->print (arch, indent + 2);
-		}
-		for (HSSAGenBB& bb : genBBs) {
-			printIndent (indent + 1);
-			printf ("Block bb Id: %d 0x%x - 0x%x\n", bb.id, bb.startaddr, bb.endaddr);
-			printIndent (indent + 1);
-			printf ("Fallthrough: %d\n", bb.fallthroughId);
-			for (HId id : bb.exprIds) {
-				expressions.get (id)->print (arch, indent + 2);
-			}
-		}
-
+		ssaRepresentation->print (arch, indent);
 	}
 }

@@ -1,0 +1,51 @@
+hmm
+
+add registers to return statement
+
+how to
+labeling and phi node insertion???
+
+
+method 1
+reduce each register to its base register
+then generate phi nodes for these parent registers
+
+problem:
+
+al = 1
+ah = 2
+ax = append(ah,al)
+ax = phi(ax)
+al = split(ax,0,8)
+ah = split(ax,8,8)
+xx = op(al,ah)
+
+
+insertion of phi nodes
+first reduce everything to parent register
+with splits and extends
+then use 
+
+
+method 2
+we assume that registers are used as they are defed
+example:
+
+al = 1
+ah = 2
+--- bb boundary ---
+al = phi(al)
+ah = phi(ah)
+xx = op(al,ah)
+
+and not like this
+
+al = 1
+ah = 2
+--- bb boundary ---
+al = phi(al)
+ah = phi(ah)
+ax = append(ah,al)
+xx = op(ax)
+
+

@@ -66,6 +66,8 @@
       <File Name="HArchitecture.h"/>
       <File Name="HFunctionAnalyzer.cpp"/>
       <File Name="HArchitecture.cpp"/>
+      <File Name="HSSATransformer.h"/>
+      <File Name="HSSATransformer.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="IMPL">
       <File Name="Hx86FunctionAnalyzer.h"/>

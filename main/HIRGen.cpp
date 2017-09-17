@@ -521,28 +521,21 @@ namespace holodec {
 
 	}
 
-
+	
 	void HIRParser::parse (HIRRepresentation* rep) {
 		this->rep = rep;
 		if (rep->condstring) {
 			string = rep->condstring;
 			index = 0;
-			printf ("%s\n", string.cstr());
 			rep->condExpr = parseIRExpression();
-			if (rep->condExpr.type == HIR_ARGTYPE_ID)
-				this->arch->getIrExpr (rep->condExpr.id)->print (this->arch);
 		}
 		string = rep->irstring;
 		index = 0;
-		printf ("%s\n", string.cstr());
 		rep->rootExpr = parseIRExpression();
 		skipWhitespaces();
 		if (peek() != '\0') {
 			printf ("Not parsed the whole IR-String %s\n", string.cstr());
 			printf ("Not parsed: '%s'\n", string.cstr() + index);
 		}
-
-		if (rep->rootExpr.type == HIR_ARGTYPE_ID)
-			this->arch->getIrExpr (rep->rootExpr.id)->print (this->arch);
 	}
 }

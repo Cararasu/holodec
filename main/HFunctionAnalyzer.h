@@ -9,7 +9,7 @@
 
 namespace holodec {
 
-#define HFUNCANAL_BUFFERSIZE (128)
+#define H_FUNC_ANAL_BUFFERSIZE (128)
 	class HArchitecture;
 	class HBinary;
 
@@ -17,21 +17,21 @@ namespace holodec {
 		HArchitecture* arch;
 		HBinary* binary;
 		HSSAGen ssaGen;
+		
+		bool analyzeWithIR = true;
 
 		struct {
-			uint8_t dataBuffer[HFUNCANAL_BUFFERSIZE];
+			uint8_t dataBuffer[H_FUNC_ANAL_BUFFERSIZE];
 			size_t bufferSize;
 			size_t maxInstr;
-			HList<size_t> addrToAnalyze;
-			HFunction function;
 			HList<HInstruction> instructions;
+			HFunction* function;
 
 			void reset() {
 				bufferSize = 0;
 				maxInstr = 0;
-				addrToAnalyze.clear();
-				function.clear();
 				instructions.clear();
+				function = nullptr;
 			}
 		} state;
 
@@ -46,20 +46,21 @@ namespace holodec {
 		virtual HList<HFunction*> analyzeFunctions (HList<HSymbol*>* functionsymbols);
 
 
-		void prepareBuffer (size_t addr);
+		void prepareBuffer (uint64_t addr);
 		bool postInstruction (HInstruction* instruction);
 		bool postBasicBlock (HBasicBlock* basicblock);
 		bool changedBasicBlock (HBasicBlock* basicblock);
 		//is triggered at the end of basic blocks
-		bool registerBasicBlock (size_t addr);
-		bool splitBasicBlock (HBasicBlock* basicblock, size_t splitaddr);
-		bool trySplitBasicBlock (size_t splitaddr);
-		bool postFunction (HFunction* function);
+		bool registerBasicBlock (uint64_t addr);
+		bool splitBasicBlock (HBasicBlock* basicblock, uint64_t splitaddr);
+		bool trySplitBasicBlock (uint64_t splitaddr);
+		void addAddressToAnalyze(uint64_t addr);
 
 		virtual void preAnalysis();
 
-		virtual void analyzeFunction (HSymbol* functionsymbol);
-		virtual void analyzeInsts (size_t addr) = 0;
+		virtual HId analyzeFunction (HSymbol* functionsymbol);
+		virtual void analyzeFunction (HFunction* function);
+		virtual void analyzeInsts (uint64_t addr) = 0;
 
 		virtual void postAnalysis();
 	};

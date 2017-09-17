@@ -18,8 +18,7 @@ holodec::HId holodec::HBinary::addSection (HSection section) {
 		HId ret = sectionit.addSection (section);
 		if (ret) return ret;
 	}
-	sections.push_back (section);
-	return section.id;
+	return sections.add (section);
 }
 holodec::HSection* holodec::HBinary::getSection (HString name) {
 	for (HSection & section : sections) {
@@ -36,10 +35,7 @@ holodec::HSection* holodec::HBinary::getSection (HId id) {
 	return nullptr;
 }
 holodec::HId holodec::HBinary::addSymbol (HSymbol symbol) {
-	symbol.id = gen_symbols.next();
-	printf("Add Symbol %d\n",symbol.id);
-	symbols.push_back (symbol);
-	return symbol.id;
+	return symbols.add (symbol);
 }
 holodec::HSymbol* holodec::HBinary::getSymbol (HString name) {
 	for (HSymbol & symbol : symbols) {
@@ -63,9 +59,18 @@ holodec::HSymbol* holodec::HBinary::findSymbol (size_t addr,const HSymbolType* t
 	return nullptr;
 }
 holodec::HId holodec::HBinary::addFunction (HFunction function) {
-	function.id = gen_functions.next();
-	functions.push_back (function);
-	return function.id;
+	return functions.add (function);
+}
+holodec::HFunction* holodec::HBinary::getFunction (HString name){
+	for (HFunction & function : functions) {
+		HSymbol* sym = getSymbol(function.symbolref);
+		if(sym && sym->name == name)
+			return &function;
+	}
+	return nullptr;
+}
+holodec::HFunction* holodec::HBinary::getFunction (HId id){
+	return functions.get(id);
 }
 bool holodec::HBinary::addEntrypoint (HId id) {
 	entrypoints.push_back (id);

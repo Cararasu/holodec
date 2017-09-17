@@ -62,6 +62,8 @@ namespace holodec {
 			return list.back();
 		}
 		T* get (HId id) {
+			if(!id)
+				return nullptr;
 			size_t count = list.size();
 			if (count >= id) {//optimization for access
 				T& val = list[id - 1];

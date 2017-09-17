@@ -8,89 +8,64 @@ holodec::HFunctionAnalyzer::HFunctionAnalyzer (HArchitecture* arch) : binary (0)
 holodec::HFunctionAnalyzer::~HFunctionAnalyzer() {
 }
 
-void holodec::HFunctionAnalyzer::prepareBuffer (size_t addr) {
+void holodec::HFunctionAnalyzer::prepareBuffer (uint64_t addr) {
 	uint8_t* ptr = binary->getVDataPtr (addr);
-	size_t size = binary->getVDataSize (addr);
+	uint64_t size = binary->getVDataSize (addr);
 	if (ptr) {
-		state.bufferSize = std::min (size, (size_t) HFUNCANAL_BUFFERSIZE);
+		state.bufferSize = std::min (size, (uint64_t) H_FUNC_ANAL_BUFFERSIZE);
 		memcpy (state.dataBuffer, ptr, state.bufferSize);
 	} else {
 		state.bufferSize = 0;
 	}
 }
 bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
-	if (state.function.findBasicBlockDeep (instruction->addr + instruction->size))
-		return false;
+	/*if (state.function->findBasicBlockDeep (instruction->addr + instruction->size))
+		return false;*/
 
 	state.instructions.push_back (*instruction);
-
-	HIRRepresentation* rep = ssaGen.matchIr (instruction);
-	if (rep) {
-		ssaGen.setupForInstr();
-		ssaGen.instruction = instruction;
-		for (int i = 0; i < instruction->operands.size(); i++) {
-			ssaGen.arguments.push_back (instruction->operands[i]);
-		}
-		ssaGen.insertLabel (instruction->addr);
-		ssaGen.parseExpression (rep->rootExpr);
-		if (ssaGen.endOfBlock) {
-			for (uint64_t addr : ssaGen.addressesToAnalyze) {
-				if (std::find(state.addrToAnalyze.begin(), state.addrToAnalyze.end(), addr) != state.addrToAnalyze.end()){
-					state.addrToAnalyze.push_back (addr);
-				}
+	if (analyzeWithIR) {
+		HIRRepresentation* rep = ssaGen.matchIr (instruction);
+		if (rep) {
+			ssaGen.setupForInstr();
+			ssaGen.instruction = instruction;
+			for (int i = 0; i < instruction->operands.size(); i++) {
+				ssaGen.arguments.push_back (instruction->operands[i]);
 			}
-			if (ssaGen.fallthrough) {
-				state.addrToAnalyze.push_back (instruction->addr + instruction->size);
+			ssaGen.insertLabel (instruction->addr);
+			ssaGen.parseExpression (rep->rootExpr);
+			if (ssaGen.endOfBlock) {
+				if (instruction->nojumpdest)
+					addAddressToAnalyze (instruction->nojumpdest);
+				if (instruction->jumpdest)
+					addAddressToAnalyze (instruction->jumpdest);
+				return false;
 			}
-			return false;
+			return true;
+		} else {
+			printf ("Could not find IR-Match for Instruction\n");
+			instruction->print (arch);
 		}
-	} else {
-		printf ("Could not find IR-Match for Instruction\n");
-		instruction->print (arch);
 	}
 
-	if (instruction->instrdef) {
-		switch (instruction->instrdef->type) {
-		case H_INSTR_TYPE_JMP:
-		case H_INSTR_TYPE_CJMP:
-		case H_INSTR_TYPE_RET:
-			return false;
-		}
-		switch (instruction->instrdef->type2) {
-		case H_INSTR_TYPE_JMP:
-		case H_INSTR_TYPE_CJMP:
-		case H_INSTR_TYPE_RET:
-			return false;
-		}
-
+	if (instruction->instrdef->type == H_INSTR_TYPE_JMP || instruction->instrdef->type2 == H_INSTR_TYPE_JMP) {
+		addAddressToAnalyze (instruction->jumpdest);
+		return false;
+	} else if (instruction->instrdef->type == H_INSTR_TYPE_CJMP || instruction->instrdef->type2 == H_INSTR_TYPE_CJMP) {
+		addAddressToAnalyze (instruction->jumpdest);
+		addAddressToAnalyze (instruction->nojumpdest);
+		return false;
 	}
 	return true;
 }
 
 bool holodec::HFunctionAnalyzer::postBasicBlock (HBasicBlock* basicblock) {
-	HInstruction& i = basicblock->instructions.back();
-	if (i.instrdef) {
-		if(i.instrdef->type == H_INSTR_TYPE_JMP || i.instrdef->type2 == H_INSTR_TYPE_JMP){
-			registerBasicBlock (i.jumpdest);
-		}
-		else if(i.instrdef->type == H_INSTR_TYPE_CJMP || i.instrdef->type2 == H_INSTR_TYPE_CJMP){
-			registerBasicBlock (i.jumpdest);
-			registerBasicBlock (i.nojumpdest);
-		}
-	}
-	state.function.addBasicBlock (*basicblock);
-}
-
-bool holodec::HFunctionAnalyzer::registerBasicBlock (size_t addr) {
-	//TODO jump into current generated basic block
-	state.addrToAnalyze.push_back (addr);
-	return true;
+	state.function->addBasicBlock (*basicblock);
 }
 
 bool holodec::HFunctionAnalyzer::changedBasicBlock (HBasicBlock* basicblock) {
 
 }
-bool holodec::HFunctionAnalyzer::splitBasicBlock (HBasicBlock* basicblock, size_t splitaddr) {
+bool holodec::HFunctionAnalyzer::splitBasicBlock (HBasicBlock* basicblock, uint64_t splitaddr) {
 	for (auto instrit = basicblock->instructions.begin(); instrit != basicblock->instructions.end(); instrit++) {
 		HInstruction& instruction = *instrit;
 		if (splitaddr == instruction.addr) {
@@ -110,31 +85,31 @@ bool holodec::HFunctionAnalyzer::splitBasicBlock (HBasicBlock* basicblock, size_
 			basicblock->jumptable = 0;
 			basicblock->instructions.erase (it, basicblock->instructions.end());
 			changedBasicBlock (basicblock);
-			changedBasicBlock (&newbb);
-			state.function.basicblocks.push_back (newbb);
+			this->postBasicBlock(&newbb);
+
+			if (analyzeWithIR)
+				assert (ssaGen.splitBasicBlock (splitaddr));
 			return true;
 		}
 	}
 	return false;
 }
-bool holodec::HFunctionAnalyzer::trySplitBasicBlock (size_t splitaddr) {
-	for (HBasicBlock& basicblock : state.function.basicblocks) {
+bool holodec::HFunctionAnalyzer::trySplitBasicBlock (uint64_t splitaddr) {
+	for (HBasicBlock& basicblock : state.function->basicblocks) {
 		if (basicblock.addr == splitaddr)
 			return true;
 		if (basicblock.addr <= splitaddr && splitaddr < (basicblock.addr + basicblock.size))
-			if (splitBasicBlock (&basicblock, splitaddr)){
-				assert (ssaGen.splitBasicBlock (splitaddr));
+			if (splitBasicBlock (&basicblock, splitaddr)) {
 				return true;
 			}
 	}
 	return false;
 }
-
-bool holodec::HFunctionAnalyzer::postFunction (HFunction* function) {
-	printf ("Post Function\n");
-	ssaGen.print();
-	ssaGen.clear();
-	binary->addFunction (*function);
+void holodec::HFunctionAnalyzer::addAddressToAnalyze (uint64_t addr) {
+	if (std::find (state.function->addrToAnalyze.begin(), state.function->addrToAnalyze.end(), addr) == state.function->addrToAnalyze.end()) {
+		printf ("Add Address for Analyze 0x%x\n", addr);
+		state.function->addrToAnalyze.push_back (addr);
+	}
 }
 
 void holodec::HFunctionAnalyzer::preAnalysis() {
@@ -144,19 +119,30 @@ void holodec::HFunctionAnalyzer::postAnalysis() {
 	printf ("Post Analysis\n");
 }
 
-void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
-
+holodec::HId holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
+	HFunction newfunction;
+	HId id = binary->addFunction (newfunction);
+	HFunction* function = binary->getFunction (id);
+	function->symbolref = functionsymbol->id;
+	function->addrToAnalyze.push_back (functionsymbol->vaddr);
+	analyzeFunction (function);
+	return id;
+}
+void holodec::HFunctionAnalyzer::analyzeFunction (HFunction* function) {
 	state.reset();
+	state.function = function;
+	HSymbol* functionsymbol = binary->getSymbol (function->symbolref);
+	printf ("Analyzing Function %s\n", functionsymbol->name.cstr());
+	printf ("At Address 0x%x\n", functionsymbol->vaddr);
 
 	preAnalysis();
-	printf ("Analyzing Function %s\n", functionsymbol->name.cstr());
 
-	state.addrToAnalyze.push_back (functionsymbol->vaddr);
-	while (!state.addrToAnalyze.empty()) {
-		size_t addr = state.addrToAnalyze.back();
-		state.addrToAnalyze.pop_back();
+	ssaGen.setup (&state.function->ssaRep);
+	while (!state.function->addrToAnalyze.empty()) {
+		uint64_t addr = state.function->addrToAnalyze.back();
+		state.function->addrToAnalyze.pop_back();
 
-		if (trySplitBasicBlock (addr)) 
+		if (trySplitBasicBlock (addr))
 			continue;
 
 		ssaGen.activateBlock (ssaGen.createNewBlock());
@@ -170,25 +156,17 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbol) {
 			state.instructions.clear();
 		}
 	}
-	for (HBasicBlock& bb : state.function.basicblocks) {
-		HInstruction& i = bb.instructions.back();
-		if (i.jumpdest) {
-			HBasicBlock* foundbb = state.function.findBasicBlock (i.jumpdest);
-			if (foundbb) {
-				bb.nextcondblock = foundbb->id;
-				printf ("Jump BB 0x%X to 0x%X true\n", bb.addr, foundbb->addr);
-			}
-		}
-		if (i.nojumpdest) {
-			HBasicBlock* foundbb = state.function.findBasicBlock (i.nojumpdest);
-			if (foundbb) {
-				bb.nextblock = foundbb->id;
-				printf ("Jump BB 0x%X to 0x%X false\n", bb.addr, foundbb->addr);
+	for (HSSABB& bb : state.function->ssaRep.bbs) {
+		for (HId& id : bb.exprIds) {
+			HSSAExpression* expr = state.function->ssaRep.expressions.get (id);
+			if (expr->type == HSSA_EXPR_CALL) {
+				assert (expr->subExpressions.size());
+				if (expr->subExpressions[0].type == H_ARGTYPE_UINT) {
+					printf ("Found Function 0x%x\n", expr->subExpressions[0].uval);
+				}
 			}
 		}
 	}
-	postFunction (&state.function);
-	state.function.clear();
 	postAnalysis();
 }
 

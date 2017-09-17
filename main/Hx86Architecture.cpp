@@ -34,14 +34,14 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{"r14", 64, 0, true, { {"r14d", 32, 0, true, { {"r14w", 16, 0, {{"r14b", 8, 0}}}}}}},
 		{"r15", 64, 0, true, { {"r15d", 32, 0, true, { {"r15w", 16, 0, {{"r15b", 8, 0}}}}}}},
 
-		{"rbp", H_REG_STACKPTR, 64, 0, true, { {"ebp", 32, 0, true, { {"bp", 16, 0}}}}},
+		{"rbp", 64, 0, true, { {"ebp", 32, 0, true, { {"bp", 16, 0}}}}},
 		{"rsi", 64, 0, true, { {"esi", 32, 0, true, { {"si", 16, 0}}}}},
 		{"rdi", 64, 0, true, { {"edi", 32, 0, true, { {"di", 16, 0}}}}},
 		{"rsp", H_REG_STACKPTR, 64, 0, true, { {"esp", 32, 0, true, { {"sp", 16, 0}}}}},
 		{"rip", H_REG_INSTRPTR, H_REG_TRACK_VOLATILE, 64, 0, true, { {"eip", 32, 0, true, { {"ip", 16, 0}}}}},
 
 		{
-			"rflags", H_REG_FLAGS, 64, 0,
+			"rflags", H_REG_FLAGS, H_REG_TRACK_VOLATILE, 64, 0,
 			{ {
 					"eflags", 32, 0,
 					{ {
@@ -313,9 +313,9 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_JP, "jp", {{1, "#cjmp($pf,#arg[1])"}}, H_INSTR_TYPE_CJMP},
 		{X86_INS_JNP, "jnp", {{1, "#cjmp(#not($pf),#arg[1])"}}, H_INSTR_TYPE_CJMP},
 
-		{X86_INS_JCXZ, "jcxz", {{1, "#cjmp(#not($cx),#arg[1]))"}}, H_INSTR_TYPE_CJMP, H_INSTR_TYPE_CMP},
-		{X86_INS_JECXZ, "jecxz", {{1, "#cjmp(#not($ecx),#arg[1]))"}}, H_INSTR_TYPE_CJMP, H_INSTR_TYPE_CMP},
-		{X86_INS_JRCXZ, "jrcxz", {{1, "#cjmp(#not($rcx),#arg[1]))"}}, H_INSTR_TYPE_CJMP, H_INSTR_TYPE_CMP},
+		{X86_INS_JCXZ, "jcxz", {{1, "#cjmp(#not($cx),#arg[1])"}}, H_INSTR_TYPE_CJMP, H_INSTR_TYPE_CMP},
+		{X86_INS_JECXZ, "jecxz", {{1, "#cjmp(#not($ecx),#arg[1])"}}, H_INSTR_TYPE_CJMP, H_INSTR_TYPE_CMP},
+		{X86_INS_JRCXZ, "jrcxz", {{1, "#cjmp(#not($rcx),#arg[1])"}}, H_INSTR_TYPE_CJMP, H_INSTR_TYPE_CMP},
 
 
 		{X86_INS_XCHG, "xchg", {{2, "#seq(=(#t[1],#arg[1]),=(#arg[1],#arg[2]),=(#arg[2],#t[1]))"}}, H_INSTR_TYPE_XCHG},
@@ -419,7 +419,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 				{1, "==(#bsize(#arg[1]),32)", "#seq(=(#t[1],#app($edx,$eax)),=($eax,#sdiv(#t[1],#arg[1])),=($edx,#smod(#t[1],#arg[1])),#undef($cf,$of,$sf,$zf,$af,$pf))"},
 			}, H_INSTR_TYPE_DIV
 		},
-		{X86_INS_NOP, "nop", {{0, "#nop"}}},
+		{X86_INS_NOP, "nop", {{0, "#nop"},{1, "#nop"}}},
 
 		{X86_INS_INC, "inc", {{1, "#seq(=(#arg[1],+(#arg[1],1)),=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a))"}}, H_INSTR_TYPE_ADD},
 		{X86_INS_DEC, "dec", {{1, "#seq(=(#arg[1],-(#arg[1],1)),=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a))"}}, H_INSTR_TYPE_SUB},

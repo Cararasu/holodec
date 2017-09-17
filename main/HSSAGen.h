@@ -7,59 +7,31 @@ namespace holodec {
 
 	class HArchitecture;
 
-	struct HSSAGenDef {
+	struct HSSATmpDef {
 		HId id;
-		uint64_t offset;
-		uint64_t size;
 		HArgument arg;
 	};
-	inline bool operator< (HSSAGenDef& lhs, HSSAGenDef& rhs) {
-		return lhs.offset < rhs.offset;
-	}
-	struct HSSAGenRegDefs {
-		HId id;
-		bool cleared;
-		HList<HSSAGenDef> defs;
-	};
-	struct HSSAGenBB {
-		HId id;
-		HId fallthroughId = 0;
-		uint64_t startaddr = 0;
-		uint64_t endaddr = 0;
-
-		HList<HId> exprIds;
-
-		HSSAGenBB() {}
-		HSSAGenBB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds) :id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds){}
-
-		HId getInputSSA (HRegister* reg);
-	};
-
 	struct HSSAGen {
 		HArchitecture* arch;
 
+		HList<HArgument> arguments;
 		HInstruction* instruction;
 
 		HId activeBlockId = 0;
 		HId lastOp = 0;
 		bool endOfBlock = false;
-		bool fallthrough = true;
 
-		HSSAGenBB* activeblock = nullptr;
+		HSSABB* activeblock = nullptr;
 
-		HList<HId> inputIds;
-		HIdList<HSSAGenBB> genBBs;
-		HIdList<HSSAExpression> expressions;
+		HSSARepresentation* ssaRepresentation = nullptr;
 
-		HList<uint64_t> addressesToAnalyze;
-
-		HList<HSSAGenDef> tmpdefs;
-		HList<HArgument> arguments;
+		HList<HSSATmpDef> tmpdefs;
 
 		HSSAGen (HArchitecture* arch);
 		~HSSAGen();
 
-		void clear();
+		void reset();
+		void setup(HSSARepresentation* ssaReg);
 		void setupForInstr();
 
 		HId splitBasicBlock (uint64_t addr);
@@ -68,8 +40,8 @@ namespace holodec {
 		void insertLabel (uint64_t address, HId instructionId = 0);
 		HId addExpression (HSSAExpression* expression);
 		HId createNewBlock ();
-		HSSAGenBB* getBlock (HId blockId);
-		HSSAGenBB* getActiveBlock ();
+		HSSABB* getBlock (HId blockId);
+		HSSABB* getActiveBlock ();
 		void setActiveBlock ();
 		void activateBlock (HId block);
 

@@ -61,7 +61,86 @@ namespace holodec {
 			break;
 		case HSSA_EXPR_OP:
 			printf ("Op ");
-
+			switch (opType) {
+			case HSSA_OP_INVALID:
+				printf("Invalid ");
+				break;
+			case HSSA_OP_ADD:
+				printf("+ ");
+				break;
+			case HSSA_OP_SUB:
+				printf("- ");
+				break;
+			case HSSA_OP_MUL:
+				printf("* ");
+				break;
+			case HSSA_OP_DIV:
+				printf("/ ");
+				break;
+			case HSSA_OP_MOD:
+				printf("% ");
+				break;
+			case HSSA_OP_AND:
+				printf("&& ");
+				break;
+			case HSSA_OP_OR:
+				printf("|| ");
+				break;
+			case HSSA_OP_XOR:
+				printf("xor ");
+				break;
+			case HSSA_OP_NOT:
+				printf("! ");
+				break;
+			case HSSA_OP_E:
+				printf("== ");
+				break;
+			case HSSA_OP_NE:
+				printf("!= ");
+				break;
+			case HSSA_OP_L:
+				printf("< ");
+				break;
+			case HSSA_OP_LE:
+				printf("<= ");
+				break;
+			case HSSA_OP_G:
+				printf("> ");
+				break;
+			case HSSA_OP_GE:
+				printf(">= ");
+				break;
+			case HSSA_OP_BAND:
+				printf("& ");
+				break;
+			case HSSA_OP_BOR:
+				printf("| ");
+				break;
+			case HSSA_OP_BXOR:
+				printf("^ ");
+				break;
+			case HSSA_OP_BNOT:
+				printf("~ ");
+				break;
+			case HSSA_OP_SHR:
+				printf(">> ");
+				break;
+			case HSSA_OP_SHL:
+				printf("<< ");
+				break;
+			case HSSA_OP_SAR:
+				printf("pow ");
+				break;
+			case HSSA_OP_SAL:
+				printf("sqrt2 ");
+				break;
+			case HSSA_OP_ROR:
+				printf(">>> ");
+				break;
+			case HSSA_OP_ROL:
+				printf("<<< ");
+				break;
+			}
 			break;
 		case HSSA_EXPR_COND:
 			printf ("Cond ");
@@ -115,5 +194,26 @@ namespace holodec {
 			printf (", ");
 		}
 		printf ("\n");
+	}
+	void HSSARepresentation::print (HArchitecture* arch, int indent) {
+		printIndent (indent);
+		printf ("------------------\n");
+		printIndent (indent);
+		printf ("Printing SSA-Gen Data\n");
+		printIndent (indent + 1);
+		printf ("Inputs\n");
+		for (HId id : inputs) {
+			expressions.get (id)->print (arch, indent + 2);
+		}
+		for (HSSABB& bb : bbs) {
+			printIndent (indent + 1);
+			printf ("Block bb Id: %d 0x%x - 0x%x\n", bb.id, bb.startaddr, bb.endaddr);
+			printIndent (indent + 1);
+			printf ("Fallthrough: %d\n", bb.fallthroughId);
+			for (HId id : bb.exprIds) {
+				expressions.get (id)->print (arch, indent + 2);
+			}
+		}
+
 	}
 }

@@ -166,11 +166,18 @@ void holox86::Hx86FunctionAnalyzer::setJumpDest (HInstruction* instruction) {
 
 	instruction->nojumpdest = instruction->addr + instruction->size;
 	if (instruction->instrdef){
-		if(instruction->instrdef->type == H_INSTR_TYPE_JMP || instruction->instrdef->type2 == H_INSTR_TYPE_JMP)
+		switch(instruction->instrdef->type){
+		case H_INSTR_TYPE_JMP:
 			instruction->nojumpdest = 0;
-		if (instruction->operands[0].type == H_ARGTYPE_UINT)
-			instruction->jumpdest = instruction->operands[0].uval;
-		else if (instruction->operands[0].type == H_ARGTYPE_SINT)
-			instruction->jumpdest = instruction->addr + instruction->operands[0].sval;
+		case H_INSTR_TYPE_CJMP:
+			if (instruction->operands[0].type == H_ARGTYPE_UINT)
+				instruction->jumpdest = instruction->operands[0].uval;
+			else if (instruction->operands[0].type == H_ARGTYPE_SINT)
+				instruction->jumpdest = instruction->addr + instruction->operands[0].sval;
+			break;
+		default:
+			instruction->jumpdest = 0;
+			break;
+		}
 	}
 }
