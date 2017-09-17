@@ -18,9 +18,9 @@ namespace holodec {
 		uint64_t size;
 		HInstrDefinition* instrdef;
 
-		uint64_t nojumpdest;//fall through dst
-		uint64_t jumpdest;//if condition is true
-		uint64_t calldest;//if call succeeds -> creates new function symbol
+		uint64_t nojumpdest = 0;//fall through dst
+		uint64_t jumpdest = 0;//if condition is true
+		uint64_t calldest = 0;//if call succeeds -> creates new function symbol
 
 		HLocalBackedList<HArgument,HINSTRUCTION_MAX_OPERANDS> operands;
 
@@ -68,12 +68,14 @@ namespace holodec {
 	struct HFunction {
 		HId id;
 		HId symbolref;
-		HIdGenerator gen_bb;
-		HIdGenerator gen_jt;
-		HList<HBasicBlock> basicblocks;
-		HList<HJumpTable> jumptables;
+		uint64_t baseaddr;
+		HIdList<HBasicBlock> basicblocks;
+		HIdList<HJumpTable> jumptables;
 		HVisibilityType* visibility;
+		HSSARepresentation ssaRep;
 
+		HList<uint64_t> addrToAnalyze;
+		
 		HBasicBlock* findBasicBlock (size_t addr) {
 			if (addr) {
 				for (HBasicBlock& bb : basicblocks) {
@@ -100,15 +102,13 @@ namespace holodec {
 		}
 
 		HId addBasicBlock (HBasicBlock basicblock) {
-			basicblock.id = gen_bb.next();
-			basicblocks.push_back (basicblock);
-			return basicblock.id;
+			return basicblocks.add (basicblock);
 		}
 		void clear() {
 			id = 0;
 			symbolref = 0;
-			gen_bb.clear();
 			basicblocks.clear();
+			ssaRep.clear();
 			visibility = 0;
 		}
 
