@@ -4,6 +4,10 @@
 
 namespace holodec {
 
+	template HArgument HSSAGen::parseConstExpression (HArgument argExpr, HList<HArgument>* arglist);
+	template HArgument HSSAGen::parseConstExpression (HArgument argExpr, HIdList<HArgument>* arglist);
+	template HArgument HSSAGen::parseConstExpression (HArgument argExpr, HLocalBackedList<HArgument,4>* arglist);
+	
 	HSSAGen::HSSAGen (HArchitecture* arch) : arch (arch) {}
 
 	HSSAGen::~HSSAGen() {}
@@ -50,7 +54,7 @@ namespace holodec {
 				switch (expr->mod.opType) {
 				case HSSA_OP_AND: {
 					uint64_t val = 0;
-					for (int i = 0; i < expr->subExpressions.size(); i++) {
+					for (size_t i = 0; i < expr->subExpressions.size(); i++) {
 						HArgument arg = parseConstExpression (expr->subExpressions[i], arglist);
 						if (arg.type == H_ARGTYPE_UINT)
 							val = val && arg.uval;
@@ -61,7 +65,7 @@ namespace holodec {
 				}
 				case HSSA_OP_OR: {
 					uint64_t val = 0;
-					for (int i = 0; i < expr->subExpressions.size(); i++) {
+					for (size_t i = 0; i < expr->subExpressions.size(); i++) {
 						HArgument arg = parseConstExpression (expr->subExpressions[i], arglist);
 						if (arg && arg.type == H_ARGTYPE_UINT)
 							val = val || arg.uval;
@@ -72,7 +76,7 @@ namespace holodec {
 				}
 				case HSSA_OP_XOR: {
 					uint64_t val = 0;
-					for (int i = 0; i < expr->subExpressions.size(); i++) {
+					for (size_t i = 0; i < expr->subExpressions.size(); i++) {
 						HArgument arg = parseConstExpression (expr->subExpressions[i], arglist);
 						if (arg && arg.type == H_ARGTYPE_UINT)
 							val = !!val ^ !!arg.uval;
@@ -747,10 +751,6 @@ namespace holodec {
 						if (arguments.size() == instrdef->irs[i].argcount) {
 							HArgument constArg = parseConstExpression (instrdef->irs[i].condExpr, &arguments);
 							if (constArg && constArg.type == H_ARGTYPE_UINT && constArg.uval) {
-
-								printf("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
-								printf("%s\n",instrdef->mnemonics.cstr());
-								instrdef->irs[i].rootExpr.print(arch);printf("\n");
 								arch->getIrExpr(instrdef->irs[i].rootExpr.id)->print(arch,0,true);
 								parseExpression (instrdef->irs[i].rootExpr);
 								break;

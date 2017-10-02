@@ -51,6 +51,7 @@ namespace holodec {
 
 		template<typename ARGLIST>
 		HArgument parseConstExpression (HArgument argExpr, ARGLIST* arglist);
+		
 
 		HArgument parseExpression (HArgument exprId);
 

@@ -2,7 +2,7 @@
 <CodeLite_Workspace Name="radpp" Database="" Version="10.0.0">
   <Project Name="main" Path="main/main.project" Active="Yes"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="no">
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>
       <Project Name="main" ConfigName="Debug"/>
       <Project Name="main" ConfigName="Debug"/>
@@ -12,7 +12,7 @@
       <Project Name="main" ConfigName="Release"/>
       <Project Name="main" ConfigName="Release"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Debug Windows" Selected="yes">
+    <WorkspaceConfiguration Name="Debug Windows" Selected="no">
       <Environment/>
       <Project Name="main" ConfigName="Debug Windows"/>
     </WorkspaceConfiguration>
