@@ -16,7 +16,7 @@ namespace holodec {
 		case H_ARGTYPE_STACK:
 			printf ("Stack-%s[%d]", arch->getStack (stack.id)->name.cstr(), stack.index);
 			break;
-		case H_ARGTYPE_MEM: {
+		case H_ARGTYPE_MEMOP: {
 			bool pre = false;
 			if (mem.segment) {
 				printf ("%s:", arch->getRegister (mem.segment)->name.cstr());
@@ -43,6 +43,10 @@ namespace holodec {
 			printf ("]");
 		}
 		break;
+		case H_ARGTYPE_MEM: {
+			printf("Memory %d", index);
+		}
+		break;
 		case H_ARGTYPE_SINT:
 			printf ("%d", sval);
 			break;
@@ -57,6 +61,9 @@ namespace holodec {
 			break;
 		case HSSA_ARGTYPE_ID:
 			printf ("SSA");
+			break;
+		case HSSA_ARGTYPE_BLOCK:
+			printf ("Block %d", index);
 			break;
 		case HIR_ARGTYPE_INSTR:
 			printf ("instr[%s]", arch->getInstrDef (index)->mnemonics.cstr());

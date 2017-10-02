@@ -11,6 +11,8 @@ namespace holodec {
 		HId id;
 		HArgument arg;
 	};
+	
+	
 	struct HSSAGen {
 		HArchitecture* arch;
 

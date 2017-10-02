@@ -654,20 +654,20 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_OUTSD | CUSOM_X86_INSTR_EXTR_REP, "rep outsd", {}},
 		{X86_INS_OUTSW | CUSOM_X86_INSTR_EXTR_REP, "rep outsw", {}},
 
-		{X86_INS_LODSB, "lodsb", {{2, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),=($rdi,?($df,-($rdi,1),+($rdi,1))))"}}, H_INSTR_TYPE_LOAD},
-		{X86_INS_LODSW, "lodsw", {{2, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),=($rdi,?($df,-($rdi,2),+($rdi,2))))"}}, H_INSTR_TYPE_LOAD},
-		{X86_INS_LODSD, "lodsd", {{2, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),=($rdi,?($df,-($rdi,4),+($rdi,4))))"}}, H_INSTR_TYPE_LOAD},
-		{X86_INS_LODSQ, "lodsq", {{2, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),=($rdi,?($df,-($rdi,8),+($rdi,8))))"}}, H_INSTR_TYPE_LOAD},
+		{X86_INS_LODSB, "lodsb", {{2, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),?($df,=($rdi,-($rdi,1)),=($rdi,+($rdi,1))))"}}, H_INSTR_TYPE_LOAD},
+		{X86_INS_LODSW, "lodsw", {{2, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),?($df,=($rdi,-($rdi,2)),=($rdi,+($rdi,2))))"}}, H_INSTR_TYPE_LOAD},
+		{X86_INS_LODSD, "lodsd", {{2, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),?($df,=($rdi,-($rdi,4)),=($rdi,+($rdi,4))))"}}, H_INSTR_TYPE_LOAD},
+		{X86_INS_LODSQ, "lodsq", {{2, "#seq(=(#arg[1],#ld(#arg[2],#size(#arg[2]))),?($df,=($rdi,-($rdi,8)),=($rdi,+($rdi,8))))"}}, H_INSTR_TYPE_LOAD},
 
 		{X86_INS_LODSB | CUSOM_X86_INSTR_EXTR_REP, "rep lodsb", {{2, "#rep($rcx,#rec[lodsb](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_LOAD},
 		{X86_INS_LODSW | CUSOM_X86_INSTR_EXTR_REP, "rep lodsw", {{2, "#rep($rcx,#rec[lodsw](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_LOAD},
 		{X86_INS_LODSD | CUSOM_X86_INSTR_EXTR_REP, "rep lodsd", {{2, "#rep($rcx,#rec[lodsd](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_LOAD},
 		{X86_INS_LODSQ | CUSOM_X86_INSTR_EXTR_REP, "rep lodsq", {{2, "#rep($rcx,#rec[lodsq](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_LOAD},
 
-		{X86_INS_STOSB, "stosb", {{2, "#seq(#st(#arg[2],#arg[1]),=($rdi,?($df,-($rdi,1),+($rdi,1))))"}}, H_INSTR_TYPE_STORE},
-		{X86_INS_STOSW, "stosw", {{2, "#seq(#st(#arg[2],#arg[1]),=($rdi,?($df,-($rdi,2),+($rdi,2))))"}}, H_INSTR_TYPE_STORE},
-		{X86_INS_STOSD, "stosd", {{2, "#seq(#st(#arg[2],#arg[1]),=($rdi,?($df,-($rdi,4),+($rdi,4))))"}}, H_INSTR_TYPE_STORE},
-		{X86_INS_STOSQ, "stosq", {{2, "#seq(#st(#arg[2],#arg[1]),=($rdi,?($df,-($rdi,8),+($rdi,8))))"}}, H_INSTR_TYPE_STORE},
+		{X86_INS_STOSB, "stosb", {{2, "#seq(#st(#arg[2],#arg[1]),?($df,=($rdi,-($rdi,1)),=($rdi,+($rdi,1))))"}}, H_INSTR_TYPE_STORE},
+		{X86_INS_STOSW, "stosw", {{2, "#seq(#st(#arg[2],#arg[1]),?($df,=($rdi,-($rdi,2)),=($rdi,+($rdi,2))))"}}, H_INSTR_TYPE_STORE},
+		{X86_INS_STOSD, "stosd", {{2, "#seq(#st(#arg[2],#arg[1]),?($df,=($rdi,-($rdi,4)),=($rdi,+($rdi,4))))"}}, H_INSTR_TYPE_STORE},
+		{X86_INS_STOSQ, "stosq", {{2, "#seq(#st(#arg[2],#arg[1]),?($df,=($rdi,-($rdi,8)),=($rdi,+($rdi,8))))"}}, H_INSTR_TYPE_STORE},
 
 		{X86_INS_STOSB | CUSOM_X86_INSTR_EXTR_REP, "rep stosb", {{2, "#rep($rcx,#rec[stosb](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_STORE},
 		{X86_INS_STOSW | CUSOM_X86_INSTR_EXTR_REP, "rep stosw", {{2, "#rep($rcx,#rec[stosw](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_STORE},
@@ -689,10 +689,10 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_CMPSD | CUSOM_X86_INSTR_EXTR_REPNE, "repne cmpsd", {{2, "#rep(#and($rcx,#not($zf)),#rec[scasd](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_CMP},
 		{X86_INS_CMPSQ | CUSOM_X86_INSTR_EXTR_REPNE, "repne cmpsq", {{2, "#rep(#and($rcx,#not($zf)),#rec[scasq](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_CMP},
 
-		{X86_INS_SCASB, "scasb", {{2, "#seq(#rec[cmp](#arg[1],#arg[2]),=($rdi,?($df,-($rdi,1),+($rdi,1))))"}}, H_INSTR_TYPE_CMP},
-		{X86_INS_SCASW, "scasw", {{2, "#seq(#rec[cmp](#arg[1],#arg[2]),=($rdi,?($df,-($rdi,2),+($rdi,2))))"}}, H_INSTR_TYPE_CMP},
-		{X86_INS_SCASD, "scasd", {{2, "#seq(#rec[cmp](#arg[1],#arg[2]),=($rdi,?($df,-($rdi,4),+($rdi,4))))"}}, H_INSTR_TYPE_CMP},
-		{X86_INS_SCASQ, "scasq", {{2, "#seq(#rec[cmp](#arg[1],#arg[2]),=($rdi,?($df,-($rdi,8),+($rdi,8))))"}}, H_INSTR_TYPE_CMP},
+		{X86_INS_SCASB, "scasb", {{2, "#seq(#rec[cmp](#arg[1],#arg[2]),?($df,=($rdi,-($rdi,1)),=($rdi,+($rdi,1))))"}}, H_INSTR_TYPE_CMP},
+		{X86_INS_SCASW, "scasw", {{2, "#seq(#rec[cmp](#arg[1],#arg[2]),?($df,=($rdi,-($rdi,2)),=($rdi,+($rdi,2))))"}}, H_INSTR_TYPE_CMP},
+		{X86_INS_SCASD, "scasd", {{2, "#seq(#rec[cmp](#arg[1],#arg[2]),?($df,=($rdi,-($rdi,4)),=($rdi,+($rdi,4))))"}}, H_INSTR_TYPE_CMP},
+		{X86_INS_SCASQ, "scasq", {{2, "#seq(#rec[cmp](#arg[1],#arg[2]),?($df,=($rdi,-($rdi,8)),=($rdi,+($rdi,8))))"}}, H_INSTR_TYPE_CMP},
 
 		{X86_INS_SCASB | CUSOM_X86_INSTR_EXTR_REPE, "repe scasb", {{2, "#rep(#and($rcx,$zf),#rec[scasb](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_CMP},
 		{X86_INS_SCASW | CUSOM_X86_INSTR_EXTR_REPE, "repe scasw", {{2, "#rep(#and($rcx,$zf),#rec[scasw](#arg[1],#arg[2]))"}}, H_INSTR_TYPE_CMP},

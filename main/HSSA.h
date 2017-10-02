@@ -22,7 +22,7 @@ namespace holodec {
 		HSSA_EXPR_NOP,
 
 		HSSA_EXPR_PHI,
-		HSSA_EXPR_IDENT,//assign to label = jump to branch, assign to pc = jump to other memory location
+		HSSA_EXPR_ASSIGN,//assign to label = jump to branch, assign to pc = jump to other memory location
 
 		HSSA_EXPR_JMP,
 		HSSA_EXPR_CJMP,
@@ -146,6 +146,11 @@ namespace holodec {
 		return false;
 	}
 
+	struct HSSARegUse{
+		HId regId,parentRegId;
+		uint64_t offset, size;
+	};
+	
 	struct HSSABB {
 		HId id;
 		HId fallthroughId = 0;
@@ -153,8 +158,11 @@ namespace holodec {
 		uint64_t endaddr = 0;
 		HList<HId> exprIds;
 
+		HList<HSSARegUse> inputs;
+		HList<HSSARegUse> outputs;
+
 		HSSABB() {}
-		HSSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds) :id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds){}
+		HSSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds) :id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds),inputs(),outputs(){}
 		~HSSABB() = default;
 
 

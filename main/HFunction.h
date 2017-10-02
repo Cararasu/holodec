@@ -118,6 +118,8 @@ namespace holodec {
 			for (HBasicBlock& bb : basicblocks) {
 				bb.print (arch, indent + 1);
 			}
+			
+			ssaRep.print(arch, indent + 1);
 		}
 	};
 

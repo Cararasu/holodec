@@ -32,6 +32,7 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 				ssaGen.arguments.push_back (instruction->operands[i]);
 			}
 			ssaGen.insertLabel (instruction->addr);
+			
 			ssaGen.parseExpression (rep->rootExpr);
 			if (ssaGen.endOfBlock) {
 				if (instruction->nojumpdest)

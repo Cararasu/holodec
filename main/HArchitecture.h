@@ -127,8 +127,9 @@ namespace holodec {
 		}
 		HId addIrExpr (HIRExpression expr) {
 			for (HIRExpression& expression : irExpressions.list) {   //Do CSE
-				if (expression == expr)
+				if (expression == expr){
 					return expression.id;
+				}
 			}
 			irExpressions.add (expr);
 			return expr.id;

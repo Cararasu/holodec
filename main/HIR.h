@@ -86,6 +86,8 @@ namespace holodec {
 					if (lhs.subExpressions[i] != rhs.subExpressions[i])
 						return false;
 				}
+			}else{
+				return false;
 			}
 			switch (rhs.type) {
 			case HIR_EXPR_FLAG:
@@ -93,8 +95,9 @@ namespace holodec {
 			case HIR_EXPR_OP:
 				return lhs.mod.opType == rhs.mod.opType;
 			case HIR_EXPR_BUILTIN:
-				return lhs.mod.index == rhs.mod.index;
+				return lhs.mod.builtinId == rhs.mod.builtinId;
 			}
+			return true;
 		}
 		return false;
 	}

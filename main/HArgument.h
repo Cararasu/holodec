@@ -15,6 +15,7 @@ namespace holodec {
 #define H_ARGTYPE_REG 		0x00001
 #define H_ARGTYPE_STACK		0x00002
 #define H_ARGTYPE_MEM 		0x00004
+#define H_ARGTYPE_MEMOP		0x00005
 #define H_ARGTYPE_SINT		0x00006
 #define H_ARGTYPE_UINT 		0x00007
 #define H_ARGTYPE_FLOAT		0x00008
@@ -90,7 +91,7 @@ namespace holodec {
 		}
 		static inline HArgument createMem (HRegister* segment, HRegister* base, HRegister* index, HArgSInt scale, HArgSInt disp, uint64_t size) {
 			HArgument arg;
-			arg.type = H_ARGTYPE_MEM;
+			arg.type = H_ARGTYPE_MEMOP;
 			arg.mem.segment = segment->id;
 			arg.mem.base = base->id;
 			arg.mem.index = index->id;

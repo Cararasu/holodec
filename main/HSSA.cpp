@@ -50,8 +50,8 @@ namespace holodec {
 		case HSSA_EXPR_PHI:
 			printf ("Phi ");
 			break;
-		case HSSA_EXPR_IDENT:
-			printf ("Ident ");
+		case HSSA_EXPR_ASSIGN:
+			printf ("Assign ");
 			break;
 		case HSSA_EXPR_JMP:
 			printf ("Jmp ");
@@ -213,7 +213,20 @@ namespace holodec {
 			for (HId id : bb.exprIds) {
 				expressions.get (id)->print (arch, indent + 2);
 			}
+			printIndent (indent + 1);
+			printf("Inputs\n");
+			for(HSSARegUse& regUse : bb.inputs){
+				printIndent (indent + 2);
+				printf("Reg: %s Parent: %s Offset: %d Size: %d\n", arch->getRegister(regUse.regId)->name.cstr(), arch->getRegister(regUse.parentRegId)->name.cstr(), regUse.offset, regUse.size);
+			}
+			printIndent (indent + 1);
+			printf("Outputs\n");
+			for(HSSARegUse& regUse : bb.outputs){
+				printIndent (indent + 2);
+				printf("Reg: %s Parent: %s Offset: %d Size: %d\n", arch->getRegister(regUse.regId)->name.cstr(), arch->getRegister(regUse.parentRegId)->name.cstr(), regUse.offset, regUse.size);
+			}
 		}
+		
 
 	}
 }
