@@ -26,6 +26,7 @@ namespace holodec {
 
 		HSSA_EXPR_JMP,
 		HSSA_EXPR_CJMP,
+		HSSA_EXPR_MULTIBR,//first index then ptrs or blocks
 		
 		HSSA_EXPR_OP,
 		HSSA_EXPR_COND,

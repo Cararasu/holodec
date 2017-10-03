@@ -59,6 +59,9 @@ namespace holodec {
 		case HSSA_EXPR_CJMP:
 			printf ("Cjmp ");
 			break;
+		case HSSA_EXPR_MULTIBR:
+			printf ("Multi-Branch ");
+			break;
 		case HSSA_EXPR_OP:
 			printf ("Op ");
 			switch (opType) {

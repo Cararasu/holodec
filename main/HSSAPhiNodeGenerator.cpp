@@ -99,7 +99,7 @@ namespace holodec {
 							bbwrapper.inBlocks.push_back(bb2.id);
 						}
 					}else if(lastExpr->type == HSSA_EXPR_CJMP && lastExpr->subExpressions[1].type == HSSA_ARGTYPE_BLOCK){
-						if(bb.id == lastExpr->subExpressions[0].uval){
+						if(bb.id == lastExpr->subExpressions[1].uval){
 							bbwrapper.inBlocks.push_back(bb2.id);
 						}
 					}
