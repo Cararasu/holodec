@@ -91,6 +91,9 @@ namespace holodec {
 			}
 			return nullptr;
 		}
+		T& operator[] (HId id) {
+			return *this->get(id);
+		}
 		void clear() {
 			gen.clear();
 			list.clear();

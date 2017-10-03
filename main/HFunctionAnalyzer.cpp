@@ -35,13 +35,14 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 			
 			ssaGen.parseExpression (rep->rootExpr);
 			if (ssaGen.endOfBlock) {
-				if (instruction->nojumpdest)
-					addAddressToAnalyze (instruction->nojumpdest);
 				if (instruction->jumpdest)
 					addAddressToAnalyze (instruction->jumpdest);
+				if (instruction->nojumpdest)
+					addAddressToAnalyze (instruction->nojumpdest);
 				return false;
 			}
-			return true;
+			
+			return instruction->nojumpdest ? !trySplitBasicBlock(instruction->nojumpdest) : true;
 		} else {
 			printf ("Could not find IR-Match for Instruction\n");
 			instruction->print (arch);
@@ -56,7 +57,7 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 		addAddressToAnalyze (instruction->nojumpdest);
 		return false;
 	}
-	return true;
+	return instruction->nojumpdest ? !trySplitBasicBlock(instruction->nojumpdest) : true;
 }
 
 bool holodec::HFunctionAnalyzer::postBasicBlock (HBasicBlock* basicblock) {
@@ -99,10 +100,12 @@ bool holodec::HFunctionAnalyzer::trySplitBasicBlock (uint64_t splitaddr) {
 	for (HBasicBlock& basicblock : state.function->basicblocks) {
 		if (basicblock.addr == splitaddr)
 			return true;
-		if (basicblock.addr <= splitaddr && splitaddr < (basicblock.addr + basicblock.size))
+		if (basicblock.addr <= splitaddr && splitaddr < (basicblock.addr + basicblock.size)){
+			printf("Split 0x%x\n", splitaddr);
 			if (splitBasicBlock (&basicblock, splitaddr)) {
 				return true;
 			}
+		}
 	}
 	return false;
 }
@@ -125,6 +128,7 @@ holodec::HId holodec::HFunctionAnalyzer::analyzeFunction (HSymbol* functionsymbo
 	HId id = binary->addFunction (newfunction);
 	HFunction* function = binary->getFunction (id);
 	function->symbolref = functionsymbol->id;
+	function->baseaddr = functionsymbol->vaddr;
 	function->addrToAnalyze.push_back (functionsymbol->vaddr);
 	analyzeFunction (function);
 	return id;

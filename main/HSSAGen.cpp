@@ -224,8 +224,8 @@ namespace holodec {
 		setActiveBlock();
 		if (activeblock->startaddr > instruction->addr)
 			activeblock->startaddr = instruction->addr;
-		if (activeblock->endaddr < instruction->addr)
-			activeblock->endaddr = instruction->addr;
+		if (activeblock->endaddr < instruction->addr + instruction->size)
+			activeblock->endaddr = instruction->addr + instruction->size;
 		
 		expression->instrAddr = instruction->addr;
 		ssaRepresentation->expressions.add (*expression);
@@ -255,23 +255,28 @@ namespace holodec {
 
 	HId HSSAGen::splitBasicBlock (uint64_t addr) {
 		for (HSSABB& bb : ssaRepresentation->bbs) {
-			if (bb.startaddr == addr) {
+			if (bb.startaddr == addr)
 				return bb.id;
-			}
+				
 			if (bb.startaddr < addr && addr <= bb.endaddr) {
 				for (auto it = bb.exprIds.begin(); it != bb.exprIds.end(); ++it) {
 					HSSAExpression* expr = ssaRepresentation->expressions.get (*it);
 					assert (expr);
-					if (expr->type == HSSA_EXPR_LABEL && expr->subExpressions.size() > 0 && expr->subExpressions[0].type == H_ARGTYPE_UINT) {
-						if (expr->subExpressions[0].uval == addr) {
-							HSSABB createdbb (bb.fallthroughId, addr, bb.endaddr, HList<HId> (it, bb.exprIds.end()));
-							ssaRepresentation->bbs.add (createdbb);
-							HSSABB* newbb = &ssaRepresentation->bbs.back();
-							bb.endaddr = addr;
-							bb.fallthroughId = newbb->id;
-							bb.exprIds.erase (it, bb.exprIds.end());
-							return bb.fallthroughId;
-						}
+					if (expr->type == HSSA_EXPR_LABEL && expr->subExpressions.size() > 0 && expr->subExpressions[0].type == H_ARGTYPE_UINT && expr->subExpressions[0].uval == addr) {
+						printf("Split SSA 0x%x\n", addr);
+						HId oldId = bb.id;
+						HId newEndAddr = bb.endaddr;
+						bb.endaddr = addr;
+						HList<HId> exprsOfNewBlock (it, bb.exprIds.end());
+						bb.exprIds.erase (it, bb.exprIds.end());
+						
+						HSSABB createdbb (bb.fallthroughId, addr, newEndAddr, exprsOfNewBlock);
+						ssaRepresentation->bbs.add (createdbb);
+						
+						HSSABB* newbb = &ssaRepresentation->bbs.back();
+						ssaRepresentation->bbs.get(oldId)->fallthroughId = newbb->id;
+						
+						return newbb->id;
 					}
 				}
 			}
@@ -328,8 +333,6 @@ namespace holodec {
 		}
 		case HIR_ARGTYPE_ID: {
 			HIRExpression* expr = arch->getIrExpr (exprId.id);
-			/*printf ("----\n");
-			expr->print (arch, 0, false);*/
 
 			size_t subexpressioncount = expr->subExpressions.size();
 
@@ -751,7 +754,6 @@ namespace holodec {
 						if (arguments.size() == instrdef->irs[i].argcount) {
 							HArgument constArg = parseConstExpression (instrdef->irs[i].condExpr, &arguments);
 							if (constArg && constArg.type == H_ARGTYPE_UINT && constArg.uval) {
-								arch->getIrExpr(instrdef->irs[i].rootExpr.id)->print(arch,0,true);
 								parseExpression (instrdef->irs[i].rootExpr);
 								break;
 							}

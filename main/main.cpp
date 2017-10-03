@@ -8,6 +8,8 @@
 #include "HArchitecture.h"
 #include "HIRGen.h"
 #include "HSSAGen.h"
+#include "HSSAPhiNodeGenerator.h"
+#include "HSSAAddressToBlockTransformer.h"
 
 using namespace holodec;
 
@@ -77,11 +79,16 @@ int main ( int argc, char** argv ) {
 		binary->getFunction(functionid)->print(&holox86::x86architecture);
 	}
 
-	/*HSSAGen ssaGenerator(&holox86::x86architecture);
+	HSSAGen ssaGenerator(&holox86::x86architecture);
+	HSSATransformer* transformer1 = new HSSAPhiNodeGenerator();
+	HSSATransformer* transformer2 = new HSSAAddressToBlockTransformer();
+	
+	transformer1->arch = &holox86::x86architecture;
+	transformer2->arch = &holox86::x86architecture;
 	for ( HFunction& function : binary->functions ) {
-		for( HBasicBlock& basicblock : function->bbs){
-			ssaGenerator.parseExpression ( &function );
-		}
-	}*/
+		transformer1->doTransformation(&function);
+		transformer2->doTransformation(&function);
+		function.print(&holox86::x86architecture);
+	}
 	return 0;
 }

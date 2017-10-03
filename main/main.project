@@ -77,6 +77,12 @@
       <File Name="HElfBinaryAnalyzer.h"/>
       <File Name="HElfBinaryAnalyzer.cpp"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="SSATransformers">
+      <File Name="HSSAPhiNodeGenerator.cpp"/>
+      <File Name="HSSAPhiNodeGenerator.h"/>
+      <File Name="HSSAAddressToBlockTransformer.h"/>
+      <File Name="HSSAAddressToBlockTransformer.cpp"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>

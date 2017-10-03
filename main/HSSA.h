@@ -158,11 +158,8 @@ namespace holodec {
 		uint64_t endaddr = 0;
 		HList<HId> exprIds;
 
-		HList<HSSARegUse> inputs;
-		HList<HSSARegUse> outputs;
-
 		HSSABB() {}
-		HSSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds) :id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds),inputs(),outputs(){}
+		HSSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds) :id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds){}
 		~HSSABB() = default;
 
 
