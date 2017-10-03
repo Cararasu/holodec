@@ -86,9 +86,9 @@ int main ( int argc, char** argv ) {
 	transformer1->arch = &holox86::x86architecture;
 	transformer2->arch = &holox86::x86architecture;
 	for ( HFunction& function : binary->functions ) {
-		transformer1->doTransformation(&function);
 		transformer2->doTransformation(&function);
-		function.print(&holox86::x86architecture);
+		transformer1->doTransformation(&function);
+		//function.print(&holox86::x86architecture);
 	}
 	return 0;
 }

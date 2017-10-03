@@ -145,11 +145,6 @@ namespace holodec {
 		}
 		return false;
 	}
-
-	struct HSSARegUse{
-		HId regId,parentRegId;
-		uint64_t offset, size;
-	};
 	
 	struct HSSABB {
 		HId id;

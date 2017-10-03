@@ -5,15 +5,6 @@
 
 namespace holodec {
 
-	void HSSATransformParser::parseBlock (HSSABB* block) {
-		printIndent (1);
-		printf ("Parsing Block: %d\n", block->id);
-	}
-	void HSSATransformParser::parseExpression (HSSAExpression* expression) {
-		printIndent (1);
-		printf ("Parsing Expression: ");
-		expression->print (arch);
-	}
 	void HSSATransformParser::doTransformation (HFunction* function) {
 		this->function = function;
 

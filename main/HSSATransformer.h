@@ -19,9 +19,9 @@ namespace holodec {
 	struct HSSATransformParser : public HSSATransformer {
 		HFunction* function;
 
-		virtual void parseBlock (HSSABB* block);
+		virtual void parseBlock (HSSABB* block){};
 		
-		virtual void parseExpression (HSSAExpression* expression);
+		virtual void parseExpression (HSSAExpression* expression){};
 
 		virtual void doTransformation (HFunction* function);
 	};
