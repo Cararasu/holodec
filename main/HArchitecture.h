@@ -58,7 +58,7 @@ namespace holodec {
 					if (r) return r;
 				}
 			}
-			return &invalidReg;
+			return nullptr;
 		}
 		HRegister* getRegister (const HId id) {
 			if (id) {
@@ -69,7 +69,7 @@ namespace holodec {
 					if (r) return r;
 				}
 			}
-			return &invalidReg;
+			return nullptr;
 		}
 		HRegister* getParentRegister (const HId id) {
 			if (id) {
@@ -80,7 +80,7 @@ namespace holodec {
 					if (r) return &reg;
 				}
 			}
-			return &invalidReg;
+			return nullptr;
 		}
 		HStack* getStack (const HString string) {
 			if (string) {
@@ -100,7 +100,15 @@ namespace holodec {
 			}
 			return nullptr;
 		}
-
+		HCallingConvention* getCallingConvention(const HString string){
+			if(string){
+				for(HCallingConvention& cc : callingconventions){
+					if(string == cc.name)
+						return &cc;
+				}
+			}
+			return nullptr;
+		}
 		HInstrDefinition* getInstrDef (HId id, HString mnemonic) {
 			auto it = instrdefs.find (id);
 			if (it != instrdefs.end())

@@ -23,30 +23,15 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 		return false;*/
 
 	state.instructions.push_back (*instruction);
-	if (analyzeWithIR) {
-		HIRRepresentation* rep = ssaGen.matchIr (instruction);
-		if (rep) {
-			ssaGen.setupForInstr();
-			ssaGen.instruction = instruction;
-			for (int i = 0; i < instruction->operands.size(); i++) {
-				ssaGen.arguments.push_back (instruction->operands[i]);
-			}
-			ssaGen.insertLabel (instruction->addr);
-			
-			ssaGen.parseExpression (rep->rootExpr);
-			if (ssaGen.endOfBlock) {
-				if (instruction->jumpdest)
-					addAddressToAnalyze (instruction->jumpdest);
-				if (instruction->nojumpdest)
-					addAddressToAnalyze (instruction->nojumpdest);
-				return false;
-			}
-			
-			return instruction->nojumpdest ? !trySplitBasicBlock(instruction->nojumpdest) : true;
-		} else {
-			printf ("Could not find IR-Match for Instruction\n");
-			instruction->print (arch);
+	if (analyzeWithIR && ssaGen.parseInstruction(instruction)) {
+		if (ssaGen.endOfBlock) {
+			if (instruction->jumpdest)
+				addAddressToAnalyze (instruction->jumpdest);
+			if (instruction->nojumpdest)
+				addAddressToAnalyze (instruction->nojumpdest);
+			return false;
 		}
+		return instruction->nojumpdest ? !trySplitBasicBlock(instruction->nojumpdest) : true;
 	}
 
 	if (instruction->instrdef->type == H_INSTR_TYPE_JMP || instruction->instrdef->type2 == H_INSTR_TYPE_JMP) {
@@ -142,7 +127,7 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HFunction* function) {
 
 	preAnalysis();
 
-	ssaGen.setup (&state.function->ssaRep);
+	ssaGen.setup (&state.function->ssaRep, function->baseaddr);
 	while (!state.function->addrToAnalyze.empty()) {
 		uint64_t addr = state.function->addrToAnalyze.back();
 		state.function->addrToAnalyze.pop_back();

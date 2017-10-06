@@ -10,10 +10,12 @@ namespace holodec {
 		if(block->exprIds.size())
 			if(function->ssaRep.expressions[block->exprIds.back()].type == HSSA_EXPR_RETURN)//if last statement is return then we do nothing
 				return;
-		for(HSSABB& bb : function->ssaRep.bbs){
-			if(bb.startaddr == block->endaddr){
-				block->fallthroughId = bb.id;
-				break;
+		if(!block->fallthroughId){
+			for(HSSABB& bb : function->ssaRep.bbs){
+				if(bb.startaddr == block->endaddr){
+					block->fallthroughId = bb.id;
+					break;
+				}
 			}
 		}
 	}

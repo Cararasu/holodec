@@ -17,7 +17,7 @@ namespace holodec {
 		HArchitecture* arch;
 
 		HList<HArgument> arguments;
-		HInstruction* instruction;
+		HInstruction* instruction = nullptr;
 
 		HId activeBlockId = 0;
 		HId lastOp = 0;
@@ -33,11 +33,12 @@ namespace holodec {
 		~HSSAGen();
 
 		void reset();
-		void setup(HSSARepresentation* ssaReg);
+		void setup(HSSARepresentation* ssaReg, uint64_t addr);
 		void setupForInstr();
 
 		HId splitBasicBlock (uint64_t addr);
 
+		HArgument parseMemArgToExpr(HArgument mem);
 		HArgument replaceArg (HArgument arg);
 		void insertLabel (uint64_t address, HId instructionId = 0);
 		HId addExpression (HSSAExpression* expression);
@@ -46,6 +47,8 @@ namespace holodec {
 		HSSABB* getActiveBlock ();
 		void setActiveBlock ();
 		void activateBlock (HId block);
+		
+		void addUpdateRegExpressions(HId regId, HId exprId);
 
 		HIRRepresentation* matchIr (HInstruction* instr);
 
@@ -53,6 +56,7 @@ namespace holodec {
 		HArgument parseConstExpression (HArgument argExpr, ARGLIST* arglist);
 		
 
+		bool parseInstruction (HInstruction* instruction);
 		HArgument parseExpression (HArgument exprId);
 
 		void print (int indent = 0);

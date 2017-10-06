@@ -15,7 +15,6 @@ namespace holodec {
 #define H_ARGTYPE_REG 		0x00001
 #define H_ARGTYPE_STACK		0x00002
 #define H_ARGTYPE_MEM 		0x00004
-#define H_ARGTYPE_MEMOP		0x00005
 #define H_ARGTYPE_SINT		0x00006
 #define H_ARGTYPE_UINT 		0x00007
 #define H_ARGTYPE_FLOAT		0x00008
@@ -24,6 +23,7 @@ namespace holodec {
 #define HIR_ARGTYPE_INSTR 	0x10002
 #define HIR_ARGTYPE_ARG 	0x10003
 #define HIR_ARGTYPE_TMP 	0x10004
+#define HIR_ARGTYPE_MEMOP	0x10005
 
 #define HSSA_ARGTYPE_ID 	0x20001
 #define HSSA_ARGTYPE_BLOCK	0x20002
@@ -91,10 +91,10 @@ namespace holodec {
 		}
 		static inline HArgument createMem (HRegister* segment, HRegister* base, HRegister* index, HArgSInt scale, HArgSInt disp, uint64_t size) {
 			HArgument arg;
-			arg.type = H_ARGTYPE_MEMOP;
-			arg.mem.segment = segment->id;
-			arg.mem.base = base->id;
-			arg.mem.index = index->id;
+			arg.type = HIR_ARGTYPE_MEMOP;
+			arg.mem.segment = segment ? segment->id : 0;
+			arg.mem.base = base ? base->id : 0;
+			arg.mem.index = index ? index->id : 0;
 			arg.mem.scale = scale;
 			arg.mem.disp = disp;
 			arg.size = size;
@@ -114,10 +114,11 @@ namespace holodec {
 			arg.size = 0;
 			return arg;
 		}
-		static inline HArgument createReg (HRegister* reg) {
+		static inline HArgument createReg (HRegister* reg, HId id = 0) {
 			HArgument arg;
 			arg.type = H_ARGTYPE_REG;
 			arg.reg = reg->id;
+			arg.id = id;
 			arg.size = reg->size;
 			return arg;
 		}

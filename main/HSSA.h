@@ -18,6 +18,7 @@ namespace holodec {
 		HSSA_EXPR_LABEL,//1st Argument is address of 
 		
 		HSSA_EXPR_INPUT,  // Predefined variables, correspond to input arguments
+		HSSA_EXPR_OUTPUT,  // output of call or syscall
 		HSSA_EXPR_UNDEF,
 		HSSA_EXPR_NOP,
 
@@ -30,6 +31,7 @@ namespace holodec {
 		
 		HSSA_EXPR_OP,
 		HSSA_EXPR_COND,
+		HSSA_EXPR_MEM,
 		
 		HSSA_EXPR_PUSH,
 		HSSA_EXPR_POP,
@@ -41,6 +43,7 @@ namespace holodec {
 
 		HSSA_EXPR_BUILTIN,  // call a builtin(invalidates all previous variables and creates a new def)
 		HSSA_EXPR_EXTEND,  // zero extend a value
+		HSSA_EXPR_UPDATEPART,  // write to a part of the variable
 		HSSA_EXPR_SPLIT,  // access to part of a variable
 		HSSA_EXPR_APPEND,  // combine variables
 		HSSA_EXPR_CAST,  // cast to other type

@@ -10,13 +10,8 @@ namespace holodec {
 		H_CC_STACK_R2L,
 		H_CC_STACK_L2R,
 	};
-	enum HCCRegSavedPolicy{
-		H_CC_STACK_CALLER_SAVED,
-		H_CC_STACK_CALLEE_SAVED,
-	};
 	enum HCCParameterType{
 		H_CC_PARA_INT,
-		H_CC_PARA_PTR,
 		H_CC_PARA_FLOAT,
 		H_CC_PARA_VEC128,
 		H_CC_PARA_VEC256,
@@ -28,7 +23,6 @@ namespace holodec {
 	};
 	struct HCallingConvention {
 		HString name;
-		HCCRegSavedPolicy regsaved;
 		HList<HString> savedRegs;
 		HList<HCCParameter> parameters;
 		HString parameterCount;

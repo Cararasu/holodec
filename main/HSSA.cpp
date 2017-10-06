@@ -148,8 +148,14 @@ namespace holodec {
 		case HSSA_EXPR_COND:
 			printf ("Cond ");
 			break;
+		case HSSA_EXPR_MEM:
+			printf ("Mem ");
+			break;
 		case HSSA_EXPR_CALL:
 			printf ("Call ");
+			break;
+		case HSSA_EXPR_OUTPUT:
+			printf ("Output ");
 			break;
 		case HSSA_EXPR_RETURN:
 			printf ("Return ");
@@ -162,6 +168,9 @@ namespace holodec {
 			break;
 		case HSSA_EXPR_BUILTIN:
 			printf ("Builtin ");
+			break;
+		case HSSA_EXPR_UPDATEPART:
+			printf ("Update Part ");
 			break;
 		case HSSA_EXPR_EXTEND:
 			printf ("Extend ");

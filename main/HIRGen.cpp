@@ -406,7 +406,7 @@ namespace holodec {
 				char buffer[100];
 				if (parseIdentifier (buffer, 100)) {
 					HRegister* reg = arch->getRegister (buffer);
-					if (reg->id) {
+					if (reg) {
 						return HArgument::createReg (reg);
 					}
 

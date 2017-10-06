@@ -30,6 +30,7 @@ namespace holodec{
 	void HRegister::setParentId (HId parentId) {
 		this->parentId = parentId;
 		for (HRegister& reg : subregisters) {
+			reg.directParentId = this->id;
 			reg.setParentId (parentId);
 		}
 	}

@@ -16,7 +16,28 @@ namespace holodec {
 		case H_ARGTYPE_STACK:
 			printf ("Stack-%s[%d]", arch->getStack (stack.id)->name.cstr(), stack.index);
 			break;
-		case H_ARGTYPE_MEMOP: {
+		case H_ARGTYPE_MEM: {
+			printf("Memory %d", index);
+		}break;
+		case H_ARGTYPE_SINT:
+			printf ("%d", sval);
+			break;
+		case H_ARGTYPE_UINT:
+			printf ("0x%X", uval);
+			break;
+		case H_ARGTYPE_FLOAT:
+			printf ("%f", fval);
+			break;
+		case HIR_ARGTYPE_ID:
+			printf ("IR");
+			break;
+		case HSSA_ARGTYPE_ID:
+			printf ("SSA");
+			break;
+		case HSSA_ARGTYPE_BLOCK:
+			printf ("Block %d", index);
+			break;
+		case HIR_ARGTYPE_MEMOP: {
 			bool pre = false;
 			if (mem.segment) {
 				printf ("%s:", arch->getRegister (mem.segment)->name.cstr());
@@ -41,30 +62,7 @@ namespace holodec {
 				}
 			}
 			printf ("]");
-		}
-		break;
-		case H_ARGTYPE_MEM: {
-			printf("Memory %d", index);
-		}
-		break;
-		case H_ARGTYPE_SINT:
-			printf ("%d", sval);
-			break;
-		case H_ARGTYPE_UINT:
-			printf ("0x%X", uval);
-			break;
-		case H_ARGTYPE_FLOAT:
-			printf ("%f", fval);
-			break;
-		case HIR_ARGTYPE_ID:
-			printf ("IR");
-			break;
-		case HSSA_ARGTYPE_ID:
-			printf ("SSA");
-			break;
-		case HSSA_ARGTYPE_BLOCK:
-			printf ("Block %d", index);
-			break;
+		}break;
 		case HIR_ARGTYPE_INSTR:
 			printf ("instr[%s]", arch->getInstrDef (index)->mnemonics.cstr());
 			break;
@@ -74,7 +72,6 @@ namespace holodec {
 		case HIR_ARGTYPE_TMP:
 			printf ("tmp[%d]", index);
 			break;
-
 		default:
 			printf ("Unknown Argtype %d ", type);
 		}

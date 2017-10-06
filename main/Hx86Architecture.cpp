@@ -147,6 +147,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		},
 	},
 	{
+		/*
 		//x86
 		{
 			"cdecl",//name
@@ -184,22 +185,22 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 			{{"rax", "rax", "xmm0", "xmm0", "ymm0"}},
 			"mem",
 			H_CC_STACK_R2L
-		},
+		},*/
 		{
 			"vectorcall",
-			H_CC_STACK_CALLER_SAVED, {"rax", "rcx", "rdx", "r8", "r9", "r10", "r11"},
-			{{"rcx", "rcx", "xmm0", "xmm0", "ymm0"}, {"rdx", "rdx", "xmm1", "xmm1", "ymm1"}, {"r8", "r8", "xmm2", "xmm2", "ymm2"}, {"r9", "r9", "xmm3", "xmm3", "ymm3"}},
+			{"rax", "rcx", "rdx", "r8", "r9", "r10", "r11"},
+			{{"rcx", "xmm0", "xmm0", "ymm0"}, {"rdx", "xmm1", "xmm1", "ymm1"}, {"r8", "xmm2", "xmm2", "ymm2"}, {"r9", "xmm3", "xmm3", "ymm3"}},
 			nullptr,
-			{{"rax", "rax", "xmm0", "xmm0", "ymm0"}},
+			{{"rax", "xmm0", "xmm0", "ymm0"}},
 			"mem",
 			H_CC_STACK_R2L
 		},
 		{
 			"amd64",
-			H_CC_STACK_CALLEE_SAVED, {"rbp", "rbx", "r12", "r13", "r14", "r15"},
-			{{"rdi", "rdi", "xmm0"}, {"rsi", "rsi", "xmm1"}, {"rdx", "rdx", "xmm2"}, {"rcx", "rcx", "xmm3"}, {"r8", "r8", "xmm4"}, {"r9", "r9", "xmm5"}},
+			{"rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11", "rflags"},
+			{{"rdi", "xmm0"}, {"rsi", "xmm1"}, {"rdx", "xmm2"}, {"rcx", "xmm3"}, {"r8", "xmm4"}, {"r9", "xmm5"}},
 			"rax",
-			{{"rax", "rax", "rax"}},
+			{{"rax", "rax"},{"rdx", "rdx"}},
 			"mem",
 			H_CC_STACK_R2L
 		},

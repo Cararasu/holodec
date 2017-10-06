@@ -29,6 +29,7 @@ namespace holodec {
 		HId id;
 		HRegType type;
 		HRegTrackType track;
+		HId directParentId;
 		HId parentId;
 		HString name;
 		size_t size;
@@ -52,10 +53,10 @@ namespace holodec {
 		HRegister (HString name, HRegType type, size_t size, size_t offset, HList<HRegister> subregisters) : HRegister (name, type, H_REG_TRACK_TRACKED, size, offset, false, subregisters) {};
 		HRegister (HString name, HRegType type, HRegTrackType track, size_t size, size_t offset, HList<HRegister> subregisters) : HRegister (name, type, track, size, offset, false, subregisters) {};
 		HRegister (HString name, HRegType type, size_t size, size_t offset, bool clearParentOnWrite, HList<HRegister> subregisters) : HRegister (name, type, H_REG_TRACK_TRACKED, size, offset, clearParentOnWrite, subregisters) {};
-		HRegister (HString name, HRegType type, HRegTrackType track, size_t size, size_t offset, bool clearParentOnWrite, HList<HRegister> subregisters) : id (0), type (type), track (track), parentId (0), name (name), size (size), offset (offset), clearParentOnWrite (clearParentOnWrite), subregisters (subregisters) {};
+		HRegister (HString name, HRegType type, HRegTrackType track, size_t size, size_t offset, bool clearParentOnWrite, HList<HRegister> subregisters) : id (0), type (type), track (track), directParentId(0), parentId(0), name (name), size (size), offset (offset), clearParentOnWrite (clearParentOnWrite), subregisters (subregisters) {};
 
-		HRegister (const HRegister& reg) : id (0), type (reg.type), track (reg.track), name (reg.name), size (reg.size), offset (reg.offset), clearParentOnWrite (reg.clearParentOnWrite), subregisters (reg.subregisters) {}
-		HRegister (const HRegister&& reg) : id (0), type (reg.type), track (reg.track), name (reg.name), size (reg.size), offset (reg.offset), clearParentOnWrite (reg.clearParentOnWrite), subregisters (reg.subregisters) {}
+		HRegister (const HRegister& reg) : id (0), type (reg.type), track (reg.track), directParentId(0), parentId(0), name (reg.name), size (reg.size), offset (reg.offset), clearParentOnWrite (reg.clearParentOnWrite), subregisters (reg.subregisters) {}
+		HRegister (const HRegister&& reg) : id (0), type (reg.type), track (reg.track), directParentId(0), parentId(0), name (reg.name), size (reg.size), offset (reg.offset), clearParentOnWrite (reg.clearParentOnWrite), subregisters (reg.subregisters) {}
 
 		HRegister* addRegister (HRegister* reg);
 		HRegister* getRegister (const HString string);
