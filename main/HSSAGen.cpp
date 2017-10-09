@@ -387,14 +387,6 @@ namespace holodec {
 
 		exprId = replaceArg (exprId);
 
-		exprId.print (arch);
-		printf ("\n");
-		printf ("type: 0x%x\n", exprId.type);
-
-		if (exprId.type == HIR_ARGTYPE_ID) {
-			arch->getIrExpr (exprId.id)->print (arch, 1, true);
-		}
-
 		switch (exprId.type) {
 		default:
 			return exprId;

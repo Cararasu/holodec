@@ -21,8 +21,6 @@ void holodec::HFunctionAnalyzer::prepareBuffer (uint64_t addr) {
 bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 	/*if (state.function->findBasicBlockDeep (instruction->addr + instruction->size))
 		return false;*/
-	printf("0x%x\n", instruction->addr);
-	instruction->print(arch);
 	state.instructions.push_back (*instruction);
 	if (analyzeWithIR && ssaGen.parseInstruction(instruction)) {
 		if (ssaGen.endOfBlock) {
@@ -32,7 +30,6 @@ bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 				addAddressToAnalyze (instruction->nojumpdest);
 			return false;
 		}
-	printf("0x%x\n", instruction->addr);
 		return instruction->nojumpdest ? !trySplitBasicBlock(instruction->nojumpdest) : true;
 	}
 

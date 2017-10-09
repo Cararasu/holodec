@@ -23,7 +23,7 @@ namespace holodec {
 	struct HCallingConvention {
 		HId id;
 		HString name;
-		HList<HString> savedRegs;
+		HList<HString> callerSaved;
 		HString parameters[H_CC_PARA_MAX][H_CC_MAX_ARGS];
 		HString parameterCount;
 		HString returns[H_CC_PARA_MAX][H_CC_MAX_ARGS];

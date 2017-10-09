@@ -188,7 +188,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		},*/
 		{
 			0, "vectorcall",
-			{"rax", "rcx", "rdx", "r8", "r9", "r10", "r11"},
+			{"rax", "rcx", "rdx", "r8", "r9", "r10", "r11", "cs"},
 			{{"rcx", "rdx", "r8", "r9"}, {"xmm0", "xmm1", "xmm2", "xmm3"}, {"xmm0", "xmm1", "xmm2", "xmm3"}, {"ymm0", "ymm1", "ymm2", "ymm3"}},
 			nullptr,
 			{{"rax"}, {"xmm0"}, {"xmm0"}, {"ymm0"}},
@@ -197,7 +197,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		},
 		{
 			0, "amd64",
-			{"rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11", "rflags"},
+			{"rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11", "rflags", "cs"},
 			{{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}, {"xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5"}, {0}, {0}},
 			"rax",
 			{{"rax", "rdx"}, {"rax", "rdx"}, {0}, {0}},
