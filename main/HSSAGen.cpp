@@ -256,7 +256,11 @@ namespace holodec {
 		
 		ssaRepresentation->expressions.add (*expression);
 		activeblock->exprIds.push_back (ssaRepresentation->expressions.back().id);
-		return ssaRepresentation->expressions.back().id;
+		
+		HId newId = ssaRepresentation->expressions.back().id;
+		if(expression->type == HSSA_EXPR_OP)
+			lastOp = newId;
+		return newId;
 	}
 	void HSSAGen::reset() {
 		ssaRepresentation = nullptr;
@@ -276,7 +280,9 @@ namespace holodec {
 		activeblock->endaddr = addr;
 	}
 	void HSSAGen::setupForInstr() {
+		
 		endOfBlock = false;
+		instruction = nullptr;
 		arguments.clear();
 		tmpdefs.clear();
 	}
@@ -376,9 +382,10 @@ namespace holodec {
 		return true;
 	}
 	HArgument HSSAGen::parseExpression (HArgument exprId) {
-
+			
 		exprId = replaceArg (exprId);
-
+		
+		
 		switch (exprId.type) {
 		default:
 			return exprId;
@@ -391,7 +398,7 @@ namespace holodec {
 			expression.type = HSSA_EXPR_LOAD;
 			expression.exprtype = HSSA_TYPE_UINT;
 			expression.size = exprId.size;
-			expression.subExpressions.add (HArgument::createIndex(H_ARGTYPE_MEM,0));
+			expression.subExpressions.add (HArgument::createMem(0));
 			expression.subExpressions.add (parseMemArgToExpr (exprId));
 			expression.subExpressions.add (HArgument::createVal (exprId.size, arch->bitbase));
 			return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
@@ -409,7 +416,7 @@ namespace holodec {
 		}
 		case HIR_ARGTYPE_ID: {
 			HIRExpression* expr = arch->getIrExpr (exprId.id);
-
+			
 			size_t subexpressioncount = expr->subExpressions.size();
 
 			if (expr->type == HIR_EXPR_UNDEF) { //undef
@@ -505,7 +512,7 @@ namespace holodec {
 					expression.type = HSSA_EXPR_STORE;
 					expression.exprtype = HSSA_TYPE_MEM;
 					expression.size = 0;
-					expression.subExpressions.add (HArgument::createIndex(H_ARGTYPE_MEM,0));
+					expression.subExpressions.add (HArgument::createMem(0));
 					expression.subExpressions.add (parseMemArgToExpr (dstArg));
 				}
 					break;
@@ -612,8 +619,7 @@ namespace holodec {
 					for (int i = 0; i < subexpressioncount; i++) {
 						expression.subExpressions.add (parseExpression (expr->subExpressions[i]));
 					}
-					lastOp = addExpression (&expression);
-					return HArgument::createId (HSSA_ARGTYPE_ID, lastOp, expression.size);
+					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
 				}
 				// Call - Return
 				case HIR_EXPR_CALL:  {
@@ -734,7 +740,7 @@ namespace holodec {
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = expr->subExpressions[1].size;
 					assert (subexpressioncount == 2);
-					expression.subExpressions.add (HArgument::createIndex(H_ARGTYPE_MEM,0));
+					expression.subExpressions.add (HArgument::createMem(0));
 					expression.subExpressions.add (parseExpression (expr->subExpressions[0]));
 					expression.subExpressions.add (parseExpression (expr->subExpressions[1]));
 					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
@@ -763,7 +769,7 @@ namespace holodec {
 						expression.type = HSSA_EXPR_STORE;
 						expression.exprtype = HSSA_TYPE_MEM;
 						expression.size = 0;
-						expression.subExpressions.add (HArgument::createIndex(H_ARGTYPE_MEM,0));
+						expression.subExpressions.add (HArgument::createMem(0));
 						expression.subExpressions.add (HArgument::createReg (reg));
 						expression.subExpressions.add (value);
 
@@ -806,7 +812,7 @@ namespace holodec {
 						expression.type = HSSA_EXPR_LOAD;
 						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = stack->wordbitsize * sizeadjust.uval;
-						expression.subExpressions.add (HArgument::createIndex(H_ARGTYPE_MEM,0));
+						expression.subExpressions.add (HArgument::createMem(0));
 						expression.subExpressions.add (HArgument::createReg (reg));
 						expression.subExpressions.add (sizeadjust);
 
@@ -913,7 +919,7 @@ namespace holodec {
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 
-					expression.subExpressions.add (HArgument::createId (HSSA_ARGTYPE_ID, lastOp, ssaRepresentation->expressions.get (lastOp)->size));
+					expression.subExpressions.add (HArgument::createId (HSSA_ARGTYPE_ID, lastOp, ssaRepresentation->expressions[lastOp].size));
 					return HArgument::createId (HSSA_ARGTYPE_ID, addExpression (&expression), expression.size);
 				}
 				}

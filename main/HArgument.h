@@ -20,7 +20,6 @@ namespace holodec {
 #define H_ARGTYPE_FLOAT		0x00008
 
 #define HIR_ARGTYPE_ID 		0x10001
-#define HIR_ARGTYPE_INSTR 	0x10002
 #define HIR_ARGTYPE_ARG 	0x10003
 #define HIR_ARGTYPE_TMP 	0x10004
 #define HIR_ARGTYPE_MEMOP	0x10005
@@ -38,11 +37,26 @@ namespace holodec {
 		HArgSInt scale;
 		HArgSInt disp;
 	};
+	bool inline operator==(HArgMem& lhs, HArgMem& rhs){
+		return lhs.segment == rhs.segment && lhs.base == rhs.base && lhs.index == rhs.index && lhs.scale == rhs.scale && lhs.disp == rhs.disp;
+	}
+	bool inline operator!=(HArgMem& lhs, HArgMem& rhs){
+		return !(lhs == rhs);
+	}
 	struct HArgStck {
 		HId id;//id of the stack
 		HId index;//index into the stack or 0 for whole stack
 	};
+	bool inline operator==(HArgStck& lhs, HArgStck& rhs){
+		return lhs.id == rhs.id && lhs.index == rhs.index;
+	}
+	bool inline operator!=(HArgStck& lhs, HArgStck& rhs){
+		return !(lhs == rhs);
+	}
 	struct HArgument {
+		uint64_t type = 0;
+		HId id = 0;
+		uint64_t size = 0;
 		union { //ordered first because of tighter memory layout
 			HArgSInt sval;
 			HArgUInt uval;
@@ -52,9 +66,6 @@ namespace holodec {
 			HId index;
 			HArgStck stack;
 		};
-		HId id = 0;
-		uint64_t size = 0;
-		uint64_t type = 0;
 
 		bool operator!() {
 			return !type;
@@ -89,7 +100,7 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline HArgument createMem (HRegister* segment, HRegister* base, HRegister* index, HArgSInt scale, HArgSInt disp, uint64_t size) {
+		static inline HArgument createMemOp (HRegister* segment, HRegister* base, HRegister* index, HArgSInt scale, HArgSInt disp, uint64_t size) {
 			HArgument arg;
 			arg.type = HIR_ARGTYPE_MEMOP;
 			arg.mem.segment = segment ? segment->id : 0;
@@ -114,6 +125,13 @@ namespace holodec {
 			arg.size = 0;
 			return arg;
 		}
+		static inline HArgument createMem (HId index) {
+			HArgument arg;
+			arg.type = H_ARGTYPE_MEM;
+			arg.index = index;
+			arg.size = 0;
+			return arg;
+		}
 		static inline HArgument createReg (HRegister* reg, HId id = 0) {
 			HArgument arg;
 			arg.type = H_ARGTYPE_REG;
@@ -133,22 +151,42 @@ namespace holodec {
 
 		void print (HArchitecture* arch);
 	};
+
+
 	inline bool operator== (HArgument& lhs, HArgument& rhs) {
-		if (lhs.type == rhs.type) {
+		if (lhs.type == rhs.type && lhs.id == rhs.id && lhs.size == rhs.size) {
 			switch (lhs.type) {
 			case H_ARGTYPE_SINT:
-				return lhs.sval == rhs.sval && lhs.size == rhs.size;
+				return lhs.sval == rhs.sval;
 			case H_ARGTYPE_UINT:
-				return lhs.uval == rhs.uval && lhs.size == rhs.size;
+				return lhs.uval == rhs.uval;
 			case H_ARGTYPE_FLOAT:
-				return lhs.fval == rhs.fval && lhs.size == rhs.size;
+				return lhs.fval == rhs.fval;
+			case H_ARGTYPE_REG:
+				return lhs.reg == rhs.reg;
+			case H_ARGTYPE_STACK:
+				return lhs.stack == rhs.stack;
+			case H_ARGTYPE_MEM:
+			case HIR_ARGTYPE_ARG:
+			case HIR_ARGTYPE_TMP:
+				return lhs.index == rhs.index;
+			case HIR_ARGTYPE_MEMOP:
+				return lhs.mem == rhs.mem;
+			case HSSA_ARGTYPE_BLOCK:
+			case HSSA_ARGTYPE_ID:
+			case HIR_ARGTYPE_ID:
+				return true;
+			default:
+				return false;
 			}
+			return true;
 		}
 		return false;
 	}
 	inline bool operator!= (HArgument& lhs, HArgument& rhs) {
 		return ! (lhs == rhs);
 	}
+
 }
 
 #endif //H_ARGUMENT_H

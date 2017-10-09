@@ -116,7 +116,7 @@ namespace holodec {
 		};
 		HId regId = 0;
 		HArgStck stackId = {0,0};
-		uint64_t instrAddr;
+		uint64_t instrAddr = 0;
 		
 		HLocalBackedList<HArgument, HSSA_LOCAL_USEID_MAX> subExpressions;
 
@@ -129,7 +129,7 @@ namespace holodec {
 		void print(HArchitecture* arch, int indent = 0);
 	};
 	inline bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype && lhs.regId == rhs.regId && lhs.stackId == rhs.stackId) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
 				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 					if (lhs.subExpressions[i] != rhs.subExpressions[i])

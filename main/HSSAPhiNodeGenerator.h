@@ -39,7 +39,8 @@ namespace holodec {
 		
 		BasicBlockWrapper* getWrapper(HId id){
 			for(BasicBlockWrapper& wrapper : bbwrappers){
-				return &wrapper;
+				if(wrapper.ssaBB->id == id)
+					return &wrapper;
 			}
 			return nullptr;
 		}

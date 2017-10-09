@@ -53,6 +53,7 @@ bool holox86::Hx86FunctionAnalyzer::terminate() {
 void analyzeInstruction (HInstruction* instr, size_t addr, cs_insn *insn);
 
 void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
+	printf("go analyze\n");
 	cs_insn *insn;
 	size_t count;
 
@@ -99,6 +100,7 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 			running = false;
 		}
 	} while (running);
+	printf("end analyze\n");
 
 }
 
@@ -132,7 +134,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 			uint64_t disp = 0;
 			HRegister* baseReg;
 			if (x86.operands[i].mem.base == X86_REG_RIP || x86.operands[i].mem.base == X86_REG_EIP) {
-				arg = HArgument::createMem ( //HRegister* segment, HRegister* base, HRegister* index
+				arg = HArgument::createMemOp ( //HRegister* segment, HRegister* base, HRegister* index
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
 						arch->getRegister (0),
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),
@@ -140,7 +142,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 						x86.operands[i].size * 8
 					);
 			} else {
-				arg = HArgument::createMem ( //HRegister* segment, HRegister* base, HRegister* index
+				arg = HArgument::createMemOp ( //HRegister* segment, HRegister* base, HRegister* index
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base)),
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),

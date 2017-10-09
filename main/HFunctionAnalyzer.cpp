@@ -21,7 +21,6 @@ void holodec::HFunctionAnalyzer::prepareBuffer (uint64_t addr) {
 bool holodec::HFunctionAnalyzer::postInstruction (HInstruction* instruction) {
 	/*if (state.function->findBasicBlockDeep (instruction->addr + instruction->size))
 		return false;*/
-
 	state.instructions.push_back (*instruction);
 	if (analyzeWithIR && ssaGen.parseInstruction(instruction)) {
 		if (ssaGen.endOfBlock) {
@@ -136,7 +135,9 @@ void holodec::HFunctionAnalyzer::analyzeFunction (HFunction* function) {
 			continue;
 
 		ssaGen.activateBlock (ssaGen.createNewBlock());
+		
 		analyzeInsts (addr);
+		
 
 		if (!state.instructions.empty()) {
 			HInstruction* firstI = &state.instructions.front();
