@@ -3,6 +3,7 @@
 
 #include "HString.h"
 #include "HGeneral.h"
+#include "HId.h"
 
 namespace holodec {
 
@@ -17,18 +18,24 @@ namespace holodec {
 		H_CC_PARA_VEC256,
 		H_CC_PARA_MAX
 	};
-	
-	struct HCCParameter{
-		HString reg[H_CC_PARA_MAX];
-	};
+#define H_CC_MAX_ARGS (16)
+
 	struct HCallingConvention {
+		HId id;
 		HString name;
 		HList<HString> savedRegs;
-		HList<HCCParameter> parameters;
+		HString parameters[H_CC_PARA_MAX][H_CC_MAX_ARGS];
 		HString parameterCount;
-		HList<HCCParameter> returns;
+		HString returns[H_CC_PARA_MAX][H_CC_MAX_ARGS];
 		HString stack;
 		HCCStackPolicy stackPolicy;
+		
+		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer) {
+			HId newid = gen->next();
+			if (replacer)
+				replacer (id, newid);
+			id = newid;
+		}
 	};
 	
 }

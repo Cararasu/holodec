@@ -68,6 +68,7 @@ namespace holodec {
 	struct HFunction {
 		HId id;
 		HId symbolref;
+		HId callingconvention;
 		uint64_t baseaddr;
 		HIdList<HBasicBlock> basicblocks;
 		HIdList<HJumpTable> jumptables;

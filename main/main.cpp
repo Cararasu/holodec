@@ -10,6 +10,7 @@
 #include "HSSAGen.h"
 #include "HSSAPhiNodeGenerator.h"
 #include "HSSAAddressToBlockTransformer.h"
+#include "HSSACallingConvApplier.h"
 
 using namespace holodec;
 
@@ -79,14 +80,19 @@ int main (int argc, char** argv) {
 		binary->getFunction (functionid)->print (&holox86::x86architecture);
 	}
 
-	HSSATransformer* transformer1 = new HSSAPhiNodeGenerator();
-	HSSATransformer* transformer2 = new HSSAAddressToBlockTransformer();
+	HSSATransformer* transformer1 = new HSSAAddressToBlockTransformer();
+	HSSATransformer* transformer2 = new HSSAPhiNodeGenerator();
+	HSSATransformer* transformer3 = new HSSACallingConvApplier();
 
 	transformer1->arch = &holox86::x86architecture;
 	transformer2->arch = &holox86::x86architecture;
+	transformer3->arch = &holox86::x86architecture;
 	for (HFunction& function : binary->functions) {
-		transformer2->doTransformation (&function);
+		
 		transformer1->doTransformation (&function);
+		transformer2->doTransformation (&function);
+		function.callingconvention = holox86::x86architecture.getCallingConvention("amd64")->id;
+		transformer3->doTransformation (&function);
 		function.print (&holox86::x86architecture);
 	}
 	return 0;

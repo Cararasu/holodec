@@ -26,7 +26,7 @@ namespace holodec {
 
 		HIdList<HStack> stacks;
 
-		HList<HCallingConvention> callingconventions;
+		HIdList<HCallingConvention> callingconventions;
 
 		HIdMap<HId, HInstrDefinition> instrdefs;
 
@@ -104,6 +104,15 @@ namespace holodec {
 			if(string){
 				for(HCallingConvention& cc : callingconventions){
 					if(string == cc.name)
+						return &cc;
+				}
+			}
+			return nullptr;
+		}
+		HCallingConvention* getCallingConvention(const HId id){
+			if(id){
+				for(HCallingConvention& cc : callingconventions){
+					if(id == cc.id)
 						return &cc;
 				}
 			}
