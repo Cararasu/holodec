@@ -22,6 +22,7 @@ namespace holodec {
 		HId activeBlockId = 0;
 		HId lastOp = 0;
 		bool endOfBlock = false;
+		bool fallthrough = false;
 
 		HSSABB* activeblock = nullptr;
 

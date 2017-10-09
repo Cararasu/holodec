@@ -67,8 +67,9 @@ namespace holodec {
 			size_t count = list.size();
 			if (count >= id) {//optimization for access
 				T& val = list[id - 1];
-				if (val.id == id)//quick return
+				if (val.id == id) {//quick return
 					return &list[id - 1];
+				}
 
 				if (val.id < id) {
 					auto it = list.begin() + id;

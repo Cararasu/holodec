@@ -167,14 +167,35 @@ namespace holodec {
 
 
 	struct HSSARepresentation {
-		HList<HId> inputs;
 		HIdList<HSSABB> bbs;
 		HIdList<HSSAExpression> expressions;
 
 		void clear(){
-			inputs.clear();
 			bbs.clear();
 			expressions.clear();
+		}
+
+		void replaceNode(HId origId, HId targetId){
+			for(HSSAExpression& expr : expressions){
+				for(int i = 0; i < expr.subExpressions.size(); i++){
+					HArgument& arg = expr.subExpressions[i];
+					if(arg.id == origId){
+						arg.id = targetId;
+					}
+				}
+			}
+		}
+		void replaceNodes(HList<std::pair<HId,HId>>* replacements){
+			for(HSSAExpression& expr : expressions){
+				for(int i = 0; i < expr.subExpressions.size(); i++){
+					HArgument& arg = expr.subExpressions[i];
+					for(std::pair<HId,HId>& rep : *replacements){
+						if(arg.id == rep.first){
+							arg.id = rep.second;
+						}
+					}
+				}
+			}
 		}
 
 		void print (HArchitecture* arch, int indent = 0);

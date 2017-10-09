@@ -222,16 +222,7 @@ namespace holodec {
 				++it;
 			}
 		}
-		for(HSSAExpression& expr : function->ssaRep.expressions){
-			for(int i = 0; i < expr.subExpressions.size(); i++){
-				HArgument& arg = expr.subExpressions[i];
-				for(std::pair<HId,HId>& rep : replacements){
-					if(arg.id == rep.first){
-						arg.id = rep.second;
-					}
-				}
-			}
-		}
+		function->ssaRep.replaceNodes(&replacements);
 	}
 
 	void HSSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, HRegister* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount, bool* visitedOrigin) {

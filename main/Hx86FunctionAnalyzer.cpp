@@ -53,7 +53,7 @@ bool holox86::Hx86FunctionAnalyzer::terminate() {
 void analyzeInstruction (HInstruction* instr, size_t addr, cs_insn *insn);
 
 void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
-	printf("go analyze\n");
+	printf("go analyze 0x%x\n", addr);
 	cs_insn *insn;
 	size_t count;
 
