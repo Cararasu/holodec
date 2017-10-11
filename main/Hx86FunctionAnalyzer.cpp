@@ -133,6 +133,9 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 		case X86_OP_MEM: {
 			uint64_t disp = 0;
 			HRegister* baseReg;
+			if(x86.operands[i].mem.segment == X86_REG_INVALID)
+				x86.operands[i].mem.segment = X86_REG_CS;
+			
 			if (x86.operands[i].mem.base == X86_REG_RIP || x86.operands[i].mem.base == X86_REG_EIP) {
 				arg = HArgument::createMemOp ( //HRegister* segment, HRegister* base, HRegister* index
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
@@ -158,7 +161,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 		default:
 			printf ("Invalid ...\n");
 		}
-		instruction->operands.add (arg);
+		instruction->operands.push_back (arg);
 	}
 }
 

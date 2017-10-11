@@ -1,6 +1,7 @@
 #include "HSSACallingConvApplier.h"
 #include "HCallingConvention.h"
 #include "HArchitecture.h"
+#include <assert.h>
 
 namespace holodec{
 	
@@ -8,93 +9,133 @@ namespace holodec{
 		
 		HCallingConvention* cc = arch->getCallingConvention(function->callingconvention);
 		
+		HStack* stack = cc->stack ? arch->getStack(cc->stack) : nullptr;
+		HRegister* stackreg = stack && stack->trackingReg ? arch->getRegister(stack->trackingReg) : nullptr;
+		
 		for(HSSAExpression& expr : function->ssaRep.expressions){
-			if(expr.type == HSSA_EXPR_CALL){
+			if(expr.type == HSSA_EXPR_OUTPUT){
+				//TODO get Call method and get the calling convention of the target
+				//currently HACK to use own calling convention
+				HSSAExpression* callExpr = function->ssaRep.expressions.get(expr.subExpressions[0].id);
+				assert(callExpr && callExpr->type == HSSA_EXPR_CALL);
+				
+				//TODO get correct stackreg
+				HRegister* localStackReg = stackreg;
+				
 				bool isParam = false;
-				for(HString& regStr : cc->callerSaved){
+				
+				for(HString& regStr : cc->nonVolatileReg){
 					HRegister* reg = arch->getRegister(regStr);
-					if(expr.id == reg->id){
-						//leave the arg
-						isParam = true;
-					}
-				}
-				for(int i = 0; i < H_CC_PARA_MAX; i++){
-					for(int j = 0; j < H_CC_MAX_ARGS; j++){
-						if(cc->parameters[i][j]){
-							HRegister* reg = arch->getRegister(cc->parameters[i][j]);
-							if(expr.id == reg->id){
-								//leave the arg
-								isParam = true;
-								break;
+					if(expr.regId == reg->id){
+						assert(expr.subExpressions[0].type == HSSA_ARGTYPE_ID);
+						
+						expr.type = HSSA_EXPR_ASSIGN;
+						for (HArgument& arg : callExpr->subExpressions) {
+							if(arg.type == H_ARGTYPE_REG && arg.reg == expr.regId){
+								expr.subExpressions[0] = arg; 
 							}
 						}
+						isParam = true;
+						break;
 					}
+				}
+				if(!isParam && localStackReg && expr.regId == localStackReg->id && cc->callerstackadjust == H_CC_STACK_ADJUST_CALLEE){
+					expr.type = HSSA_EXPR_ASSIGN;
+					for (HArgument& arg : callExpr->subExpressions) {
+						if(arg.type == H_ARGTYPE_REG && arg.reg == expr.regId){
+							expr.subExpressions[0] = arg; 
+						}
+					}
+					//leave the arg
+					isParam = true;
 				}
 				if(!isParam){
-					//remove from arg list
-				}
-			}
-			if(expr.type == HSSA_EXPR_OUTPUT){
-				bool isParam = false;
-				for(HString& regStr : cc->callerSaved){
-					HRegister* reg = arch->getRegister(regStr);
-					if(expr.id == reg->id){
-						//make an assignment
-						isParam = true;
-					}
-				}
-				for(int i = 0; i < H_CC_PARA_MAX; i++){
-					for(int j = 0; j < H_CC_MAX_ARGS; j++){
-						if(cc->returns[i][j]){
-							HRegister* reg = arch->getRegister(cc->returns[i][j]);
-							if(expr.id == reg->id){
-								//leave as return
-								isParam = true;
-							}
+					for(HCCParameter& para : cc->returns){
+						HRegister* reg = arch->getRegister(para.regname);
+						if(expr.regId == reg->id){
+							expr.subExpressions.push_back(HArgument::createVal((uint64_t)para.index,arch->bitbase));
+							isParam = true;
+							break;
 						}
 					}
 				}
 				if(!isParam){
 					expr.type = HSSA_EXPR_UNDEF;
+					if(!expr.subExpressions.empty())
+						expr.subExpressions.clear();
 				}
 			}
 			if(expr.type == HSSA_EXPR_RETURN){
-				bool isParam = false;
-				for(int i = 0; i < H_CC_PARA_MAX; i++){
-					for(int j = 0; j < H_CC_MAX_ARGS; j++){
-						if(cc->returns[i][j]){
-							HRegister* reg = arch->getRegister(cc->returns[i][j]);
-							if(expr.id == reg->id){
-								//leave as arg
-								isParam = true;
-							}
+				for(auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();){
+					HArgument& arg = *it;
+					bool isParam = false;
+					for(HCCParameter& para : cc->returns){
+						HRegister* reg = arch->getRegister(para.regname);
+						if(arg.reg == reg->id){
+							//leave as arg
+							isParam = true;
+							break;
 						}
 					}
-				}
-				if(!isParam){
-					//remove arg
+					if(!isParam){
+						expr.subExpressions.erase(it);
+						continue;
+					}
+					it++;
 				}
 			}
 			if(expr.type == HSSA_EXPR_INPUT){
+				
 				bool isParam = false;
-				for(int i = 0; i < H_CC_PARA_MAX; i++){
-					for(int j = 0; j < H_CC_MAX_ARGS; j++){
-						if(cc->parameters[i][j]){
-							HRegister* reg = arch->getRegister(cc->parameters[i][j]);
-							if(expr.id == reg->id){
-								expr.subExpressions.add(HArgument::createVal((uint64_t)i,arch->bitbase));
-								isParam = true;
-								break;
-							}
-						}
+				for(HCCParameter& para : cc->parameters){
+					HRegister* reg = arch->getRegister(para.regname);
+					if(expr.regId == reg->id){
+						expr.subExpressions.push_back(HArgument::createVal((uint64_t)para.index, arch->bitbase));
+						isParam = true;
+						break;
 					}
+				}
+				if(!isParam && expr.regId == stackreg->id){
+					expr.subExpressions.push_back(HArgument::createVal((uint64_t)0, arch->bitbase));
+					isParam = true;
 				}
 				if(!isParam){
 					expr.type = HSSA_EXPR_UNDEF;
+					if(!expr.subExpressions.empty())
+						expr.subExpressions.clear();
 				}
 			}
 		}
 		
+		for(HSSAExpression& expr : function->ssaRep.expressions){
+			if(expr.type == HSSA_EXPR_CALL){
+				//TODO get the calling convention of the target
+				//currently HACK to use own calling convention
+				
+				for(auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();){
+					HArgument& arg = *it;
+					bool isParam = false;
+					for(HCCParameter& para : cc->parameters){
+						HRegister* reg = arch->getRegister(para.regname);
+						if(arg.reg == reg->id){
+							//leave the arg
+							isParam = true;
+							break;
+						}
+					}
+					if(!isParam && stackreg && arg.reg == stackreg->id){
+						//leave the arg
+						isParam = true;
+					}
+					if(!isParam){
+						//remove from arg list
+						expr.subExpressions.erase(it);
+						continue;
+					}
+					it++;
+				}
+			}
+		}
 		
 	}
 }

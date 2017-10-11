@@ -6,6 +6,7 @@
 #include "HStack.h"
 #include "HRegister.h"
 #include "HArgument.h"
+#include "HGeneral.h"
 
 #define HSSA_LOCAL_USEID_MAX (4)
 
@@ -118,7 +119,8 @@ namespace holodec {
 		HArgStck stackId = {0,0};
 		uint64_t instrAddr = 0;
 		
-		HLocalBackedList<HArgument, HSSA_LOCAL_USEID_MAX> subExpressions;
+		//HLocalBackedList<HArgument, HSSA_LOCAL_USEID_MAX> subExpressions;
+		HList<HArgument> subExpressions;
 
 		bool operator!() {
 			return type == HSSA_EXPR_INVALID;
@@ -175,26 +177,60 @@ namespace holodec {
 			expressions.clear();
 		}
 
-		void replaceNode(HId origId, HId targetId){
+		void replaceNode(HId origId, HArgument target){
 			for(HSSAExpression& expr : expressions){
-				for(int i = 0; i < expr.subExpressions.size(); i++){
-					HArgument& arg = expr.subExpressions[i];
+				for (HArgument& arg : expr.subExpressions) {
 					if(arg.id == origId){
-						arg.id = targetId;
+						arg.id = target;
 					}
 				}
 			}
 		}
-		void replaceNodes(HList<std::pair<HId,HId>>* replacements){
-			for(HSSAExpression& expr : expressions){
-				for(int i = 0; i < expr.subExpressions.size(); i++){
-					HArgument& arg = expr.subExpressions[i];
-					for(std::pair<HId,HId>& rep : *replacements){
-						if(arg.id == rep.first){
-							arg.id = rep.second;
+		void replaceNodes(HList<std::pair<HId,HArgument>>* replacements){
+			bool replaced = false;
+			do{
+				replaced = false;
+				for(HSSAExpression& expr : expressions){
+					for (HArgument& arg : expr.subExpressions) {
+						for(std::pair<HId,HArgument>& rep : *replacements){
+							if(arg.id == rep.first){
+								arg = rep.second;
+								replaced = true;
+							}
 						}
 					}
 				}
+			}while(replaced);
+			
+			for(HSSABB& bb : bbs){
+				for(auto it = bb.exprIds.begin(); it != bb.exprIds.end();){
+					HId id = *it;
+					bool erased = false;
+					for(std::pair<HId,HArgument>& rep : *replacements){
+						if(rep.first == id){
+							bb.exprIds.erase(it);
+							erased = true;
+							break;
+						}
+					}
+					if(erased)
+						continue;
+					it++;
+				}
+			}
+			for(auto it = expressions.begin(); it != expressions.end();){
+				HSSAExpression& expr = *it;
+				bool erased = false;
+				for(std::pair<HId,HArgument>& rep : *replacements){
+					if(expr.id == rep.first){
+						expressions.erase(it);
+						erased = true;
+						break;
+					}
+				}
+				if(erased)
+					continue;
+				it++;
 			}
 		}
 

@@ -62,16 +62,16 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{"fs", H_REG_SEGMENT, H_REG_TRACK_VOLATILE, 16, 0},
 		{"gs", H_REG_SEGMENT, H_REG_TRACK_VOLATILE, 16, 0},
 
-/*Do we need debug registers? maybe not
-		{"dr0", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr1", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr2", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr3", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0},
-		{"dr4", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr5", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr6", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr7", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0},
-		{"dr8",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr9",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr10",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr11",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0},
-		{"dr12",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr13",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr14",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr15",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0},
-*/
-/*Do we need control registers? maybe not
-		{"cr0",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr1",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr2",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr3",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0},
-		{"cr4",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr5",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr6",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr7",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0},
-*/
+		/*Do we need debug registers? maybe not
+				{"dr0", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr1", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr2", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr3", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0},
+				{"dr4", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr5", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr6", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr7", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0},
+				{"dr8",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr9",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr10",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr11",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0},
+				{"dr12",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr13",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr14",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr15",  H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0},
+		*/
+		/*Do we need control registers? maybe not
+				{"cr0",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr1",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr2",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr3",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0},
+				{"cr4",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr5",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr6",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0}, {"cr7",  H_REG_CONTROL, H_REG_TRACK_VOLATILE, 32, 0},
+		*/
 
 //sw,cw,tw,fp_ip,...
 
@@ -107,7 +107,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{"zmm29", H_REG_VEC, 512, 0, true},
 		{"zmm30", H_REG_VEC, 512, 0, true},
 		{"zmm31", H_REG_VEC, 512, 0, true},
-		
+
 		//the mmx registers share the lower 64 bits of the st[n], but we ignore this dependency, because they shouldn't normally be used together
 		{"mm0", H_REG_FLOAT, 64, 0},
 		{"mm1", H_REG_FLOAT, 64, 0},
@@ -134,7 +134,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 			"mem",//name
 			H_STACK_MEMORY,//what backs the memory
 			H_STACKPOLICY_BOTTOM,//where to add new elements
-			0,8,//maxcount(0 = infinite), wordbitsize
+			0, 8, //maxcount(0 = infinite), wordbitsize
 			"rsp"//stackptr
 		},
 		{
@@ -142,7 +142,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 			"st",
 			H_STACK_BUILTIN,
 			H_STACKPOLICY_BOTTOM,
-			8,80,
+			8, 80,
 			nullptr
 		},
 	},
@@ -189,19 +189,35 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{
 			0, "vectorcall",
 			{"rax", "rcx", "rdx", "r8", "r9", "r10", "r11", "cs"},
-			{{"rcx", "rdx", "r8", "r9"}, {"xmm0", "xmm1", "xmm2", "xmm3"}, {"xmm0", "xmm1", "xmm2", "xmm3"}, {"ymm0", "ymm1", "ymm2", "ymm3"}},
+			{
+				{"rcx", H_CC_PARA_INT, 1}, {"rdx", H_CC_PARA_INT, 2}, {"r8", H_CC_PARA_INT, 3}, {"r9", H_CC_PARA_INT, 4},
+				{"zmm0", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 1},
+				{"zmm1", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 2},
+				{"zmm2", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 3},
+				{"zmm3", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 4}
+			},
 			nullptr,
-			{{"rax"}, {"xmm0"}, {"xmm0"}, {"ymm0"}},
+			{{"rax", H_CC_PARA_INT, 1}, {"zmm0", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 1}},
 			"mem",
+			H_CC_STACK_ADJUST_CALLEE,
 			H_CC_STACK_R2L
 		},
 		{
 			0, "amd64",
-			{"rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11", "rflags", "cs"},
-			{{"rdi", "rsi", "rdx", "rcx", "r8", "r9"}, {"xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5"}, {0}, {0}},
+			{"rbp", "rbx", "r12", "r13", "r14", "r15", "cs"},
+			{
+				{"rdi", H_CC_PARA_INT, 1}, {"rsi", H_CC_PARA_INT, 2}, {"rdx", H_CC_PARA_INT, 3}, {"rcx", H_CC_PARA_INT, 4}, {"r8", H_CC_PARA_INT, 5}, {"r9", H_CC_PARA_INT, 6},
+				{"zmm0", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 1},
+				{"zmm1", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 2},
+				{"zmm2", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 3},
+				{"zmm3", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 4},
+				{"zmm4", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 5},
+				{"zmm5", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 6}
+			},
 			"rax",
-			{{"rax", "rdx"}, {"rax", "rdx"}, {0}, {0}},
+			{{"rax", H_CC_PARA_INT, 1}, {"rdx", H_CC_PARA_INT, 2}},
 			"mem",
+			H_CC_STACK_ADJUST_CALLEE,
 			H_CC_STACK_R2L
 		},
 	},
@@ -420,7 +436,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 				{1, "==(#bsize(#arg[1]),32)", "#seq(=(#t[1],#app($edx,$eax)),=($eax,#sdiv(#t[1],#arg[1])),=($edx,#smod(#t[1],#arg[1])),#undef($cf,$of,$sf,$zf,$af,$pf))"},
 			}, H_INSTR_TYPE_DIV
 		},
-		{X86_INS_NOP, "nop", {{0, "#nop"},{1, "#nop"}}},
+		{X86_INS_NOP, "nop", {{0, "#nop"}, {1, "#nop"}}},
 
 		{X86_INS_INC, "inc", {{1, "#seq(=(#arg[1],+(#arg[1],1)),=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a))"}}, H_INSTR_TYPE_ADD},
 		{X86_INS_DEC, "dec", {{1, "#seq(=(#arg[1],-(#arg[1],1)),=($zf,#z),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a))"}}, H_INSTR_TYPE_SUB},

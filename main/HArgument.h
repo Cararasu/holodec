@@ -12,8 +12,9 @@ namespace holodec {
 
 	class HArchitecture;
 
-#define H_ARGTYPE_REG 		0x00001
-#define H_ARGTYPE_STACK		0x00002
+#define H_ARGTYPE_UNKN_REG	0x00001
+#define H_ARGTYPE_REG 		0x00002
+#define H_ARGTYPE_STACK		0x00003
 #define H_ARGTYPE_MEM 		0x00004
 #define H_ARGTYPE_SINT		0x00006
 #define H_ARGTYPE_UINT 		0x00007
@@ -78,6 +79,11 @@ namespace holodec {
 		}
 		static inline HArgument create() {
 			return HArgument();
+		}
+		static inline HArgument createUnknown() {
+			HArgument arg;
+			arg.type = H_ARGTYPE_UNKN_REG;
+			return arg;
 		}
 		static inline HArgument createVal (int64_t val, uint64_t size) {
 			HArgument arg;

@@ -69,7 +69,8 @@ namespace holodec {
 				HId instrId;
 			};
 		} mod;
-		HLocalBackedList<HArgument, HIR_LOCAL_USEID_MAX> subExpressions;
+		//HLocalBackedList<HArgument, HIR_LOCAL_USEID_MAX> subExpressions;
+		HList<HArgument> subExpressions;
 
 		bool operator!() {
 			return type == HIR_EXPR_INVALID;

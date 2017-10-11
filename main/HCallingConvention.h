@@ -11,23 +11,32 @@ namespace holodec {
 		H_CC_STACK_R2L,
 		H_CC_STACK_L2R,
 	};
-	enum HCCParameterType{
-		H_CC_PARA_INT,
-		H_CC_PARA_FLOAT,
-		H_CC_PARA_VEC128,
-		H_CC_PARA_VEC256,
-		H_CC_PARA_MAX
+	enum HCCParameterTypeFlags{
+		H_CC_PARA_INT = 0x1,
+		H_CC_PARA_FLOAT = 0x2,
+		H_CC_PARA_VEC128 = 0x4,
+		H_CC_PARA_VEC256 = 0x8,
+		H_CC_PARA_ALL = 0xF,
 	};
-#define H_CC_MAX_ARGS (16)
+	struct HCCParameter{
+		HString regname;
+		uint32_t typeflags;
+		uint32_t index;
+	};
+	enum HCCStackAdjust{
+		H_CC_STACK_ADJUST_CALLER,
+		H_CC_STACK_ADJUST_CALLEE,
+	};
 
 	struct HCallingConvention {
 		HId id;
 		HString name;
-		HList<HString> callerSaved;
-		HString parameters[H_CC_PARA_MAX][H_CC_MAX_ARGS];
+		HList<HString> nonVolatileReg;
+		HList<HCCParameter> parameters;
 		HString parameterCount;
-		HString returns[H_CC_PARA_MAX][H_CC_MAX_ARGS];
+		HList<HCCParameter> returns;
 		HString stack;
+		bool callerstackadjust;
 		HCCStackPolicy stackPolicy;
 		
 		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer) {

@@ -5,6 +5,7 @@
 #include <functional>
 #include <algorithm>
 #include "HGeneral.h"
+#include <vector>
 
 namespace holodec {
 
@@ -30,6 +31,8 @@ namespace holodec {
 	struct HIdList {
 		HIdGenerator gen;
 		HList<T> list;
+		
+		typedef typename HList<T>::iterator iterator;
 
 		HIdList() {}
 		HIdList (std::initializer_list<T> list) : list (list) {
@@ -39,7 +42,7 @@ namespace holodec {
 			relabel();
 		}
 
-		HId add (T& ele) {
+		HId push_back (T& ele) {
 			ele.id = gen.next();
 			list.push_back (ele);
 			return ele.id;
@@ -60,6 +63,9 @@ namespace holodec {
 		}
 		auto back() -> decltype(list.back()){
 			return list.back();
+		}
+		void erase(iterator it){
+			list.erase(it);
 		}
 		T* get (HId id) {
 			if(!id)

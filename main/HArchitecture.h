@@ -148,7 +148,7 @@ namespace holodec {
 					return expression.id;
 				}
 			}
-			irExpressions.add (expr);
+			irExpressions.push_back (expr);
 			return expr.id;
 		}
 

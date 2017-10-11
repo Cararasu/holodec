@@ -201,8 +201,8 @@ namespace holodec {
 			printf ("Stack %s[%d] ", arch->getStack (stackId.id)->name.cstr(), stackId.index);
 		}
 		printf ("%d = ", id);
-		for (int i = 0; i < subExpressions.size(); i++) {
-			subExpressions[i].print (arch);
+		for (HArgument& arg : subExpressions) {
+			arg.print (arch);
 			printf (", ");
 		}
 		printf ("\n");

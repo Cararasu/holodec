@@ -47,7 +47,7 @@ namespace holodec {
 		HLocalBackedList() = default;
 		HLocalBackedList (std::initializer_list<T> list) {
 			for (const T& ele : list) {
-				add (ele);
+				push_back (ele);
 			}
 		}
 
@@ -56,12 +56,20 @@ namespace holodec {
 				return subexpressions[index];
 			return moreExpressions[index - BASE];
 		}
-		void add (T ele) {
+		void push_back (const T ele) {
 			if (subexprcount < BASE) {
 				subexpressions[subexprcount++] = ele;
 			} else {
 				moreExpressions.push_back (ele);
 				subexprcount++;
+			}
+		}
+		void pop_back () {
+			if (subexprcount < BASE && subexprcount > 0) {
+				subexprcount--;
+			} else if(subexprcount >= BASE) {
+				moreExpressions.pop_back ();
+				subexprcount--;
 			}
 		}
 		size_t size() {

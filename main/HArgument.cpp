@@ -7,6 +7,11 @@ namespace holodec {
 	
 	void HArgument::print (HArchitecture* arch) {
 		switch (type) {
+		case H_ARGTYPE_UNKN_REG:
+			printf ("Undef");
+			if (reg)
+				printf (" reg: %s", arch->getRegister (reg)->name.cstr());
+			break;
 		case H_ARGTYPE_REG:
 			if (reg)
 				printf ("%s", arch->getRegister (reg)->name.cstr());

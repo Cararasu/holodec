@@ -59,9 +59,9 @@ namespace holodec {
 			if (parseCharacter (']')) {
 				HIRExpression expression;
 				expression.type = HIR_EXPR_SPLIT;
-				expression.subExpressions.add (arg);
-				expression.subExpressions.add (offset);
-				expression.subExpressions.add (size);
+				expression.subExpressions.push_back (arg);
+				expression.subExpressions.push_back (offset);
+				expression.subExpressions.push_back (size);
 				return HArgument::createId (HIR_ARGTYPE_ID, arch->addIrExpr (expression), expression.size);
 			}
 			printParseFailure ("']'");
@@ -125,7 +125,7 @@ namespace holodec {
 				i++;
 				HArgument subexpr = parseIRExpression();
 				if (expr && subexpr) {
-					expr->subExpressions.add (subexpr);
+					expr->subExpressions.push_back (subexpr);
 				} else {
 					printf ("%s\n", string.cstr());
 					printf ("%s\n", string.cstr() + index);

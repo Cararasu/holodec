@@ -11,6 +11,7 @@
 #include "HSSAPhiNodeGenerator.h"
 #include "HSSAAddressToBlockTransformer.h"
 #include "HSSACallingConvApplier.h"
+#include "HSSAAssignmentSimplifier.h"
 
 using namespace holodec;
 
@@ -73,27 +74,29 @@ int main (int argc, char** argv) {
 
 	holox86::x86architecture.print();
 
-	for (HId& id : binary->entrypoints) {
-		HId functionid = func_analyzer->analyzeFunction (binary->getSymbol (id));
-
-		printf ("0x%x\n", binary->getFunction (functionid));
-		binary->getFunction (functionid)->print (&holox86::x86architecture);
-	}
 
 	HSSATransformer* transformer1 = new HSSAAddressToBlockTransformer();
-	HSSATransformer* transformer2 = new HSSAPhiNodeGenerator();
-	HSSATransformer* transformer3 = new HSSACallingConvApplier();
+	HSSATransformer* transformer2 = new HSSACallingConvApplier();
+	HSSATransformer* transformer3 = new HSSAPhiNodeGenerator();
+	HSSATransformer* transformer4 = new HSSAAssignmentSimplifier();
 
 	transformer1->arch = &holox86::x86architecture;
 	transformer2->arch = &holox86::x86architecture;
 	transformer3->arch = &holox86::x86architecture;
-	for (HFunction& function : binary->functions) {
+	transformer4->arch = &holox86::x86architecture;
+	
+	for (HId& id : binary->entrypoints) {
+		HId functionid = func_analyzer->analyzeFunction (binary->getSymbol (id));
 		
-		transformer1->doTransformation (&function);
-		transformer2->doTransformation (&function);
-		function.callingconvention = holox86::x86architecture.getCallingConvention("amd64")->id;
-		transformer3->doTransformation (&function);
-		function.print (&holox86::x86architecture);
+		HFunction* func = binary->getFunction(functionid);
+		
+		transformer1->doTransformation (func);
+		func->callingconvention = holox86::x86architecture.getCallingConvention("amd64")->id;
+		transformer2->doTransformation (func);
+		transformer3->doTransformation (func);
+		//from here remove actually expressions
+		transformer4->doTransformation (func);
+		func->print (&holox86::x86architecture);
 	}
 	return 0;
 }

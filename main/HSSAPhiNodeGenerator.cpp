@@ -114,11 +114,11 @@ namespace holodec {
 									newExpr.type = HSSA_EXPR_SPLIT;
 									newExpr.exprtype = HSSA_TYPE_UINT;
 									newExpr.regId = reg->id;
-									newExpr.subExpressions.add (HArgument::createReg (reg, def.ssaId));
-									newExpr.subExpressions.add (HArgument::createVal (reg->offset - def.offset, arch->bitbase));
-									newExpr.subExpressions.add (HArgument::createVal ( (def.offset + def.size) - (reg->offset + reg->size), arch->bitbase));
+									newExpr.subExpressions.push_back (HArgument::createReg (reg, def.ssaId));
+									newExpr.subExpressions.push_back (HArgument::createVal (reg->offset - def.offset, arch->bitbase));
+									newExpr.subExpressions.push_back (HArgument::createVal ( (def.offset + def.size) - (reg->offset + reg->size), arch->bitbase));
 
-									HId newId = function->ssaRep.expressions.add (newExpr);
+									HId newId = function->ssaRep.expressions.push_back (newExpr);
 									it = bbwrapper.ssaBB->exprIds.insert (it, newId);
 
 									expr = function->ssaRep.expressions.get (id); //reload expression in case we have a reallocate
@@ -188,9 +188,9 @@ namespace holodec {
 				phinode.size = reg->size;
 				phinode.instrAddr = wrap.ssaBB->startaddr;
 				for (int i = 0; i < gatheredIdCount; i++) {
-					phinode.subExpressions.add (HArgument::createReg (reg, gatheredIds[i]));
+					phinode.subExpressions.push_back (HArgument::createReg (reg, gatheredIds[i]));
 				}
-				HId exprId = function->ssaRep.expressions.add (phinode);
+				HId exprId = function->ssaRep.expressions.push_back (phinode);
 				wrap.ssaBB->exprIds.insert (wrap.ssaBB->exprIds.begin(), exprId);
 				bool needInOutput = true;
 				for (HSSARegDef& def : wrap.outputs) {
@@ -208,15 +208,16 @@ namespace holodec {
 
 		resolveRegs();
 		
-		HList<std::pair<HId,HId>> replacements;
+		HList<std::pair<HId,HArgument>> replacements;
 		for (BasicBlockWrapper& wrap : bbwrappers) {
 			assert (!wrap.inputs.size());
 			for (auto it = wrap.ssaBB->exprIds.begin(); it != wrap.ssaBB->exprIds.end();){
 				HId id = *it;
 				HSSAExpression* expr = function->ssaRep.expressions.get(id);
 				if(expr->type == HSSA_EXPR_PHI && expr->subExpressions.size() == 1){
-					replacements.push_back({expr->id, expr->subExpressions[0].id});
+					replacements.push_back({expr->id, expr->subExpressions[0]});
 					wrap.ssaBB->exprIds.erase(it);
+					//TODO remove expression from expressionlist
 					continue;
 				}
 				++it;
@@ -250,10 +251,10 @@ namespace holodec {
 			expr.exprtype = HSSA_TYPE_UINT;
 			expr.size = reg->size;
 			expr.regId = reg->id;
-			expr.subExpressions.add (HArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId));
-			expr.subExpressions.add (HArgument::createVal (reg->offset, arch->bitbase));
-			expr.subExpressions.add (HArgument::createVal (reg->size, arch->bitbase));
-			HId exprId = function->ssaRep.expressions.add (expr);
+			expr.subExpressions.push_back (HArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId));
+			expr.subExpressions.push_back (HArgument::createVal (reg->offset, arch->bitbase));
+			expr.subExpressions.push_back (HArgument::createVal (reg->size, arch->bitbase));
+			HId exprId = function->ssaRep.expressions.push_back (expr);
 			for(auto it = wrapper->ssaBB->exprIds.begin(); it != wrapper->ssaBB->exprIds.end(); ++it){
 				if(foundParentDef->ssaId == *it){
 					wrapper->ssaBB->exprIds.insert(++it, exprId);

@@ -84,6 +84,8 @@
       <File Name="HSSAAddressToBlockTransformer.cpp"/>
       <File Name="HSSACallingConvApplier.h"/>
       <File Name="HSSACallingConvApplier.cpp"/>
+      <File Name="HSSAAssignmentSimplifier.h"/>
+      <File Name="HSSAAssignmentSimplifier.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">

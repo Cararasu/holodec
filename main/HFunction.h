@@ -103,7 +103,7 @@ namespace holodec {
 		}
 
 		HId addBasicBlock (HBasicBlock basicblock) {
-			return basicblocks.add (basicblock);
+			return basicblocks.push_back (basicblock);
 		}
 		void clear() {
 			id = 0;
