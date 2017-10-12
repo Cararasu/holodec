@@ -7,12 +7,13 @@
 #include "HId.h"
 #include "HRegister.h"
 #include "HStack.h"
+#include "HMemory.h"
 
 namespace holodec {
 
 	class HArchitecture;
 
-#define H_ARGTYPE_UNKN_REG	0x00001
+#define H_ARGTYPE_UNKN		0x00001
 #define H_ARGTYPE_REG 		0x00002
 #define H_ARGTYPE_STACK		0x00003
 #define H_ARGTYPE_MEM 		0x00004
@@ -55,9 +56,9 @@ namespace holodec {
 		return !(lhs == rhs);
 	}
 	struct HArgument {
-		uint64_t type = 0;
+		uint32_t type = 0;
 		HId id = 0;
-		uint64_t size = 0;
+		uint32_t size = 0;
 		union { //ordered first because of tighter memory layout
 			HArgSInt sval;
 			HArgUInt uval;
@@ -82,7 +83,31 @@ namespace holodec {
 		}
 		static inline HArgument createUnknown() {
 			HArgument arg;
-			arg.type = H_ARGTYPE_UNKN_REG;
+			arg.type = H_ARGTYPE_UNKN;
+			return arg;
+		}
+		static inline HArgument createUnknownReg(HRegister* reg) {
+			HArgument arg;
+			arg.type = H_ARGTYPE_REG;
+			arg.reg = reg->id;
+			return arg;
+		}
+		static inline HArgument createUnknownReg(HId id) {
+			HArgument arg;
+			arg.type = H_ARGTYPE_REG;
+			arg.reg = id;
+			return arg;
+		}
+		static inline HArgument createUnknownMem(HMemory* mem) {
+			HArgument arg;
+			arg.type = H_ARGTYPE_MEM;
+			arg.index = mem->id;
+			return arg;
+		}
+		static inline HArgument createUnknownMem(HId id) {
+			HArgument arg;
+			arg.type = H_ARGTYPE_MEM;
+			arg.index = id;
 			return arg;
 		}
 		static inline HArgument createVal (int64_t val, uint64_t size) {
@@ -131,10 +156,11 @@ namespace holodec {
 			arg.size = 0;
 			return arg;
 		}
-		static inline HArgument createMem (HId index) {
+		static inline HArgument createMem (HMemory* memory, HId id = 0) {
 			HArgument arg;
 			arg.type = H_ARGTYPE_MEM;
-			arg.index = index;
+			arg.index = memory->id;
+			arg.id = id;
 			arg.size = 0;
 			return arg;
 		}

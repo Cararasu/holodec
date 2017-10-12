@@ -35,6 +35,7 @@ namespace holodec {
 		HList<HCCParameter> parameters;
 		HString parameterCount;
 		HList<HCCParameter> returns;
+		
 		HString stack;
 		bool callerstackadjust;
 		HCCStackPolicy stackPolicy;

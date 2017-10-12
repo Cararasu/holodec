@@ -12,6 +12,10 @@ namespace holodec {
 		HId regId, parentId;
 		uint64_t offset, size;
 	};
+	struct HSSAMemDef{
+		HId ssaId;
+		HId memId;
+	};
 	
 	struct BasicBlockWrapper{
 		HSSABB* ssaBB;
@@ -21,6 +25,9 @@ namespace holodec {
 		
 		HList<HSSARegDef> inputs;
 		HList<HSSARegDef> outputs;
+		
+		HList<HSSAMemDef> inputMems;
+		HList<HSSAMemDef> outputMems;
 		
 		void print(HArchitecture* arch);
 	};
@@ -35,7 +42,8 @@ namespace holodec {
 		
 		void resolveRegs();
 		
-		void handleBBs(BasicBlockWrapper* wrapper, HRegister* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount, bool* visitedOrigin);
+		void handleBBs(BasicBlockWrapper* wrapper, HRegister* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount);
+		void handleBBs(BasicBlockWrapper* wrapper, HMemory* mem,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount);
 		
 		BasicBlockWrapper* getWrapper(HId id){
 			for(BasicBlockWrapper& wrapper : bbwrappers){

@@ -52,7 +52,7 @@ bool holox86::Hx86FunctionAnalyzer::terminate() {
 
 void analyzeInstruction (HInstruction* instr, size_t addr, cs_insn *insn);
 
-void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
+bool holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 	printf("go analyze 0x%x\n", addr);
 	cs_insn *insn;
 	size_t count;
@@ -98,10 +98,11 @@ void holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 		} else {
 			printf ("ERROR:: Failed to disassemble given code at address : 0x%x!\n", addr);
 			running = false;
+			return false;
 		}
 	} while (running);
 	printf("end analyze\n");
-
+	return true;
 }
 
 
@@ -145,10 +146,10 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 						x86.operands[i].size * 8
 					);
 			} else {
-				arg = HArgument::createMemOp ( //HRegister* segment, HRegister* base, HRegister* index
+				arg = HArgument::createMemOp (
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
-						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base)),
-						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),
+						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base)),//base
+						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),//index
 						x86.operands[i].mem.scale, x86.operands[i].mem.disp,
 						x86.operands[i].size * 8
 					);

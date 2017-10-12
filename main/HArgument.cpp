@@ -7,10 +7,8 @@ namespace holodec {
 	
 	void HArgument::print (HArchitecture* arch) {
 		switch (type) {
-		case H_ARGTYPE_UNKN_REG:
+		case H_ARGTYPE_UNKN:
 			printf ("Undef");
-			if (reg)
-				printf (" reg: %s", arch->getRegister (reg)->name.cstr());
 			break;
 		case H_ARGTYPE_REG:
 			if (reg)
@@ -21,9 +19,9 @@ namespace holodec {
 		case H_ARGTYPE_STACK:
 			printf ("Stack-%s[%d]", arch->getStack (stack.id)->name.cstr(), stack.index);
 			break;
-		case H_ARGTYPE_MEM: {
+		case H_ARGTYPE_MEM: 
 			printf("Memory %d", index);
-		}break;
+			break;
 		case H_ARGTYPE_SINT:
 			printf ("%d", sval);
 			break;
@@ -75,7 +73,7 @@ namespace holodec {
 			printf ("tmp[%d]", index);
 			break;
 		default:
-			printf ("Unknown Argtype %d ", type);
+			printf ("Unknown Argtype %x ", type);
 		}
 		if (id) printf (" id: %d", id);
 		if (size) printf (" S%d", size);

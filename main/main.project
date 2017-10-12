@@ -31,6 +31,8 @@
       <File Name="HStringDatabase.h"/>
       <File Name="HArgument.h"/>
       <File Name="HArgument.cpp"/>
+      <File Name="HMemory.h"/>
+      <File Name="HMemory.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <File Name="HString.h"/>
@@ -86,6 +88,8 @@
       <File Name="HSSACallingConvApplier.cpp"/>
       <File Name="HSSAAssignmentSimplifier.h"/>
       <File Name="HSSAAssignmentSimplifier.cpp"/>
+      <File Name="HSSADeadCodeEliminationTransformer.h"/>
+      <File Name="HSSADeadCodeEliminationTransformer.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">

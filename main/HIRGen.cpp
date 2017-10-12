@@ -405,17 +405,25 @@ namespace holodec {
 			case '$': {
 				char buffer[100];
 				if (parseIdentifier (buffer, 100)) {
-					HRegister* reg = arch->getRegister (buffer);
+					HString str = buffer;
+					HRegister* reg = arch->getRegister (str);
 					if (reg) {
 						return HArgument::createReg (reg);
 					}
 
-					HStack* stack = arch->getStack (buffer);
+					HStack* stack = arch->getStack (str);
 					if (stack) {
 						return HArgument::createStck (stack, parseNumberIndex());
 					}
+
+					HMemory* memory = arch->getMemory (str);
+					if (memory) {
+						return HArgument::createMem (memory);
+					}
+
 					printf ("Parsed Custom %s\n", buffer);
 					printParseFailure ("Custom");
+					assert(false);
 					//printf ("Parsed Custom %s\n", buffer);
 				} else {
 					printf ("No custom token");
@@ -503,10 +511,10 @@ namespace holodec {
 				parseArguments (&expression);
 			switch (expression.type) {
 			case HIR_EXPR_LOAD:
-				assert (expression.subExpressions.size() == 2);
+				assert (expression.subExpressions.size() == 3);
 				break;
 			case HIR_EXPR_STORE:
-				assert (expression.subExpressions.size() == 2);
+				assert (expression.subExpressions.size() == 3);
 				break;
 			case HIR_EXPR_INVALID:
 				printf ("%s\n", string.cstr());
@@ -521,7 +529,7 @@ namespace holodec {
 
 	}
 
-	
+
 	void HIRParser::parse (HIRRepresentation* rep) {
 		this->rep = rep;
 		if (rep->condstring) {

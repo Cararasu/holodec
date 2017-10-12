@@ -10,6 +10,7 @@
 #include "HCallingConvention.h"
 #include "HIRGen.h"
 #include "HIR.h"
+#include "HMemory.h"
 
 namespace holodec {
 
@@ -25,6 +26,8 @@ namespace holodec {
 		HList<HRegister> registers;
 
 		HIdList<HStack> stacks;
+		
+		HIdList<HMemory> memories;
 
 		HIdList<HCallingConvention> callingconventions;
 
@@ -99,6 +102,27 @@ namespace holodec {
 				}
 			}
 			return nullptr;
+		}
+		HMemory* getMemory (const HString string) {
+			if (string) {
+				for (HMemory& memory : memories) {
+					if (string == memory.name)
+						return &memory;
+				}
+			}
+			return nullptr;
+		}
+		HMemory* getMemory (const HId id) {
+			if (id) {
+				for (HMemory& memory : memories) {
+					if (id == memory.id)
+						return &memory;
+				}
+			}
+			return nullptr;
+		}
+		HMemory* getDefaultMemory () {
+			return &(memories.list[0]);
 		}
 		HCallingConvention* getCallingConvention(const HString string){
 			if(string){

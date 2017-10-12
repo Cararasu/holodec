@@ -59,8 +59,8 @@ namespace holodec {
 		virtual void preAnalysis();
 
 		virtual HId analyzeFunction (HSymbol* functionsymbol);
-		virtual void analyzeFunction (HFunction* function);
-		virtual void analyzeInsts (uint64_t addr) = 0;
+		virtual bool analyzeFunction (HFunction* function);
+		virtual bool analyzeInsts (uint64_t addr) = 0;
 
 		virtual void postAnalysis();
 	};

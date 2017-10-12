@@ -14,45 +14,45 @@ namespace holodec {
 
 	class HArchitecture;
 	
+#define HSSA_EXPR_CONTROL_FLOW	(0x1000)
+	
 	enum HSSAExprType {
-		HSSA_EXPR_INVALID = 0,
-		HSSA_EXPR_LABEL,//1st Argument is address of 
+		HSSA_EXPR_INVALID	= 0x0,
 		
-		HSSA_EXPR_INPUT,  // Predefined variables, correspond to input arguments
-		HSSA_EXPR_OUTPUT,  // output of call or syscall
-		HSSA_EXPR_UNDEF,
-		HSSA_EXPR_NOP,
-
-		HSSA_EXPR_PHI,
-		HSSA_EXPR_ASSIGN,//assign to label = jump to branch, assign to pc = jump to other memory location
-
-		HSSA_EXPR_JMP,
-		HSSA_EXPR_CJMP,
-		HSSA_EXPR_MULTIBR,//first index then ptrs or blocks
+		HSSA_EXPR_LABEL		= 0x10,
+		HSSA_EXPR_UNDEF		= 0x11,
+		HSSA_EXPR_NOP		= 0x12,
 		
-		HSSA_EXPR_OP,
-		HSSA_EXPR_COND,
-		HSSA_EXPR_MEM,
+		HSSA_EXPR_OP		= 0x13,
+		HSSA_EXPR_MEM		= 0x14,
+		HSSA_EXPR_FLAG		= 0x15,
+		HSSA_EXPR_BUILTIN	= 0x16,
+		HSSA_EXPR_EXTEND	= 0x17,
+		HSSA_EXPR_SPLIT		= 0x18,
+		HSSA_EXPR_UPDATEPART= 0x19,
+		HSSA_EXPR_APPEND	= 0x1A,
+		HSSA_EXPR_CAST		= 0x1B,
 		
-		HSSA_EXPR_PUSH,
-		HSSA_EXPR_POP,
-		// Call - Return
-		HSSA_EXPR_CALL,  // a call to a function
-		HSSA_EXPR_RETURN,  // a return
-		HSSA_EXPR_SYSCALL,  // a syscall
-		HSSA_EXPR_TRAP,  // a trap
+		HSSA_EXPR_INPUT		= 0x21,
+		HSSA_EXPR_OUTPUT	= 0x22,
+		
+		HSSA_EXPR_CALL		= HSSA_EXPR_CONTROL_FLOW | 0x23,
+		HSSA_EXPR_RETURN	= HSSA_EXPR_CONTROL_FLOW | 0x24,
+		HSSA_EXPR_SYSCALL	= HSSA_EXPR_CONTROL_FLOW | 0x25,
+		HSSA_EXPR_TRAP		= HSSA_EXPR_CONTROL_FLOW | 0x26,
 
-		HSSA_EXPR_BUILTIN,  // call a builtin(invalidates all previous variables and creates a new def)
-		HSSA_EXPR_EXTEND,  // zero extend a value
-		HSSA_EXPR_UPDATEPART,  // write to a part of the variable
-		HSSA_EXPR_SPLIT,  // access to part of a variable
-		HSSA_EXPR_APPEND,  // combine variables
-		HSSA_EXPR_CAST,  // cast to other type
-		// Memory
-		HSSA_EXPR_STORE, //mem = mem, addr, value
-		HSSA_EXPR_LOAD, //value = mem, addr
+		HSSA_EXPR_PHI		= 0x31,
+		HSSA_EXPR_ASSIGN	= 0x32,
 
-		HSSA_EXPR_FLAG,
+		HSSA_EXPR_JMP		= HSSA_EXPR_CONTROL_FLOW | 0x41,
+		HSSA_EXPR_CJMP		= HSSA_EXPR_CONTROL_FLOW | 0x42,
+		HSSA_EXPR_MULTIBR	= HSSA_EXPR_CONTROL_FLOW | 0x43,
+
+		HSSA_EXPR_PUSH		= 0x51,
+		HSSA_EXPR_POP		= 0x52,
+		HSSA_EXPR_STORE		= 0x53,
+		HSSA_EXPR_LOAD		= 0x54,
+
 	};
 	enum HSSAOpType {
 		HSSA_OP_INVALID = 0,
@@ -117,6 +117,7 @@ namespace holodec {
 		};
 		HId regId = 0;
 		HArgStck stackId = {0,0};
+		HId memId = 0;
 		uint64_t instrAddr = 0;
 		
 		//HLocalBackedList<HArgument, HSSA_LOCAL_USEID_MAX> subExpressions;
@@ -187,20 +188,35 @@ namespace holodec {
 			}
 		}
 		void replaceNodes(HList<std::pair<HId,HArgument>>* replacements){
+			
 			bool replaced = false;
 			do{
 				replaced = false;
-				for(HSSAExpression& expr : expressions){
-					for (HArgument& arg : expr.subExpressions) {
-						for(std::pair<HId,HArgument>& rep : *replacements){
-							if(arg.id == rep.first){
-								arg = rep.second;
-								replaced = true;
-							}
+				for(auto it = replacements->begin(); it != replacements->end();++it){
+					if((*it).first == (*it).second.id)//to prevent unlimited loops in circualr dependencies
+						continue;
+					auto innerIt = it;
+					for(++innerIt; innerIt != replacements->end(); ++innerIt){
+						if((*it).first == (*innerIt).second.id){
+							(*innerIt).second = (*it).second;
+							replaced = true;
+						}else if((*innerIt).first == (*it).second.id){
+							(*it).second = (*innerIt).second;
+							replaced = true;
 						}
 					}
 				}
 			}while(replaced);
+			
+			for(HSSAExpression& expr : expressions){
+				for (HArgument& arg : expr.subExpressions) {
+					for(std::pair<HId,HArgument>& rep : *replacements){
+						if(arg.id == rep.first){
+							arg = rep.second;
+						}
+					}
+				}
+			}
 			
 			for(HSSABB& bb : bbs){
 				for(auto it = bb.exprIds.begin(); it != bb.exprIds.end();){

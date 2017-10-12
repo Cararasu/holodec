@@ -12,6 +12,7 @@
 #include "HSSAAddressToBlockTransformer.h"
 #include "HSSACallingConvApplier.h"
 #include "HSSAAssignmentSimplifier.h"
+#include "HSSADeadCodeEliminationTransformer.h"
 
 using namespace holodec;
 
@@ -79,24 +80,32 @@ int main (int argc, char** argv) {
 	HSSATransformer* transformer2 = new HSSACallingConvApplier();
 	HSSATransformer* transformer3 = new HSSAPhiNodeGenerator();
 	HSSATransformer* transformer4 = new HSSAAssignmentSimplifier();
+	HSSATransformer* transformer5 = new HSSADeadCodeEliminationTransformer();
 
 	transformer1->arch = &holox86::x86architecture;
 	transformer2->arch = &holox86::x86architecture;
 	transformer3->arch = &holox86::x86architecture;
 	transformer4->arch = &holox86::x86architecture;
+	transformer5->arch = &holox86::x86architecture;
 	
-	for (HId& id : binary->entrypoints) {
-		HId functionid = func_analyzer->analyzeFunction (binary->getSymbol (id));
+	for (HSymbol& sym : binary->symbols){
+		if(sym.symboltype == &HSymbolType::symfunc){
+			sym.print();
+			func_analyzer->analyzeFunction (&sym);
+		}
+	}
+	
+	
+	for (HFunction& func : binary->functions) {
 		
-		HFunction* func = binary->getFunction(functionid);
-		
-		transformer1->doTransformation (func);
-		func->callingconvention = holox86::x86architecture.getCallingConvention("amd64")->id;
-		transformer2->doTransformation (func);
-		transformer3->doTransformation (func);
+		transformer1->doTransformation (&func);
+		func.callingconvention = holox86::x86architecture.getCallingConvention("amd64")->id;
+		transformer2->doTransformation (&func);
+		transformer3->doTransformation (&func);
 		//from here remove actually expressions
-		transformer4->doTransformation (func);
-		func->print (&holox86::x86architecture);
+		transformer4->doTransformation (&func);
+		transformer5->doTransformation (&func);
+		func.print (&holox86::x86architecture);
 	}
 	return 0;
 }

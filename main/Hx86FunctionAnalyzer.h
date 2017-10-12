@@ -29,7 +29,7 @@ namespace holox86 {
 		virtual bool init (HBinary* binary);
 		virtual bool terminate();
 
-		virtual void analyzeInsts (size_t addr);
+		virtual bool analyzeInsts (size_t addr);
 
 	};
 	

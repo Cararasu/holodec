@@ -70,36 +70,27 @@ namespace holodec {
 		T* get (HId id) {
 			if(!id)
 				return nullptr;
-			size_t count = list.size();
-			if (count >= id) {//optimization for access
+			int lowerbound = 0, upperbound = list.size();
+			if (upperbound >= id) {//optimization for quick access
 				T& val = list[id - 1];
-				if (val.id == id) {//quick return
+				if (val.id == id) //quick return
 					return &list[id - 1];
-				}
-
-				if (val.id < id) {
-					auto it = list.begin() + id;
-					for (; it != list.end(); it++) {
-						if ( (*it).id == id)
-							return &*it;
-					}
-				}
-				if (val.id > id) {//should not happen but still...
-					auto it = list.rbegin() + (count - id);
-					for (; it != list.rend(); it++) {
-						if ( (*it).id == id)
-							return &*it;
-					}
-				}
 			}
-			for (T& ele : list) {
-				if (ele.id == id)
-					return &ele;
+			
+			while(lowerbound <= upperbound) {// binary seach
+				int middle = lowerbound + ((upperbound - lowerbound) / 2);
+				HId middleId = list[middle].id;
+				if(middleId == id)
+					return &(list[middle]);
+				if(middleId < id)
+					lowerbound = middle + 1;
+				else
+					upperbound = middle - 1;
 			}
 			return nullptr;
 		}
 		T& operator[] (HId id) {
-			return *this->get(id);
+			return *get(id);
 		}
 		void clear() {
 			gen.clear();

@@ -145,9 +145,6 @@ namespace holodec {
 				break;
 			}
 			break;
-		case HSSA_EXPR_COND:
-			printf ("Cond ");
-			break;
 		case HSSA_EXPR_MEM:
 			printf ("Mem ");
 			break;
@@ -195,10 +192,13 @@ namespace holodec {
 			break;
 		}
 		if (regId) {
-			printf ("Reg %s ", arch->getRegister (regId)->name.cstr());
+			printf ("Reg: %s, ", arch->getRegister (regId)->name.cstr());
 		}
 		if (stackId.id) {
-			printf ("Stack %s[%d] ", arch->getStack (stackId.id)->name.cstr(), stackId.index);
+			printf ("Stack: %s[%d], ", arch->getStack (stackId.id)->name.cstr(), stackId.index);
+		}
+		if (memId) {
+			printf ("Mem: %d, ", memId);
 		}
 		printf ("%d = ", id);
 		for (HArgument& arg : subExpressions) {
@@ -207,6 +207,7 @@ namespace holodec {
 		}
 		printf ("\n");
 	}
+	
 	void HSSARepresentation::print (HArchitecture* arch, int indent) {
 		printIndent (indent);
 		printf ("------------------\n");
