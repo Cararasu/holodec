@@ -55,36 +55,36 @@ namespace holodec {
 
 	};
 	enum HSSAOpType {
-		HSSA_OP_INVALID = 0,
-		HSSA_OP_ADD,
-		HSSA_OP_SUB,
-		HSSA_OP_MUL,
-		HSSA_OP_DIV,
-		HSSA_OP_MOD,
+		H_OP_INVALID = 0,
+		H_OP_ADD,
+		H_OP_SUB,
+		H_OP_MUL,
+		H_OP_DIV,
+		H_OP_MOD,
 
-		HSSA_OP_AND,
-		HSSA_OP_OR,
-		HSSA_OP_XOR,
-		HSSA_OP_NOT,
+		H_OP_AND,
+		H_OP_OR,
+		H_OP_XOR,
+		H_OP_NOT,
 
-		HSSA_OP_E,
-		HSSA_OP_NE,
-		HSSA_OP_L,
-		HSSA_OP_LE,
-		HSSA_OP_G,
-		HSSA_OP_GE,
+		H_OP_E,
+		H_OP_NE,
+		H_OP_L,
+		H_OP_LE,
+		H_OP_G,
+		H_OP_GE,
 
-		HSSA_OP_BAND,
-		HSSA_OP_BOR,
-		HSSA_OP_BXOR,
-		HSSA_OP_BNOT,
+		H_OP_BAND,
+		H_OP_BOR,
+		H_OP_BXOR,
+		H_OP_BNOT,
 
-		HSSA_OP_SHR,
-		HSSA_OP_SHL,
-		HSSA_OP_SAR,
-		HSSA_OP_SAL,
-		HSSA_OP_ROR,
-		HSSA_OP_ROL,
+		H_OP_SHR,
+		H_OP_SHL,
+		H_OP_SAR,
+		H_OP_SAL,
+		H_OP_ROR,
+		H_OP_ROL,
 	};
 	enum HSSAType {
 		HSSA_TYPE_UNKNOWN = 0,
@@ -120,8 +120,8 @@ namespace holodec {
 		HId memId = 0;
 		uint64_t instrAddr = 0;
 		
-		//HLocalBackedList<HArgument, HSSA_LOCAL_USEID_MAX> subExpressions;
-		HList<HArgument> subExpressions;
+		//HLocalBackedList<HSSAArgument, HSSA_LOCAL_USEID_MAX> subExpressions;
+		HList<HSSAArgument> subExpressions;
 
 		bool operator!() {
 			return type == HSSA_EXPR_INVALID;
@@ -178,16 +178,16 @@ namespace holodec {
 			expressions.clear();
 		}
 
-		void replaceNode(HId origId, HArgument target){
+		void replaceNode(HId origId, HSSAArgument target){
 			for(HSSAExpression& expr : expressions){
-				for (HArgument& arg : expr.subExpressions) {
+				for (HSSAArgument& arg : expr.subExpressions) {
 					if(arg.id == origId){
 						arg.id = target;
 					}
 				}
 			}
 		}
-		void replaceNodes(HList<std::pair<HId,HArgument>>* replacements){
+		void replaceNodes(HList<std::pair<HId,HSSAArgument>>* replacements){
 			
 			bool replaced = false;
 			do{
@@ -209,8 +209,8 @@ namespace holodec {
 			}while(replaced);
 			
 			for(HSSAExpression& expr : expressions){
-				for (HArgument& arg : expr.subExpressions) {
-					for(std::pair<HId,HArgument>& rep : *replacements){
+				for (HSSAArgument& arg : expr.subExpressions) {
+					for(std::pair<HId,HSSAArgument>& rep : *replacements){
 						if(arg.id == rep.first){
 							arg = rep.second;
 						}
@@ -222,7 +222,7 @@ namespace holodec {
 				for(auto it = bb.exprIds.begin(); it != bb.exprIds.end();){
 					HId id = *it;
 					bool erased = false;
-					for(std::pair<HId,HArgument>& rep : *replacements){
+					for(std::pair<HId,HSSAArgument>& rep : *replacements){
 						if(rep.first == id){
 							bb.exprIds.erase(it);
 							erased = true;
@@ -237,7 +237,7 @@ namespace holodec {
 			for(auto it = expressions.begin(); it != expressions.end();){
 				HSSAExpression& expr = *it;
 				bool erased = false;
-				for(std::pair<HId,HArgument>& rep : *replacements){
+				for(std::pair<HId,HSSAArgument>& rep : *replacements){
 					if(expr.id == rep.first){
 						expressions.erase(it);
 						erased = true;

@@ -108,7 +108,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 	cs_x86& x86 = csdetail->x86;
 
 	for (uint8_t i = 0; i < x86.op_count; i++) {
-		HArgument arg;
+		HIRArgument arg;
 		switch (x86.operands[i].type) {
 		case X86_OP_INVALID:
 			printf ("Invalid\n");
@@ -118,14 +118,14 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 			int index;
 			int res = sscanf(regname,"st%d", &index);
 			if(res == 1){
-				arg = HArgument::createStck (arch->getStack ("st"),index);
+				arg = HIRArgument::createStck (arch->getStack ("st"),index);
 			}else{
-				arg = HArgument::createReg (arch->getRegister (regname));
+				arg = HIRArgument::createReg (arch->getRegister (regname));
 			}
 			break;
 		}
 		case X86_OP_IMM:
-			arg = HArgument::createVal ( (uint64_t) x86.operands[i].imm, x86.operands[i].size * 8);
+			arg = HIRArgument::createVal ( (uint64_t) x86.operands[i].imm, x86.operands[i].size * 8);
 			break;
 		case X86_OP_MEM: {
 			uint64_t disp = 0;
@@ -134,7 +134,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 				x86.operands[i].mem.segment = X86_REG_CS;
 			
 			if (x86.operands[i].mem.base == X86_REG_RIP || x86.operands[i].mem.base == X86_REG_EIP) {
-				arg = HArgument::createMemOp ( //HRegister* segment, HRegister* base, HRegister* index
+				arg = HIRArgument::createMemOp ( //HRegister* segment, HRegister* base, HRegister* index
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
 						arch->getRegister (0),
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),
@@ -142,7 +142,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 						x86.operands[i].size * 8
 					);
 			} else {
-				arg = HArgument::createMemOp (
+				arg = HIRArgument::createMemOp (
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base)),//base
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),//index
@@ -153,7 +153,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 		}
 		break;
 		case X86_OP_FP:
-			arg = HArgument::createVal ( (double) x86.operands[i].fp, x86.operands[i].size * 8);
+			arg = HIRArgument::createVal ( (double) x86.operands[i].fp, x86.operands[i].size * 8);
 			break;
 		default:
 			printf ("Invalid ...\n");
@@ -172,9 +172,9 @@ void holox86::Hx86FunctionAnalyzer::setJumpDest (HInstruction* instruction) {
 		case H_INSTR_TYPE_JMP:
 			instruction->nojumpdest = 0;
 		case H_INSTR_TYPE_CJMP:
-			if (instruction->operands[0].type == H_ARGTYPE_UINT)
+			if (instruction->operands[0].type == HIR_ARGTYPE_UINT)
 				instruction->jumpdest = instruction->operands[0].uval;
-			else if (instruction->operands[0].type == H_ARGTYPE_SINT)
+			else if (instruction->operands[0].type == HIR_ARGTYPE_SINT)
 				instruction->jumpdest = instruction->addr + instruction->operands[0].sval;
 			break;
 		default:

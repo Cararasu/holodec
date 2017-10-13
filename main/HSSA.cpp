@@ -65,82 +65,82 @@ namespace holodec {
 		case HSSA_EXPR_OP:
 			printf ("Op ");
 			switch (opType) {
-			case HSSA_OP_INVALID:
+			case H_OP_INVALID:
 				printf("Invalid ");
 				break;
-			case HSSA_OP_ADD:
+			case H_OP_ADD:
 				printf("+ ");
 				break;
-			case HSSA_OP_SUB:
+			case H_OP_SUB:
 				printf("- ");
 				break;
-			case HSSA_OP_MUL:
+			case H_OP_MUL:
 				printf("* ");
 				break;
-			case HSSA_OP_DIV:
+			case H_OP_DIV:
 				printf("/ ");
 				break;
-			case HSSA_OP_MOD:
+			case H_OP_MOD:
 				printf("% ");
 				break;
-			case HSSA_OP_AND:
+			case H_OP_AND:
 				printf("&& ");
 				break;
-			case HSSA_OP_OR:
+			case H_OP_OR:
 				printf("|| ");
 				break;
-			case HSSA_OP_XOR:
+			case H_OP_XOR:
 				printf("xor ");
 				break;
-			case HSSA_OP_NOT:
+			case H_OP_NOT:
 				printf("! ");
 				break;
-			case HSSA_OP_E:
+			case H_OP_E:
 				printf("== ");
 				break;
-			case HSSA_OP_NE:
+			case H_OP_NE:
 				printf("!= ");
 				break;
-			case HSSA_OP_L:
+			case H_OP_L:
 				printf("< ");
 				break;
-			case HSSA_OP_LE:
+			case H_OP_LE:
 				printf("<= ");
 				break;
-			case HSSA_OP_G:
+			case H_OP_G:
 				printf("> ");
 				break;
-			case HSSA_OP_GE:
+			case H_OP_GE:
 				printf(">= ");
 				break;
-			case HSSA_OP_BAND:
+			case H_OP_BAND:
 				printf("& ");
 				break;
-			case HSSA_OP_BOR:
+			case H_OP_BOR:
 				printf("| ");
 				break;
-			case HSSA_OP_BXOR:
+			case H_OP_BXOR:
 				printf("^ ");
 				break;
-			case HSSA_OP_BNOT:
+			case H_OP_BNOT:
 				printf("~ ");
 				break;
-			case HSSA_OP_SHR:
+			case H_OP_SHR:
 				printf(">> ");
 				break;
-			case HSSA_OP_SHL:
+			case H_OP_SHL:
 				printf("<< ");
 				break;
-			case HSSA_OP_SAR:
+			case H_OP_SAR:
 				printf("pow ");
 				break;
-			case HSSA_OP_SAL:
+			case H_OP_SAL:
 				printf("sqrt2 ");
 				break;
-			case HSSA_OP_ROR:
+			case H_OP_ROR:
 				printf(">>> ");
 				break;
-			case HSSA_OP_ROL:
+			case H_OP_ROL:
 				printf("<<< ");
 				break;
 			}
@@ -201,7 +201,7 @@ namespace holodec {
 			printf ("Mem: %d, ", memId);
 		}
 		printf ("%d = ", id);
-		for (HArgument& arg : subExpressions) {
+		for (HSSAArgument& arg : subExpressions) {
 			arg.print (arch);
 			printf (", ");
 		}

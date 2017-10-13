@@ -126,8 +126,8 @@ namespace holodec {
 				HSSAExpression* expr = function->ssaRep.expressions.get (id);
 				for (int i = 0; i < expr->subExpressions.size(); i++) {
 					if(expr->subExpressions[i].id == 0){
-						if (expr->subExpressions[i].type == H_ARGTYPE_REG) {
-							HRegister* reg = arch->getRegister (expr->subExpressions[i].reg);
+						if (expr->subExpressions[i].type == HSSA_ARGTYPE_REG) {
+							HRegister* reg = arch->getRegister (expr->subExpressions[i].refId);
 							bool found = false;
 							for (HSSARegDef& def : bbwrapper.outputs) {
 								if (def.regId == reg->id) {
@@ -145,9 +145,9 @@ namespace holodec {
 										newExpr.exprtype = HSSA_TYPE_UINT;
 										newExpr.instrAddr = expr->instrAddr;
 										newExpr.regId = reg->id;
-										newExpr.subExpressions.push_back (HArgument::createReg (reg, def.ssaId));
-										newExpr.subExpressions.push_back (HArgument::createVal (reg->offset - def.offset, arch->bitbase));
-										newExpr.subExpressions.push_back (HArgument::createVal ( (def.offset + def.size) - (reg->offset + reg->size), arch->bitbase));
+										newExpr.subExpressions.push_back (HSSAArgument::createReg (reg, def.ssaId));
+										newExpr.subExpressions.push_back (HSSAArgument::createVal (reg->offset - def.offset, arch->bitbase));
+										newExpr.subExpressions.push_back (HSSAArgument::createVal ( (def.offset + def.size) - (reg->offset + reg->size), arch->bitbase));
 
 										HId newId = function->ssaRep.expressions.push_back (newExpr);
 										it = bbwrapper.ssaBB->exprIds.insert (it, newId);
@@ -162,8 +162,8 @@ namespace holodec {
 							}
 							if (!found)
 								addRegDef (0, reg, &bbwrapper.inputs, false);
-						}else if(expr->subExpressions[i].type == H_ARGTYPE_MEM){
-							HMemory* mem = arch->getMemory (expr->subExpressions[i].index);
+						}else if(expr->subExpressions[i].type == HSSA_ARGTYPE_MEM){
+							HMemory* mem = arch->getMemory (expr->subExpressions[i].refId);
 							bool found = false;
 							for (HSSAMemDef& def : bbwrapper.outputMems) {
 								if (def.memId == mem->id) {
@@ -201,8 +201,9 @@ namespace holodec {
 				if (expr->type == HSSA_EXPR_PHI) //don't clear already created phi nodes
 					continue;
 				for (int i = 0; i < expr->subExpressions.size(); i++) {
-					HArgument& arg = expr->subExpressions[i];
-					if (arg.type == H_ARGTYPE_REG || arg.type == H_ARGTYPE_MEM || arg.type == H_ARGTYPE_STACK) //reset id of register/memory/stack so that we can redo them to find non defined reg-arguments
+					HSSAArgument& arg = expr->subExpressions[i];
+					//reset id of register/memory/stack so that we can redo them to find non defined reg-arguments
+					if (arg.type == HSSA_ARGTYPE_REG || arg.type == HSSA_ARGTYPE_MEM || arg.type == HSSA_ARGTYPE_STACK) 
 						arg.id = 0;
 				}
 			}
@@ -234,7 +235,7 @@ namespace holodec {
 				phinode.size = reg->size;
 				phinode.instrAddr = wrap.ssaBB->startaddr;
 				for (int i = 0; i < gatheredIdCount; i++) {
-					phinode.subExpressions.push_back (HArgument::createReg (reg, gatheredIds[i]));
+					phinode.subExpressions.push_back (HSSAArgument::createReg (reg, gatheredIds[i]));
 				}
 				HId exprId = function->ssaRep.expressions.push_back (phinode);
 				wrap.ssaBB->exprIds.insert (wrap.ssaBB->exprIds.begin(), exprId);
@@ -270,7 +271,7 @@ namespace holodec {
 				phinode.size = 0;
 				phinode.instrAddr = wrap.ssaBB->startaddr;
 				for (int i = 0; i < gatheredIdCount; i++) {
-					phinode.subExpressions.push_back (HArgument::createMem (mem, gatheredIds[i]));
+					phinode.subExpressions.push_back (HSSAArgument::createMem (mem->id, gatheredIds[i]));
 				}
 				HId exprId = function->ssaRep.expressions.push_back (phinode);
 				wrap.ssaBB->exprIds.insert (wrap.ssaBB->exprIds.begin(), exprId);
@@ -316,9 +317,9 @@ namespace holodec {
 			expr.exprtype = HSSA_TYPE_UINT;
 			expr.size = reg->size;
 			expr.regId = reg->id;
-			expr.subExpressions.push_back (HArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId));
-			expr.subExpressions.push_back (HArgument::createVal (reg->offset, arch->bitbase));
-			expr.subExpressions.push_back (HArgument::createVal (reg->size, arch->bitbase));
+			expr.subExpressions.push_back (HSSAArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId));
+			expr.subExpressions.push_back (HSSAArgument::createVal (reg->offset, arch->bitbase));
+			expr.subExpressions.push_back (HSSAArgument::createVal (reg->size, arch->bitbase));
 			bool found = false;
 			for(auto it = wrapper->ssaBB->exprIds.begin(); it != wrapper->ssaBB->exprIds.end(); ++it){
 				if(foundParentDef->ssaId == *it){

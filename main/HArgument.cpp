@@ -5,43 +5,84 @@
 
 namespace holodec {
 	
-	void HArgument::print (HArchitecture* arch) {
+	void HSSAArgument::print (HArchitecture* arch) {
 		switch (type) {
-		case H_ARGTYPE_UNKN:
+		case HSSA_ARGTYPE_UNKN:
 			printf ("Undef");
 			break;
-		case H_ARGTYPE_REG:
-			if (reg)
-				printf ("%s", arch->getRegister (reg)->name.cstr());
+		case HSSA_ARGTYPE_REG:
+			if (refId)
+				printf ("%s", arch->getRegister (refId)->name.cstr());
 			else
 				printf ("No Reg Def");
 			break;
-		case H_ARGTYPE_STACK:
-			printf ("Stack-%s[%d]", arch->getStack (stack.id)->name.cstr(), stack.index);
+		case HSSA_ARGTYPE_STACK:
+			printf ("Stack-%s[%d]", arch->getStack (refId)->name.cstr(), wusl);
 			break;
-		case H_ARGTYPE_MEM: 
-			printf("Memory %d", index);
+		case HSSA_ARGTYPE_MEM: 
+			printf("Memory %d", refId);
 			break;
-		case H_ARGTYPE_SINT:
+		case HSSA_ARGTYPE_SINT:
 			if(sval < 0)
 				printf ("-0x%x", -sval);
 			else
 				printf ("0x%x", sval);
 			break;
-		case H_ARGTYPE_UINT:
+		case HSSA_ARGTYPE_UINT:
 			printf ("0x%X", uval);
 			break;
-		case H_ARGTYPE_FLOAT:
+		case HSSA_ARGTYPE_FLOAT:
 			printf ("%f", fval);
-			break;
-		case HIR_ARGTYPE_ID:
-			printf ("IR");
 			break;
 		case HSSA_ARGTYPE_ID:
 			printf ("SSA");
 			break;
 		case HSSA_ARGTYPE_BLOCK:
-			printf ("Block %d", index);
+			printf ("Block %d", refId);
+			break;
+		default:
+			printf ("Unknown Argtype %x ", type);
+		}
+		if (id) printf (" id: %d", id);
+		if (size) printf (" S%d", size);
+	}
+	
+	
+	
+	void HIRArgument::print (HArchitecture* arch) {
+		switch (type) {
+		case HIR_ARGTYPE_UNKN:
+			printf ("Undef");
+			break;
+		case HIR_ARGTYPE_REG:
+			if (refId)
+				printf ("%s", arch->getRegister (refId)->name.cstr());
+			else
+				printf ("No Reg Def");
+			break;
+		case HIR_ARGTYPE_STACK:
+			printf ("Stack-%s[%d]", arch->getStack (refId)->name.cstr(), index);
+			break;
+		case HIR_ARGTYPE_MEM: 
+			printf("Memory %d", refId);
+			break;
+		case HIR_ARGTYPE_SINT:
+			if(sval < 0)
+				printf ("-0x%x", -sval);
+			else
+				printf ("0x%x", sval);
+			break;
+		case HIR_ARGTYPE_UINT:
+			printf ("0x%X", uval);
+			break;
+		case HIR_ARGTYPE_FLOAT:
+			printf ("%f", fval);
+			break;
+		case HIR_ARGTYPE_ID:
+			printf ("IR %d", refId);
+			break;
+		case HIR_ARGTYPE_SSAID:
+			printf ("SSA");
 			break;
 		case HIR_ARGTYPE_MEMOP: {
 			bool pre = false;
@@ -70,60 +111,14 @@ namespace holodec {
 			printf ("]");
 		}break;
 		case HIR_ARGTYPE_ARG:
-			printf ("arg[%d]", index);
+			printf ("arg[%d]", refId);
 			break;
 		case HIR_ARGTYPE_TMP:
-			printf ("tmp[%d]", index);
+			printf ("tmp[%d]", refId);
 			break;
 		default:
 			printf ("Unknown Argtype %x ", type);
 		}
-		if (id) printf (" id: %d", id);
 		if (size) printf (" S%d", size);
 	}
-	/*
-	void HSSAArgument::print (HArchitecture* arch) {
-		switch (type) {
-		case H_ARGTYPE_REG:
-			if (reg)
-				printf ("%s", arch->getRegister (reg)->name.cstr());
-			else
-				printf ("No Reg Def");
-			break;
-		case H_ARGTYPE_STACK:
-			printf ("Stack-%s[%d]", arch->getStack (stack.id)->name.cstr(), stack.index);
-			break;
-		case H_ARGTYPE_SINT:
-			printf ("%d", sval);
-			break;
-		case H_ARGTYPE_UINT:
-			printf ("0x%X", uval);
-			break;
-		case H_ARGTYPE_FLOAT:
-			printf ("%f", fval);
-			break;
-		case HSSA_ARGTYPE_ID:
-			printf ("SSA");
-			break;
-		case HSSA_ARGTYPE_BLOCK:
-			printf ("Block %d", index);
-			break;
-		case H_ARGTYPE_MEM: {
-			printf("Memory %d", index);
-		}break;
-		case HIR_ARGTYPE_INSTR:
-			printf ("instr[%s]", arch->getInstrDef (index)->mnemonics.cstr());
-			break;
-		case HIR_ARGTYPE_ARG:
-			printf ("arg[%d]", index);
-			break;
-		case HIR_ARGTYPE_TMP:
-			printf ("tmp[%d]", index);
-			break;
-		default:
-			printf ("Unknown Argtype %d ", type);
-		}
-		if (id) printf (" ID: %d", id);
-		if (size) printf (" S%d", size);
-	}*/
 }

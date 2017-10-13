@@ -32,8 +32,8 @@ namespace holodec {
 							assert (expr.subExpressions[0].type == HSSA_ARGTYPE_ID);
 
 							expr.type = HSSA_EXPR_ASSIGN;
-							for (HArgument& arg : callExpr->subExpressions) {
-								if (arg.type == H_ARGTYPE_REG && arg.reg == expr.regId) {
+							for (HSSAArgument& arg : callExpr->subExpressions) {
+								if (arg.type == HSSA_ARGTYPE_REG && arg.refId == expr.regId) {
 									expr.subExpressions[0] = arg;
 								}
 							}
@@ -43,8 +43,8 @@ namespace holodec {
 					}
 					if (!isParam && localStackReg && expr.regId == localStackReg->id && cc->callerstackadjust == H_CC_STACK_ADJUST_CALLEE) {
 						expr.type = HSSA_EXPR_ASSIGN;
-						for (HArgument& arg : callExpr->subExpressions) {
-							if (arg.type == H_ARGTYPE_REG && arg.reg == expr.regId) {
+						for (HSSAArgument& arg : callExpr->subExpressions) {
+							if (arg.type == HSSA_ARGTYPE_REG && arg.refId == expr.regId) {
 								expr.subExpressions[0] = arg;
 							}
 						}
@@ -55,7 +55,7 @@ namespace holodec {
 						for (HCCParameter& para : cc->returns) {
 							HRegister* reg = arch->getRegister (para.regname);
 							if (expr.regId == reg->id) {
-								expr.subExpressions.push_back (HArgument::createVal ( (uint64_t) para.index, arch->bitbase));
+								expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) para.index, arch->bitbase));
 								isParam = true;
 								break;
 							}
@@ -64,7 +64,7 @@ namespace holodec {
 				} else if (expr.memId) {
 					for (HMemory& mem : arch->memories) {
 						if (expr.memId == mem.id) {
-							expr.subExpressions.push_back (HArgument::createVal ( (uint64_t) 0, arch->bitbase));
+							expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
 							isParam = true;
 						}
 					}
@@ -78,21 +78,21 @@ namespace holodec {
 			}
 			if (expr.type == HSSA_EXPR_RETURN) {
 				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();) {
-					HArgument& arg = *it;
+					HSSAArgument& arg = *it;
 					bool isParam = false;
 
-					if (arg.type == H_ARGTYPE_REG) {
+					if (arg.type == HSSA_ARGTYPE_REG) {
 						if (!isParam) {
 							for (HCCParameter& para : cc->returns) {
 								HRegister* reg = arch->getRegister (para.regname);
-								if (arg.reg == reg->id) {
+								if (arg.refId == reg->id) {
 									//leave as arg
 									isParam = true;
 									break;
 								}
 							}
 						}
-					} else if (arg.type == H_ARGTYPE_MEM) {
+					} else if (arg.type == HSSA_ARGTYPE_MEM) {
 						isParam = true;
 					}
 					if (!isParam) {
@@ -109,19 +109,19 @@ namespace holodec {
 					for (HCCParameter& para : cc->parameters) {
 						HRegister* reg = arch->getRegister (para.regname);
 						if (expr.regId == reg->id) {
-							expr.subExpressions.push_back (HArgument::createVal ( (uint64_t) para.index, arch->bitbase));
+							expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) para.index, arch->bitbase));
 							isParam = true;
 							break;
 						}
 					}
 					if (!isParam && expr.regId == stackreg->id) {
-						expr.subExpressions.push_back (HArgument::createVal ( (uint64_t) 0, arch->bitbase));
+						expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
 						isParam = true;
 					}
 				} else if (expr.memId) {
 					for (HMemory& mem : arch->memories) {
 						if (expr.memId == mem.id) {
-							expr.subExpressions.push_back (HArgument::createVal ( (uint64_t) 0, arch->bitbase));
+							expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
 							isParam = true;
 						}
 					}
@@ -141,22 +141,22 @@ namespace holodec {
 				//currently HACK to use own calling convention
 
 				for (auto it = expr.subExpressions.begin() + 1/* skip first parameter*/; it != expr.subExpressions.end();) {
-					HArgument& arg = *it;
+					HSSAArgument& arg = *it;
 					bool isParam = false;
 					
-					if (arg.type == H_ARGTYPE_MEM)
+					if (arg.type == HSSA_ARGTYPE_MEM)
 						isParam = true;
 					if (!isParam) {
 						for (HCCParameter& para : cc->parameters) {
 							HRegister* reg = arch->getRegister (para.regname);
-							if (arg.reg == reg->id) {
+							if (arg.refId == reg->id) {
 								//leave the arg
 								isParam = true;
 								break;
 							}
 						}
 					}
-					if (!isParam && stackreg && arg.reg == stackreg->id) {
+					if (!isParam && stackreg && arg.refId == stackreg->id) {
 						//leave the arg
 						isParam = true;
 					}

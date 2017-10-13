@@ -22,7 +22,7 @@ namespace holodec {
 		uint64_t jumpdest = 0;//if condition is true
 		uint64_t calldest = 0;//if call succeeds -> creates new function symbol
 
-		HLocalBackedList<HArgument,HINSTRUCTION_MAX_OPERANDS> operands;
+		HLocalBackedList<HIRArgument,HINSTRUCTION_MAX_OPERANDS> operands;
 
 		void print (HArchitecture* arch, int indent = 0);
 	};

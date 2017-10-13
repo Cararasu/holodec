@@ -6,9 +6,9 @@ namespace holodec {
 
 	void HIRExpression::print (HArchitecture* arch, int indent, bool recursive) {
 		if (recursive) {
-			for (HArgument& arg : subExpressions) {
+			for (HIRArgument& arg : subExpressions) {
 				if (arg.type == HIR_ARGTYPE_ID) {
-					arch->getIrExpr (arg.id)->print (arch);
+					arch->getIrExpr (arg.refId)->print (arch);
 				}
 			}
 		}
@@ -133,7 +133,7 @@ namespace holodec {
 			break;
 		}
 		printf ("(");
-		for (HArgument& arg : subExpressions) {
+		for (HIRArgument& arg : subExpressions) {
 			arg.print (arch);
 			printf (", ");
 		}

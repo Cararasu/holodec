@@ -35,25 +35,25 @@ namespace holodec {
 		pushback();
 		return false;
 	}
-	HArgument HIRParser::parseIndex (HArgument arg) {
+	HIRArgument HIRParser::parseIndex (HIRArgument arg) {
 		size_t current_index = index;
 		if (parseCharacter ('[')) {
 			const char* x = string.cstr() + index;
-			HArgument offset, size;
+			HIRArgument offset, size;
 			bool hasSize = false;
 			if (! (offset = parseIRExpression())) {
 				printf ("Cannot parse Offset\n");
-				return HArgument::create();//false;
+				return HIRArgument::create();//false;
 			}
 			x = string.cstr() + index;
 			if (parseCharacter (',')) {
 				hasSize = true;
 				if (! (size = parseIRExpression())) {
 					printf ("Cannot parse Size\n");
-					return HArgument::create();
+					return HIRArgument::create();
 				}
 			} else {
-				size = HArgument::createVal ( (uint64_t) 0, arch->bitbase);
+				size = HIRArgument::createVal ( (uint64_t) 0, arch->bitbase);
 			}
 			x = string.cstr() + index;
 			if (parseCharacter (']')) {
@@ -62,10 +62,10 @@ namespace holodec {
 				expression.subExpressions.push_back (arg);
 				expression.subExpressions.push_back (offset);
 				expression.subExpressions.push_back (size);
-				return HArgument::createId (HIR_ARGTYPE_ID, arch->addIrExpr (expression), expression.size);
+				return HIRArgument::createIRId (arch->addIrExpr (expression), expression.size);
 			}
 			printParseFailure ("']'");
-			return HArgument::create();
+			return HIRArgument::create();
 		}
 		return arg;
 	}
@@ -123,7 +123,7 @@ namespace holodec {
 			}
 			do {
 				i++;
-				HArgument subexpr = parseIRExpression();
+				HIRArgument subexpr = parseIRExpression();
 				if (expr && subexpr) {
 					expr->subExpressions.push_back (subexpr);
 				} else {
@@ -140,13 +140,12 @@ namespace holodec {
 		}
 		return i;
 	}
-	HArgument HIRParser::parseIRExpression() {
+	HIRArgument HIRParser::parseIRExpression() {
 		size_t current_index = index;
 
 		HIRExpression expression;
 		expression.type = HIR_EXPR_INVALID;
 		skipWhitespaces();
-		bool hasArgs = true;
 		char c;
 		if (c = pop()) {
 			size_t current_index = index;
@@ -160,10 +159,10 @@ namespace holodec {
 						expression.type = HIR_EXPR_SEQUENCE;
 						expression.exprtype = HSSA_TYPE_UNKNOWN;
 					} else if (string == "arg") {
-						HArgument arg = HArgument::createIndex (HIR_ARGTYPE_ARG, parseNumberIndex());
+						HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_ARG, parseNumberIndex());
 						return parseIndex (arg);
 					} else if (string == "tmp" || string == "t") {
-						HArgument arg = HArgument::createIndex (HIR_ARGTYPE_TMP, parseNumberIndex());
+						HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_TMP, parseNumberIndex());
 						return parseIndex (arg);
 					} else if (string == "z") {
 						expression.type = HIR_EXPR_FLAG;
@@ -203,83 +202,83 @@ namespace holodec {
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "sadd") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_ADD;
+						expression.mod.opType = H_OP_ADD;
 						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fadd") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_ADD;
+						expression.mod.opType = H_OP_ADD;
 						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "sub") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_SUB;
+						expression.mod.opType = H_OP_SUB;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "ssub") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_SUB;
+						expression.mod.opType = H_OP_SUB;
 						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fsub") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_SUB;
+						expression.mod.opType = H_OP_SUB;
 						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "mul") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_MUL;
+						expression.mod.opType = H_OP_MUL;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "smul") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_MUL;
+						expression.mod.opType = H_OP_MUL;
 						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fmul") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_MUL;
+						expression.mod.opType = H_OP_MUL;
 						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "div") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_DIV;
+						expression.mod.opType = H_OP_DIV;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "sdiv") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_DIV;
+						expression.mod.opType = H_OP_DIV;
 						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fdiv") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_DIV;
+						expression.mod.opType = H_OP_DIV;
 						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "mod") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_MOD;
+						expression.mod.opType = H_OP_MOD;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "smod") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_MOD;
+						expression.mod.opType = H_OP_MOD;
 						expression.exprtype = HSSA_TYPE_INT;
 					} else if (string == "fmod") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_MOD;
+						expression.mod.opType = H_OP_MOD;
 						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "shr") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_SHR;
+						expression.mod.opType = H_OP_SHR;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "shl") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_SHL;
+						expression.mod.opType = H_OP_SHL;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "sar") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_SAR;
+						expression.mod.opType = H_OP_SAR;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "sal") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_SAL;
+						expression.mod.opType = H_OP_SAL;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "ror") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_ROR;
+						expression.mod.opType = H_OP_ROR;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "rol") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_ROL;
+						expression.mod.opType = H_OP_ROL;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "ext") {
 						expression.type = HIR_EXPR_EXTEND;
@@ -310,38 +309,38 @@ namespace holodec {
 						expression.exprtype = HSSA_TYPE_FLOAT;
 					} else if (string == "and") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_AND;
+						expression.mod.opType = H_OP_AND;
 						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "or") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_OR;
+						expression.mod.opType = H_OP_OR;
 						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "xor") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_XOR;
+						expression.mod.opType = H_OP_XOR;
 						expression.size = 1;
 					} else if (string == "not") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_NOT;
+						expression.mod.opType = H_OP_NOT;
 						expression.exprtype = HSSA_TYPE_UINT;
 						expression.size = 1;
 					} else if (string == "band") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_BAND;
+						expression.mod.opType = H_OP_BAND;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "bor") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_BOR;
+						expression.mod.opType = H_OP_BOR;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "bxor") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_BXOR;
+						expression.mod.opType = H_OP_BXOR;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "bnot") {
 						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = HSSA_OP_BNOT;
+						expression.mod.opType = H_OP_BNOT;
 						expression.exprtype = HSSA_TYPE_UINT;
 					} else if (string == "fext") {
 						expression.type = HIR_EXPR_EXTEND;
@@ -371,12 +370,11 @@ namespace holodec {
 					} else if (string == "nop") {
 						expression.type = HIR_EXPR_NOP;
 						expression.exprtype = HSSA_TYPE_UNKNOWN;
-						hasArgs = false;
 					} else if (string == "bsize") {
 						parseArguments (&expression);
 						assert (expression.subExpressions.size() == 1);
 						if (expression.subExpressions[0].size)
-							return HArgument::createVal ( (uint64_t) (expression.subExpressions[0].size), arch->bitbase);
+							return HIRArgument::createVal ( (uint64_t) (expression.subExpressions[0].size), arch->bitbase);
 						else {
 							expression.type = HIR_EXPR_BSIZE;
 						}
@@ -384,7 +382,7 @@ namespace holodec {
 						parseArguments (&expression);
 						assert (expression.subExpressions.size() == 1);
 						if (expression.subExpressions[0].size)
-							return HArgument::createVal ( (uint64_t) (expression.subExpressions[0].size / arch->wordbase), arch->bitbase);
+							return HIRArgument::createVal ( (uint64_t) (expression.subExpressions[0].size / arch->wordbase), arch->bitbase);
 						else {
 							expression.type = HIR_EXPR_SIZE;
 						}
@@ -408,17 +406,17 @@ namespace holodec {
 					HString str = buffer;
 					HRegister* reg = arch->getRegister (str);
 					if (reg) {
-						return HArgument::createReg (reg);
+						return HIRArgument::createReg (reg);
 					}
 
 					HStack* stack = arch->getStack (str);
 					if (stack) {
-						return HArgument::createStck (stack, parseNumberIndex());
+						return HIRArgument::createStck (stack, parseNumberIndex());
 					}
 
 					HMemory* memory = arch->getMemory (str);
 					if (memory) {
-						return HArgument::createMem (memory);
+						return HIRArgument::createMem (memory);
 					}
 
 					printf ("Parsed Custom %s\n", buffer);
@@ -428,25 +426,25 @@ namespace holodec {
 				} else {
 					printf ("No custom token");
 				}
-				return HArgument::create();
+				return HIRArgument::create();
 			}
 			case '?':
 				expression.type = HIR_EXPR_IF;
 				break;
 			case '+':
 				expression.type = HIR_EXPR_OP;
-				expression.mod.opType = HSSA_OP_ADD;
+				expression.mod.opType = H_OP_ADD;
 				expression.exprtype = HSSA_TYPE_UINT;
 				break;
 			case '*':
 				expression.type = HIR_EXPR_OP;
-				expression.mod.opType = HSSA_OP_MUL;
+				expression.mod.opType = H_OP_MUL;
 				expression.exprtype = HSSA_TYPE_UINT;
 				break;
 			case '=':
 				if (parseCharacter ('=')) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HSSA_OP_E;
+					expression.mod.opType = H_OP_E;
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 					break;
@@ -457,17 +455,17 @@ namespace holodec {
 			case '<':
 				if (parseCharacter ('=')) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HSSA_OP_LE;
+					expression.mod.opType = H_OP_LE;
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				} else if (parseCharacter ('>')) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HSSA_OP_NE;
+					expression.mod.opType = H_OP_NE;
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				} else {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HSSA_OP_L;
+					expression.mod.opType = H_OP_L;
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				}
@@ -475,12 +473,12 @@ namespace holodec {
 			case '>':
 				if (parseCharacter ('=')) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HSSA_OP_GE;
+					expression.mod.opType = H_OP_GE;
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				} else {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HSSA_OP_G;
+					expression.mod.opType = H_OP_G;
 					expression.exprtype = HSSA_TYPE_UINT;
 					expression.size = 1;
 				}
@@ -492,7 +490,7 @@ namespace holodec {
 				char c2 = peek();
 				if (c2 < '0' || '9' < c2) {
 					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = HSSA_OP_SUB;
+					expression.mod.opType = H_OP_SUB;
 					expression.exprtype = HSSA_TYPE_UINT;
 					//printf ("Parsed Sub\n");
 					break;
@@ -503,13 +501,12 @@ namespace holodec {
 				pushback();
 				if (!parseNumber (&num)) {
 					printParseFailure ("Number");
-					return HArgument::create();//HIR_EXPR_INVALID;
+					return HIRArgument::create();//HIR_EXPR_INVALID;
 				}
-				return HArgument::createVal ( (uint64_t) num, arch->bitbase);
+				return HIRArgument::createVal ( (uint64_t) num, arch->bitbase);
 			}
 			}
-			if (hasArgs)
-				parseArguments (&expression);
+			parseArguments (&expression);
 			switch (expression.type) {
 			case HIR_EXPR_LOAD:
 				assert (expression.subExpressions.size() == 3);
@@ -524,10 +521,10 @@ namespace holodec {
 			default:
 				break;
 			}
-			return parseIndex (HArgument::createId (HIR_ARGTYPE_ID, arch->addIrExpr (expression), expression.size));
+			return parseIndex (HIRArgument::createIRId (arch->addIrExpr (expression), expression.size));
 		}
 		printf ("Parsed Invalid Char '%c'", c);
-
+		return HIRArgument::create();
 	}
 
 

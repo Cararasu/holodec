@@ -22,19 +22,19 @@ namespace holodec {
 	void HSSAAddressToBlockTransformer::parseExpression (HSSAExpression* expression) {
 		
 		if(expression->type == HSSA_EXPR_JMP){
-			if(expression->subExpressions[0].type == H_ARGTYPE_UINT){
+			if(expression->subExpressions[0].type == HIR_ARGTYPE_UINT){
 				for(HSSABB& bb : function->ssaRep.bbs){
 					if(bb.startaddr == expression->subExpressions[0].uval){
-						expression->subExpressions[0] = HArgument::createIndex(HSSA_ARGTYPE_BLOCK, bb.id);
+						expression->subExpressions[0] = HSSAArgument::createBlock(bb.id);
 						break;
 					}
 				}
 			}
 		}else if(expression->type == HSSA_EXPR_CJMP){
-			if(expression->subExpressions[1].type == H_ARGTYPE_UINT){
+			if(expression->subExpressions[1].type == HIR_ARGTYPE_UINT){
 				for(HSSABB& bb : function->ssaRep.bbs){
 					if(bb.startaddr == expression->subExpressions[1].uval){
-						expression->subExpressions[1] = HArgument::createIndex(HSSA_ARGTYPE_BLOCK, bb.id);
+						expression->subExpressions[1] = HSSAArgument::createBlock(bb.id);
 						break;
 					}
 				}

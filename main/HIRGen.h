@@ -38,13 +38,13 @@ namespace holodec {
 			index -= count;
 		}
 
-		HArgument parseIndex (HArgument expr);
+		HIRArgument parseIndex (HIRArgument expr);
 		int parseArguments (HIRExpression* expr);
-		HArgument parseIRExpression();
+		HIRArgument parseIRExpression();
 
 		bool parseIdentifier (char *buffer, size_t buffersize);
-		HArgument parseBuiltin();
-		HArgument parseToken();
+		HIRArgument parseBuiltin();
+		HIRArgument parseToken();
 		bool parseCharacter (char character);
 		void skipWhitespaces();
 		bool parseStringIndex (HIRExpression* expression);

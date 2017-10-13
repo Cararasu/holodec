@@ -9,14 +9,14 @@ namespace holodec {
 
 	struct HSSATmpDef {
 		HId id;
-		HArgument arg;
+		HIRArgument arg;
 	};
 	
 	
 	struct HSSAGen {
 		HArchitecture* arch;
 
-		HList<HArgument> arguments;
+		HList<HIRArgument> arguments;
 		HInstruction* instruction = nullptr;
 
 		HId activeBlockId = 0;
@@ -39,8 +39,9 @@ namespace holodec {
 
 		HId splitBasicBlock (uint64_t addr);
 
-		HArgument parseMemArgToExpr(HArgument mem);
-		HArgument replaceArg (HArgument arg);
+		HIRArgument parseMemArgToExpr(HIRArgument mem);
+		HIRArgument replaceArg (HIRArgument arg);
+		HSSAArgument parseIRArg2SSAArg(HIRArgument arg);
 		void insertLabel (uint64_t address, HId instructionId = 0);
 		HId addExpression (HSSAExpression* expression);
 		HId createNewBlock ();
@@ -54,11 +55,11 @@ namespace holodec {
 		HIRRepresentation* matchIr (HInstruction* instr);
 
 		template<typename ARGLIST>
-		HArgument parseConstExpression (HArgument argExpr, ARGLIST* arglist);
+		HIRArgument parseConstExpression (HIRArgument argExpr, ARGLIST* arglist);
 		
 
 		bool parseInstruction (HInstruction* instruction);
-		HArgument parseExpression (HArgument exprId);
+		HIRArgument parseExpression (HIRArgument exprId);
 
 		void print (int indent = 0);
 	};

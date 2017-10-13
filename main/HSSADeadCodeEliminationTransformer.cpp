@@ -16,18 +16,18 @@ namespace holodec {
 			std::set<HId> usedIds;
 
 			for (HSSAExpression& expr : function->ssaRep.expressions) {
-				for (HArgument& arg : expr.subExpressions) {
+				for (HSSAArgument& arg : expr.subExpressions) {
 					if (arg.id)
 						usedIds.insert (arg.id);
 				}
 			}
 
-			HList<std::pair<HId, HArgument>> replacements;
+			HList<std::pair<HId, HSSAArgument>> replacements;
 			
 			for (HSSAExpression& expr : function->ssaRep.expressions) {
 				if(!(expr.type & HSSA_EXPR_CONTROL_FLOW)) {
 					if (usedIds.find (expr.id) == usedIds.end())
-						replacements.push_back (std::pair<HId, HArgument> (expr.id, HArgument::create()));
+						replacements.push_back (std::pair<HId, HSSAArgument> (expr.id, HSSAArgument::create()));
 				}
 			}
 

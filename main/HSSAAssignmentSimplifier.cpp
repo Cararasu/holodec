@@ -12,46 +12,47 @@ namespace holodec{
 		
 		printf ("Simplifying Assignments for Function at Address 0x%x\n", function->baseaddr);
 		
-		HList<std::pair<HId, HArgument>> replacements;
+		HList<std::pair<HId, HSSAArgument>> replacements;
 		
 		while(true){
 			replacements.clear();
 			for(HSSAExpression& expr : function->ssaRep.expressions){
 				if(expr.type == HSSA_EXPR_ASSIGN && !expr.subExpressions[0].isConst()) {
 					if(expr.subExpressions[0].type == HSSA_ARGTYPE_ID){
-						HArgument arg = expr.subExpressions[0];
+						HSSAArgument arg = expr.subExpressions[0];
 						if(expr.regId){
-							arg.type = H_ARGTYPE_REG;
-							arg.reg = expr.regId;
+							arg.type = HSSA_ARGTYPE_REG;
+							arg.refId = expr.regId;
 						}else if(expr.stackId.id){
-							arg.type = H_ARGTYPE_STACK;
-							arg.stack = expr.stackId;
+							arg.type = HSSA_ARGTYPE_STACK;
+							arg.refId = expr.stackId.id;
+							arg.wusl = expr.stackId.index;
 						}else if(expr.memId){
-							arg.type = H_ARGTYPE_MEM;
-							arg.index = expr.memId;
+							arg.type = HSSA_ARGTYPE_MEM;
+							arg.refId = expr.memId;
 						}
-						replacements.push_back(std::pair<HId, HArgument>(expr.id, arg));
+						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
 					}else{
 						
 					}
 				}else if(expr.type == HSSA_EXPR_UNDEF){
-					HArgument arg;
+					HSSAArgument arg;
 					if(expr.regId)
-						arg = HArgument::createUnknownReg(expr.regId);
+						arg = HSSAArgument::createReg(expr.regId, expr.size);
 					else if(expr.memId)
-						arg = HArgument::createUnknownMem(expr.memId);
+						arg = HSSAArgument::createMem(expr.memId, expr.size);
 					else if(expr.stackId.id)
-						arg = HArgument::createUnknownStack(expr.stackId);
-					replacements.push_back(std::pair<HId, HArgument>(expr.id, arg));
+						arg = HSSAArgument::createStck(expr.stackId.id, expr.size, expr.stackId.index);
+					replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
 				}else if(expr.type == HSSA_EXPR_LABEL){
-					replacements.push_back(std::pair<HId, HArgument>(expr.id, HArgument::create()));
+					replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, HSSAArgument::create()));
 				}else if(expr.type == HSSA_EXPR_PHI) {
 					bool undef = true;
-					HArgument& firstArg = expr.subExpressions[0];
+					HSSAArgument& firstArg = expr.subExpressions[0];
 					bool alwaysTheSame = true;
 					
-					for(HArgument& arg : expr.subExpressions){
-						if(arg.type != H_ARGTYPE_UNKN){
+					for(HSSAArgument& arg : expr.subExpressions){
+						if(arg.type != HIR_ARGTYPE_UNKN){
 							undef = false;
 						}
 						if(arg != firstArg){
@@ -59,27 +60,27 @@ namespace holodec{
 						}
 					}
 					if(undef){
-						HArgument arg;
+						HSSAArgument arg;
 						if(expr.regId)
-							arg = HArgument::createUnknownReg(expr.regId);
+							arg = HSSAArgument::createReg(expr.regId, expr.size);
 						else if(expr.memId)
-							arg = HArgument::createUnknownMem(expr.memId);
+							arg = HSSAArgument::createMem(expr.memId);
 						else if(expr.stackId.id)
-							arg = HArgument::createUnknownStack(expr.stackId);
-						replacements.push_back(std::pair<HId, HArgument>(expr.id, arg));
+							arg = HSSAArgument::createStck(expr.stackId.id, expr.stackId.index, expr.size);
+						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
 					}else if(alwaysTheSame){
-						replacements.push_back(std::pair<HId, HArgument>(expr.id, firstArg));
+						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, firstArg));
 					}
 				}else if(expr.type == HSSA_EXPR_SPLIT || expr.type == HSSA_EXPR_UPDATEPART){
-					if(expr.subExpressions[0].type == H_ARGTYPE_UNKN){
-						HArgument arg;
+					if(expr.subExpressions[0].type == HIR_ARGTYPE_UNKN){
+						HSSAArgument arg;
 						if(expr.regId)
-							arg = HArgument::createUnknownReg(expr.regId);
+							arg = HSSAArgument::createReg(expr.regId, expr.size);
 						else if(expr.memId)
-							arg = HArgument::createUnknownMem(expr.memId);
+							arg = HSSAArgument::createMem(expr.memId);
 						else if(expr.stackId.id)
-							arg = HArgument::createUnknownStack(expr.stackId);
-						replacements.push_back(std::pair<HId, HArgument>(expr.id, arg));
+							arg = HSSAArgument::createStck(expr.stackId.id, expr.stackId.index, expr.size);
+						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
 					}
 				}
 			}

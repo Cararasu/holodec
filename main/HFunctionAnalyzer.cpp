@@ -153,7 +153,7 @@ bool holodec::HFunctionAnalyzer::analyzeFunction (HFunction* function) {
 			HSSAExpression* expr = state.function->ssaRep.expressions.get (id);
 			if (expr->type == HSSA_EXPR_CALL) {
 				assert (expr->subExpressions.size());
-				if (expr->subExpressions[0].type == H_ARGTYPE_UINT) {
+				if (expr->subExpressions[0].type == HIR_ARGTYPE_UINT) {
 					printf ("Found Function 0x%x\n", expr->subExpressions[0].uval);
 				}
 			}

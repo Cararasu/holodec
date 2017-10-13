@@ -69,8 +69,8 @@ namespace holodec {
 				HId instrId;
 			};
 		} mod;
-		//HLocalBackedList<HArgument, HIR_LOCAL_USEID_MAX> subExpressions;
-		HList<HArgument> subExpressions;
+		//HLocalBackedList<HSSAArgument, HIR_LOCAL_USEID_MAX> subExpressions;
+		HList<HIRArgument> subExpressions;
 
 		bool operator!() {
 			return type == HIR_EXPR_INVALID;
@@ -109,8 +109,8 @@ namespace holodec {
 		HString condstring;
 		HString irstring;
 
-		HArgument condExpr = HArgument::create();
-		HArgument rootExpr = HArgument::create();
+		HIRArgument condExpr = HIRArgument::create();
+		HIRArgument rootExpr = HIRArgument::create();
 
 		HIRRepresentation() : HIRRepresentation (-1, nullptr, nullptr) {}
 		HIRRepresentation (HString irstring) :  HIRRepresentation (-1, nullptr, irstring) {}
