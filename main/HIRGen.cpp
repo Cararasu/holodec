@@ -493,6 +493,7 @@ namespace holodec {
 				if (c2 < '0' || '9' < c2) {
 					expression.type = HIR_EXPR_OP;
 					expression.mod.opType = HSSA_OP_SUB;
+					expression.exprtype = HSSA_TYPE_UINT;
 					//printf ("Parsed Sub\n");
 					break;
 				}

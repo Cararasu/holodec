@@ -213,7 +213,6 @@ namespace holodec {
 		printf ("------------------\n");
 		printIndent (indent);
 		printf ("Printing SSA-Gen Data\n");
-		printIndent (indent + 1);
 		for (HSSABB& bb : bbs) {
 			printIndent (indent + 1);
 			printf ("Block bb Id: %d 0x%x - 0x%x\n", bb.id, bb.startaddr, bb.endaddr);

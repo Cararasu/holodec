@@ -90,7 +90,6 @@ int main (int argc, char** argv) {
 	
 	for (HSymbol& sym : binary->symbols){
 		if(sym.symboltype == &HSymbolType::symfunc){
-			sym.print();
 			func_analyzer->analyzeFunction (&sym);
 		}
 	}

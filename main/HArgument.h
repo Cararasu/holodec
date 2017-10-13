@@ -81,11 +81,6 @@ namespace holodec {
 		static inline HArgument create() {
 			return HArgument();
 		}
-		static inline HArgument createUnknown() {
-			HArgument arg;
-			arg.type = H_ARGTYPE_UNKN;
-			return arg;
-		}
 		static inline HArgument createUnknownReg(HRegister* reg) {
 			HArgument arg;
 			arg.type = H_ARGTYPE_REG;
@@ -108,6 +103,18 @@ namespace holodec {
 			HArgument arg;
 			arg.type = H_ARGTYPE_MEM;
 			arg.index = id;
+			return arg;
+		}
+		static inline HArgument createUnknownStack(HStack* stack) {
+			HArgument arg;
+			arg.type = H_ARGTYPE_STACK;
+			arg.stack = {stack->id, 0};
+			return arg;
+		}
+		static inline HArgument createUnknownStack(HArgStck stackid) {
+			HArgument arg;
+			arg.type = H_ARGTYPE_STACK;
+			arg.stack = stackid;
 			return arg;
 		}
 		static inline HArgument createVal (int64_t val, uint64_t size) {

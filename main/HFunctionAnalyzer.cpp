@@ -85,7 +85,6 @@ bool holodec::HFunctionAnalyzer::trySplitBasicBlock (uint64_t splitaddr) {
 		if (basicblock.addr == splitaddr)
 			return true;
 		if (basicblock.addr <= splitaddr && splitaddr < (basicblock.addr + basicblock.size)){
-			printf("Split 0x%x\n", splitaddr);
 			if (splitBasicBlock (&basicblock, splitaddr)) {
 				return true;
 			}

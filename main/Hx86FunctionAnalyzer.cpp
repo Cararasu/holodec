@@ -53,7 +53,6 @@ bool holox86::Hx86FunctionAnalyzer::terminate() {
 void analyzeInstruction (HInstruction* instr, size_t addr, cs_insn *insn);
 
 bool holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
-	printf("go analyze 0x%x\n", addr);
 	cs_insn *insn;
 	size_t count;
 
@@ -83,8 +82,6 @@ bool holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 				}
 
 				instruction.instrdef = arch->getInstrDef (insn[i].id, insn[i].mnemonic);
-				if (!instruction.instrdef)
-					printf ("ID: %d\n", insn[i].id);
 
 				setJumpDest (&instruction);
 				addr = insn[i].address + insn[i].size;
@@ -101,7 +98,6 @@ bool holox86::Hx86FunctionAnalyzer::analyzeInsts (size_t addr) {
 			return false;
 		}
 	} while (running);
-	printf("end analyze\n");
 	return true;
 }
 

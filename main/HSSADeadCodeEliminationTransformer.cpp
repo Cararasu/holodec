@@ -25,9 +25,9 @@ namespace holodec {
 			HList<std::pair<HId, HArgument>> replacements;
 			
 			for (HSSAExpression& expr : function->ssaRep.expressions) {
-				if(!(expr.type | HSSA_EXPR_CONTROL_FLOW)) {
+				if(!(expr.type & HSSA_EXPR_CONTROL_FLOW)) {
 					if (usedIds.find (expr.id) == usedIds.end())
-						replacements.push_back (std::pair<HId, HArgument> (expr.id, HArgument::createUnknown()));
+						replacements.push_back (std::pair<HId, HArgument> (expr.id, HArgument::create()));
 				}
 			}
 

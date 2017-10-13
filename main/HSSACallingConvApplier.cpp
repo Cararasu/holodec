@@ -81,18 +81,19 @@ namespace holodec {
 					HArgument& arg = *it;
 					bool isParam = false;
 
-					if ( (arg.type & ~H_ARGTYPE_UNKN) == H_ARGTYPE_MEM)
-						isParam = true;
-
-					if (!isParam) {
-						for (HCCParameter& para : cc->returns) {
-							HRegister* reg = arch->getRegister (para.regname);
-							if (arg.reg == reg->id) {
-								//leave as arg
-								isParam = true;
-								break;
+					if (arg.type == H_ARGTYPE_REG) {
+						if (!isParam) {
+							for (HCCParameter& para : cc->returns) {
+								HRegister* reg = arch->getRegister (para.regname);
+								if (arg.reg == reg->id) {
+									//leave as arg
+									isParam = true;
+									break;
+								}
 							}
 						}
+					} else if (arg.type == H_ARGTYPE_MEM) {
+						isParam = true;
 					}
 					if (!isParam) {
 						expr.subExpressions.erase (it);
@@ -139,10 +140,11 @@ namespace holodec {
 				//TODO get the calling convention of the target
 				//currently HACK to use own calling convention
 
-				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();) {
+				for (auto it = expr.subExpressions.begin() + 1/* skip first parameter*/; it != expr.subExpressions.end();) {
 					HArgument& arg = *it;
 					bool isParam = false;
-					if ( (arg.type & ~H_ARGTYPE_UNKN) == H_ARGTYPE_MEM)
+					
+					if (arg.type == H_ARGTYPE_MEM)
 						isParam = true;
 					if (!isParam) {
 						for (HCCParameter& para : cc->parameters) {
@@ -155,7 +157,6 @@ namespace holodec {
 						}
 					}
 					if (!isParam && stackreg && arg.reg == stackreg->id) {
-						printf ("%s\n", stackreg->name.cstr());
 						//leave the arg
 						isParam = true;
 					}

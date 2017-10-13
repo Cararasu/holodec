@@ -143,6 +143,7 @@ namespace holodec {
 										HSSAExpression newExpr;
 										newExpr.type = HSSA_EXPR_SPLIT;
 										newExpr.exprtype = HSSA_TYPE_UINT;
+										newExpr.instrAddr = expr->instrAddr;
 										newExpr.regId = reg->id;
 										newExpr.subExpressions.push_back (HArgument::createReg (reg, def.ssaId));
 										newExpr.subExpressions.push_back (HArgument::createVal (reg->offset - def.offset, arch->bitbase));
@@ -318,15 +319,19 @@ namespace holodec {
 			expr.subExpressions.push_back (HArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId));
 			expr.subExpressions.push_back (HArgument::createVal (reg->offset, arch->bitbase));
 			expr.subExpressions.push_back (HArgument::createVal (reg->size, arch->bitbase));
-			HId exprId = function->ssaRep.expressions.push_back (expr);
+			bool found = false;
 			for(auto it = wrapper->ssaBB->exprIds.begin(); it != wrapper->ssaBB->exprIds.end(); ++it){
 				if(foundParentDef->ssaId == *it){
+					expr.instrAddr = function->ssaRep.expressions[foundParentDef->ssaId].instrAddr;
+					HId exprId = function->ssaRep.expressions.push_back (expr);
 					wrapper->ssaBB->exprIds.insert(++it, exprId);
+					addRegDef (exprId, reg, &wrapper->outputs, false);
+					gatheredIds[ (*gatheredIdCount)++] = exprId;
+					found = true;
 					break;
 				}
 			}
-			addRegDef (exprId, reg, &wrapper->outputs, false);
-			gatheredIds[ (*gatheredIdCount)++] = exprId;
+			assert(found);
 		} else {
 			for (int i = 0; i < *visitedBlockCount; i++) {
 				if (visitedBlocks[i] == wrapper->ssaBB->id) {

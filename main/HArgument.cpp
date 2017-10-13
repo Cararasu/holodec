@@ -23,7 +23,10 @@ namespace holodec {
 			printf("Memory %d", index);
 			break;
 		case H_ARGTYPE_SINT:
-			printf ("%d", sval);
+			if(sval < 0)
+				printf ("-0x%x", -sval);
+			else
+				printf ("0x%x", sval);
 			break;
 		case H_ARGTYPE_UINT:
 			printf ("0x%X", uval);
