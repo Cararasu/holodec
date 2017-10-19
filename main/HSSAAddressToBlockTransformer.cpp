@@ -29,7 +29,7 @@ namespace holodec {
 					if(bb.startaddr == expression->subExpressions[0].uval){
 						expression->subExpressions[0] = HSSAArgument::createBlock(bb.id);
 						basicBlock->outBlocks.insert(bb.id);
-						bb.inBlocks.insert(bb.id);
+						bb.inBlocks.insert(basicBlock->id);
 						break;
 					}
 				}
@@ -40,7 +40,7 @@ namespace holodec {
 					if(bb.startaddr == expression->subExpressions[1].uval){
 						expression->subExpressions[1] = HSSAArgument::createBlock(bb.id);
 						basicBlock->outBlocks.insert(bb.id);
-						bb.inBlocks.insert(bb.id);
+						bb.inBlocks.insert(basicBlock->id);
 						break;
 					}
 				}
@@ -52,7 +52,7 @@ namespace holodec {
 						if(bb.startaddr == it->uval){
 							*it = HSSAArgument::createBlock(bb.id);
 							basicBlock->outBlocks.insert(bb.id);
-							bb.inBlocks.insert(bb.id);
+							bb.inBlocks.insert(basicBlock->id);
 							break;
 						}
 					}

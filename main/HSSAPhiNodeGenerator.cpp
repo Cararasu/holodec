@@ -12,12 +12,12 @@ namespace holodec {
 		printf ("Fallthrough %d\n", ssaBB->fallthroughId);
 
 		printf ("InBlocks ");
-		for (HId& id : inBlocks) {
+		for (HId id : ssaBB->inBlocks) {
 			printf ("%d, ", id);
 		}
 		printf ("\n");
 		printf ("OutBlocks ");
-		for (HId& id : outBlocks) {
+		for (HId id : ssaBB->outBlocks) {
 			printf ("%d, ", id);
 		}
 		printf ("\n");
@@ -94,33 +94,6 @@ namespace holodec {
 
 		for (BasicBlockWrapper& bbwrapper : bbwrappers) {
 
-			for (HSSABB& bb2 : function->ssaRep.bbs) {
-				if (bbwrapper.ssaBB->id == bb2.fallthroughId) {
-					bbwrapper.inBlocks.push_back (bb2.id);
-				}
-				if (bb2.exprIds.size()) {
-					HSSAExpression* lastExpr = function->ssaRep.expressions.get (bb2.exprIds.back());
-					if (lastExpr->type == HSSA_EXPR_JMP && lastExpr->subExpressions[0].type == HSSA_ARGTYPE_BLOCK) {
-						if (bbwrapper.ssaBB->id == lastExpr->subExpressions[0].uval) {
-							bbwrapper.inBlocks.push_back (bb2.id);
-						}
-					} else if (lastExpr->type == HSSA_EXPR_CJMP && lastExpr->subExpressions[1].type == HSSA_ARGTYPE_BLOCK) {
-						if (bbwrapper.ssaBB->id == lastExpr->subExpressions[1].uval) {
-							bbwrapper.inBlocks.push_back (bb2.id);
-						}
-					}
-				}
-			}
-			if (bbwrapper.ssaBB->fallthroughId)
-				bbwrapper.outBlocks.push_back (bbwrapper.ssaBB->fallthroughId);
-			if (bbwrapper.ssaBB->exprIds.size()) {
-				HSSAExpression* lastExpr = function->ssaRep.expressions.get (bbwrapper.ssaBB->exprIds.back());
-				if (lastExpr->type == HSSA_EXPR_JMP && lastExpr->subExpressions[0].type == HSSA_ARGTYPE_BLOCK) {
-					bbwrapper.outBlocks.push_back (lastExpr->subExpressions[0].uval);
-				} else if (lastExpr->type == HSSA_EXPR_CJMP && lastExpr->subExpressions[1].type == HSSA_ARGTYPE_BLOCK) {
-					bbwrapper.outBlocks.push_back (lastExpr->subExpressions[1].uval);
-				}
-			}
 			for (auto it = bbwrapper.ssaBB->exprIds.begin(); it != bbwrapper.ssaBB->exprIds.end(); ++it) {
 				HId id = *it;
 				HSSAExpression* expr = function->ssaRep.expressions.get (id);
@@ -212,7 +185,7 @@ namespace holodec {
 		}
 
 		resolveRegs();
-
+		
 		for (BasicBlockWrapper& wrap : bbwrappers) {
 			
 			for (HSSARegDef& regDef : wrap.inputs) {
@@ -223,11 +196,11 @@ namespace holodec {
 
 				HRegister* reg = arch->getRegister (regDef.regId);
 
-				//printf("Searching Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
-				for (HId& inBlockId : wrap.inBlocks) {
+				printf("Searching Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
+				for (HId inBlockId : wrap.ssaBB->inBlocks) {
 					handleBBs (getWrapper (inBlockId), reg, gatheredIds, &gatheredIdCount, visitedBlocks, &visitedBlockCount);
 				}
-				//printf("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
+				printf("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
 				assert (gatheredIdCount);
 
 				HSSAExpression phinode;
@@ -262,7 +235,7 @@ namespace holodec {
 				
 				HMemory* mem = arch->getMemory (memDef.memId);
 				
-				for (HId& inBlockId : wrap.inBlocks) {
+				for (HId inBlockId : wrap.ssaBB->inBlocks) {
 					handleBBs (getWrapper (inBlockId), mem, gatheredIds, &gatheredIdCount, visitedBlocks, &visitedBlockCount);
 				}
 				assert (gatheredIdCount);
@@ -298,9 +271,9 @@ namespace holodec {
 	}
 
 	void HSSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, HRegister* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount) {
-		//printf("\nHandling Block %d\n", wrapper->ssaBB->id);
+		printf("\nHandling Block %d\n", wrapper->ssaBB->id);
 
-		//printf("Found no match on BB %d\n", wrapper->ssaBB->id);
+		printf("Found no match on BB %d\n", wrapper->ssaBB->id);
 
 		HSSARegDef* foundParentDef = nullptr;
 		for (HSSARegDef& regDef : wrapper->outputs) {
@@ -316,7 +289,7 @@ namespace holodec {
 			}
 		}
 		if (foundParentDef) {
-			//printf("Found parent Match %d\n", foundParentDef->ssaId);
+			printf("Found parent Match %d\n", foundParentDef->ssaId);
 			HSSAExpression expr;
 			expr.type = HSSA_EXPR_SPLIT;
 			expr.exprtype = HSSA_TYPE_UINT;
@@ -328,27 +301,27 @@ namespace holodec {
 			expr.subExpressions.push_back (HSSAArgument::createVal (reg->size, arch->bitbase));
 			bool found = false;
 			for(auto it = wrapper->ssaBB->exprIds.begin(); it != wrapper->ssaBB->exprIds.end(); ++it){
-				if(foundParentDef->ssaId == *it){
+				if(foundParentDef->ssaId == *it) {
 					expr.instrAddr = function->ssaRep.expressions[foundParentDef->ssaId].instrAddr;
 					HId exprId = function->ssaRep.expressions.push_back (expr);
 					wrapper->ssaBB->exprIds.insert(++it, exprId);
 					addRegDef (exprId, reg, &wrapper->outputs, false);
 					gatheredIds[ (*gatheredIdCount)++] = exprId;
 					found = true;
-					break
+					break;
 				}
 			}
 			assert(found);
 		} else {
 			for (int i = 0; i < *visitedBlockCount; i++) {
 				if (visitedBlocks[i] == wrapper->ssaBB->id) {
-					//printf("Already Visited BB %d\n", wrapper->ssaBB->id);
+					printf("Already Visited BB %d\n", wrapper->ssaBB->id);
 					return;
 				}
 			}
 			visitedBlocks[ (*visitedBlockCount)++] = wrapper->ssaBB->id;
 			
-			for (HId& inBlockId : wrapper->inBlocks) {
+			for (HId inBlockId : wrapper->ssaBB->inBlocks) {
 				handleBBs (getWrapper (inBlockId), reg, gatheredIds, gatheredIdCount, visitedBlocks, visitedBlockCount);
 			}
 		}
@@ -373,7 +346,7 @@ namespace holodec {
 		}
 		visitedBlocks[ (*visitedBlockCount)++] = wrapper->ssaBB->id;
 		
-		for (HId& inBlockId : wrapper->inBlocks) {
+		for (HId inBlockId : wrapper->ssaBB->inBlocks) {
 			handleBBs (getWrapper (inBlockId), mem, gatheredIds, gatheredIdCount, visitedBlocks, visitedBlockCount);
 		}
 	}

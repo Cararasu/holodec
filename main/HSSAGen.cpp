@@ -997,35 +997,52 @@ namespace holodec {
 			return HIRArgument::create ();
 			case HIR_EXPR_REP: {
 				HId startBlock = activeBlockId;
-				HId condId = createNewBlock();
-				HId bodyId = createNewBlock();
-				getActiveBlock()->fallthroughId = condId;
-				getActiveBlock()->outBlocks.insert(condId);
-				getBlock(condId)->inBlocks.insert(getActiveBlock()->id);
+				HId startCondId = createNewBlock();
+				HId endCondId = 0;
+				HId startBodyId = createNewBlock();
+				HId endBodyId = 0;
 
-
-				activateBlock (condId);
+				activateBlock (startCondId);
 				HSSAExpression expression;
 				expression.type = HSSA_EXPR_CJMP;
 				expression.exprtype = HSSA_TYPE_PC;
 				expression.size = arch->bitbase;
 				expression.subExpressions.push_back (parseIRArg2SSAArg(parseExpression (expr->subExpressions[0])));
-				expression.subExpressions.push_back (HSSAArgument::createBlock(bodyId));
+				expression.subExpressions.push_back (HSSAArgument::createBlock(startBodyId));
 				addExpression (&expression);
-				condId = activeBlockId;
+				endCondId = activeBlockId;
 
-				activateBlock (bodyId);
+				activateBlock (startBodyId);
 				parseExpression (expr->subExpressions[1]);
-				getActiveBlock()->fallthroughId = condId;
-				getActiveBlock()->outBlocks.insert(condId);
-				getBlock(condId)->inBlocks.insert(getActiveBlock()->id);
-				bodyId = activeBlockId;
+				endBodyId = activeBlockId;
 
 				HId endId = createNewBlock();
-				HSSABB* condBB = getBlock (condId);
-				condBB->fallthroughId = endId;
-				condBB->outBlocks.insert(endId);
-				getBlock(endId)->inBlocks.insert(condBB->id);
+				
+				HSSABB* startBlockBB = getBlock(startBlock);
+				HSSABB* startCondBB = getBlock(startCondId);
+				HSSABB* endCondBB = getBlock(endCondId);
+				HSSABB* startBodyBB = getBlock(startBodyId);
+				HSSABB* endBodyBB = getBlock(endBodyId);
+				HSSABB* endBB = getBlock(endId);
+				
+				//start -> startCond
+				startBlockBB->fallthroughId = startCondId;
+				startBlockBB->outBlocks.insert(startCondId);
+				startCondBB->inBlocks.insert(startBlock);
+				
+				//endCond -> true: startBody; false: end
+				endCondBB->fallthroughId = endId;
+				endCondBB->outBlocks.insert(endId);
+				endBB->inBlocks.insert(endCondId);
+				
+				endCondBB->outBlocks.insert(startBodyId);
+				startBodyBB->inBlocks.insert(endCondId);
+				
+				//endBody -> startCond
+				endBodyBB->fallthroughId = startCondId;
+				endBodyBB->outBlocks.insert(startCondId);
+				startCondBB->inBlocks.insert(endBodyId);
+				
 				activateBlock (endId);
 				return HIRArgument::create ();
 			}

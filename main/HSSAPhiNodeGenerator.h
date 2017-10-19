@@ -20,9 +20,6 @@ namespace holodec {
 	struct BasicBlockWrapper{
 		HSSABB* ssaBB;
 		
-		HList<HId> inBlocks;
-		HList<HId> outBlocks;
-		
 		HList<HSSARegDef> inputs;
 		HList<HSSARegDef> outputs;
 		
