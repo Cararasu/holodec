@@ -191,14 +191,18 @@ namespace holodec {
 			printf ("Flag ");
 			break;
 		}
-		if (regId) {
-			printf ("Reg: %s, ", arch->getRegister (regId)->name.cstr());
-		}
-		if (stackId.id) {
-			printf ("Stack: %s[%d], ", arch->getStack (stackId.id)->name.cstr(), stackId.index);
-		}
-		if (memId) {
-			printf ("Mem: %d, ", memId);
+		switch(location){
+		case HSSA_LOCATION_REG:
+			printf ("Reg: %s, ", arch->getRegister (locref.refId)->name.cstr());
+		break;
+		case HSSA_LOCATION_STACK:
+			printf ("Stack: %s[%d], ", arch->getStack (locref.refId)->name.cstr(), locref.index);
+		break;
+		case HSSA_LOCATION_MEM:
+			printf ("Mem: %d, ", locref.refId);
+		break;
+		case HSSA_LOCATION_NONE:
+		break;
 		}
 		printf ("%d = ", id);
 		for (HSSAArgument& arg : subExpressions) {
@@ -213,13 +217,27 @@ namespace holodec {
 		printf ("------------------\n");
 		printIndent (indent);
 		printf ("Printing SSA-Gen Data\n");
+		printIndent (indent);
+		printf("Number Of Expressions: %d\n", expressions.size());
+		
 		for (HSSABB& bb : bbs) {
 			printIndent (indent + 1);
 			printf ("Block bb Id: %d 0x%x - 0x%x\n", bb.id, bb.startaddr, bb.endaddr);
+			
+			printIndent (indent + 1);
+			printf ("InBlocks ");
+			for(HId id : bb.inBlocks) printf("%d, ", id);
+			printf ("\n");
+			
+			printIndent (indent + 1);
+			printf ("OutBlocks ");
+			for(HId id : bb.outBlocks) printf("%d, ", id);
+			printf ("\n");
+			
 			printIndent (indent + 1);
 			printf ("Fallthrough: %d\n", bb.fallthroughId);
 			for (HId id : bb.exprIds) {
-				expressions.get (id)->print (arch, indent + 2);
+				expressions[id].print (arch, indent + 2);
 			}
 		}
 		

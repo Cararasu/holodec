@@ -15,6 +15,8 @@ namespace holodec {
 		HRegister* stackreg = stack && stack->trackingReg ? arch->getRegister (stack->trackingReg) : nullptr;
 
 		for (HSSAExpression& expr : function->ssaRep.expressions) {
+			if(!expr.id)
+				continue;
 			if (expr.type == HSSA_EXPR_OUTPUT) {
 				//TODO get Call method and get the calling convention of the target
 				//currently HACK to use own calling convention
@@ -25,15 +27,16 @@ namespace holodec {
 				HRegister* localStackReg = stackreg;
 
 				bool isParam = false;
-				if (expr.regId) {
-					for (HString& regStr : cc->nonVolatileReg) {
+				switch(expr.location){
+				case HSSA_LOCATION_REG:{
+					for (HStringRef& regStr : cc->nonVolatileReg) {
 						HRegister* reg = arch->getRegister (regStr);
-						if (expr.regId == reg->id) {
+						if (expr.locref.refId == reg->id) {
 							assert (expr.subExpressions[0].type == HSSA_ARGTYPE_ID);
 
 							expr.type = HSSA_EXPR_ASSIGN;
 							for (HSSAArgument& arg : callExpr->subExpressions) {
-								if (arg.type == HSSA_ARGTYPE_REG && arg.refId == expr.regId) {
+								if (arg.type == HSSA_ARGTYPE_REG && arg.ref.refId == expr.locref.refId) {
 									expr.subExpressions[0] = arg;
 								}
 							}
@@ -41,10 +44,10 @@ namespace holodec {
 							break;
 						}
 					}
-					if (!isParam && localStackReg && expr.regId == localStackReg->id && cc->callerstackadjust == H_CC_STACK_ADJUST_CALLEE) {
+					if (!isParam && localStackReg && expr.locref.refId == localStackReg->id && cc->callerstackadjust == H_CC_STACK_ADJUST_CALLEE) {
 						expr.type = HSSA_EXPR_ASSIGN;
 						for (HSSAArgument& arg : callExpr->subExpressions) {
-							if (arg.type == HSSA_ARGTYPE_REG && arg.refId == expr.regId) {
+							if (arg.type == HSSA_ARGTYPE_REG && arg.ref.refId == expr.locref.refId) {
 								expr.subExpressions[0] = arg;
 							}
 						}
@@ -53,23 +56,26 @@ namespace holodec {
 					}
 					if (!isParam) {
 						for (HCCParameter& para : cc->returns) {
-							HRegister* reg = arch->getRegister (para.regname);
-							if (expr.regId == reg->id) {
+							HRegister* reg = arch->getRegister (para.regref);
+							if (expr.locref.refId == reg->id) {
 								expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) para.index, arch->bitbase));
 								isParam = true;
 								break;
 							}
 						}
 					}
-				} else if (expr.memId) {
+				}
+				break;
+				case HSSA_LOCATION_MEM:{
 					for (HMemory& mem : arch->memories) {
-						if (expr.memId == mem.id) {
+						if (expr.locref.refId == mem.id) {
 							expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
 							isParam = true;
 						}
 					}
 				}
-
+				break;
+				}
 				if (!isParam) {
 					expr.type = HSSA_EXPR_UNDEF;
 					if (!expr.subExpressions.empty())
@@ -84,8 +90,8 @@ namespace holodec {
 					if (arg.type == HSSA_ARGTYPE_REG) {
 						if (!isParam) {
 							for (HCCParameter& para : cc->returns) {
-								HRegister* reg = arch->getRegister (para.regname);
-								if (arg.refId == reg->id) {
+								HRegister* reg = arch->getRegister (para.regref);
+								if (arg.ref.refId == reg->id) {
 									//leave as arg
 									isParam = true;
 									break;
@@ -105,26 +111,29 @@ namespace holodec {
 			if (expr.type == HSSA_EXPR_INPUT) {
 
 				bool isParam = false;
-				if (expr.regId) {
+				switch(expr.location){
+				case HSSA_LOCATION_REG:{
 					for (HCCParameter& para : cc->parameters) {
-						HRegister* reg = arch->getRegister (para.regname);
-						if (expr.regId == reg->id) {
+						HRegister* reg = arch->getRegister (para.regref);
+						if (expr.locref.refId == reg->id) {
 							expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) para.index, arch->bitbase));
 							isParam = true;
 							break;
 						}
 					}
-					if (!isParam && expr.regId == stackreg->id) {
+					if (!isParam && expr.locref.refId == stackreg->id) {
 						expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
 						isParam = true;
 					}
-				} else if (expr.memId) {
+				}break;
+				case HSSA_LOCATION_MEM:{
 					for (HMemory& mem : arch->memories) {
-						if (expr.memId == mem.id) {
+						if (expr.locref.refId == mem.id) {
 							expr.subExpressions.push_back (HSSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
 							isParam = true;
 						}
 					}
+				}
 				}
 
 				if (!isParam) {
@@ -136,6 +145,8 @@ namespace holodec {
 		}
 
 		for (HSSAExpression& expr : function->ssaRep.expressions) {
+			if(!expr.id)
+				continue;
 			if (expr.type == HSSA_EXPR_CALL) {
 				//TODO get the calling convention of the target
 				//currently HACK to use own calling convention
@@ -148,15 +159,15 @@ namespace holodec {
 						isParam = true;
 					if (!isParam) {
 						for (HCCParameter& para : cc->parameters) {
-							HRegister* reg = arch->getRegister (para.regname);
-							if (arg.refId == reg->id) {
+							HRegister* reg = arch->getRegister (para.regref);
+							if (arg.ref.refId == reg->id) {
 								//leave the arg
 								isParam = true;
 								break;
 							}
 						}
 					}
-					if (!isParam && stackreg && arg.refId == stackreg->id) {
+					if (!isParam && stackreg && arg.ref.refId == stackreg->id) {
 						//leave the arg
 						isParam = true;
 					}
@@ -169,6 +180,6 @@ namespace holodec {
 				}
 			}
 		}
-
+		function->ssaRep.compress();
 	}
 }

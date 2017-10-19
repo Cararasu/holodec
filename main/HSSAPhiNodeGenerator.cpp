@@ -50,19 +50,19 @@ namespace holodec {
 		bool rep = false;
 		for (auto it = list->begin(); it != list->end();) {
 			HSSARegDef& def = *it;
-			if (def.regId == reg->id || (replace && def.parentId == reg->parentId && (reg->offset <= def.offset && (def.offset + def.size) <= (reg->offset + reg->size)))) {
+			if (def.regId == reg->id || (replace && def.parentId == reg->parentRef.refId && (reg->offset <= def.offset && (def.offset + def.size) <= (reg->offset + reg->size)))) {
 				if (rep) {
 					list->erase (it);
 					continue;
 				} else {
-					def = {id, reg->id, reg->parentId, reg->offset, reg->size};
+					def = {id, reg->id, reg->parentRef.refId, reg->offset, reg->size};
 					rep = true;
 				}
 			}
 			++it;
 		}
 		if (!rep)
-			list->push_back ({id, reg->id, reg->parentId, reg->offset, reg->size});
+			list->push_back ({id, reg->id, reg->parentRef.refId, reg->offset, reg->size});
 	}
 	void addMemDef (HId id, HMemory* mem, HList<HSSAMemDef>* list) {
 		bool rep = false;
@@ -127,7 +127,7 @@ namespace holodec {
 				for (int i = 0; i < expr->subExpressions.size(); i++) {
 					if(expr->subExpressions[i].id == 0){
 						if (expr->subExpressions[i].type == HSSA_ARGTYPE_REG) {
-							HRegister* reg = arch->getRegister (expr->subExpressions[i].refId);
+							HRegister* reg = arch->getRegister (expr->subExpressions[i].ref.refId);
 							bool found = false;
 							for (HSSARegDef& def : bbwrapper.outputs) {
 								if (def.regId == reg->id) {
@@ -138,13 +138,14 @@ namespace holodec {
 							}
 							if (!found) {
 								for (HSSARegDef& def : bbwrapper.outputs) {
-									if ( (def.parentId == reg->parentId) && ( (def.offset <= reg->offset) && ( (reg->offset + reg->size) <= (def.offset + def.size)))) {
+									if ( (def.parentId == (HId)reg->parentRef) && ( (def.offset <= reg->offset) && ( (reg->offset + reg->size) <= (def.offset + def.size)))) {
 										
 										HSSAExpression newExpr;
 										newExpr.type = HSSA_EXPR_SPLIT;
 										newExpr.exprtype = HSSA_TYPE_UINT;
 										newExpr.instrAddr = expr->instrAddr;
-										newExpr.regId = reg->id;
+										newExpr.location = HSSA_LOCATION_REG;
+										newExpr.locref = {reg->id, 0};
 										newExpr.subExpressions.push_back (HSSAArgument::createReg (reg, def.ssaId));
 										newExpr.subExpressions.push_back (HSSAArgument::createVal (reg->offset - def.offset, arch->bitbase));
 										newExpr.subExpressions.push_back (HSSAArgument::createVal ( (def.offset + def.size) - (reg->offset + reg->size), arch->bitbase));
@@ -163,7 +164,7 @@ namespace holodec {
 							if (!found)
 								addRegDef (0, reg, &bbwrapper.inputs, false);
 						}else if(expr->subExpressions[i].type == HSSA_ARGTYPE_MEM){
-							HMemory* mem = arch->getMemory (expr->subExpressions[i].refId);
+							HMemory* mem = arch->getMemory (expr->subExpressions[i].ref.refId);
 							bool found = false;
 							for (HSSAMemDef& def : bbwrapper.outputMems) {
 								if (def.memId == mem->id) {
@@ -177,13 +178,13 @@ namespace holodec {
 						}
 					}
 				}
-				if (expr->regId) {
-					HRegister* reg = arch->getRegister (expr->regId);
-					addRegDef (expr->id, reg, &bbwrapper.outputs, ! (expr->type == HSSA_EXPR_UPDATEPART || expr->type == HSSA_EXPR_PHI));
-				}
-				if (expr->memId) {
-					HMemory* mem = arch->getMemory (expr->memId);
-					addMemDef (expr->id, mem, &bbwrapper.outputMems);
+				switch(expr->location){
+				case HSSA_LOCATION_REG:
+					addRegDef (expr->id, arch->getRegister (expr->locref.refId), &bbwrapper.outputs, ! (expr->type == HSSA_EXPR_UPDATEPART || expr->type == HSSA_EXPR_PHI));
+				break;
+				case HSSA_LOCATION_MEM:
+					addMemDef (expr->id, arch->getMemory (expr->locref.refId), &bbwrapper.outputMems);
+				break;
 				}
 			}
 		}
@@ -192,6 +193,7 @@ namespace holodec {
 
 	void HSSAPhiNodeGenerator::doTransformation (HFunction* function) {
 
+		
 		printf ("Generating Phi-Nodes for Function at Address 0x%x\n", function->baseaddr);
 		this->function = function;
 
@@ -212,7 +214,7 @@ namespace holodec {
 		resolveRegs();
 
 		for (BasicBlockWrapper& wrap : bbwrappers) {
-
+			
 			for (HSSARegDef& regDef : wrap.inputs) {
 				HId gatheredIds[bbwrappers.size()] = {0};
 				uint64_t gatheredIdCount = 0;
@@ -231,7 +233,8 @@ namespace holodec {
 				HSSAExpression phinode;
 				phinode.type = HSSA_EXPR_PHI;
 				phinode.exprtype = HSSA_TYPE_UINT;
-				phinode.regId = reg->id;
+				phinode.location = HSSA_LOCATION_REG;
+				phinode.locref = {reg->id, 0};
 				phinode.size = reg->size;
 				phinode.instrAddr = wrap.ssaBB->startaddr;
 				for (int i = 0; i < gatheredIdCount; i++) {
@@ -241,7 +244,7 @@ namespace holodec {
 				wrap.ssaBB->exprIds.insert (wrap.ssaBB->exprIds.begin(), exprId);
 				bool needInOutput = true;
 				for (HSSARegDef& def : wrap.outputs) {
-					if (def.parentId == reg->parentId) {
+					if (def.parentId == (HId)reg->parentRef) {
 						needInOutput = false;
 						break;
 					}
@@ -267,7 +270,8 @@ namespace holodec {
 				HSSAExpression phinode;
 				phinode.type = HSSA_EXPR_PHI;
 				phinode.exprtype = HSSA_TYPE_MEM;
-				phinode.memId = mem->id;
+				phinode.location = HSSA_LOCATION_MEM;
+				phinode.locref = {mem->id, 0};
 				phinode.size = 0;
 				phinode.instrAddr = wrap.ssaBB->startaddr;
 				for (int i = 0; i < gatheredIdCount; i++) {
@@ -290,6 +294,7 @@ namespace holodec {
 		}
 
 		resolveRegs();
+		function->ssaRep.compress();
 	}
 
 	void HSSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, HRegister* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount) {
@@ -299,12 +304,12 @@ namespace holodec {
 
 		HSSARegDef* foundParentDef = nullptr;
 		for (HSSARegDef& regDef : wrapper->outputs) {
-			if (regDef.parentId == reg->parentId) {
+			if (regDef.parentId == (HId)reg->parentRef) {
 				if (regDef.regId == reg->id) {
 					gatheredIds[ (*gatheredIdCount)++] = regDef.ssaId;
 					//printf("\Found perfect Match %d\n", regDef.ssaId);
 					return;
-				} else if (regDef.regId == reg->parentId) {
+				} else if (regDef.regId == (HId)reg->parentRef) {
 					//printf("\Found parent Match %d\n", regDef.ssaId);
 					foundParentDef = &regDef;
 				}
@@ -316,7 +321,8 @@ namespace holodec {
 			expr.type = HSSA_EXPR_SPLIT;
 			expr.exprtype = HSSA_TYPE_UINT;
 			expr.size = reg->size;
-			expr.regId = reg->id;
+			expr.location = HSSA_LOCATION_REG;
+			expr.locref = {reg->id, 0};
 			expr.subExpressions.push_back (HSSAArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId));
 			expr.subExpressions.push_back (HSSAArgument::createVal (reg->offset, arch->bitbase));
 			expr.subExpressions.push_back (HSSAArgument::createVal (reg->size, arch->bitbase));
@@ -329,7 +335,7 @@ namespace holodec {
 					addRegDef (exprId, reg, &wrapper->outputs, false);
 					gatheredIds[ (*gatheredIdCount)++] = exprId;
 					found = true;
-					break;
+					break
 				}
 			}
 			assert(found);

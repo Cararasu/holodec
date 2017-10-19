@@ -3,7 +3,8 @@
 
 #include "HString.h"
 #include "HGeneral.h"
-#include "HId.h"
+
+#include "HIdList.h"
 
 namespace holodec {
 
@@ -19,7 +20,7 @@ namespace holodec {
 		H_CC_PARA_ALL = 0xF,
 	};
 	struct HCCParameter{
-		HString regname;
+		HStringRef regref;
 		uint32_t typeflags;
 		uint32_t index;
 	};
@@ -31,12 +32,12 @@ namespace holodec {
 	struct HCallingConvention {
 		HId id;
 		HString name;
-		HList<HString> nonVolatileReg;
+		HList<HStringRef> nonVolatileReg;
 		HList<HCCParameter> parameters;
-		HString parameterCount;
 		HList<HCCParameter> returns;
+		HStringRef parameterCount;
 		
-		HString stack;
+		HStringRef stack;
 		bool callerstackadjust;
 		HCCStackPolicy stackPolicy;
 		

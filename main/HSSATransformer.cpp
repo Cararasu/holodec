@@ -12,9 +12,13 @@ namespace holodec {
 			parseBlock (&bb);
 		}
 		
-		for (HSSAExpression& expr : function->ssaRep.expressions) {
-			parseExpression (&expr);
+		for(HSSABB& bb : function->ssaRep.bbs){
+			for(HId id : bb.exprIds){
+				parseExpression (&bb, function->ssaRep.expressions.get(id));
+			}
 		}
+		
+		function->ssaRep.compress();
 	}
 
 }

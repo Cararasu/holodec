@@ -8,7 +8,7 @@ namespace holodec {
 		if (recursive) {
 			for (HIRArgument& arg : subExpressions) {
 				if (arg.type == HIR_ARGTYPE_ID) {
-					arch->getIrExpr (arg.refId)->print (arch);
+					arch->getIrExpr (arg.ref.refId)->print (arch);
 				}
 			}
 		}

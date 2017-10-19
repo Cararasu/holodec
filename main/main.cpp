@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <HBinary.h>
-#include <HElfBinaryAnalyzer.h>
-#include "Hx86FunctionAnalyzer.h"
+#include <binary/elf/HElfBinaryAnalyzer.h>
+#include <arch/x86/Hx86FunctionAnalyzer.h>
 
 #include "HMain.h"
 #include "HFileFormat.h"
@@ -13,6 +13,7 @@
 #include "HSSACallingConvApplier.h"
 #include "HSSAAssignmentSimplifier.h"
 #include "HSSADeadCodeEliminationTransformer.h"
+#include "HIdList.h"
 
 using namespace holodec;
 
@@ -37,6 +38,8 @@ HFileFormat elffileformat = {"elf", "elf", {
 extern HArchitecture holox86::x86architecture;
 
 int main (int argc, char** argv) {
+	
+	
 	HMain::initHMain();
 	HData* data = HMain::loadHDataFromFile (filename);
 	if (!data) {

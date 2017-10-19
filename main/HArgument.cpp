@@ -11,16 +11,16 @@ namespace holodec {
 			printf ("Undef");
 			break;
 		case HSSA_ARGTYPE_REG:
-			if (refId)
-				printf ("%s", arch->getRegister (refId)->name.cstr());
+			if (ref.refId)
+				printf ("%s", arch->getRegister (ref.refId)->name.cstr());
 			else
 				printf ("No Reg Def");
 			break;
 		case HSSA_ARGTYPE_STACK:
-			printf ("Stack-%s[%d]", arch->getStack (refId)->name.cstr(), wusl);
+			printf ("Stack-%s[%d]", arch->getStack (ref.refId)->name.cstr(), ref.index);
 			break;
 		case HSSA_ARGTYPE_MEM: 
-			printf("Memory %d", refId);
+			printf("Memory %d", ref.refId);
 			break;
 		case HSSA_ARGTYPE_SINT:
 			if(sval < 0)
@@ -38,7 +38,7 @@ namespace holodec {
 			printf ("SSA");
 			break;
 		case HSSA_ARGTYPE_BLOCK:
-			printf ("Block %d", refId);
+			printf ("Block %d", ref.refId);
 			break;
 		default:
 			printf ("Unknown Argtype %x ", type);
@@ -55,16 +55,16 @@ namespace holodec {
 			printf ("Undef");
 			break;
 		case HIR_ARGTYPE_REG:
-			if (refId)
-				printf ("%s", arch->getRegister (refId)->name.cstr());
+			if (ref.refId)
+				printf ("%s", arch->getRegister (ref.refId)->name.cstr());
 			else
 				printf ("No Reg Def");
 			break;
 		case HIR_ARGTYPE_STACK:
-			printf ("Stack-%s[%d]", arch->getStack (refId)->name.cstr(), index);
+			printf ("Stack-%s[%d]", arch->getStack (ref.refId)->name.cstr(), ref.index);
 			break;
 		case HIR_ARGTYPE_MEM: 
-			printf("Memory %d", refId);
+			printf("Memory %d", ref.refId);
 			break;
 		case HIR_ARGTYPE_SINT:
 			if(sval < 0)
@@ -79,7 +79,7 @@ namespace holodec {
 			printf ("%f", fval);
 			break;
 		case HIR_ARGTYPE_ID:
-			printf ("IR %d", refId);
+			printf ("IR %d", ref.refId);
 			break;
 		case HIR_ARGTYPE_SSAID:
 			printf ("SSA");
@@ -111,10 +111,10 @@ namespace holodec {
 			printf ("]");
 		}break;
 		case HIR_ARGTYPE_ARG:
-			printf ("arg[%d]", refId);
+			printf ("arg[%d]", ref.refId);
 			break;
 		case HIR_ARGTYPE_TMP:
-			printf ("tmp[%d]", refId);
+			printf ("tmp[%d]", ref.refId);
 			break;
 		default:
 			printf ("Unknown Argtype %x ", type);

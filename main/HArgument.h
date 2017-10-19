@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include "HGeneral.h"
-#include "HId.h"
+
 #include "HRegister.h"
 #include "HStack.h"
 #include "HMemory.h"
@@ -51,6 +51,11 @@ namespace holodec {
 	bool inline operator!=(HArgStck& lhs, HArgStck& rhs){
 		return !(lhs == rhs);
 	}
+	struct HReference{
+		HId refId;
+		HId index;
+	};
+	
 	struct HSSAArgument {
 		HId id = 0;
 		HSSAArgTypes type = HSSA_ARGTYPE_UNKN;
@@ -59,10 +64,7 @@ namespace holodec {
 			HArgSInt sval;
 			HArgUInt uval;
 			HArgFloat fval;
-			struct{
-				HId refId;
-				HId wusl;
-			};
+			HReference ref;
 		};
 
 		bool operator!() {
@@ -98,38 +100,37 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline HSSAArgument create (HSSAArgTypes type, HId id = 0, HId refId = 0, HId index = 0, uint32_t size = 0) {
+		static inline HSSAArgument create (HSSAArgTypes type, HId id = 0, HReference ref = {0, 0}, uint32_t size = 0) {
 			HSSAArgument arg;
 			arg.type = type;
 			arg.id = id;
-			arg.refId = refId;
-			arg.wusl = index;
+			arg.ref = ref;
 			arg.size = size;
 			return arg;
 		}
 		static inline HSSAArgument createId (HId id, uint64_t size) {
-			return create(HSSA_ARGTYPE_ID, id, 0, 0, size);
+			return create(HSSA_ARGTYPE_ID, id, {0, 0}, size);
 		}
 		static inline HSSAArgument createReg (HRegister* reg, HId id = 0) {
-			return create(HSSA_ARGTYPE_REG, id, reg->id, 0, reg->size);
+			return create(HSSA_ARGTYPE_REG, id, {reg->id, 0}, reg->size);
 		}
-		static inline HSSAArgument createReg (HId refId, uint32_t size, HId id = 0) {
-			return create(HSSA_ARGTYPE_REG, id, refId, 0, size);
+		static inline HSSAArgument createReg (HReference ref, uint32_t size, HId id = 0) {
+			return create(HSSA_ARGTYPE_REG, id, ref, size);
 		}
 		static inline HSSAArgument createMem (HMemory* mem, HId id = 0) {
-			return create(HSSA_ARGTYPE_MEM, id, mem->id, 0, 0);
+			return create(HSSA_ARGTYPE_MEM, id, {mem->id, 0}, 0);
 		}
-		static inline HSSAArgument createMem (HId refId, HId id = 0) {
-			return create(HSSA_ARGTYPE_MEM, id, refId, 0, 0);
+		static inline HSSAArgument createMem (HId memId, HId id = 0) {
+			return create(HSSA_ARGTYPE_MEM, id, {memId, 0}, 0);
 		}
 		static inline HSSAArgument createStck (HStack* stack, HId index) {
-			return create(HSSA_ARGTYPE_STACK, 0, stack->id, 0, stack->wordbitsize);
+			return create(HSSA_ARGTYPE_STACK, 0, {stack->id, index}, stack->wordbitsize);
 		}
-		static inline HSSAArgument createStck (HId refId, uint32_t size, HId id = 0) {
-			return create(HSSA_ARGTYPE_STACK, id, refId, 0, size);
+		static inline HSSAArgument createStck (HReference ref, uint32_t size, HId id = 0) {
+			return create(HSSA_ARGTYPE_STACK, id, ref, size);
 		}
-		static inline HSSAArgument createBlock (HId refId) {
-			return create(HSSA_ARGTYPE_BLOCK, 0, refId);
+		static inline HSSAArgument createBlock (HId blockId) {
+			return create(HSSA_ARGTYPE_BLOCK, 0, {blockId, 0});
 		}
 
 		void print (HArchitecture* arch);
@@ -150,7 +151,7 @@ namespace holodec {
 			case HSSA_ARGTYPE_MEM:
 			case HSSA_ARGTYPE_ID:
 			case HSSA_ARGTYPE_BLOCK:
-				return lhs.refId == rhs.refId && lhs.wusl == rhs.wusl;
+				return lhs.ref.refId == rhs.ref.refId && lhs.ref.index == rhs.ref.index;
 				return true;
 			default:
 				return false;
@@ -186,10 +187,7 @@ namespace holodec {
 			HArgUInt uval;
 			HArgFloat fval;
 			HArgMem mem;
-			struct{
-				HId refId;
-				HId index;
-			};
+			HReference ref;
 		};
 
 		bool operator!() {
@@ -236,31 +234,30 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline HIRArgument create (HIRArgTypes type, HId refId = 0, HId index = 0, uint32_t size = 0) {
+		static inline HIRArgument create (HIRArgTypes type, HReference ref = {0,0}, uint32_t size = 0) {
 			HIRArgument arg;
 			arg.type = type;
-			arg.refId = refId;
-			arg.index = index;
+			arg.ref = ref;
 			arg.size = size;
 			return arg;
 		}
 		static inline HIRArgument createIRId (HId id,uint64_t size) {
-			return create(HIR_ARGTYPE_ID, id, 0, size);
+			return create(HIR_ARGTYPE_ID, {id, 0}, size);
 		}
 		static inline HIRArgument createSSAId (HId id,uint64_t size) {
-			return create(HIR_ARGTYPE_SSAID, id, 0, size);
+			return create(HIR_ARGTYPE_SSAID, {id, 0}, size);
 		}
 		static inline HIRArgument createTmp (HId id, uint32_t size = 0) {
-			return create(HIR_ARGTYPE_TMP, id, 0, size);
+			return create(HIR_ARGTYPE_TMP, {id, 0}, size);
 		}
 		static inline HIRArgument createReg (HRegister* reg) {
-			return create(HIR_ARGTYPE_REG, reg->id, 0, reg->size);
+			return create(HIR_ARGTYPE_REG, {reg->id, 0}, reg->size);
 		}
 		static inline HIRArgument createMem (HMemory* memory, HId index = 0) {
-			return create(HIR_ARGTYPE_STACK, memory->id, index, 0);
+			return create(HIR_ARGTYPE_MEM, {memory->id, index}, 0);
 		}
 		static inline HIRArgument createStck (HStack* stack, HId index = 0) {
-			return create(HIR_ARGTYPE_STACK, stack->id, index, stack->wordbitsize);
+			return create(HIR_ARGTYPE_STACK, {stack->id, index}, stack->wordbitsize);
 		}
 
 		void print (HArchitecture* arch);
@@ -282,7 +279,7 @@ namespace holodec {
 			case HIR_ARGTYPE_ARG:
 			case HIR_ARGTYPE_TMP:
 			case HIR_ARGTYPE_ID:
-				return lhs.refId == rhs.refId && lhs.index == rhs.index;
+				return lhs.ref.refId == rhs.ref.refId && lhs.ref.index == rhs.ref.index;
 			case HIR_ARGTYPE_MEMOP:
 				return lhs.mem == rhs.mem;
 			default:

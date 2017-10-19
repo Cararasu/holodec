@@ -1,7 +1,7 @@
 #ifndef HSSATRANSFORMER_H
 #define HSSATRANSFORMER_H
 
-#include "HId.h"
+
 #include "HSSA.h"
 namespace holodec {
 
@@ -21,7 +21,7 @@ namespace holodec {
 
 		virtual void parseBlock (HSSABB* block){};
 		
-		virtual void parseExpression (HSSAExpression* expression){};
+		virtual void parseExpression (HSSABB* basicBlock, HSSAExpression* expression){};
 
 		virtual void doTransformation (HFunction* function);
 	};

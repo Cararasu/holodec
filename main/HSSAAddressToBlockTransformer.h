@@ -5,7 +5,7 @@
 namespace holodec {
 	struct HSSAAddressToBlockTransformer : public HSSATransformParser {
 		
-		virtual void parseExpression (HSSAExpression* expression);
+		virtual void parseExpression (HSSABB* basicBlock, HSSAExpression* expression);
 		
 		virtual void parseBlock (HSSABB* block);
 

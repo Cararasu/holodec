@@ -23,17 +23,17 @@ namespace holodec {
 		uint64_t wordbase;
 
 		HList<std::function<HFunctionAnalyzer* (HBinary*) >> functionanalyzerfactories;
-		HList<HRegister> registers;
+		HSparseIdList<HRegister> registers;
 
-		HIdList<HStack> stacks;
+		HSparseIdList<HStack> stacks;
 		
-		HIdList<HMemory> memories;
+		HSparseIdList<HMemory> memories;
 
-		HIdList<HCallingConvention> callingconventions;
+		HSparseIdList<HCallingConvention> callingconventions;
 
 		HIdMap<HId, HInstrDefinition> instrdefs;
 
-		HIdList<HIRExpression> irExpressions;
+		HSparseIdList<HIRExpression> irExpressions;
 
 		HArchitecture() = default;
 		HArchitecture (HArchitecture&) = default;
@@ -52,77 +52,50 @@ namespace holodec {
 			return nullptr;
 		}
 
-		HRegister* getRegister (const HString string) {
-			if (string) {
+		HRegister* getRegister (const HStringRef stringRef) {
+			if (stringRef.refId) {
 				for (HRegister& reg : registers) {
-					if (string == reg.name)
+					if (stringRef.refId == reg.id)
 						return &reg;
-					HRegister* r = reg.getRegister (string);
-					if (r) return r;
+				}
+			}else if (stringRef.name){
+				for (HRegister& reg : registers) {
+					if (stringRef.name == reg.name)
+						return &reg;
 				}
 			}
-			return nullptr;
+			return &invalidReg;
 		}
-		HRegister* getRegister (const HId id) {
-			if (id) {
-				for (HRegister& reg : registers) {
-					if (id == reg.id)
-						return &reg;
-					HRegister* r = reg.getRegister (id);
-					if (r) return r;
-				}
-			}
-			return nullptr;
-		}
-		HRegister* getParentRegister (const HId id) {
-			if (id) {
-				for (HRegister& reg : registers) {
-					if (id == reg.id)
-						return &reg;
-					HRegister* r = reg.getRegister (id);
-					if (r) return &reg;
-				}
-			}
-			return nullptr;
-		}
-		HStack* getStack (const HString string) {
-			if (string) {
+		HStack* getStack (const HStringRef stringRef) {
+			if (stringRef.refId) {
 				for (HStack& stack : stacks) {
-					if (string == stack.name)
+					if (stringRef.refId == stack.id)
+						return &stack;
+				}
+			}else if (stringRef.name){
+				for (HStack& stack : stacks) {
+					if (stringRef.name == stack.name)
 						return &stack;
 				}
 			}
-			return nullptr;
+			return &invalidStack;
 		}
-		HStack* getStack (const HId id) {
-			if (id) {
-				for (HStack& stack : stacks) {
-					if (id == stack.id)
-						return &stack;
-				}
-			}
-			return nullptr;
-		}
-		HMemory* getMemory (const HString string) {
-			if (string) {
+		HMemory* getMemory (const HStringRef stringRef) {
+			if (stringRef.refId) {
 				for (HMemory& memory : memories) {
-					if (string == memory.name)
+					if (stringRef.refId == memory.id)
+						return &memory;
+				}
+			}else if (stringRef.name){
+				for (HMemory& memory : memories) {
+					if (stringRef.name == memory.name)
 						return &memory;
 				}
 			}
-			return nullptr;
-		}
-		HMemory* getMemory (const HId id) {
-			if (id) {
-				for (HMemory& memory : memories) {
-					if (id == memory.id)
-						return &memory;
-				}
-			}
-			return nullptr;
+			return &invalidMem;
 		}
 		HMemory* getDefaultMemory () {
-			return &(memories.list[0]);
+			return memories.get(1);
 		}
 		HCallingConvention* getCallingConvention(const HString string){
 			if(string){
@@ -167,7 +140,7 @@ namespace holodec {
 			return irExpressions.get (id);
 		}
 		HId addIrExpr (HIRExpression expr) {
-			for (HIRExpression& expression : irExpressions.list) {   //Do CSE
+			for (HIRExpression& expression : irExpressions) {   //Do CSE
 				if (expression == expr){
 					return expression.id;
 				}

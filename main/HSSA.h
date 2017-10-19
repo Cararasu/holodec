@@ -2,11 +2,12 @@
 #ifndef HSSA_H
 #define HSSA_H
 
-#include "HId.h"
+
 #include "HStack.h"
 #include "HRegister.h"
 #include "HArgument.h"
 #include "HGeneral.h"
+#include "HIdList.h"
 
 #define HSSA_LOCAL_USEID_MAX (4)
 
@@ -103,6 +104,12 @@ namespace holodec {
 		HSSA_FLAG_Z,
 		HSSA_FLAG_S,
 	};
+	enum HSSAExprLocation{
+		HSSA_LOCATION_NONE,
+		HSSA_LOCATION_REG,
+		HSSA_LOCATION_STACK,
+		HSSA_LOCATION_MEM,
+	};
 	struct HSSAExpression {
 		HId id = 0;
 		HSSAExprType type = HSSA_EXPR_INVALID;
@@ -110,14 +117,12 @@ namespace holodec {
 		HSSAType exprtype = HSSA_TYPE_UNKNOWN;
 		union { //64 bit
 			HSSAFlagType flagType;
-			HId index;
 			HSSAOpType opType;
 			HId builtinId;
 			HId instrId;
 		};
-		HId regId = 0;
-		HArgStck stackId = {0,0};
-		HId memId = 0;
+		HSSAExprLocation location = HSSA_LOCATION_NONE;
+		HReference locref = {0,0};
 		uint64_t instrAddr = 0;
 		
 		//HLocalBackedList<HSSAArgument, HSSA_LOCAL_USEID_MAX> subExpressions;
@@ -132,7 +137,7 @@ namespace holodec {
 		void print(HArchitecture* arch, int indent = 0);
 	};
 	inline bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype && lhs.regId == rhs.regId && lhs.stackId == rhs.stackId) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype && lhs.location == rhs.location && lhs.locref.refId == rhs.locref.refId && lhs.locref.index == rhs.locref.index) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
 				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 					if (lhs.subExpressions[i] != rhs.subExpressions[i])
@@ -145,7 +150,7 @@ namespace holodec {
 			case HSSA_EXPR_OP:
 				return lhs.opType == rhs.opType;
 			case HSSA_EXPR_BUILTIN:
-				return lhs.index == rhs.index;
+				return lhs.builtinId == rhs.builtinId;
 			default:
 				return true;
 			}
@@ -159,9 +164,12 @@ namespace holodec {
 		uint64_t startaddr = (uint64_t)-1;
 		uint64_t endaddr = 0;
 		HList<HId> exprIds;
+		HSet<HId> inBlocks;
+		HSet<HId> outBlocks;
 
 		HSSABB() {}
-		HSSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds) :id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds){}
+		HSSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds, HSet<HId> inBlocks, HSet<HId> outBlocks) :
+			id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds),inBlocks(inBlocks),outBlocks(outBlocks){}
 		~HSSABB() = default;
 
 
@@ -171,22 +179,13 @@ namespace holodec {
 
 	struct HSSARepresentation {
 		HIdList<HSSABB> bbs;
-		HIdList<HSSAExpression> expressions;
+		HSparseIdList<HSSAExpression> expressions;
 
 		void clear(){
 			bbs.clear();
 			expressions.clear();
 		}
 
-		void replaceNode(HId origId, HSSAArgument target){
-			for(HSSAExpression& expr : expressions){
-				for (HSSAArgument& arg : expr.subExpressions) {
-					if(arg.id == origId){
-						arg.id = target;
-					}
-				}
-			}
-		}
 		void replaceNodes(HList<std::pair<HId,HSSAArgument>>* replacements){
 			
 			bool replaced = false;
@@ -249,6 +248,34 @@ namespace holodec {
 				it++;
 			}
 		}
+		
+		void compress(){
+			
+			std::map<HId, HId> replacements;
+			
+			expressions.shrink([&replacements](HId oldId, HId newId){replacements[oldId] = newId;});
+			
+			if(!replacements.empty()){
+				for(HSSAExpression& expr : expressions){
+					for(HSSAArgument& arg : expr.subExpressions){
+						auto it = replacements.find(arg.id);
+						if(it != replacements.end()){
+							arg.id = it->second;
+						}
+					}
+				}
+				for(HSSABB& bb : bbs){
+					for(HId& id : bb.exprIds){
+						auto it = replacements.find(id);
+						if(it != replacements.end()){
+							id = it->second;
+						}
+					}
+				}
+			}
+			
+		}
+
 
 		void print (HArchitecture* arch, int indent = 0);
 	};

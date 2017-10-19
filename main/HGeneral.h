@@ -3,12 +3,20 @@
 
 #include <stdint.h>
 #include <vector>
+#include <set>
 #include <map>
 #include "HString.h"
 
+
 namespace holodec {
+	
+	typedef uint32_t HId;
+	
 	template <typename T>
 	using HList = std::vector<T>;
+	
+	template <typename T>
+	using HSet = std::set<T>;
 
 	template <typename Key, typename Value>
 	using HMap = std::map<Key, Value>;
@@ -22,6 +30,34 @@ namespace holodec {
 	struct HVisibilityType {
 		HString name;
 	};
+	
+	struct HStringRef{
+		HString name;
+		HId refId;
+		HStringRef(const char* name) : name(name), refId(0){}
+		HStringRef(HString name) : name(name), refId(0){}
+		HStringRef(HId refId) : name(nullptr), refId(refId){}
+		
+		explicit operator bool(){
+			return name;
+		}
+		explicit operator int(){
+			return refId;
+		}
+		explicit operator HString(){
+			return name;
+		}
+		explicit operator HId(){
+			return refId;
+		}
+	};
+	inline bool operator==(HStringRef& lhs, HStringRef& rhs){
+		if(lhs.refId && lhs.refId == rhs.refId)
+			return true;
+		if(lhs.name && lhs.name == rhs.name)
+			return true;
+		return false;
+	}
 	
 	template <typename Key, typename Value>
 	class HIdMap : public HMap<Key,Value>{
@@ -85,3 +121,4 @@ namespace holodec {
 }
 
 #endif // H_GENEHAL_H
+

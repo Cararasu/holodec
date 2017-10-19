@@ -136,7 +136,7 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 			if (x86.operands[i].mem.base == X86_REG_RIP || x86.operands[i].mem.base == X86_REG_EIP) {
 				arg = HIRArgument::createMemOp ( //HRegister* segment, HRegister* base, HRegister* index
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
-						arch->getRegister (0),
+						arch->getRegister ((HId)0),
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),
 						x86.operands[i].mem.scale, x86.operands[i].mem.disp + instruction->addr,
 						x86.operands[i].size * 8

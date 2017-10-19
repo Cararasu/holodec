@@ -1,8 +1,9 @@
 #ifndef HMEMORY_H
 #define HMEMORY_H
 
-#include "HId.h"
+
 #include "HString.h"
+#include "HIdList.h"
 
 namespace holodec {
 
@@ -14,6 +15,7 @@ namespace holodec {
 		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer = nullptr);
 	};
 
+	extern HMemory invalidMem;
 }
 
 #endif // HMEMORY_H

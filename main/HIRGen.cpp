@@ -159,10 +159,10 @@ namespace holodec {
 						expression.type = HIR_EXPR_SEQUENCE;
 						expression.exprtype = HSSA_TYPE_UNKNOWN;
 					} else if (string == "arg") {
-						HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_ARG, parseNumberIndex());
+						HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_ARG, {parseNumberIndex(),0});
 						return parseIndex (arg);
 					} else if (string == "tmp" || string == "t") {
-						HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_TMP, parseNumberIndex());
+						HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_TMP,  {parseNumberIndex(),0});
 						return parseIndex (arg);
 					} else if (string == "z") {
 						expression.type = HIR_EXPR_FLAG;
@@ -405,7 +405,7 @@ namespace holodec {
 				if (parseIdentifier (buffer, 100)) {
 					HString str = buffer;
 					HRegister* reg = arch->getRegister (str);
-					if (reg) {
+					if (reg->id) {
 						return HIRArgument::createReg (reg);
 					}
 

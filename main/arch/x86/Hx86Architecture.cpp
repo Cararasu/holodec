@@ -21,46 +21,100 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		}
 	},
 	{
-		{"rax", 64, 0, true, { {"eax", 32, 0, true, { {"ax", 16, 0, {{"al", 8, 0}, {"ah", 8, 8}}}}}}},
-		{"rbx", 64, 0, true, { {"ebx", 32, 0, true, { {"bx", 16, 0, {{"bl", 8, 0}, {"bh", 8, 8}}}}}}},
-		{"rcx", 64, 0, true, { {"ecx", 32, 0, true, { {"cx", 16, 0, {{"cl", 8, 0}, {"ch", 8, 8}}}}}}},
-		{"rdx", 64, 0, true, { {"edx", 32, 0, true, { {"dx", 16, 0, {{"dl", 8, 0}, {"dh", 8, 8}}}}}}},
-		{"r8", 64, 0, true, { {"r8d", 32, 0, true, { {"r8w", 16, 0, {{"r8b", 8, 0}}}}}}},
-		{"r9", 64, 0, true, { {"r9d", 32, 0, true, { {"r9w", 16, 0, {{"r9b", 8, 0}}}}}}},
-		{"r10", 64, 0, true, { {"r10d", 32, 0, true, { {"r10w", 16, 0, {{"r10b", 8, 0}}}}}}},
-		{"r11", 64, 0, true, { {"r11d", 32, 0, true, { {"r11w", 16, 0, {{"r11b", 8, 0}}}}}}},
-		{"r12", 64, 0, true, { {"r12d", 32, 0, true, { {"r12w", 16, 0, {{"r12b", 8, 0}}}}}}},
-		{"r13", 64, 0, true, { {"r13d", 32, 0, true, { {"r13w", 16, 0, {{"r13b", 8, 0}}}}}}},
-		{"r14", 64, 0, true, { {"r14d", 32, 0, true, { {"r14w", 16, 0, {{"r14b", 8, 0}}}}}}},
-		{"r15", 64, 0, true, { {"r15d", 32, 0, true, { {"r15w", 16, 0, {{"r15b", 8, 0}}}}}}},
+		{0, "rax", H_REG_GPR, nullptr, "rax", 64, 0, true},
+		{0, "eax", H_REG_GPR, "rax", "rax", 32, 0, true},
+		{0, "ax", H_REG_GPR, "eax", "rax", 16, 0, false},
+		{0, "al", H_REG_GPR, "ax", "rax", 8, 0, false},{0, "ah", H_REG_GPR, "ax", "rax", 8, 8, false},
+		
+		{0, "rbx", H_REG_GPR, nullptr, "rbx", 64, 0, true},
+		{0, "ebx", H_REG_GPR, "rbx", "rbx", 32, 0, true},
+		{0, "bx", H_REG_GPR, "ebx", "rbx", 16, 0, false},
+		{0, "bl", H_REG_GPR, "bx", "rbx", 8, 0, false},{0, "bh", H_REG_GPR, "bx", "rbx", 8, 8, false},
+		
+		{0, "rcx", H_REG_GPR, nullptr, "rcx", 64, 0, true},
+		{0, "ecx", H_REG_GPR, "rcx", "rcx", 32, 0, true},
+		{0, "cx", H_REG_GPR, "ecx", "rcx", 16, 0, false},
+		{0, "cl", H_REG_GPR, "cx", "rcx", 8, 0, false},{0, "ch", H_REG_GPR, "cx", "rcx", 8, 8, false},
+		
+		{0, "rdx", H_REG_GPR, nullptr, "rdx", 64, 0, true},
+		{0, "edx", H_REG_GPR, "rdx", "rdx", 32, 0, true},
+		{0, "dx", H_REG_GPR, "edx", "rdx", 16, 0, false},
+		{0, "dl", H_REG_GPR, "dx", "rdx", 8, 0, false},{0, "dh", H_REG_GPR, "dx", "rdx", 8, 8, false},
+		
+		{0, "r8", H_REG_GPR, nullptr, "r8", 64, 0, true},{0, "r8d", H_REG_GPR, "r8", "r8", 32, 0, true},
+		{0, "r8w", H_REG_GPR, "r8d", "r8", 16, 0, false},{0, "r8b", H_REG_GPR, "r8w", "r8", 8, 0, false},
+		
+		{0, "r9", H_REG_GPR, nullptr, "r9", 64, 0, true},{0, "r9d", H_REG_GPR, "r9", "r9", 32, 0, true},
+		{0, "r9w", H_REG_GPR, "r9d", "r9", 16, 0, false},{0, "r9b", H_REG_GPR, "r9w", "r9", 8, 0, false},
+		
+		{0, "r10", H_REG_GPR, nullptr, "r10", 64, 0, true},{0, "r10d", H_REG_GPR, "r10", "r10", 32, 0, true},
+		{0, "r10w", H_REG_GPR, "r10d", "r10", 16, 0, false},{0, "r10b", H_REG_GPR, "r10w", "r10", 8, 0, false},
+		
+		{0, "r11", H_REG_GPR, nullptr, "r11", 64, 0, true},{0, "r11d", H_REG_GPR, "r11", "r11", 32, 0, true},
+		{0, "r11w", H_REG_GPR, "r11d", "r11", 16, 0, false},{0, "r11b", H_REG_GPR, "r11w", "r11", 8, 0, false},
+		
+		{0, "r12", H_REG_GPR, nullptr, "r12", 64, 0, true},{0, "r12d", H_REG_GPR, "r12", "r12", 32, 0, true},
+		{0, "r12w", H_REG_GPR, "r12d", "r12", 16, 0, false},{0, "r12b", H_REG_GPR, "r12w", "r12", 8, 0, false},
+		
+		{0, "r13", H_REG_GPR, nullptr, "r13", 64, 0, true},{0, "r13d", H_REG_GPR, "r13", "r13", 32, 0, true},
+		{0, "r13w", H_REG_GPR, "r13d", "r13", 16, 0, false},{0, "r13b", H_REG_GPR, "r13w", "r13", 8, 0, false},
+		
+		{0, "r14", H_REG_GPR, nullptr, "r14", 64, 0, true},{0, "r14d", H_REG_GPR, "r14", "r14", 32, 0, true},
+		{0, "r14w", H_REG_GPR, "r14d", "r14", 16, 0, false},{0, "r14b", H_REG_GPR, "r14w", "r14", 8, 0, false},
+		
+		{0, "r15", H_REG_GPR, nullptr, "r15", 64, 0, true},{0, "r15d", H_REG_GPR, "r15", "r15", 32, 0, true},
+		{0, "r15w", H_REG_GPR, "r15d", "r15", 16, 0, false},{0, "r15b", H_REG_GPR, "r15w", "r15", 8, 0, false},
+		
+		{0, "rbp", H_REG_GPR, nullptr, "rbp", 64, 0, true},
+		{0, "ebp", H_REG_GPR, "rbp", "rbp", 32, 0, true},
+		{0, "bp", H_REG_GPR, "ebp", "rbp", 16, 0, false},{0, "bpl", H_REG_GPR, "bp", "rbp", 8, 0, false},
+		
+		{0, "rsi", H_REG_GPR, nullptr, "rsi", 64, 0, true},
+		{0, "esi", H_REG_GPR, "rsi", "rsi", 32, 0, true},
+		{0, "si", H_REG_GPR, "esi", "rsi", 16, 0, false},{0, "sil", H_REG_GPR, "si", "rsi", 8, 0, false},
+		
+		{0, "rdi", H_REG_GPR, nullptr, "rdi", 64, 0, true},
+		{0, "edi", H_REG_GPR, "rdi", "rdi", 32, 0, true},
+		{0, "di", H_REG_GPR, "edi", "rdi", 16, 0, false},{0, "dil", H_REG_GPR, "di", "rdi", 8, 0, false},
+		
+		{0, "rsp", H_REG_GPR, nullptr, "rsp", 64, 0, true},
+		{0, "esp", H_REG_GPR, "rsp", "rsp", 32, 0, true},
+		{0, "sp", H_REG_GPR, "esp", "rsp", 16, 0, false},{0, "spl", H_REG_GPR, "sp", "rsp", 8, 0, true},
+		
+		{0, "rip", H_REG_GPR, nullptr, "rip", 64, 0, true},
+		{0, "eip", H_REG_GPR, "rip", "rip", 32, 0, true},
+		{0, "ip", H_REG_GPR, "eip", "rip", 16, 0, false},{0, "ipl", H_REG_GPR, "ip", "rip", 8, 0, false},
+		
+		
+		{0, "rflags", H_REG_FLAGS, nullptr, "rflags", 64, 0, false},
+		{0, "eflags", H_REG_FLAGS, "rflags", "rflags", 32, 0, false},
+		{0, "flags", H_REG_FLAGS, "eflags", "rflags", 16, 0, false},
+		
+		{0, "cf", H_REG_FLAGS, "flags", "rflags", 1, 0, false},
+		{0, "pf", H_REG_FLAGS, "flags", "rflags", 1, 2, false},
+		{0, "af", H_REG_FLAGS, "flags", "rflags", 1, 4, false},
+		{0, "zf", H_REG_FLAGS, "flags", "rflags", 1, 6, false},
+		{0, "sf", H_REG_FLAGS, "flags", "rflags", 1, 7, false},
+		{0, "tf", H_REG_FLAGS, "flags", "rflags", 1, 8, false},
+		{0, "if", H_REG_FLAGS, "flags", "rflags", 1, 9, false},
+		{0, "df", H_REG_FLAGS, "flags", "rflags", 1, 10, false},
+		{0, "of", H_REG_FLAGS, "flags", "rflags", 1, 11, false},
+		{0, "iopl", H_REG_FLAGS, "flags", "rflags", 1, 12, false},
+		{0, "nt", H_REG_FLAGS, "flags", "rflags", 1, 14, false},
+		
+		{0, "rf", H_REG_FLAGS, "eflags", "rflags", 1, 16, false},
+		{0, "vm", H_REG_FLAGS, "eflags", "rflags", 1, 17, false},
+		{0, "ac", H_REG_FLAGS, "eflags", "rflags", 1, 18, false},
+		{0, "vif", H_REG_FLAGS, "eflags", "rflags", 1, 19, false},
+		{0, "vip", H_REG_FLAGS, "eflags", "rflags", 1, 20, false},
+		{0, "id", H_REG_FLAGS, "eflags", "rflags", 1, 21, false},
 
-		{"rbp", 64, 0, true, { {"ebp", 32, 0, true, { {"bp", 16, 0,{{"bpl", 8, 0}}}}}}},
-		{"rsi", 64, 0, true, { {"esi", 32, 0, true, { {"si", 16, 0,{{"sil", 8, 0}}}}}}},
-		{"rdi", 64, 0, true, { {"edi", 32, 0, true, { {"di", 16, 0,{{"dil", 8, 0}}}}}}},
-		{"rsp", H_REG_STACKPTR, 64, 0, true, { {"esp", 32, 0, true, { {"sp", 16, 0,{{"spl", 8, 0}}}}}}},
-		{"rip", H_REG_INSTRPTR, H_REG_TRACK_VOLATILE, 64, 0, true, { {"eip", 32, 0, true, { {"ip", 16, 0}}}}},
-
-		{
-			"rflags", H_REG_FLAGS, H_REG_TRACK_VOLATILE, 64, 0,
-			{ {
-					"eflags", 32, 0,
-					{ {
-							"flags", 16, 0,
-							{	{"cf", 1, 0}, {"pf", 1, 2}, {"af", 1, 4}, {"zf", 1, 6}, {"sf", 1, 7}, {"tf", 1, 8}, {"if", 1, 9},
-								{"df", 1, 10}, {"of", 1, 11}, {"iopl", 2, 12}, {"nt", 1, 14}
-							}
-						}, {"rf", 1, 16}, {"vm", 1, 17}, {"ac", 1, 18}, {"vif", 1, 19}, {"vip", 1, 20}, {"id", 1, 21}
-					}
-				},
-			}
-		},
-
-		{"cs", H_REG_SEGMENT, H_REG_TRACK_VOLATILE, 16, 0},
-		{"ds", H_REG_SEGMENT, H_REG_TRACK_VOLATILE, 16, 0},
-		{"ss", H_REG_SEGMENT, H_REG_TRACK_VOLATILE, 16, 0},
-		{"es", H_REG_SEGMENT, H_REG_TRACK_VOLATILE, 16, 0},
-		{"fs", H_REG_SEGMENT, H_REG_TRACK_VOLATILE, 16, 0},
-		{"gs", H_REG_SEGMENT, H_REG_TRACK_VOLATILE, 16, 0},
+		{0, "cs", H_REG_SEGMENT, nullptr, "cs", 16, 0, false},
+		{0, "ds", H_REG_SEGMENT, nullptr, "ds", 16, 0, false},
+		{0, "ss", H_REG_SEGMENT, nullptr, "ss", 16, 0, false},
+		{0, "es", H_REG_SEGMENT, nullptr, "es", 16, 0, false},
+		{0, "fs", H_REG_SEGMENT, nullptr, "fs", 16, 0, false},
+		{0, "gs", H_REG_SEGMENT, nullptr, "gs", 16, 0, false},
 
 		/*Do we need debug registers? maybe not
 				{"dr0", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr1", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr2", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0}, {"dr3", H_REG_DEBUG, H_REG_TRACK_VOLATILE, 64, 0},
@@ -75,48 +129,98 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 
 //sw,cw,tw,fp_ip,...
 
-		{"zmm0", H_REG_VEC, 512, 0, true, {{"ymm0", 256, 0, true, {{"xmm0", 128, 0, true}}}}},
-		{"zmm1", H_REG_VEC, 512, 0, true, {{"ymm1", 256, 0, true, {{"xmm1", 128, 0, true}}}}},
-		{"zmm2", H_REG_VEC, 512, 0, true, {{"ymm2", 256, 0, true, {{"xmm2", 128, 0, true}}}}},
-		{"zmm3", H_REG_VEC, 512, 0, true, {{"ymm3", 256, 0, true, {{"xmm3", 128, 0, true}}}}},
-		{"zmm4", H_REG_VEC, 512, 0, true, {{"ymm4", 256, 0, true, {{"xmm4", 128, 0, true}}}}},
-		{"zmm5", H_REG_VEC, 512, 0, true, {{"ymm5", 256, 0, true, {{"xmm5", 128, 0, true}}}}},
-		{"zmm6", H_REG_VEC, 512, 0, true, {{"ymm6", 256, 0, true, {{"xmm6", 128, 0, true}}}}},
-		{"zmm7", H_REG_VEC, 512, 0, true, {{"ymm7", 256, 0, true, {{"xmm7", 128, 0, true}}}}},
-		{"zmm8", H_REG_VEC, 512, 0, true, {{"ymm8", 256, 0, true, {{"xmm8", 128, 0, true}}}}},
-		{"zmm9", H_REG_VEC, 512, 0, true, {{"ymm9", 256, 0, true, {{"xmm9", 128, 0, true}}}}},
-		{"zmm10", H_REG_VEC, 512, 0, true, {{"ymm10", 256, 0, true, {{"xmm10", 128, 0, true}}}}},
-		{"zmm11", H_REG_VEC, 512, 0, true, {{"ymm11", 256, 0, true, {{"xmm11", 128, 0, true}}}}},
-		{"zmm12", H_REG_VEC, 512, 0, true, {{"ymm12", 256, 0, true, {{"xmm12", 128, 0, true}}}}},
-		{"zmm13", H_REG_VEC, 512, 0, true, {{"ymm13", 256, 0, true, {{"xmm13", 128, 0, true}}}}},
-		{"zmm14", H_REG_VEC, 512, 0, true, {{"ymm14", 256, 0, true, {{"xmm14", 128, 0, true}}}}},
-		{"zmm15", H_REG_VEC, 512, 0, true, {{"ymm15", 256, 0, true, {{"xmm15", 128, 0, true}}}}},
-		{"zmm16", H_REG_VEC, 512, 0, true},
-		{"zmm17", H_REG_VEC, 512, 0, true},
-		{"zmm18", H_REG_VEC, 512, 0, true},
-		{"zmm19", H_REG_VEC, 512, 0, true},
-		{"zmm20", H_REG_VEC, 512, 0, true},
-		{"zmm21", H_REG_VEC, 512, 0, true},
-		{"zmm22", H_REG_VEC, 512, 0, true},
-		{"zmm23", H_REG_VEC, 512, 0, true},
-		{"zmm24", H_REG_VEC, 512, 0, true},
-		{"zmm25", H_REG_VEC, 512, 0, true},
-		{"zmm26", H_REG_VEC, 512, 0, true},
-		{"zmm27", H_REG_VEC, 512, 0, true},
-		{"zmm28", H_REG_VEC, 512, 0, true},
-		{"zmm29", H_REG_VEC, 512, 0, true},
-		{"zmm30", H_REG_VEC, 512, 0, true},
-		{"zmm31", H_REG_VEC, 512, 0, true},
+		{0, "zmm0", H_REG_VEC, nullptr, "zmm0", 512, 0, true},
+		{0, "ymm0", H_REG_VEC, "zmm0", "zmm0", 256, 0, true},
+		{0, "xmm0", H_REG_VEC, "zmm0", "ymm0", 128, 0, true},
+		
+		{0, "zmm1", H_REG_VEC, nullptr, "zmm1", 512, 0, true},
+		{0, "ymm1", H_REG_VEC, "zmm1", "zmm1", 256, 0, true},
+		{0, "xmm1", H_REG_VEC, "zmm1", "ymm1", 128, 0, true},
+		
+		{0, "zmm2", H_REG_VEC, nullptr, "zmm2", 512, 0, true},
+		{0, "ymm2", H_REG_VEC, "zmm2", "zmm2", 256, 0, true},
+		{0, "xmm2", H_REG_VEC, "zmm2", "ymm2", 128, 0, true},
+		
+		{0, "zmm3", H_REG_VEC, nullptr, "zmm3", 512, 0, true},
+		{0, "ymm3", H_REG_VEC, "zmm3", "zmm3", 256, 0, true},
+		{0, "xmm3", H_REG_VEC, "zmm3", "ymm3", 128, 0, true},
+		
+		{0, "zmm4", H_REG_VEC, nullptr, "zmm4", 512, 0, true},
+		{0, "ymm4", H_REG_VEC, "zmm4", "zmm4", 256, 0, true},
+		{0, "xmm4", H_REG_VEC, "zmm4", "ymm4", 128, 0, true},
+		
+		{0, "zmm5", H_REG_VEC, nullptr, "zmm5", 512, 0, true},
+		{0, "ymm5", H_REG_VEC, "zmm5", "zmm5", 512, 0, true},
+		{0, "xmm5", H_REG_VEC, "zmm5", "ymm5", 512, 0, true},
+		
+		{0, "zmm6", H_REG_VEC, nullptr, "zmm6", 512, 0, true},
+		{0, "ymm6", H_REG_VEC, "zmm6", "zmm6", 512, 0, true},
+		{0, "xmm6", H_REG_VEC, "zmm6", "ymm6", 512, 0, true},
+		
+		{0, "zmm7", H_REG_VEC, nullptr, "zmm7", 512, 0, true},
+		{0, "ymm7", H_REG_VEC, "zmm7", "zmm7", 512, 0, true},
+		{0, "xmm7", H_REG_VEC, "zmm7", "ymm7", 512, 0, true},
+		
+		{0, "zmm8", H_REG_VEC, nullptr, "zmm8", 512, 0, true},
+		{0, "ymm8", H_REG_VEC, "zmm8", "zmm8", 512, 0, true},
+		{0, "xmm8", H_REG_VEC, "zmm8", "ymm8", 512, 0, true},
+		
+		{0, "zmm9", H_REG_VEC, nullptr, "zmm9", 512, 0, true},
+		{0, "ymm9", H_REG_VEC, "zmm9", "zmm9", 512, 0, true},
+		{0, "xmm9", H_REG_VEC, "zmm9", "ymm9", 512, 0, true},
+		
+		{0, "zmm10", H_REG_VEC, nullptr, "zmm10", 512, 0, true},
+		{0, "ymm10", H_REG_VEC, "zmm10", "zmm10", 512, 0, true},
+		{0, "xmm10", H_REG_VEC, "zmm10", "ymm10", 512, 0, true},
+		
+		{0, "zmm11", H_REG_VEC, nullptr, "zmm11", 512, 0, true},
+		{0, "ymm11", H_REG_VEC, "zmm11", "zmm11", 512, 0, true},
+		{0, "xmm11", H_REG_VEC, "zmm11", "ymm11", 512, 0, true},
+		
+		{0, "zmm12", H_REG_VEC, nullptr, "zmm12", 512, 0, true},
+		{0, "ymm12", H_REG_VEC, "zmm12", "zmm12", 512, 0, true},
+		{0, "xmm12", H_REG_VEC, "zmm12", "ymm12", 512, 0, true},
+		
+		{0, "zmm13", H_REG_VEC, nullptr, "zmm13", 512, 0, true},
+		{0, "ymm13", H_REG_VEC, "zmm13", "zmm13", 512, 0, true},
+		{0, "xmm13", H_REG_VEC, "zmm13", "ymm13", 512, 0, true},
+		
+		{0, "zmm14", H_REG_VEC, nullptr, "zmm14", 512, 0, true},
+		{0, "ymm14", H_REG_VEC, "zmm14", "zmm14", 512, 0, true},
+		{0, "xmm14", H_REG_VEC, "zmm14", "ymm14", 512, 0, true},
+		
+		{0, "zmm15", H_REG_VEC, nullptr, "zmm15", 512, 0, true},
+		{0, "ymm15", H_REG_VEC, "zmm15", "zmm15", 512, 0, true},
+		{0, "xmm15", H_REG_VEC, "zmm15", "ymm15", 512, 0, true},
+		
+		{0, "zmm15", H_REG_VEC, nullptr, "zmm15", 512, 0, true},
+		{0, "zmm16", H_REG_VEC, nullptr, "zmm16", 512, 0, true},
+		{0, "zmm17", H_REG_VEC, nullptr, "zmm17", 512, 0, true},
+		{0, "zmm18", H_REG_VEC, nullptr, "zmm18", 512, 0, true},
+		{0, "zmm19", H_REG_VEC, nullptr, "zmm19", 512, 0, true},
+		{0, "zmm20", H_REG_VEC, nullptr, "zmm20", 512, 0, true},
+		{0, "zmm21", H_REG_VEC, nullptr, "zmm21", 512, 0, true},
+		{0, "zmm22", H_REG_VEC, nullptr, "zmm22", 512, 0, true},
+		{0, "zmm23", H_REG_VEC, nullptr, "zmm23", 512, 0, true},
+		{0, "zmm24", H_REG_VEC, nullptr, "zmm24", 512, 0, true},
+		{0, "zmm25", H_REG_VEC, nullptr, "zmm25", 512, 0, true},
+		{0, "zmm26", H_REG_VEC, nullptr, "zmm26", 512, 0, true},
+		{0, "zmm27", H_REG_VEC, nullptr, "zmm27", 512, 0, true},
+		{0, "zmm28", H_REG_VEC, nullptr, "zmm28", 512, 0, true},
+		{0, "zmm29", H_REG_VEC, nullptr, "zmm29", 512, 0, true},
+		{0, "zmm30", H_REG_VEC, nullptr, "zmm30", 512, 0, true},
+		{0, "zmm31", H_REG_VEC, nullptr, "zmm31", 512, 0, true},
 
 		//the mmx registers share the lower 64 bits of the st[n], but we ignore this dependency, because they shouldn't normally be used together
-		{"mm0", H_REG_FLOAT, 64, 0},
-		{"mm1", H_REG_FLOAT, 64, 0},
-		{"mm2", H_REG_FLOAT, 64, 0},
-		{"mm3", H_REG_FLOAT, 64, 0},
-		{"mm4", H_REG_FLOAT, 64, 0},
-		{"mm5", H_REG_FLOAT, 64, 0},
-		{"mm6", H_REG_FLOAT, 64, 0},
-		{"mm7", H_REG_FLOAT, 64, 0}
+		{0, "mm0", H_REG_VEC, nullptr, "mm0", 64, 0, true},
+		{0, "mm1", H_REG_VEC, nullptr, "mm1", 64, 0, true},
+		{0, "mm2", H_REG_VEC, nullptr, "mm2", 64, 0, true},
+		{0, "mm3", H_REG_VEC, nullptr, "mm3", 64, 0, true},
+		{0, "mm4", H_REG_VEC, nullptr, "mm4", 64, 0, true},
+		{0, "mm5", H_REG_VEC, nullptr, "mm5", 64, 0, true},
+		{0, "mm6", H_REG_VEC, nullptr, "mm6", 64, 0, true},
+		{0, "mm7", H_REG_VEC, nullptr, "mm7", 64, 0, true},
+		
 		/* The proper way to set up the st[n] registers but they conflict with the st-stack
 		{"st0", H_REG_FLOAT, 80, 0, { {"mm0", 64, 0}}},
 		{"st1", H_REG_FLOAT, 80, 0, { {"mm1", 64, 0}}},
@@ -131,7 +235,7 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 	{
 		{
 			0,
-			"mem",//name
+			"stack",//name
 			H_STACK_MEMORY,//what backs the memory
 			H_STACKPOLICY_BOTTOM,//where to add new elements
 			0, 8, //maxcount(0 = infinite), wordbitsize
@@ -205,9 +309,9 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 				{"zmm2", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 3},
 				{"zmm3", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 4}
 			},
-			nullptr,
 			{{"rax", H_CC_PARA_INT, 1}, {"zmm0", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 1}},
-			"mem",
+			nullptr,
+			"stack",
 			H_CC_STACK_ADJUST_CALLEE,
 			H_CC_STACK_R2L
 		},
@@ -224,9 +328,9 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 				{"zmm5", H_CC_PARA_FLOAT | H_CC_PARA_VEC128 | H_CC_PARA_VEC256, 6},
 				{"cs", 0, 0}
 			},
-			"rax",
 			{{"rax", H_CC_PARA_ALL, 1}, {"rdx", H_CC_PARA_ALL, 2}},
-			"mem",
+			"rax",
+			"stack",
 			H_CC_STACK_ADJUST_CALLEE,
 			H_CC_STACK_R2L
 		},
@@ -374,8 +478,8 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 				{2, "#seq(=($zf,==(#app($rax,$rdx),#arg[1])),?($zf,=(#arg[1],#app($rbx,$rcx)),#seq(=($rax,#arg[1][0,64]),=($rdx,#arg[1][64,64]))))"}
 			}, H_INSTR_TYPE_XCHG, H_INSTR_TYPE_UNKNOWN
 		},
-		{X86_INS_PUSH, "push", {{1, "#push($mem,#arg[1])"}}, H_INSTR_TYPE_PUSH},
-		{X86_INS_POP, "pop", {{1, "=(#arg[1],#pop($mem,#size(#arg[1])))"}}, H_INSTR_TYPE_POP},
+		{X86_INS_PUSH, "push", {{1, "#push($stack,#arg[1])"}}, H_INSTR_TYPE_PUSH},
+		{X86_INS_POP, "pop", {{1, "=(#arg[1],#pop($stack,#size(#arg[1])))"}}, H_INSTR_TYPE_POP},
 
 		{X86_INS_PUSHAW, "pushad", {{1, "#seq(=(#t[1],$esp),#rec[push]($eax),#rec[push]($ecx),#rec[push]($edx),#rec[push]($edx),#rec[push]($ebx),#rec[push](#t[1]),#rec[push]($ebp),#rec[push]($esi),#rec[push]($edi))"}}, H_INSTR_TYPE_PUSH},
 		{X86_INS_PUSHAL, "pusha", {{1, "#seq(=(#t[1],$sp),#rec[push]($ax),#rec[push]($cx),#rec[push]($dx),#rec[push]($dx),#rec[push]($bx),#rec[push](#t[1]),#rec[push]($bp),#rec[push]($si),#rec[push]($di))"}}, H_INSTR_TYPE_PUSH},
@@ -383,12 +487,12 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_POPAW, "popad", {{1, "#seq(#rec[pop]($edi),#rec[pop]($esi),#rec[pop]($ebp),=($esp,+($esp,4)),#rec[pop]($ebx),#rec[pop]($edx),#rec[pop]($ecx),#rec[pop]($eax))"}}, H_INSTR_TYPE_PUSH},
 		{X86_INS_POPAL, "popa", {{1, "#seq(#rec[pop]($di),#rec[pop]($si),#rec[pop]($bp),=($esp,+($esp,2)),#rec[pop]($bx),#rec[pop]($dx),#rec[pop]($cx),#rec[pop]($ax))"}}, H_INSTR_TYPE_PUSH},
 
-		{X86_INS_RET, "ret", {{0, "#ret"}, {1, "#seq(#pop($mem,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
-		{X86_INS_IRET, "iret", {{0, "#ret"}, {1, "#seq(#pop($mem,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
-		{X86_INS_IRETD, "iretd", {{0, "#ret"}, {1, "#seq(#pop($mem,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
-		{X86_INS_IRETQ, "iretq", {{0, "#ret"}, {1, "#seq(#pop($mem,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
-		{X86_INS_RETF, "retf", {{0, "#ret"}, {1, "#seq(#pop($mem,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
-		{X86_INS_RETFQ, "retfq", {{0, "#ret"}, {1, "#seq(#pop($mem,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
+		{X86_INS_RET, "ret", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
+		{X86_INS_IRET, "iret", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
+		{X86_INS_IRETD, "iretd", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
+		{X86_INS_IRETQ, "iretq", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
+		{X86_INS_RETF, "retf", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
+		{X86_INS_RETFQ, "retfq", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, H_INSTR_TYPE_RET, H_INSTR_TYPE_UNKNOWN},
 
 		{X86_INS_HLT, "hlt", {{0, "#trap"}}},
 

@@ -22,12 +22,13 @@ namespace holodec {
 		HStackPolicy policy;
 		uint64_t count;
 		uint64_t wordbitsize;
-		HString backingMem;
-		HString trackingReg;
+		HStringRef backingMem;
+		HStringRef trackingReg;
 		
 		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer = nullptr);
 	};
 
+	extern HStack invalidStack;
 }
 
 #endif // HSTACK_H

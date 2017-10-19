@@ -132,7 +132,7 @@ bool holodec::HFunctionAnalyzer::analyzeFunction (HFunction* function) {
 
 		if (trySplitBasicBlock (addr))
 			continue;
-
+		
 		ssaGen.activateBlock (ssaGen.createNewBlock());
 		
 		if(!analyzeInsts (addr)){

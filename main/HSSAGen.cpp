@@ -73,10 +73,10 @@ namespace holodec {
 		default:
 			return HIRArgument::createVal ( (uint64_t) 1, arch->bitbase);
 		case HIR_ARGTYPE_ARG: {
-			return (*arglist) [argExpr.refId];
+			return (*arglist) [argExpr.ref.refId];
 		}
 		case HIR_ARGTYPE_ID: {
-			HIRExpression* expr = arch->getIrExpr (argExpr.refId);
+			HIRExpression* expr = arch->getIrExpr (argExpr.ref.refId);
 
 			switch (expr->type) {
 			case HIR_EXPR_OP: {
@@ -270,10 +270,13 @@ namespace holodec {
 		ssaRepresentation = ssaReg;
 		activateBlock (createNewBlock());
 		for (HRegister& reg : arch->registers) {
+			if(!reg.id || reg.directParentRef)
+				continue;
 			HSSAExpression expression;
 			expression.type = HSSA_EXPR_INPUT;
 			expression.exprtype = HSSA_TYPE_UINT;
-			expression.regId = reg.id;
+			expression.location = HSSA_LOCATION_REG;
+			expression.locref = {reg.id, 0};
 			expression.size = reg.size;
 
 			addExpression (&expression);
@@ -282,7 +285,8 @@ namespace holodec {
 			HSSAExpression expression;
 			expression.type = HSSA_EXPR_INPUT;
 			expression.exprtype = HSSA_TYPE_MEM;
-			expression.memId = mem.id;
+			expression.location = HSSA_LOCATION_MEM;
+			expression.locref = {mem.id, 0};
 			expression.size = 0;
 
 			addExpression (&expression);
@@ -290,7 +294,8 @@ namespace holodec {
 		for (HStack& stack : arch->stacks) {
 			HSSAExpression expression;
 			expression.type = HSSA_EXPR_INPUT;
-			expression.stackId = {stack.id, 0};
+			expression.location = HSSA_LOCATION_STACK;
+			expression.locref = {stack.id, 0};
 			expression.size = 0;
 
 			addExpression (&expression);
@@ -323,11 +328,13 @@ namespace holodec {
 						HList<HId> exprsOfNewBlock (it, bb.exprIds.end());
 						bb.exprIds.erase (it, bb.exprIds.end());
 
-						HSSABB createdbb (bb.fallthroughId, addr, newEndAddr, exprsOfNewBlock);
+						HSSABB createdbb (bb.fallthroughId, addr, newEndAddr, exprsOfNewBlock, {oldId}, bb.outBlocks);
 						ssaRepresentation->bbs.push_back (createdbb);
 
 						HSSABB* newbb = &ssaRepresentation->bbs.back();
-						ssaRepresentation->bbs.get (oldId)->fallthroughId = newbb->id;
+						HSSABB* oldbb = ssaRepresentation->bbs.get (oldId);
+						oldbb->fallthroughId = newbb->id;
+						oldbb->outBlocks = {newbb->id};
 
 						return newbb->id;
 					}
@@ -352,7 +359,7 @@ namespace holodec {
 		case HIR_ARGTYPE_UNKN:
 			return HSSAArgument::create();
 		case HIR_ARGTYPE_SSAID:
-			return HSSAArgument::createId(arg.refId, arg.size);
+			return HSSAArgument::createId(arg.ref.refId, arg.size);
 		case HIR_ARGTYPE_FLOAT:
 			return HSSAArgument::createVal(arg.fval, arg.size);
 		case HIR_ARGTYPE_UINT:
@@ -360,11 +367,11 @@ namespace holodec {
 		case HIR_ARGTYPE_SINT:
 			return HSSAArgument::createVal(arg.sval, arg.size);
 		case HIR_ARGTYPE_MEM:
-			return HSSAArgument::createMem(arg.refId);
+			return HSSAArgument::createMem(arg.ref.refId);
 		case HIR_ARGTYPE_STACK:
-			return HSSAArgument::createStck(arch->getStack(arg.refId), arg.index);
+			return HSSAArgument::createStck(arg.ref, arg.size);
 		case HIR_ARGTYPE_REG:
-			return HSSAArgument::createReg(arch->getRegister(arg.refId));
+			return HSSAArgument::createReg(arg.ref, arg.size);
 			
 		default:
 			assert(false);
@@ -373,8 +380,8 @@ namespace holodec {
 	}
 	HIRArgument HSSAGen::replaceArg (HIRArgument arg) {
 		while (arg.type == HIR_ARGTYPE_ARG) {
-			assert (arg.refId && arg.refId <= arguments.size());
-			arg = arguments[arg.refId - 1];
+			assert (arg.ref.refId && arg.ref.refId <= arguments.size());
+			arg = arguments[arg.ref.refId - 1];
 		}
 		return arg;
 	}
@@ -382,12 +389,13 @@ namespace holodec {
 
 		HRegister* baseReg = arch->getRegister (regId);
 		HRegister* reg = baseReg;
-		while (reg->directParentId) {
-			reg = arch->getRegister (reg->directParentId);
+		while (reg->directParentRef) {
+			reg = arch->getRegister (reg->directParentRef);
 			HSSAExpression updateExpression;
 			updateExpression.type = baseReg->clearParentOnWrite ? HSSA_EXPR_EXTEND :  HSSA_EXPR_UPDATEPART;
 			updateExpression.exprtype = HSSA_TYPE_UINT;
-			updateExpression.regId = reg->id;
+			updateExpression.location = HSSA_LOCATION_REG;
+			updateExpression.locref = {reg->id, 0};
 			updateExpression.size = reg->size;
 			if (baseReg->clearParentOnWrite) {
 				assert (baseReg->offset == 0);
@@ -449,18 +457,18 @@ namespace holodec {
 			return HIRArgument::createSSAId (addExpression (&expression), expression.size);
 		}
 		case HIR_ARGTYPE_TMP: {
-			assert (exprId.refId);
+			assert (exprId.ref.refId);
 			for (HSSATmpDef& def : tmpdefs) {
-				if (def.id == exprId.refId) {
+				if (def.id == exprId.ref.refId) {
 					return def.arg;
 				}
 			}
 			printf ("0x%x\n", instruction->addr);
-			printf ("%d\n", exprId.refId);
+			printf ("%d\n", exprId.ref.refId);
 			assert (false);
 		}
 		case HIR_ARGTYPE_ID: {
-			HIRExpression* expr = arch->getIrExpr (exprId.refId);
+			HIRExpression* expr = arch->getIrExpr (exprId.ref.refId);
 
 			size_t subexpressioncount = expr->subExpressions.size();
 
@@ -478,18 +486,20 @@ namespace holodec {
 					expression.exprtype = HSSA_TYPE_UINT;
 					switch (arg.type) {
 					case HIR_ARGTYPE_REG:
-						expression.regId = arg.refId;
+						expression.location = HSSA_LOCATION_REG;
+						expression.locref = arg.ref;
 						expression.size = arg.size;
-						addUpdateRegExpressions (arg.refId, addExpression (&expression));
+						addUpdateRegExpressions (arg.ref.refId, addExpression (&expression));
 						break;
 					case HIR_ARGTYPE_STACK:
-						expression.stackId = {arg.refId, arg.index};
+						expression.location = HSSA_LOCATION_STACK;
+						expression.locref = arg.ref;
 						expression.size = arg.size;
 						addExpression (&expression);
 						break;
 					case HIR_ARGTYPE_TMP:
 						for (auto it = tmpdefs.begin(); it != tmpdefs.end(); ++it) {
-							if ( (*it).id == arg.refId) {
+							if ( (*it).id == arg.ref.refId) {
 								tmpdefs.erase (it);
 								break;
 							}
@@ -510,31 +520,33 @@ namespace holodec {
 				HIRArgument srcArg = parseExpression (expr->subExpressions[1]);
 
 				if (srcArg.type == HSSA_ARGTYPE_ID) {
-					HSSAExpression* ssaExpr = ssaRepresentation->expressions.get (srcArg.refId);
+					HSSAExpression* ssaExpr = ssaRepresentation->expressions.get (srcArg.ref.refId);
 					assert (ssaExpr);
 					if (dstArg.type == HIR_ARGTYPE_REG || dstArg.type == HIR_ARGTYPE_STACK) {
-						if (!ssaExpr->regId && !ssaExpr->stackId.id && ssaExpr->size == dstArg.size) {
+						if (ssaExpr->location == HSSA_LOCATION_NONE && ssaExpr->size == dstArg.size) {
 							if (dstArg.type == HIR_ARGTYPE_REG) {
-								ssaExpr->regId = dstArg.refId;
-								ssaExpr->size = arch->getRegister (dstArg.refId)->size;
+								ssaExpr->location = HSSA_LOCATION_REG;
+								ssaExpr->locref = dstArg.ref;
+								ssaExpr->size = dstArg.size;
 								HIRArgument arg = HIRArgument::createSSAId (ssaExpr->id, ssaExpr->size);
-								addUpdateRegExpressions (dstArg.refId, ssaExpr->id);//can relocate ssaExpr
+								addUpdateRegExpressions (dstArg.ref.refId, ssaExpr->id);//can relocate ssaExpr
 								return arg;
 							} else if (dstArg.type == HIR_ARGTYPE_STACK) {
-								ssaExpr->stackId = {dstArg.refId, dstArg.index};
-								ssaExpr->size = arch->getStack (dstArg.refId)->wordbitsize;
+								ssaExpr->location = HSSA_LOCATION_STACK;
+								ssaExpr->locref = dstArg.ref;
+								ssaExpr->size = dstArg.size;
 								return HIRArgument::createSSAId (ssaExpr->id, ssaExpr->size);
 							}
 						}
 					} else if (dstArg.type == HIR_ARGTYPE_TMP) {
 						HIRArgument arg = HIRArgument::createSSAId (ssaExpr->id, ssaExpr->size);
 						for (HSSATmpDef& def : tmpdefs) {
-							if (def.id == dstArg.refId) {
+							if (def.id == dstArg.ref.refId) {
 								def.arg = arg;
 								return HIRArgument::create();
 							}
 						}
-						tmpdefs.push_back ({dstArg.refId, arg});
+						tmpdefs.push_back ({dstArg.ref.refId, arg});
 						return HIRArgument::create();
 					}
 					expression.exprtype = ssaExpr->exprtype;
@@ -549,12 +561,12 @@ namespace holodec {
 					expression.subExpressions.push_back (srcSSAArg);
 					HIRArgument arg = HIRArgument::createSSAId (addExpression (&expression), expression.size);
 					for (HSSATmpDef& def : tmpdefs) {
-						if (def.id == dstArg.refId) {
+						if (def.id == dstArg.ref.refId) {
 							def.arg = arg;
 							return HIRArgument::create();
 						}
 					}
-					tmpdefs.push_back ({dstArg.refId, arg});
+					tmpdefs.push_back ({dstArg.ref.refId, arg});
 					return HIRArgument::create();
 				}
 				case HIR_ARGTYPE_MEMOP: {
@@ -562,25 +574,28 @@ namespace holodec {
 					expression.exprtype = HSSA_TYPE_MEM;
 					expression.size = 0;
 					HMemory* memory = arch->getDefaultMemory();
-					expression.memId = memory->id;
+					expression.location = HSSA_LOCATION_MEM;
+					expression.locref = {memory->id, 0};
 					expression.subExpressions.push_back (HSSAArgument::createMem (memory->id));
 					expression.subExpressions.push_back (parseIRArg2SSAArg (parseMemArgToExpr (dstArg)));
 				}
 				break;
 				case HIR_ARGTYPE_REG:
-					expression.regId = dstArg.refId;
-					expression.size = arch->getRegister (dstArg.refId)->size;
+					expression.location = HSSA_LOCATION_REG;
+					expression.locref = dstArg.ref;
+					expression.size = dstArg.size;
 
 					expression.subExpressions.push_back (srcSSAArg);
 					{
 						HId exprId = addExpression (&expression);
-						addUpdateRegExpressions (dstArg.refId, exprId);
+						addUpdateRegExpressions (dstArg.ref.refId, exprId);
 						return HIRArgument::createSSAId (exprId, expression.size);
 					}
 					break;
 				case HIR_ARGTYPE_STACK:
-					expression.stackId = {dstArg.refId, dstArg.index};
-					expression.size = arch->getStack (dstArg.refId)->wordbitsize;
+					expression.location = HSSA_LOCATION_STACK;
+					expression.locref = dstArg.ref;
+					expression.size = dstArg.size;
 					break;
 				case HIR_ARGTYPE_SSAID://assign to no particular thing, needed for recursive with write-parameter as tmp
 					break;
@@ -619,13 +634,19 @@ namespace holodec {
 				parseExpression (expr->subExpressions[1]);
 				getActiveBlock()->fallthroughId = endBlockId;
 
-				if (subexpressioncount == 3) {
+				if (falseblockId) {
 					getBlock (oldBlock)->fallthroughId = falseblockId;
 					activateBlock (falseblockId);
 					parseExpression (expr->subExpressions[2]);
-					getActiveBlock()->fallthroughId = endBlockId;
+					HSSABB* activeblock = getActiveBlock();
+					activeblock->fallthroughId = endBlockId;
+					activeblock->outBlocks.insert(endBlockId);
+					getBlock(endBlockId)->inBlocks.insert(activeblock->id);
 				} else {
-					getBlock (oldBlock)->fallthroughId = endBlockId;
+					HSSABB* oldBB = getBlock(oldBlock);
+					oldBB->fallthroughId = endBlockId;
+					oldBB->outBlocks.insert(endBlockId);
+					getBlock(endBlockId)->inBlocks.insert(oldBB->id);
 				}
 				activateBlock (endBlockId);
 				return HIRArgument::create ();
@@ -675,6 +696,8 @@ namespace holodec {
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (expr->subExpressions[0])));
 
 				for (HRegister& reg : arch->registers) {
+					if(!reg.id || reg.directParentRef)
+						continue;
 					expression.subExpressions.push_back (HSSAArgument::createReg (&reg));
 				}
 				for (HStack& stack : arch->stacks) {
@@ -689,10 +712,13 @@ namespace holodec {
 				HSSAArgument ssaArg = parseIRArg2SSAArg (arg);
 
 				for (HRegister& reg : arch->registers) {
+					if(!reg.id || reg.directParentRef)
+						continue;
 					HSSAExpression retExpr;
 					retExpr.type = HSSA_EXPR_OUTPUT;
 					retExpr.exprtype = HSSA_TYPE_UINT;
-					retExpr.regId = reg.id;
+					retExpr.location = HSSA_LOCATION_REG;
+					retExpr.locref = {reg.id, 0};
 					retExpr.size = reg.size;
 					retExpr.subExpressions.push_back (ssaArg);
 					addExpression (&retExpr);
@@ -701,7 +727,8 @@ namespace holodec {
 					HSSAExpression retExpr;
 					retExpr.type = HSSA_EXPR_OUTPUT;
 					retExpr.exprtype = HSSA_TYPE_MEM;
-					retExpr.stackId = {stack.id, 0};
+					retExpr.location = HSSA_LOCATION_STACK;
+					retExpr.locref = {stack.id, 0};
 					retExpr.subExpressions.push_back (ssaArg);
 					addExpression (&retExpr);
 				}
@@ -709,7 +736,8 @@ namespace holodec {
 					HSSAExpression retExpr;
 					retExpr.type = HSSA_EXPR_OUTPUT;
 					retExpr.exprtype = HSSA_TYPE_MEM;
-					retExpr.memId = memory.id;
+					retExpr.location = HSSA_LOCATION_MEM;
+					retExpr.locref = {memory.id, 0};
 					retExpr.size = 0;
 					retExpr.subExpressions.push_back (ssaArg);
 					addExpression (&retExpr);
@@ -724,6 +752,8 @@ namespace holodec {
 				expression.size = arch->bitbase;
 				assert (!subexpressioncount);
 				for (HRegister& reg : arch->registers) {
+					if(!reg.id || reg.directParentRef)
+						continue;
 					expression.subExpressions.push_back (HSSAArgument::createReg (&reg));
 				}
 				for (HStack& stack : arch->stacks) {
@@ -810,7 +840,8 @@ namespace holodec {
 				expression.size = 0;
 				assert (subexpressioncount == 3);
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (expr->subExpressions[0])));
-				expression.memId = expression.subExpressions[0].refId;
+				expression.location = HSSA_LOCATION_MEM;
+				expression.locref = expression.subExpressions[0].ref;
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (expr->subExpressions[1])));
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (expr->subExpressions[2])));
 				return HIRArgument::createSSAId (addExpression (&expression), expression.size);
@@ -830,7 +861,7 @@ namespace holodec {
 			case HIR_EXPR_PUSH: {
 				HIRArgument stackArg = parseExpression (expr->subExpressions[0]);
 				assert (stackArg.type == HIR_ARGTYPE_STACK);
-				HStack* stack = arch->getStack (stackArg.refId);
+				HStack* stack = arch->getStack (stackArg.ref.refId);
 				assert (stack);
 				switch (stack->type) {
 				case H_STACK_BUILTIN: {
@@ -853,7 +884,8 @@ namespace holodec {
 					expression.type = HSSA_EXPR_STORE;
 					expression.exprtype = HSSA_TYPE_MEM;
 					expression.size = 0;
-					expression.memId = mem->id;
+					expression.location = HSSA_LOCATION_MEM;
+					expression.locref = {mem->id, 0};
 					expression.subExpressions.push_back (HSSAArgument::createMem (mem->id));
 					expression.subExpressions.push_back (HSSAArgument::createReg (reg));
 					expression.subExpressions.push_back (value);
@@ -864,7 +896,8 @@ namespace holodec {
 					adjustExpr.opType = stack->policy == H_STACKPOLICY_TOP ?  H_OP_ADD : H_OP_SUB;
 					adjustExpr.subExpressions.push_back (HSSAArgument::createReg (reg));
 					adjustExpr.subExpressions.push_back (HSSAArgument::createVal ( (value.size + stack->wordbitsize - 1) / stack->wordbitsize, arch->bitbase));
-					adjustExpr.regId = reg->id;
+					adjustExpr.location = HSSA_LOCATION_REG;
+					adjustExpr.locref = {reg->id, 0};
 
 					addUpdateRegExpressions (reg->id, addExpression (&adjustExpr));
 					return HIRArgument::createSSAId (addExpression (&expression), expression.size);
@@ -875,7 +908,7 @@ namespace holodec {
 			case HIR_EXPR_POP: {
 				HIRArgument stackArg = parseExpression (expr->subExpressions[0]);
 				assert (stackArg.type == HIR_ARGTYPE_STACK);
-				HStack* stack = arch->getStack (stackArg.refId);
+				HStack* stack = arch->getStack (stackArg.ref.refId);
 				assert (stack);
 				switch (stack->type) {
 				case H_STACK_BUILTIN: {
@@ -909,7 +942,8 @@ namespace holodec {
 					adjustExpr.opType = stack->policy == H_STACKPOLICY_TOP ? H_OP_SUB : H_OP_ADD;
 					adjustExpr.subExpressions.push_back (HSSAArgument::createReg (reg));
 					adjustExpr.subExpressions.push_back (sizeadjust);
-					adjustExpr.regId = reg->id;
+					adjustExpr.location = HSSA_LOCATION_REG;
+					adjustExpr.locref = {reg->id, 0};
 					adjustExpr.size = reg->size;
 
 					HIRArgument retArg = HIRArgument::createSSAId (addExpression (&expression), expression.size);
@@ -966,6 +1000,8 @@ namespace holodec {
 				HId condId = createNewBlock();
 				HId bodyId = createNewBlock();
 				getActiveBlock()->fallthroughId = condId;
+				getActiveBlock()->outBlocks.insert(condId);
+				getBlock(condId)->inBlocks.insert(getActiveBlock()->id);
 
 
 				activateBlock (condId);
@@ -981,10 +1017,15 @@ namespace holodec {
 				activateBlock (bodyId);
 				parseExpression (expr->subExpressions[1]);
 				getActiveBlock()->fallthroughId = condId;
+				getActiveBlock()->outBlocks.insert(condId);
+				getBlock(condId)->inBlocks.insert(getActiveBlock()->id);
 				bodyId = activeBlockId;
 
 				HId endId = createNewBlock();
-				getBlock (condId)->fallthroughId = endId;
+				HSSABB* condBB = getBlock (condId);
+				condBB->fallthroughId = endId;
+				condBB->outBlocks.insert(endId);
+				getBlock(endId)->inBlocks.insert(condBB->id);
 				activateBlock (endId);
 				return HIRArgument::create ();
 			}

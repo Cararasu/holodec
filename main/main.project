@@ -20,9 +20,7 @@
       <File Name="HClass.cpp"/>
       <File Name="HBinary.h"/>
       <File Name="HBinary.cpp"/>
-      <File Name="HId.h"/>
       <File Name="HRegister.h"/>
-      <File Name="HRegister.cpp"/>
       <File Name="HStack.h"/>
       <File Name="HStack.cpp"/>
       <File Name="HCallingConvention.h"/>
@@ -33,6 +31,8 @@
       <File Name="HArgument.cpp"/>
       <File Name="HMemory.h"/>
       <File Name="HMemory.cpp"/>
+      <File Name="HIdList.h"/>
+      <File Name="HRegister.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <File Name="HString.h"/>
@@ -71,14 +71,6 @@
       <File Name="HSSATransformer.h"/>
       <File Name="HSSATransformer.cpp"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="IMPL">
-      <File Name="Hx86FunctionAnalyzer.h"/>
-      <File Name="Hx86FunctionAnalyzer.cpp"/>
-      <File Name="Hx86Architecture.cpp"/>
-      <File Name="HElfDataFile.cpp"/>
-      <File Name="HElfBinaryAnalyzer.h"/>
-      <File Name="HElfBinaryAnalyzer.cpp"/>
-    </VirtualDirectory>
     <VirtualDirectory Name="SSATransformers">
       <File Name="HSSAPhiNodeGenerator.cpp"/>
       <File Name="HSSAPhiNodeGenerator.h"/>
@@ -90,6 +82,20 @@
       <File Name="HSSAAssignmentSimplifier.cpp"/>
       <File Name="HSSADeadCodeEliminationTransformer.h"/>
       <File Name="HSSADeadCodeEliminationTransformer.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="binary">
+      <VirtualDirectory Name="elf">
+        <File Name="binary/elf/HElfBinaryAnalyzer.cpp"/>
+        <File Name="binary/elf/HElfBinaryAnalyzer.h"/>
+        <File Name="binary/elf/HElfDataFile.cpp"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="arch">
+      <VirtualDirectory Name="x86">
+        <File Name="arch/x86/Hx86Architecture.cpp"/>
+        <File Name="arch/x86/Hx86FunctionAnalyzer.cpp"/>
+        <File Name="arch/x86/Hx86FunctionAnalyzer.h"/>
+      </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">

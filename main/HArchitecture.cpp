@@ -4,10 +4,26 @@
 namespace holodec {
 
 	void HArchitecture::init() {
-		HIdGenerator gen;
 		for (HRegister& reg : registers) {
-			reg.relabel (&gen);
-			reg.setParentId (reg.id);
+			reg.parentRef.refId = getRegister(reg.parentRef)->id;
+			reg.directParentRef.refId = getRegister(reg.directParentRef)->id;
+		}
+		for (HStack& stack : stacks) {
+			stack.trackingReg.refId = getRegister(stack.trackingReg)->id;
+			stack.backingMem.refId = getMemory(stack.backingMem)->id;
+		}
+		for (HCallingConvention& cc : callingconventions) {
+			cc.parameterCount.refId = getRegister(cc.parameterCount)->id;
+			
+			for(HStringRef& ref : cc.nonVolatileReg){
+				ref.refId = getRegister(ref)->id;
+			}
+			for(HCCParameter& para : cc.parameters){
+				para.regref.refId = getRegister(para.regref)->id;
+			}
+			for(HCCParameter& para : cc.returns){
+				para.regref.refId = getRegister(para.regref)->id;
+			}
 		}
 
 		for (auto& entry : instrdefs) {
@@ -19,5 +35,6 @@ namespace holodec {
 			}
 		}
 	}
+	
 
 }

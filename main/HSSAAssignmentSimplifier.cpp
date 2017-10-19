@@ -1,6 +1,6 @@
 #include "HSSAAssignmentSimplifier.h"
 #include "HArgument.h"
-#include "HId.h"
+
 #include "HGeneral.h"
 #include "HSSA.h"
 #include "HFunction.h"
@@ -17,19 +17,26 @@ namespace holodec{
 		while(true){
 			replacements.clear();
 			for(HSSAExpression& expr : function->ssaRep.expressions){
+				if(!expr.id)
+					continue;
 				if(expr.type == HSSA_EXPR_ASSIGN && !expr.subExpressions[0].isConst()) {
 					if(expr.subExpressions[0].type == HSSA_ARGTYPE_ID){
 						HSSAArgument arg = expr.subExpressions[0];
-						if(expr.regId){
+						switch(expr.location){
+						case HSSA_LOCATION_REG:
 							arg.type = HSSA_ARGTYPE_REG;
-							arg.refId = expr.regId;
-						}else if(expr.stackId.id){
+							arg.ref = expr.locref;
+							break;
+						case HSSA_LOCATION_STACK:
 							arg.type = HSSA_ARGTYPE_STACK;
-							arg.refId = expr.stackId.id;
-							arg.wusl = expr.stackId.index;
-						}else if(expr.memId){
+							arg.ref = expr.locref;
+							break;
+						case HSSA_LOCATION_MEM:
 							arg.type = HSSA_ARGTYPE_MEM;
-							arg.refId = expr.memId;
+							arg.ref = expr.locref;
+							break;
+						default:
+							break;
 						}
 						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
 					}else{
@@ -37,12 +44,19 @@ namespace holodec{
 					}
 				}else if(expr.type == HSSA_EXPR_UNDEF){
 					HSSAArgument arg;
-					if(expr.regId)
-						arg = HSSAArgument::createReg(expr.regId, expr.size);
-					else if(expr.memId)
-						arg = HSSAArgument::createMem(expr.memId, expr.size);
-					else if(expr.stackId.id)
-						arg = HSSAArgument::createStck(expr.stackId.id, expr.size, expr.stackId.index);
+					switch(expr.location){
+					case HSSA_LOCATION_REG:
+						arg = HSSAArgument::createReg(expr.locref, expr.size);
+						break;
+					case HSSA_LOCATION_STACK:
+						arg = HSSAArgument::createStck(expr.locref, expr.size);
+						break;
+					case HSSA_LOCATION_MEM:
+						arg = HSSAArgument::createMem(expr.locref.refId, expr.size);
+						break;
+					default:
+						break;
+					}
 					replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
 				}else if(expr.type == HSSA_EXPR_LABEL){
 					replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, HSSAArgument::create()));
@@ -61,12 +75,19 @@ namespace holodec{
 					}
 					if(undef){
 						HSSAArgument arg;
-						if(expr.regId)
-							arg = HSSAArgument::createReg(expr.regId, expr.size);
-						else if(expr.memId)
-							arg = HSSAArgument::createMem(expr.memId);
-						else if(expr.stackId.id)
-							arg = HSSAArgument::createStck(expr.stackId.id, expr.stackId.index, expr.size);
+						switch(expr.location){
+						case HSSA_LOCATION_REG:
+							arg = HSSAArgument::createReg(expr.locref, expr.size);
+							break;
+						case HSSA_LOCATION_STACK:
+							arg = HSSAArgument::createMem(expr.locref.refId);
+							break;
+						case HSSA_LOCATION_MEM:
+							arg = HSSAArgument::createStck(expr.locref, expr.size);
+							break;
+						default:
+							break;
+						}
 						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
 					}else if(alwaysTheSame){
 						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, firstArg));
@@ -74,12 +95,19 @@ namespace holodec{
 				}else if(expr.type == HSSA_EXPR_SPLIT || expr.type == HSSA_EXPR_UPDATEPART){
 					if(expr.subExpressions[0].type == HIR_ARGTYPE_UNKN){
 						HSSAArgument arg;
-						if(expr.regId)
-							arg = HSSAArgument::createReg(expr.regId, expr.size);
-						else if(expr.memId)
-							arg = HSSAArgument::createMem(expr.memId);
-						else if(expr.stackId.id)
-							arg = HSSAArgument::createStck(expr.stackId.id, expr.stackId.index, expr.size);
+						switch(expr.location){
+						case HSSA_LOCATION_REG:
+							arg = HSSAArgument::createReg(expr.locref, expr.size);
+							break;
+						case HSSA_LOCATION_STACK:
+							arg = HSSAArgument::createMem(expr.locref.refId);
+							break;
+						case HSSA_LOCATION_MEM:
+							arg = HSSAArgument::createStck(expr.locref, expr.size);
+							break;
+						default:
+							break;
+						}
 						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
 					}
 				}
@@ -87,6 +115,7 @@ namespace holodec{
 			if(replacements.empty())
 				break;
 			function->ssaRep.replaceNodes(&replacements);
+			function->ssaRep.compress();
 		}
 	}
 }
