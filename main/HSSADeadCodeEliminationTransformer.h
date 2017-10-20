@@ -7,6 +7,11 @@ namespace holodec {
 
 	class HSSADeadCodeEliminationTransformer : public HSSATransformer {
 
+		HSSARepresentation* ssaRep;
+		HList<HId> usecount;
+		
+		void addNewUse(HId id, std::set<HId>* visited);
+		
 		virtual void doTransformation (HFunction* function);
 		
 	};

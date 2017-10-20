@@ -15,7 +15,8 @@ namespace holodec {
 
 	class HArchitecture;
 	
-#define HSSA_EXPR_CONTROL_FLOW	(0x1000)
+#define HSSA_EXPR_CONTROL_FLOW		(0x1000)
+#define HSSA_EXPR_TRANSIENT_NODE	(0x2000)//TODO rename as this is a bad name
 	
 	enum HSSAExprType {
 		HSSA_EXPR_INVALID	= 0x0,
@@ -30,7 +31,7 @@ namespace holodec {
 		HSSA_EXPR_BUILTIN	= 0x16,
 		HSSA_EXPR_EXTEND	= 0x17,
 		HSSA_EXPR_SPLIT		= 0x18,
-		HSSA_EXPR_UPDATEPART= 0x19,
+		HSSA_EXPR_UPDATEPART= HSSA_EXPR_TRANSIENT_NODE | 0x19,
 		HSSA_EXPR_APPEND	= 0x1A,
 		HSSA_EXPR_CAST		= 0x1B,
 		
@@ -42,8 +43,8 @@ namespace holodec {
 		HSSA_EXPR_SYSCALL	= HSSA_EXPR_CONTROL_FLOW | 0x25,
 		HSSA_EXPR_TRAP		= HSSA_EXPR_CONTROL_FLOW | 0x26,
 
-		HSSA_EXPR_PHI		= 0x31,
-		HSSA_EXPR_ASSIGN	= 0x32,
+		HSSA_EXPR_PHI		= HSSA_EXPR_TRANSIENT_NODE | 0x31,
+		HSSA_EXPR_ASSIGN	= HSSA_EXPR_TRANSIENT_NODE | 0x32,
 
 		HSSA_EXPR_JMP		= HSSA_EXPR_CONTROL_FLOW | 0x41,
 		HSSA_EXPR_CJMP		= HSSA_EXPR_CONTROL_FLOW | 0x42,
@@ -186,7 +187,7 @@ namespace holodec {
 			expressions.clear();
 		}
 
-		void replaceNodes(HList<std::pair<HId,HSSAArgument>>* replacements){
+		void replaceNodes(HMap<HId,HSSAArgument>* replacements){
 			
 			bool replaced = false;
 			do{
@@ -209,43 +210,50 @@ namespace holodec {
 			
 			for(HSSAExpression& expr : expressions){
 				for (HSSAArgument& arg : expr.subExpressions) {
-					for(std::pair<HId,HSSAArgument>& rep : *replacements){
-						if(arg.id == rep.first){
-							arg = rep.second;
-						}
+					auto repIt = replacements->find(arg.id);
+					if(repIt != replacements->end()){
+						arg = repIt->second;
 					}
 				}
 			}
 			
 			for(HSSABB& bb : bbs){
 				for(auto it = bb.exprIds.begin(); it != bb.exprIds.end();){
-					HId id = *it;
-					bool erased = false;
-					for(std::pair<HId,HSSAArgument>& rep : *replacements){
-						if(rep.first == id){
-							bb.exprIds.erase(it);
-							erased = true;
-							break;
-						}
-					}
-					if(erased)
+					if(replacements->find(*it) != replacements->end()){
+						bb.exprIds.erase(it);
 						continue;
+					}
 					it++;
 				}
 			}
 			for(auto it = expressions.begin(); it != expressions.end();){
-				HSSAExpression& expr = *it;
-				bool erased = false;
-				for(std::pair<HId,HSSAArgument>& rep : *replacements){
-					if(expr.id == rep.first){
-						expressions.erase(it);
-						erased = true;
-						break;
-					}
-				}
-				if(erased)
+				if(replacements->find(it->id) != replacements->end()){
+					expressions.erase(it);
 					continue;
+				}
 				it++;
+			}
+		}
+		void removeNodes(HSet<HId>* ids){
+			for(auto it = expressions.begin(); it != expressions.end();){
+				if(ids->find(it->id) != ids->end()){
+					expressions.erase(it);
+					continue;
+				}
+				for(HSSAArgument& arg : it->subExpressions){
+					if(arg.id && ids->find(it->id) != ids->end())
+						arg = HSSAArgument::create(HSSA_ARGTYPE_UNKN);
+				}
+				++it;
+			}
+			for(HSSABB& bb : bbs){
+				for(auto it = bb.exprIds.begin(); it != bb.exprIds.end();){
+					if(ids->find(*it) != ids->end()){
+						bb.exprIds.erase(it);
+						continue;
+					}
+					++it;
+				}
 			}
 		}
 		

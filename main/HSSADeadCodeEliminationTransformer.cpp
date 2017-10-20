@@ -8,37 +8,56 @@
 
 namespace holodec {
 
+	void HSSADeadCodeEliminationTransformer::addNewUse(HId id, std::set<HId>* visited){
+		HSSAExpression& expr = ssaRep->expressions[id];
+		
+		if(visited->find(id) != visited->end())
+			return ;
+		visited->insert(id);
+		
+		if (expr.type & HSSA_EXPR_TRANSIENT_NODE){
+			++usecount[id - 1];
+			for(HSSAArgument& arg : expr.subExpressions){
+				if(arg.id){
+					addNewUse(arg.id, visited);
+				}
+			}
+		}else{
+			++usecount[id - 1];
+		}
+	}
+	
 	void HSSADeadCodeEliminationTransformer::doTransformation (HFunction* function) {
 
 		printf ("DCE for Function at Address 0x%llx\n", function->baseaddr);
 		
-		do {
-			std::set<HId> usedIds;
+		ssaRep = &function->ssaRep;
+		{
+			usecount.clear();
+			usecount.resize(ssaRep->expressions.size(), 0);
 
-			for (HSSAExpression& expr : function->ssaRep.expressions) {
-				if(!expr.id)
+			for(auto it = ssaRep->expressions.begin(); it != ssaRep->expressions.end(); ++it){
+				if (it->type & HSSA_EXPR_TRANSIENT_NODE)
 					continue;
-				for (HSSAArgument& arg : expr.subExpressions) {
-					if (arg.id)
-						usedIds.insert (arg.id);
-				}
-			}
-			
-			HList<std::pair<HId, HSSAArgument>> replacements;
-			bool replaced = false;
-			for (auto it = function->ssaRep.expressions.begin(); it != function->ssaRep.expressions.end();++it){
-				if(it->id && !(it->type & HSSA_EXPR_CONTROL_FLOW)) {
-					if (usedIds.find (it->id) == usedIds.end()){
-						replacements.push_back(std::pair<HId, HSSAArgument>(it->id,HSSAArgument::create(HSSA_ARGTYPE_UNKN)));
+				for(HSSAArgument& arg : it->subExpressions){
+					if(arg.id){
+						std::set<HId> visited;
+						visited.insert(it->id);
+						addNewUse(arg.id, &visited);
 					}
 				}
 			}
-			
-			function->ssaRep.replaceNodes(&replacements);
-			if (!replaced)
-				break;
-
-		} while (true);
-
+			HSet<HId> toRemove;
+			for (auto it = function->ssaRep.expressions.begin(); it != function->ssaRep.expressions.end();++it){
+				if(!it->id)
+					continue;
+				if(it->type & HSSA_EXPR_CONTROL_FLOW)
+					continue;
+				if(usecount[it->id - 1])
+					continue;
+				toRemove.insert(it->id);
+			}
+			function->ssaRep.removeNodes(&toRemove);
+		}
 	}
 }

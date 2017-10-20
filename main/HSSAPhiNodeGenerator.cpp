@@ -196,11 +196,11 @@ namespace holodec {
 
 				HRegister* reg = arch->getRegister (regDef.regId);
 
-				printf("Searching Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
+				//printf("Searching Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
 				for (HId inBlockId : wrap.ssaBB->inBlocks) {
 					handleBBs (getWrapper (inBlockId), reg, gatheredIds, &gatheredIdCount, visitedBlocks, &visitedBlockCount);
 				}
-				printf("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
+				//printf("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
 				assert (gatheredIdCount);
 
 				HSSAExpression phinode;
@@ -271,9 +271,9 @@ namespace holodec {
 	}
 
 	void HSSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, HRegister* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount) {
-		printf("\nHandling Block %d\n", wrapper->ssaBB->id);
+		//printf("\nHandling Block %d\n", wrapper->ssaBB->id);
 
-		printf("Found no match on BB %d\n", wrapper->ssaBB->id);
+		//printf("Found no match on BB %d\n", wrapper->ssaBB->id);
 
 		HSSARegDef* foundParentDef = nullptr;
 		for (HSSARegDef& regDef : wrapper->outputs) {
@@ -289,7 +289,7 @@ namespace holodec {
 			}
 		}
 		if (foundParentDef) {
-			printf("Found parent Match %d\n", foundParentDef->ssaId);
+			//printf("Found parent Match %d\n", foundParentDef->ssaId);
 			HSSAExpression expr;
 			expr.type = HSSA_EXPR_SPLIT;
 			expr.exprtype = HSSA_TYPE_UINT;
@@ -315,7 +315,7 @@ namespace holodec {
 		} else {
 			for (int i = 0; i < *visitedBlockCount; i++) {
 				if (visitedBlocks[i] == wrapper->ssaBB->id) {
-					printf("Already Visited BB %d\n", wrapper->ssaBB->id);
+					//printf("Already Visited BB %d\n", wrapper->ssaBB->id);
 					return;
 				}
 			}

@@ -12,7 +12,7 @@ namespace holodec{
 		
 		printf ("Simplifying Assignments for Function at Address 0x%x\n", function->baseaddr);
 		
-		HList<std::pair<HId, HSSAArgument>> replacements;
+		HMap<HId, HSSAArgument> replacements;
 		
 		while(true){
 			replacements.clear();
@@ -38,7 +38,7 @@ namespace holodec{
 						default:
 							break;
 						}
-						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
+						replacements.insert(std::pair<HId, HSSAArgument>(expr.id, arg));
 					}else{
 						
 					}
@@ -57,9 +57,9 @@ namespace holodec{
 					default:
 						break;
 					}
-					replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
+					replacements.insert(std::pair<HId, HSSAArgument>(expr.id, arg));
 				}else if(expr.type == HSSA_EXPR_LABEL){
-					replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, HSSAArgument::create()));
+					replacements.insert(std::pair<HId, HSSAArgument>(expr.id, HSSAArgument::create()));
 				}else if(expr.type == HSSA_EXPR_PHI) {
 					bool undef = true;
 					HSSAArgument& firstArg = expr.subExpressions[0];
@@ -88,9 +88,9 @@ namespace holodec{
 						default:
 							break;
 						}
-						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
+						replacements.insert(std::pair<HId, HSSAArgument>(expr.id, arg));
 					}else if(alwaysTheSame){
-						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, firstArg));
+						replacements.insert(std::pair<HId, HSSAArgument>(expr.id, firstArg));
 					}
 				}else if(expr.type == HSSA_EXPR_SPLIT || expr.type == HSSA_EXPR_UPDATEPART){
 					if(expr.subExpressions[0].type == HIR_ARGTYPE_UNKN){
@@ -108,7 +108,7 @@ namespace holodec{
 						default:
 							break;
 						}
-						replacements.push_back(std::pair<HId, HSSAArgument>(expr.id, arg));
+						replacements.insert(std::pair<HId, HSSAArgument>(expr.id, arg));
 					}
 				}
 			}
