@@ -133,7 +133,6 @@ namespace holodec {
 		void shrink (std::function<void (HId, HId)> replacer = nullptr) {
 			auto fit = list.begin();
 			auto rit = list.end() - 1;
-			int erased = 0;
 			while(fit != rit){
 				while(fit->id && fit < rit) ++fit;
 				while(!rit->id && fit < rit) --rit;

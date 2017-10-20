@@ -32,7 +32,7 @@ namespace holodec {
 		printf ("DCE for Function at Address 0x%llx\n", function->baseaddr);
 		
 		ssaRep = &function->ssaRep;
-		{
+		do {
 			usecount.clear();
 			usecount.resize(ssaRep->expressions.size(), 0);
 
@@ -57,7 +57,9 @@ namespace holodec {
 					continue;
 				toRemove.insert(it->id);
 			}
+			if(toRemove.empty())
+				break;
 			function->ssaRep.removeNodes(&toRemove);
-		}
+		}while(true);
 	}
 }

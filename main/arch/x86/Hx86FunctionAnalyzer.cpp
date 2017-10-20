@@ -128,8 +128,6 @@ void holox86::Hx86FunctionAnalyzer::setOperands (HInstruction* instruction, cs_d
 			arg = HIRArgument::createVal ( (uint64_t) x86.operands[i].imm, x86.operands[i].size * 8);
 			break;
 		case X86_OP_MEM: {
-			uint64_t disp = 0;
-			HRegister* baseReg;
 			if(x86.operands[i].mem.segment == X86_REG_INVALID)
 				x86.operands[i].mem.segment = X86_REG_CS;
 			
