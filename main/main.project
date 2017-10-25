@@ -235,4 +235,7 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Debug Windows"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

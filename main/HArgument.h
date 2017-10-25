@@ -28,19 +28,6 @@ namespace holodec {
 	typedef int64_t HArgSInt;
 	typedef uint64_t HArgUInt;
 	typedef double HArgFloat;
-	struct HArgMem { //segment::[base + index*scale + disp]
-		HId segment;
-		HId base;
-		HId index;
-		HArgSInt scale;
-		HArgSInt disp;
-	};
-	bool inline operator==(HArgMem& lhs, HArgMem& rhs){
-		return lhs.segment == rhs.segment && lhs.base == rhs.base && lhs.index == rhs.index && lhs.scale == rhs.scale && lhs.disp == rhs.disp;
-	}
-	bool inline operator!=(HArgMem& lhs, HArgMem& rhs){
-		return !(lhs == rhs);
-	}
 	struct HArgStck {
 		HId id;//id of the stack
 		HId index;//index into the stack or 0 for whole stack
@@ -164,6 +151,19 @@ namespace holodec {
 		return ! (lhs == rhs);
 	}
 
+	struct HArgMem { //segment::[base + index*scale + disp]
+		HId segment;
+		HId base;
+		HId index;
+		HArgSInt scale;
+		HArgSInt disp;
+	};
+	bool inline operator==(HArgMem& lhs, HArgMem& rhs){
+		return lhs.segment == rhs.segment && lhs.base == rhs.base && lhs.index == rhs.index && lhs.scale == rhs.scale && lhs.disp == rhs.disp;
+	}
+	bool inline operator!=(HArgMem& lhs, HArgMem& rhs){
+		return !(lhs == rhs);
+	}
 	enum HIRArgTypes{
 		HIR_ARGTYPE_UNKN = 0,
 		HIR_ARGTYPE_REG,

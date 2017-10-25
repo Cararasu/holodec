@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="radpp" Database="" Version="10.0.0">
   <Project Name="main" Path="main/main.project" Active="Yes"/>
-  <Project Name="VulkanTest" Path="../VulkanTest/VulkanTest.project" Active="No"/>
+  <Project Name="VulkanTest" Path="../Vulkan/VulkanTest.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="no">
       <Environment/>

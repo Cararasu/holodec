@@ -69,7 +69,7 @@ namespace holodec {
 		H_OP_XOR,
 		H_OP_NOT,
 
-		H_OP_E,
+		H_OP_EQ,
 		H_OP_NE,
 		H_OP_L,
 		H_OP_LE,

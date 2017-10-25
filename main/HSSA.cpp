@@ -95,7 +95,7 @@ namespace holodec {
 			case H_OP_NOT:
 				printf("! ");
 				break;
-			case H_OP_E:
+			case H_OP_EQ:
 				printf("== ");
 				break;
 			case H_OP_NE:

@@ -126,7 +126,7 @@ namespace holodec {
 					return HIRArgument::createVal (val, arch->bitbase);
 				}
 
-				case H_OP_E: {
+				case H_OP_EQ: {
 					uint64_t val = 0;
 					if (expr->subExpressions.size() == 2) {
 						HIRArgument arg1 = parseConstExpression (expr->subExpressions[0], arglist);

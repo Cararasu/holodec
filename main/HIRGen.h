@@ -22,8 +22,10 @@ namespace holodec {
 
 		HArchitecture* arch;
 		HIRRepresentation* rep;
-
-		HIRParser (HArchitecture* arch) : arch (arch) {}
+		
+		std::map<HString, HIRExpression> expressionmap;
+		
+		HIRParser (HArchitecture* arch);
 
 		char peek() {
 			return string[index];

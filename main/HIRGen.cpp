@@ -3,6 +3,200 @@
 #include <assert.h>
 
 namespace holodec {
+	
+	
+	HIRParser::HIRParser (HArchitecture* arch) : arch (arch) {
+		HIRExpression expression;
+		{expression.exprtype = HSSA_TYPE_UNKNOWN;
+			expression.type = HIR_EXPR_UNDEF;
+			expressionmap.insert(std::make_pair("undef", expression));
+			expression.type = HIR_EXPR_SEQUENCE;
+			expressionmap.insert(std::make_pair("seq", expression));
+			expression.type = HIR_EXPR_TRAP;
+			expressionmap.insert(std::make_pair("trap", expression));
+			expression.type = HIR_EXPR_SYSCALL;
+			expressionmap.insert(std::make_pair("syscall", expression));
+			expression.type = HIR_EXPR_CALL;
+			expressionmap.insert(std::make_pair("call", expression));
+			expression.type = HIR_EXPR_JMP;
+			expressionmap.insert(std::make_pair("jmp", expression));
+			expression.type = HIR_EXPR_CJMP;
+			expressionmap.insert(std::make_pair("cjmp", expression));
+			expression.type = HIR_EXPR_RETURN;
+			expressionmap.insert(std::make_pair("ret", expression));
+			expression.type = HIR_EXPR_NOP;
+			expressionmap.insert(std::make_pair("nop", expression));
+			expression.type = HIR_EXPR_IF;
+			expressionmap.insert(std::make_pair("if", expression));
+			expression.type = HIR_EXPR_REP;
+			expressionmap.insert(std::make_pair("rep", expression));
+			expression.type = HIR_EXPR_ASSIGN;
+			expressionmap.insert(std::make_pair("assign", expression));
+		}
+		
+		{expression.exprtype = HSSA_TYPE_UINT;
+			{expression.type = HIR_EXPR_FLAG;
+				expression.size = 1;
+				expression.mod.flagType = HSSA_FLAG_Z;
+				expressionmap.insert(std::make_pair("z", expression));
+				expression.mod.flagType = HSSA_FLAG_P;
+				expressionmap.insert(std::make_pair("p", expression));
+				expression.mod.flagType = HSSA_FLAG_O;
+				expressionmap.insert(std::make_pair("o", expression));
+				expression.mod.flagType = HSSA_FLAG_S;
+				expressionmap.insert(std::make_pair("s", expression));
+				expression.mod.flagType = HSSA_FLAG_C;
+				expressionmap.insert(std::make_pair("c", expression));
+				expression.mod.flagType = HSSA_FLAG_A;
+				expressionmap.insert(std::make_pair("a", expression));
+				expression.type = HIR_EXPR_APPEND;
+				expressionmap.insert(std::make_pair("app", expression));
+			}
+			{expression.type = HIR_EXPR_OP;
+				expression.mod.opType = H_OP_ADD;
+				expressionmap.insert(std::make_pair("add", expression));
+				expression.mod.opType = H_OP_SUB;
+				expressionmap.insert(std::make_pair("sub", expression));
+				expression.mod.opType = H_OP_MUL;
+				expressionmap.insert(std::make_pair("mul", expression));
+				expression.mod.opType = H_OP_DIV;
+				expressionmap.insert(std::make_pair("div", expression));
+				expression.mod.opType = H_OP_MOD;
+				expressionmap.insert(std::make_pair("mod", expression));
+				expression.mod.opType = H_OP_SHR;
+				expressionmap.insert(std::make_pair("shr", expression));
+				expression.mod.opType = H_OP_SHL;
+				expressionmap.insert(std::make_pair("shl", expression));
+				expression.mod.opType = H_OP_SAR;
+				expressionmap.insert(std::make_pair("sar", expression));
+				expression.mod.opType = H_OP_SAL;
+				expressionmap.insert(std::make_pair("sal", expression));
+				expression.mod.opType = H_OP_ROR;
+				expressionmap.insert(std::make_pair("ror", expression));
+				expression.mod.opType = H_OP_ROL;
+				expressionmap.insert(std::make_pair("rol", expression));
+				expression.mod.opType = H_OP_AND;
+				expressionmap.insert(std::make_pair("and", expression));
+				expression.mod.opType = H_OP_OR;
+				expressionmap.insert(std::make_pair("or", expression));
+				expression.mod.opType = H_OP_XOR;
+				expressionmap.insert(std::make_pair("xor", expression));
+				expression.mod.opType = H_OP_NOT;
+				expressionmap.insert(std::make_pair("not", expression));
+				expression.mod.opType = H_OP_BAND;
+				expressionmap.insert(std::make_pair("band", expression));
+				expression.mod.opType = H_OP_BOR;
+				expressionmap.insert(std::make_pair("bor", expression));
+				expression.mod.opType = H_OP_BXOR;
+				expressionmap.insert(std::make_pair("bxor", expression));
+				expression.mod.opType = H_OP_BNOT;
+				expressionmap.insert(std::make_pair("bnot", expression));
+				
+				expression.size = 1;
+				expression.mod.opType = H_OP_EQ;
+				expressionmap.insert(std::make_pair("eq", expression));
+				expression.mod.opType = H_OP_NE;
+				expressionmap.insert(std::make_pair("ne", expression));
+				expression.mod.opType = H_OP_L;
+				expressionmap.insert(std::make_pair("l", expression));
+				expression.mod.opType = H_OP_LE;
+				expressionmap.insert(std::make_pair("le", expression));
+				expression.mod.opType = H_OP_G;
+				expressionmap.insert(std::make_pair("g", expression));
+				expression.mod.opType = H_OP_GE;
+				expressionmap.insert(std::make_pair("ge", expression));
+			}
+			expression.type = HIR_EXPR_EXTEND;
+			expressionmap.insert(std::make_pair("ext", expression));
+			
+			expression.type = HIR_EXPR_CAST;
+			expressionmap.insert(std::make_pair("f2i", expression));
+			
+			expression.type = HIR_EXPR_PUSH;
+			expressionmap.insert(std::make_pair("push", expression));
+			expression.type = HIR_EXPR_POP;
+			expressionmap.insert(std::make_pair("pop", expression));
+			
+			expression.type = HIR_EXPR_LOAD;
+			expressionmap.insert(std::make_pair("ld", expression));
+			expression.type = HIR_EXPR_STORE;
+			expressionmap.insert(std::make_pair("st", expression));
+			
+			expression.type = HIR_EXPR_VALUE;
+			expressionmap.insert(std::make_pair("val", expression));
+			
+			expression.type = HIR_EXPR_BSIZE;
+			expressionmap.insert(std::make_pair("bsize", expression));
+			expression.type = HIR_EXPR_SIZE;
+			expressionmap.insert(std::make_pair("size", expression));
+			
+		}
+		{expression.exprtype = HSSA_TYPE_INT;
+			{expression.type = HIR_EXPR_OP;
+				expression.mod.opType = H_OP_ADD;
+				expressionmap.insert(std::make_pair("sadd", expression));
+				expression.mod.opType = H_OP_SUB;
+				expressionmap.insert(std::make_pair("ssub", expression));
+				expression.mod.opType = H_OP_MUL;
+				expressionmap.insert(std::make_pair("smul", expression));
+				expression.mod.opType = H_OP_DIV;
+				expressionmap.insert(std::make_pair("sdiv", expression));
+				expression.mod.opType = H_OP_MOD;
+				expressionmap.insert(std::make_pair("smod", expression));
+			}
+			expression.type = HIR_EXPR_EXTEND;
+			expressionmap.insert(std::make_pair("sext", expression));
+			
+			expression.type = HIR_EXPR_CAST;
+			expressionmap.insert(std::make_pair("f2s", expression));
+			
+			expression.type = HIR_EXPR_PUSH;
+			expressionmap.insert(std::make_pair("spush", expression));
+			
+			expression.type = HIR_EXPR_POP;
+			expressionmap.insert(std::make_pair("spop", expression));
+			
+			expression.type = HIR_EXPR_LOAD;
+			expressionmap.insert(std::make_pair("sld", expression));
+			
+			expression.type = HIR_EXPR_STORE;
+			expressionmap.insert(std::make_pair("sst", expression));
+			
+		}
+		{expression.exprtype = HSSA_TYPE_FLOAT;
+			{expression.type = HIR_EXPR_OP;
+				expression.mod.opType = H_OP_ADD;
+				expressionmap.insert(std::make_pair("fadd", expression));
+				expression.mod.opType = H_OP_SUB;
+				expressionmap.insert(std::make_pair("fsub", expression));
+				expression.mod.opType = H_OP_MUL;
+				expressionmap.insert(std::make_pair("fmul", expression));
+				expression.mod.opType = H_OP_DIV;
+				expressionmap.insert(std::make_pair("fdiv", expression));
+				expression.mod.opType = H_OP_MOD;
+				expressionmap.insert(std::make_pair("fmod", expression));
+			}
+			expression.type = HIR_EXPR_EXTEND;
+			expressionmap.insert(std::make_pair("fext", expression));
+			
+			expression.type = HIR_EXPR_CAST;
+			expressionmap.insert(std::make_pair("i2f", expression));
+			
+			expression.type = HIR_EXPR_PUSH;
+			expressionmap.insert(std::make_pair("fpush", expression));
+			
+			expression.type = HIR_EXPR_POP;
+			expressionmap.insert(std::make_pair("fpop", expression));
+			
+			expression.type = HIR_EXPR_LOAD;
+			expressionmap.insert(std::make_pair("fld", expression));
+			
+			expression.type = HIR_EXPR_STORE;
+			expressionmap.insert(std::make_pair("fst", expression));
+			
+		}
+	}
+	
 	void HIRParser::skipWhitespaces() {
 		while (pop() == ' ');
 		pushback();
@@ -155,247 +349,24 @@ namespace holodec {
 				char buffer[100];
 				if (parseIdentifier (buffer, 100)) {
 					HString string (buffer);
-					if (string == "seq") {
-						expression.type = HIR_EXPR_SEQUENCE;
-						expression.exprtype = HSSA_TYPE_UNKNOWN;
-					} else if (string == "arg") {
-						HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_ARG, {parseNumberIndex(),0});
-						return parseIndex (arg);
-					} else if (string == "tmp" || string == "t") {
-						HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_TMP,  {parseNumberIndex(),0});
-						return parseIndex (arg);
-					} else if (string == "z") {
-						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HSSA_FLAG_Z;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = 1;
-					} else if (string == "p") {
-						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HSSA_FLAG_P;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = 1;
-					} else if (string == "o") {
-						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HSSA_FLAG_O;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = 1;
-					}  else if (string == "s") {
-						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HSSA_FLAG_S;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = 1;
-					} else if (string == "c") {
-						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HSSA_FLAG_C;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = 1;
-					} else if (string == "a") {
-						expression.type = HIR_EXPR_FLAG;
-						expression.mod.flagType = HSSA_FLAG_A;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = 1;
-					}  else if (string == "app") {
-						expression.type = HIR_EXPR_APPEND;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "undef") {
-						expression.type = HIR_EXPR_UNDEF;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "sadd") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_ADD;
-						expression.exprtype = HSSA_TYPE_INT;
-					} else if (string == "fadd") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_ADD;
-						expression.exprtype = HSSA_TYPE_FLOAT;
-					} else if (string == "sub") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_SUB;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "ssub") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_SUB;
-						expression.exprtype = HSSA_TYPE_INT;
-					} else if (string == "fsub") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_SUB;
-						expression.exprtype = HSSA_TYPE_FLOAT;
-					} else if (string == "mul") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_MUL;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "smul") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_MUL;
-						expression.exprtype = HSSA_TYPE_INT;
-					} else if (string == "fmul") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_MUL;
-						expression.exprtype = HSSA_TYPE_FLOAT;
-					} else if (string == "div") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_DIV;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "sdiv") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_DIV;
-						expression.exprtype = HSSA_TYPE_INT;
-					} else if (string == "fdiv") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_DIV;
-						expression.exprtype = HSSA_TYPE_FLOAT;
-					} else if (string == "mod") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_MOD;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "smod") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_MOD;
-						expression.exprtype = HSSA_TYPE_INT;
-					} else if (string == "fmod") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_MOD;
-						expression.exprtype = HSSA_TYPE_FLOAT;
-					} else if (string == "shr") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_SHR;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "shl") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_SHL;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "sar") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_SAR;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "sal") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_SAL;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "ror") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_ROR;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "rol") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_ROL;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "ext") {
-						expression.type = HIR_EXPR_EXTEND;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "sext") {
-						expression.type = HIR_EXPR_EXTEND;
-						expression.exprtype = HSSA_TYPE_INT;
-					}  else if (string == "i2f") {
-						expression.type = HIR_EXPR_CAST;
-						expression.exprtype = HSSA_TYPE_FLOAT;
-					}  else if (string == "f2i") {
-						expression.type = HIR_EXPR_CAST;
-						expression.exprtype = HSSA_TYPE_INT;
-					} else if (string == "push") {
-						expression.type = HIR_EXPR_PUSH;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "pop") {
-						expression.type = HIR_EXPR_POP;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "ld") {
-						expression.type = HIR_EXPR_LOAD;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "st") {
-						expression.type = HIR_EXPR_STORE;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "fext") {
-						expression.type = HIR_EXPR_EXTEND;
-						expression.exprtype = HSSA_TYPE_FLOAT;
-					} else if (string == "and") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_AND;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = 1;
-					} else if (string == "or") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_OR;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = 1;
-					} else if (string == "xor") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_XOR;
-						expression.size = 1;
-					} else if (string == "not") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_NOT;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = 1;
-					} else if (string == "band") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_BAND;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "bor") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_BOR;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "bxor") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_BXOR;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "bnot") {
-						expression.type = HIR_EXPR_OP;
-						expression.mod.opType = H_OP_BNOT;
-						expression.exprtype = HSSA_TYPE_UINT;
-					} else if (string == "fext") {
-						expression.type = HIR_EXPR_EXTEND;
-						expression.exprtype = HSSA_TYPE_FLOAT;
-					} else if (string == "trap") {
-						expression.type = HIR_EXPR_TRAP;
-						expression.exprtype = HSSA_TYPE_UNKNOWN;
-					} else if (string == "syscall") {
-						expression.type = HIR_EXPR_SYSCALL;
-						expression.exprtype = HSSA_TYPE_UNKNOWN;
-					} else if (string == "call") {
-						expression.type = HIR_EXPR_CALL;
-						expression.exprtype = HSSA_TYPE_UNKNOWN;
-					} else if (string == "jmp") {
-						expression.type = HIR_EXPR_JMP;
-						expression.exprtype = HSSA_TYPE_PC;
-					} else if (string == "cjmp") {
-						expression.type = HIR_EXPR_CJMP;
-						expression.exprtype = HSSA_TYPE_PC;
-					} else if (string == "ret") {
-						expression.type = HIR_EXPR_RETURN;
-						expression.exprtype = HSSA_TYPE_UNKNOWN;
-					} else if (string == "val") {
-						expression.type = HIR_EXPR_VALUE;
-						expression.exprtype = HSSA_TYPE_UINT;
-						expression.size = arch->bitbase;
-					} else if (string == "nop") {
-						expression.type = HIR_EXPR_NOP;
-						expression.exprtype = HSSA_TYPE_UNKNOWN;
-					} else if (string == "bsize") {
-						parseArguments (&expression);
-						assert (expression.subExpressions.size() == 1);
-						if (expression.subExpressions[0].size)
-							return HIRArgument::createVal ( (uint64_t) (expression.subExpressions[0].size), arch->bitbase);
-						else {
-							expression.type = HIR_EXPR_BSIZE;
+					auto it = expressionmap.find(string);
+					if(it !=  expressionmap.end()){
+						expression = it->second;
+					}else{
+						if (string == "arg") {
+							HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_ARG, {parseNumberIndex(),0});
+							return parseIndex (arg);
+						} else if (string == "tmp" || string == "t") {
+							HIRArgument arg = HIRArgument::create (HIR_ARGTYPE_TMP,  {parseNumberIndex(),0});
+							return parseIndex (arg);
+						} else if (string == "rec") {
+							expression.type = HIR_EXPR_REC;
+							parseStringIndex (&expression);
+							//TODO do the recursion here already
+						} else {
+							printf ("Invalid Token %s\n", buffer);
+							printParseFailure ("Token");
 						}
-					} else if (string == "size") {
-						parseArguments (&expression);
-						assert (expression.subExpressions.size() == 1);
-						if (expression.subExpressions[0].size)
-							return HIRArgument::createVal ( (uint64_t) (expression.subExpressions[0].size / arch->wordbase), arch->bitbase);
-						else {
-							expression.type = HIR_EXPR_SIZE;
-						}
-					} else if (string == "rec") {
-						expression.type = HIR_EXPR_REC;
-						parseStringIndex (&expression);
-						//TODO do the recursion here already
-					} else if (string == "rep") {
-						expression.type = HIR_EXPR_REP;
-						expression.exprtype = HSSA_TYPE_UNKNOWN;
-					} else {
-						printf ("Invalid Token %s\n", buffer);
-						printParseFailure ("Token");
 					}
 				}
 			}
@@ -429,58 +400,35 @@ namespace holodec {
 				return HIRArgument::create();
 			}
 			case '?':
-				expression.type = HIR_EXPR_IF;
+				expression = expressionmap.find("if")->second;
 				break;
 			case '+':
-				expression.type = HIR_EXPR_OP;
-				expression.mod.opType = H_OP_ADD;
-				expression.exprtype = HSSA_TYPE_UINT;
+				expression = expressionmap.find("add")->second;
 				break;
 			case '*':
-				expression.type = HIR_EXPR_OP;
-				expression.mod.opType = H_OP_MUL;
-				expression.exprtype = HSSA_TYPE_UINT;
+				expression = expressionmap.find("mul")->second;
 				break;
 			case '=':
 				if (parseCharacter ('=')) {
-					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = H_OP_E;
-					expression.exprtype = HSSA_TYPE_UINT;
-					expression.size = 1;
+					expression = expressionmap.find("eq")->second;
 					break;
 				}
-				expression.type = HIR_EXPR_ASSIGN;
-				expression.exprtype = HSSA_TYPE_UNKNOWN;
+				expression = expressionmap.find("assign")->second;
 				break;
 			case '<':
 				if (parseCharacter ('=')) {
-					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = H_OP_LE;
-					expression.exprtype = HSSA_TYPE_UINT;
-					expression.size = 1;
+					expression = expressionmap.find("le")->second;
 				} else if (parseCharacter ('>')) {
-					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = H_OP_NE;
-					expression.exprtype = HSSA_TYPE_UINT;
-					expression.size = 1;
+					expression = expressionmap.find("ne")->second;
 				} else {
-					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = H_OP_L;
-					expression.exprtype = HSSA_TYPE_UINT;
-					expression.size = 1;
+					expression = expressionmap.find("l")->second;
 				}
 				break;
 			case '>':
 				if (parseCharacter ('=')) {
-					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = H_OP_GE;
-					expression.exprtype = HSSA_TYPE_UINT;
-					expression.size = 1;
+					expression = expressionmap.find("ge")->second;
 				} else {
-					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = H_OP_G;
-					expression.exprtype = HSSA_TYPE_UINT;
-					expression.size = 1;
+					expression = expressionmap.find("g")->second;
 				}
 				break;
 			case ' ':
@@ -489,10 +437,7 @@ namespace holodec {
 			case '-': {
 				char c2 = peek();
 				if (c2 < '0' || '9' < c2) {
-					expression.type = HIR_EXPR_OP;
-					expression.mod.opType = H_OP_SUB;
-					expression.exprtype = HSSA_TYPE_UINT;
-					//printf ("Parsed Sub\n");
+					expression = expressionmap.find("sub")->second;
 					break;
 				}
 			}
@@ -513,6 +458,16 @@ namespace holodec {
 				break;
 			case HIR_EXPR_STORE:
 				assert (expression.subExpressions.size() == 3);
+				break;
+			case HIR_EXPR_BSIZE:
+				assert (expression.subExpressions.size() == 1);
+				if (expression.subExpressions[0].size)
+					return HIRArgument::createVal ( (uint64_t) (expression.subExpressions[0].size), arch->bitbase);
+				break;
+			case HIR_EXPR_SIZE:
+				assert (expression.subExpressions.size() == 1);
+				if (expression.subExpressions[0].size)
+					return HIRArgument::createVal ( (uint64_t) (expression.subExpressions[0].size / arch->wordbase), arch->bitbase);
 				break;
 			case HIR_EXPR_INVALID:
 				printf ("%s\n", string.cstr());
