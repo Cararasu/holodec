@@ -864,12 +864,9 @@ namespace holodec {
 				HStack* stack = arch->getStack (stackArg.ref.refId);
 				assert (stack);
 				switch (stack->type) {
-				case H_STACK_BUILTIN: {
-					HSSAExpression expression;
-					expression.type = HSSA_EXPR_PUSH;
-					assert (subexpressioncount == 1);
-					expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (expr->subExpressions[0])));
-					return HIRArgument::createSSAId (addExpression (&expression), expression.size);
+				case H_STACK_REGBACKED: {
+					assert(false);
+					return HIRArgument::createSSAId (0, 0);
 				}
 				case H_STACK_MEMORY: {
 					assert (subexpressioncount == 2);
@@ -911,13 +908,9 @@ namespace holodec {
 				HStack* stack = arch->getStack (stackArg.ref.refId);
 				assert (stack);
 				switch (stack->type) {
-				case H_STACK_BUILTIN: {
-					HSSAExpression expression;
-					expression.type = HSSA_EXPR_POP;
-					assert (subexpressioncount == 1);
-					expression.subExpressions.push_back (parseIRArg2SSAArg(stackArg));
-					expression.size = stack->wordbitsize;
-					return HIRArgument::createSSAId (addExpression (&expression), expression.size);
+				case H_STACK_REGBACKED: {
+					assert(false);
+					return HIRArgument::createSSAId (0,0);
 				}
 				case H_STACK_MEMORY: {
 					assert (subexpressioncount == 2);

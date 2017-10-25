@@ -11,6 +11,9 @@ namespace holodec {
 		for (HStack& stack : stacks) {
 			stack.trackingReg.refId = getRegister(stack.trackingReg)->id;
 			stack.backingMem.refId = getMemory(stack.backingMem)->id;
+			for(HStringRef& ref : stack.backingRegs){
+				ref.refId = getRegister(ref)->id;
+			}
 		}
 		for (HCallingConvention& cc : callingconventions) {
 			cc.parameterCount.refId = getRegister(cc.parameterCount)->id;

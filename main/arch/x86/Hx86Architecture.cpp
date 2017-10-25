@@ -211,26 +211,24 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{0, "zmm30", H_REG_VEC, nullptr, "zmm30", 512, 0, true},
 		{0, "zmm31", H_REG_VEC, nullptr, "zmm31", 512, 0, true},
 
-		//the mmx registers share the lower 64 bits of the st[n], but we ignore this dependency, because they shouldn't normally be used together
-		{0, "mm0", H_REG_VEC, nullptr, "mm0", 64, 0, true},
-		{0, "mm1", H_REG_VEC, nullptr, "mm1", 64, 0, true},
-		{0, "mm2", H_REG_VEC, nullptr, "mm2", 64, 0, true},
-		{0, "mm3", H_REG_VEC, nullptr, "mm3", 64, 0, true},
-		{0, "mm4", H_REG_VEC, nullptr, "mm4", 64, 0, true},
-		{0, "mm5", H_REG_VEC, nullptr, "mm5", 64, 0, true},
-		{0, "mm6", H_REG_VEC, nullptr, "mm6", 64, 0, true},
-		{0, "mm7", H_REG_VEC, nullptr, "mm7", 64, 0, true},
+		{0, "st0", H_REG_VEC, nullptr, "st0", 80, 0, true},
+		{0, "st1", H_REG_VEC, nullptr, "st1", 80, 0, true},
+		{0, "st2", H_REG_VEC, nullptr, "st2", 80, 0, true},
+		{0, "st3", H_REG_VEC, nullptr, "st3", 80, 0, true},
+		{0, "st4", H_REG_VEC, nullptr, "st4", 80, 0, true},
+		{0, "st5", H_REG_VEC, nullptr, "st5", 80, 0, true},
+		{0, "st6", H_REG_VEC, nullptr, "st6", 80, 0, true},
+		{0, "st7", H_REG_VEC, nullptr, "st7", 80, 0, true},
 		
-		/* The proper way to set up the st[n] registers but they conflict with the st-stack
-		{"st0", H_REG_FLOAT, 80, 0, { {"mm0", 64, 0}}},
-		{"st1", H_REG_FLOAT, 80, 0, { {"mm1", 64, 0}}},
-		{"st2", H_REG_FLOAT, 80, 0, { {"mm2", 64, 0}}},
-		{"st3", H_REG_FLOAT, 80, 0, { {"mm3", 64, 0}}},
-		{"st4", H_REG_FLOAT, 80, 0, { {"mm4", 64, 0}}},
-		{"st5", H_REG_FLOAT, 80, 0, { {"mm5", 64, 0}}},
-		{"st6", H_REG_FLOAT, 80, 0, { {"mm6", 64, 0}}},
-		{"st7", H_REG_FLOAT, 80, 0, { {"mm7", 64, 0}}},
-		 */
+		{0, "mm0", H_REG_VEC, "st0", "st0", 64, 0, true},
+		{0, "mm1", H_REG_VEC, "st1", "st1", 64, 0, true},
+		{0, "mm2", H_REG_VEC, "st2", "st2", 64, 0, true},
+		{0, "mm3", H_REG_VEC, "st3", "st3", 64, 0, true},
+		{0, "mm4", H_REG_VEC, "st4", "st4", 64, 0, true},
+		{0, "mm5", H_REG_VEC, "st5", "st5", 64, 0, true},
+		{0, "mm6", H_REG_VEC, "st6", "st6", 64, 0, true},
+		{0, "mm7", H_REG_VEC, "st7", "st7", 64, 0, true},
+		
 	},
 	{
 		{
@@ -240,16 +238,18 @@ holox86::HArchitecture holox86::x86architecture {"x86", "x86", 64, 8, {
 			H_STACKPOLICY_BOTTOM,//where to add new elements
 			0, 8, //maxcount(0 = infinite), wordbitsize
 			"mem",
-			"rsp"//stackptr
+			"rsp",//stackptr
+			{}
 		},
 		{
 			0,
 			"st",
-			H_STACK_BUILTIN,
+			H_STACK_REGBACKED,
 			H_STACKPOLICY_BOTTOM,
 			8, 80,
 			nullptr,
-			nullptr
+			nullptr,
+			{"st0","st1","st2","st3","st4","st5","st6","st7"}
 		},
 	},
 	{
