@@ -115,7 +115,7 @@ namespace holodec {
 		HId id = 0;
 		HSSAExprType type = HSSA_EXPR_INVALID;
 		uint64_t size = 0;
-		HSSAType exprtype = HSSA_TYPE_UNKNOWN;
+		HSSAType returntype = HSSA_TYPE_UNKNOWN;
 		union { //64 bit
 			HSSAFlagType flagType;
 			HSSAOpType opType;
@@ -138,7 +138,7 @@ namespace holodec {
 		void print(HArchitecture* arch, int indent = 0);
 	};
 	inline bool operator== (HSSAExpression& lhs, HSSAExpression& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype && lhs.location == rhs.location && lhs.locref.refId == rhs.locref.refId && lhs.locref.index == rhs.locref.index) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.returntype == rhs.returntype && lhs.location == rhs.location && lhs.locref.refId == rhs.locref.refId && lhs.locref.index == rhs.locref.index) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
 				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 					if (lhs.subExpressions[i] != rhs.subExpressions[i])

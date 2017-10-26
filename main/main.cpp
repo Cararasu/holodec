@@ -14,6 +14,7 @@
 #include "HSSAAssignmentSimplifier.h"
 #include "HSSADeadCodeEliminationTransformer.h"
 #include "HIdList.h"
+#include "HSSAPeepholeOptimizer.h"
 
 using namespace holodec;
 
@@ -84,12 +85,14 @@ int main (int argc, char** argv) {
 	HSSATransformer* transformer3 = new HSSAPhiNodeGenerator();
 	HSSATransformer* transformer4 = new HSSAAssignmentSimplifier();
 	HSSATransformer* transformer5 = new HSSADeadCodeEliminationTransformer();
+	HSSATransformer* transformer6 = new HSSAPeepholeOptimizer();
 
 	transformer1->arch = &holox86::x86architecture;
 	transformer2->arch = &holox86::x86architecture;
 	transformer3->arch = &holox86::x86architecture;
 	transformer4->arch = &holox86::x86architecture;
 	transformer5->arch = &holox86::x86architecture;
+	transformer6->arch = &holox86::x86architecture;
 	
 	for (HSymbol& sym : binary->symbols){
 		if(sym.symboltype == &HSymbolType::symfunc){
@@ -107,6 +110,7 @@ int main (int argc, char** argv) {
 		//from here remove actually expressions
 		transformer4->doTransformation (&func);
 		transformer5->doTransformation (&func);
+		transformer6->doTransformation (&func);
 		func.print (&holox86::x86architecture);
 	}
 	return 0;

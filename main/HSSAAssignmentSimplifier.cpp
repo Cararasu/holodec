@@ -19,7 +19,7 @@ namespace holodec{
 			for(HSSAExpression& expr : function->ssaRep.expressions){
 				if(!expr.id)
 					continue;
-				if(expr.type == HSSA_EXPR_ASSIGN && !expr.subExpressions[0].isConst()) {
+				if(expr.type == HSSA_EXPR_ASSIGN/* && !expr.subExpressions[0].isConst()*/) {
 					if(expr.subExpressions[0].type == HSSA_ARGTYPE_ID){
 						HSSAArgument arg = expr.subExpressions[0];
 						switch(expr.location){

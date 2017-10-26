@@ -8,7 +8,7 @@ namespace holodec {
 		printIndent (indent);
 		printf ("0x%x:", instrAddr);
 
-		switch (this->exprtype) {
+		switch (this->returntype) {
 		case HSSA_TYPE_UNKNOWN:
 			printf ("Unknown Type");
 			break;

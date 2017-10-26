@@ -115,7 +115,7 @@ namespace holodec {
 										
 										HSSAExpression newExpr;
 										newExpr.type = HSSA_EXPR_SPLIT;
-										newExpr.exprtype = HSSA_TYPE_UINT;
+										newExpr.returntype = HSSA_TYPE_UINT;
 										newExpr.instrAddr = expr->instrAddr;
 										newExpr.location = HSSA_LOCATION_REG;
 										newExpr.locref = {reg->id, 0};
@@ -189,6 +189,7 @@ namespace holodec {
 		for (BasicBlockWrapper& wrap : bbwrappers) {
 			
 			for (HSSARegDef& regDef : wrap.inputs) {
+				
 				HId gatheredIds[bbwrappers.size()] = {0};
 				uint64_t gatheredIdCount = 0;
 				HId visitedBlocks[bbwrappers.size()] = {wrap.ssaBB->id};
@@ -205,7 +206,7 @@ namespace holodec {
 
 				HSSAExpression phinode;
 				phinode.type = HSSA_EXPR_PHI;
-				phinode.exprtype = HSSA_TYPE_UINT;
+				phinode.returntype = HSSA_TYPE_UINT;
 				phinode.location = HSSA_LOCATION_REG;
 				phinode.locref = {reg->id, 0};
 				phinode.size = reg->size;
@@ -242,7 +243,7 @@ namespace holodec {
 				
 				HSSAExpression phinode;
 				phinode.type = HSSA_EXPR_PHI;
-				phinode.exprtype = HSSA_TYPE_MEM;
+				phinode.returntype = HSSA_TYPE_MEM;
 				phinode.location = HSSA_LOCATION_MEM;
 				phinode.locref = {mem->id, 0};
 				phinode.size = 0;
@@ -292,7 +293,7 @@ namespace holodec {
 			//printf("Found parent Match %d\n", foundParentDef->ssaId);
 			HSSAExpression expr;
 			expr.type = HSSA_EXPR_SPLIT;
-			expr.exprtype = HSSA_TYPE_UINT;
+			expr.returntype = HSSA_TYPE_UINT;
 			expr.size = reg->size;
 			expr.location = HSSA_LOCATION_REG;
 			expr.locref = {reg->id, 0};

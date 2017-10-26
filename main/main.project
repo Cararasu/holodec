@@ -82,6 +82,8 @@
       <File Name="HSSAAssignmentSimplifier.cpp"/>
       <File Name="HSSADeadCodeEliminationTransformer.h"/>
       <File Name="HSSADeadCodeEliminationTransformer.cpp"/>
+      <File Name="HSSAPeepholeOptimizer.h"/>
+      <File Name="HSSAPeepholeOptimizer.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="binary">
       <VirtualDirectory Name="elf">

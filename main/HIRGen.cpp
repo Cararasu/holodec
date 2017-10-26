@@ -7,7 +7,7 @@ namespace holodec {
 	
 	HIRParser::HIRParser (HArchitecture* arch) : arch (arch) {
 		HIRExpression expression;
-		{expression.exprtype = HSSA_TYPE_UNKNOWN;
+		{expression.returntype = HSSA_TYPE_UNKNOWN;
 			expression.type = HIR_EXPR_UNDEF;
 			expressionmap.insert(std::make_pair("undef", expression));
 			expression.type = HIR_EXPR_SEQUENCE;
@@ -34,7 +34,7 @@ namespace holodec {
 			expressionmap.insert(std::make_pair("assign", expression));
 		}
 		
-		{expression.exprtype = HSSA_TYPE_UINT;
+		{expression.returntype = HSSA_TYPE_UINT;
 			{expression.type = HIR_EXPR_FLAG;
 				expression.size = 1;
 				expression.mod.flagType = HSSA_FLAG_Z;
@@ -131,7 +131,7 @@ namespace holodec {
 			expressionmap.insert(std::make_pair("size", expression));
 			
 		}
-		{expression.exprtype = HSSA_TYPE_INT;
+		{expression.returntype = HSSA_TYPE_INT;
 			{expression.type = HIR_EXPR_OP;
 				expression.mod.opType = H_OP_ADD;
 				expressionmap.insert(std::make_pair("sadd", expression));
@@ -163,7 +163,7 @@ namespace holodec {
 			expressionmap.insert(std::make_pair("sst", expression));
 			
 		}
-		{expression.exprtype = HSSA_TYPE_FLOAT;
+		{expression.returntype = HSSA_TYPE_FLOAT;
 			{expression.type = HIR_EXPR_OP;
 				expression.mod.opType = H_OP_ADD;
 				expressionmap.insert(std::make_pair("fadd", expression));
