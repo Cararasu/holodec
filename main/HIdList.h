@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 
-#include "HGeneral.h"
+#include "General.h"
 
 namespace holodec {
 
@@ -148,6 +148,7 @@ namespace holodec {
 			}
 			if(fit->id)
 				++fit;
+			
 			list.erase(fit, list.end());
 		}
 		auto begin() -> decltype(list.begin()){

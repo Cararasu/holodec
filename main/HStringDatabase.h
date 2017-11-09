@@ -2,7 +2,7 @@
 #define HSTHINGDATABASE_H
 
 
-#include "HGeneral.h"
+#include "General.h"
 namespace holodec {
 	
 	typedef HStringMap<HString> HStringDatabase;

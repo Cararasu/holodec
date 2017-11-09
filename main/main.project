@@ -8,101 +8,108 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
-    <File Name="main.cpp"/>
     <VirtualDirectory Name="Objects">
-      <File Name="HSection.h"/>
-      <File Name="HSection.cpp"/>
-      <File Name="HFunction.h"/>
-      <File Name="HFunction.cpp"/>
-      <File Name="HData.h"/>
-      <File Name="HData.cpp"/>
-      <File Name="HClass.h"/>
-      <File Name="HClass.cpp"/>
-      <File Name="HBinary.h"/>
-      <File Name="HBinary.cpp"/>
-      <File Name="HRegister.h"/>
-      <File Name="HStack.h"/>
-      <File Name="HStack.cpp"/>
-      <File Name="HCallingConvention.h"/>
-      <File Name="HCallingConvention.cpp"/>
       <File Name="HStringDatabase.cpp"/>
       <File Name="HStringDatabase.h"/>
-      <File Name="HArgument.h"/>
-      <File Name="HArgument.cpp"/>
-      <File Name="HMemory.h"/>
-      <File Name="HMemory.cpp"/>
       <File Name="HIdList.h"/>
-      <File Name="HRegister.cpp"/>
+      <File Name="Function.h"/>
+      <File Name="Function.cpp"/>
+      <File Name="Data.h"/>
+      <File Name="Data.cpp"/>
+      <File Name="Stack.h"/>
+      <File Name="Stack.cpp"/>
+      <File Name="Section.h"/>
+      <File Name="Section.cpp"/>
+      <File Name="Register.h"/>
+      <File Name="Register.cpp"/>
+      <File Name="Memory.h"/>
+      <File Name="Memory.cpp"/>
+      <File Name="Class.h"/>
+      <File Name="Class.cpp"/>
+      <File Name="CallingConvention.h"/>
+      <File Name="CallingConvention.cpp"/>
+      <File Name="Binary.h"/>
+      <File Name="Binary.cpp"/>
+      <File Name="Argument.h"/>
+      <File Name="Argument.cpp"/>
+      <File Name="CRepresentation.h"/>
+      <File Name="CRepresentation.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
       <File Name="HString.h"/>
-      <File Name="HScriptingInterface.h"/>
-      <File Name="HScriptingInterface.cpp"/>
-      <File Name="HMain.h"/>
-      <File Name="HMain.cpp"/>
-      <File Name="HLogger.h"/>
-      <File Name="HLogger.cpp"/>
-      <File Name="HGeneral.h"/>
-      <File Name="HConsole.h"/>
-      <File Name="HGeneral.cpp"/>
-      <File Name="HConsole.cpp"/>
-      <File Name="HIR.h"/>
-      <File Name="HIR.cpp"/>
-      <File Name="HIRGen.cpp"/>
-      <File Name="HIRGen.h"/>
-      <File Name="HSSA.h"/>
-      <File Name="HSSA.cpp"/>
-      <File Name="HSSAGen.h"/>
-      <File Name="HSSAGen.cpp"/>
+      <File Name="SSA.h"/>
+      <File Name="SSA.cpp"/>
+      <File Name="SSAGen.cpp"/>
+      <File Name="SSAGen.h"/>
+      <File Name="IR.cpp"/>
+      <File Name="IR.h"/>
+      <File Name="IRGen.cpp"/>
+      <File Name="IRGen.h"/>
+      <File Name="ScriptingInterface.h"/>
+      <File Name="ScriptingInterface.cpp"/>
+      <File Name="Main.h"/>
+      <File Name="Main.cpp"/>
+      <File Name="Logger.h"/>
+      <File Name="Logger.cpp"/>
+      <File Name="General.h"/>
+      <File Name="General.cpp"/>
+      <File Name="Console.h"/>
+      <File Name="Console.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="DataAnalyzer">
-      <File Name="HBinaryAnalyzer.cpp"/>
-      <File Name="HBinaryAnalyzer.h"/>
-      <File Name="HFileFormat.cpp"/>
-      <File Name="HFileFormat.h"/>
+      <File Name="FileFormat.h"/>
+      <File Name="FileFormat.cpp"/>
+      <File Name="BinaryAnalyzer.h"/>
+      <File Name="BinaryAnalyzer.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="FunctionAnalyzer">
-      <File Name="HInstrDefinition.h"/>
-      <File Name="HInstrDefinition.cpp"/>
-      <File Name="HFunctionAnalyzer.h"/>
-      <File Name="HArchitecture.h"/>
-      <File Name="HFunctionAnalyzer.cpp"/>
-      <File Name="HArchitecture.cpp"/>
-      <File Name="HSSATransformer.h"/>
-      <File Name="HSSATransformer.cpp"/>
+      <File Name="SSATransformer.h"/>
+      <File Name="SSATransformer.cpp"/>
+      <File Name="FunctionAnalyzer.cpp"/>
+      <File Name="FunctionAnalyzer.h"/>
+      <File Name="InstrDefinition.h"/>
+      <File Name="InstrDefinition.cpp"/>
+      <File Name="Architecture.h"/>
+      <File Name="Architecture.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="SSATransformers">
-      <File Name="HSSAPhiNodeGenerator.cpp"/>
-      <File Name="HSSAPhiNodeGenerator.h"/>
-      <File Name="HSSAAddressToBlockTransformer.h"/>
-      <File Name="HSSAAddressToBlockTransformer.cpp"/>
-      <File Name="HSSACallingConvApplier.h"/>
-      <File Name="HSSACallingConvApplier.cpp"/>
-      <File Name="HSSAAssignmentSimplifier.h"/>
-      <File Name="HSSAAssignmentSimplifier.cpp"/>
-      <File Name="HSSADeadCodeEliminationTransformer.h"/>
-      <File Name="HSSADeadCodeEliminationTransformer.cpp"/>
-      <File Name="HSSAPeepholeOptimizer.h"/>
-      <File Name="HSSAPeepholeOptimizer.cpp"/>
+      <File Name="SSAPhiNodeGenerator.h"/>
+      <File Name="SSAPhiNodeGenerator.cpp"/>
+      <File Name="SSAPeepholeOptimizer.h"/>
+      <File Name="SSAPeepholeOptimizer.cpp"/>
+      <File Name="SSADeadCodeEliminationTransformer.h"/>
+      <File Name="SSADeadCodeEliminationTransformer.cpp"/>
+      <File Name="SSACallingConvApplier.h"/>
+      <File Name="SSACallingConvApplier.cpp"/>
+      <File Name="SSAAssignmentSimplifier.h"/>
+      <File Name="SSAAssignmentSimplifier.cpp"/>
+      <File Name="SSAAddressToBlockTransformer.cpp"/>
+      <File Name="SSAAddressToBlockTransformer.h"/>
+      <File Name="SSATransformToC.h"/>
+      <File Name="SSATransformToC.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="binary">
       <VirtualDirectory Name="elf">
-        <File Name="binary/elf/HElfBinaryAnalyzer.cpp"/>
-        <File Name="binary/elf/HElfBinaryAnalyzer.h"/>
-        <File Name="binary/elf/HElfDataFile.cpp"/>
+        <File Name="binary/elf/ElfDataFile.cpp"/>
+        <File Name="binary/elf/ElfBinaryAnalyzer.h"/>
+        <File Name="binary/elf/ElfBinaryAnalyzer.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="arch">
       <VirtualDirectory Name="x86">
-        <File Name="arch/x86/Hx86Architecture.cpp"/>
-        <File Name="arch/x86/Hx86FunctionAnalyzer.cpp"/>
-        <File Name="arch/x86/Hx86FunctionAnalyzer.h"/>
+        <File Name="arch/x86/X86FunctionAnalyzer.h"/>
+        <File Name="arch/x86/X86FunctionAnalyzer.cpp"/>
+        <File Name="arch/x86/X86Architecture.cpp"/>
       </VirtualDirectory>
     </VirtualDirectory>
+    <File Name="main_file.cpp"/>
   </VirtualDirectory>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Debug Windows"/>
+  <Dependencies Name="Release"/>
   <Settings Type="Executable">
     <GlobalSettings>
-      <Compiler Options="-Wall;-std=c++11" C_Options="-Wall;-std=c99" Assembler="">
+      <Compiler Options="-Wall;-std=c++17" C_Options="-Wall;-std=c99" Assembler="">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="">
@@ -237,7 +244,4 @@
       </Completion>
     </Configuration>
   </Settings>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Debug Windows"/>
-  <Dependencies Name="Release"/>
 </CodeLite_Project>

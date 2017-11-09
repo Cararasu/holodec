@@ -11,14 +11,13 @@
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="no">
       <Environment/>
-      <Project Name="main" ConfigName="Release"/>
-      <Project Name="main" ConfigName="Release"/>
       <Project Name="VulkanTest" ConfigName="Release"/>
+      <Project Name="main" ConfigName="Release"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Debug Windows" Selected="yes">
       <Environment/>
+      <Project Name="VulkanTest" ConfigName="Debug Windows"/>
       <Project Name="main" ConfigName="Debug Windows"/>
-      <Project Name="VulkanTest" ConfigName="Debug"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>
