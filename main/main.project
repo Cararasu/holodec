@@ -87,7 +87,6 @@
       <File Name="SSAAddressToBlockTransformer.h"/>
       <File Name="SSATransformToC.h"/>
       <File Name="SSATransformToC.cpp"/>
-      <File Name="main.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="binary">
       <VirtualDirectory Name="elf">
