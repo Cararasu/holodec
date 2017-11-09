@@ -47,7 +47,6 @@
       <File Name="IRGen.h"/>
       <File Name="ScriptingInterface.h"/>
       <File Name="ScriptingInterface.cpp"/>
-      <File Name="Main.cpp"/>
       <File Name="Logger.h"/>
       <File Name="Logger.cpp"/>
       <File Name="General.h"/>
@@ -55,6 +54,7 @@
       <File Name="Console.h"/>
       <File Name="Console.cpp"/>
       <File Name="MMain.h"/>
+      <File Name="MMain.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="DataAnalyzer">
       <File Name="FileFormat.h"/>
@@ -87,6 +87,7 @@
       <File Name="SSAAddressToBlockTransformer.h"/>
       <File Name="SSATransformToC.h"/>
       <File Name="SSATransformToC.cpp"/>
+      <File Name="main.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="binary">
       <VirtualDirectory Name="elf">
