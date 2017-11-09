@@ -47,7 +47,6 @@
       <File Name="IRGen.h"/>
       <File Name="ScriptingInterface.h"/>
       <File Name="ScriptingInterface.cpp"/>
-      <File Name="Main.h"/>
       <File Name="Main.cpp"/>
       <File Name="Logger.h"/>
       <File Name="Logger.cpp"/>
@@ -55,6 +54,7 @@
       <File Name="General.cpp"/>
       <File Name="Console.h"/>
       <File Name="Console.cpp"/>
+      <File Name="MMain.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="DataAnalyzer">
       <File Name="FileFormat.h"/>
