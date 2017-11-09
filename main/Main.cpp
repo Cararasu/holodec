@@ -1,4 +1,4 @@
-#include "MMain.h"
+#include "Main.h"
 #include <fstream>
 
 using namespace holodec;

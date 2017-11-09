@@ -53,8 +53,8 @@
       <File Name="General.cpp"/>
       <File Name="Console.h"/>
       <File Name="Console.cpp"/>
-      <File Name="MMain.h"/>
-      <File Name="MMain.cpp"/>
+      <File Name="Main.cpp"/>
+      <File Name="Main.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="DataAnalyzer">
       <File Name="FileFormat.h"/>
