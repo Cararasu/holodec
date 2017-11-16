@@ -1,97 +1,179 @@
 #include "SSAPeepholeOptimizer.h"
 #include "Function.h"
+#include <cassert>
+#include <algorithm>
 
 namespace holodec {
 
 
-	HId MatchAction::doAction (SSARepresentation* rep, MatchContext* context, std::vector<HId>* createdExpressions) {
-		HId expressionId;
-		if (createdExprIndex) {
-			expressionId = createdExpressions->at (createdExprIndex - 1);
-		} else if (foundExprIndex) {
-			expressionId = context->expressionsMatched[foundExprIndex - 1];
-		} else {
-			return 0;
+	void MatchAction::doAction (SSARepresentation* rep, MatchContext* context) {
+		HId srcExpressionId = 0;
+		SSAExpression* srcExpr = nullptr;
+		if(src.createExprIndex){
+			srcExpressionId = context->expressionsCreated.at (src.createExprIndex - 1);
+			srcExpr = &rep->expressions[srcExpressionId];
+		}else if(src.foundExprIndex){
+			srcExpressionId = context->expressionsMatched[src.foundExprIndex - 1];
+			srcExpr = &rep->expressions[srcExpressionId];
 		}
-		SSAExpression& expr = rep->expressions[expressionId];
+		HId dstExpressionId = 0;
+		SSAExpression* dstExpr = nullptr;
+		if(dst.createExprIndex){
+			dstExpressionId = context->expressionsCreated.at (dst.createExprIndex - 1);
+			dstExpr = &rep->expressions[dstExpressionId];
+		}else if(dst.foundExprIndex){
+			dstExpressionId = context->expressionsMatched[dst.foundExprIndex - 1];
+			dstExpr = &rep->expressions[dstExpressionId];
+		}
+		
 		switch (actionType) {
-		case MATCHACTION_INSERT_AS_ARG: {
-			SSAExpression expression;
-			expression.type = expressionTypes.type;
-			if (expressionTypes.type == SSA_EXPR_OP)
-				expression.opType = expressionTypes.opType;
-			if (expressionTypes.type == SSA_EXPR_FLAG)
-				expression.flagType = expressionTypes.flagType;
-			rep->expressions.push_back (expression);
-			HId newExpressionId = rep->expressions.back().id;
-			for (SSABB& bb : rep->bbs) {
-				for (auto it = bb.exprIds.begin(); it != bb.exprIds.end(); ++it) {
-					if (*it == expressionId) {
-						bb.exprIds.insert (it, newExpressionId);
-						if (argIndex) {
-							expr.subExpressions[argIndex - 1] = SSAArgument::createId (newExpressionId, 0);
-						} else {
-							expr.subExpressions.push_back (SSAArgument::createId (newExpressionId, 0));
-						}
-						createdExpressions->push_back (newExpressionId);
-						return newExpressionId;
-					}
+		case MATCHACTION_INVALID:
+			return;
+		case MATCHACTION_INHERIT_INSTR:{
+			assert(srcExpr && dstExpr);
+			if(inheritInstrFlags & MATCHACTION_INHERIT_INSTR_SIZE)
+				dstExpr->size = srcExpr->size;
+			if(inheritInstrFlags & MATCHACTION_INHERIT_INSTR_LOCATION){
+				dstExpr->location = srcExpr->location;
+				dstExpr->locref = srcExpr->locref;
+			}
+			if(inheritInstrFlags & MATCHACTION_INHERIT_INSTR_ADDR)
+				dstExpr->instrAddr = srcExpr->instrAddr;
+			if(inheritInstrFlags & MATCHACTION_INHERIT_INSTR_EXPRTYPE)
+				dstExpr->returntype = srcExpr->returntype;
+		}return;
+		case MATCHACTION_INHERIT_ARG:{
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			assert(dst.argIndex);
+			if(inheritArgFlags & MATCHACTION_INHERIT_ARG_SIZE)
+				dstExpr->subExpressions[dstIndex - 1].size = srcExpr->size;
+			if(inheritArgFlags & MATCHACTION_INHERIT_ARG_LOCATION){
+				switch(srcExpr->location){
+				case SSA_LOCATION_REG:
+				case SSA_LOCATION_STACK:
+				case SSA_LOCATION_MEM:{
+					dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_REG;
+					dstExpr->subExpressions[dstIndex - 1].ref = srcExpr->locref;
+				}break;
 				}
 			}
-		}
-		break;
-		case MATCHACTION_INSERT_ARG: {
-			SSAArgument argument;
-			argument.type = argInfos.type;
-			switch (argument.type) {
-			case SSA_ARGTYPE_SINT:
-				argument.sval = argInfos.sval;
-				break;
-			case SSA_ARGTYPE_UINT:
-				argument.uval = argInfos.uval;
-				break;
-			case SSA_ARGTYPE_FLOAT:
-				argument.fval = argInfos.fval;
-				break;
-			default:
-				argument.ref = argInfos.ref;
+		}return;
+		case MATCHACTION_INHERIT_ARGS:{
+			HId srcIndex = src.argIndex ? src.argIndex : srcExpr->subExpressions.size();
+			srcIndex = std::max(srcIndex, (HId)1);
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size() + 1/*Adjust so that we insert really at the end*/;
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			uint32_t count = size;
+			if(!count)//all indices
+				count = srcExpr->subExpressions.size() - srcIndex;
+			dstExpr->subExpressions.insert(dstExpr->subExpressions.begin() + (dstIndex - 1), srcExpr->subExpressions.begin() + (srcIndex - 1), srcExpr->subExpressions.begin() + (srcIndex - 1) + count);
+			
+		}return;
+		case MATCHACTION_INSTR_INSERT_AS_ARG:{
+			assert(dstExpressionId);
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size() + 1/*Adjust so that we insert really at the end*/;
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			SSAExpression expression;
+			rep->expressions.push_back(expression);
+			SSAExpression& createdExpression = rep->expressions.back();
+			context->expressionsCreated.push_back(createdExpression.id);
+			
+			SSAArgument arg;
+			arg.type = SSA_ARGTYPE_ID;
+			arg.ssaId = createdExpression.id;
+			
+			dstExpr->subExpressions.insert(dstExpr->subExpressions.begin() + (dstIndex - 1), arg);
+			
+			SSABB* foundBB = nullptr;
+			for(SSABB& bb : rep->bbs){
+				for(auto it = bb.exprIds.begin(); it != bb.exprIds.end(); it++){
+					if(*it == dstExpressionId){
+						bb.exprIds.insert(it,createdExpression.id);
+						foundBB = &bb;
+						return;
+					}
+				}
+				if(foundBB)
+					break;
 			}
-			expr.subExpressions.push_back (argument);
-		}
-		break;
-		case MATCHACTION_COPY_ARG:
-			if (copyArgs.srcFoundExprId && copyArgs.srcFoundExprId <= context->expressionsMatched.size()) {
-				HId srcExprId = context->expressionsMatched[copyArgs.srcFoundExprId - 1];
-				SSAExpression& srcExpr = rep->expressions[srcExprId];
-				expr.subExpressions.insert (
-				    expr.subExpressions.end(),
-				    srcExpr.subExpressions.begin() + (copyArgs.argumentIndex - 1),
-				    srcExpr.subExpressions.begin() + (copyArgs.argumentIndex + copyArgs.argumentCount - 1));
-			}
-			break;
-		case MATCHACTION_INHERIT_EXPR_DATA:
-			if (copyArgs.srcFoundExprId && copyArgs.srcFoundExprId <= context->expressionsMatched.size()) {
-				HId srcExprId = context->expressionsMatched[copyArgs.srcFoundExprId - 1];
-				SSAExpression& srcExpr = rep->expressions[srcExprId];
-
-				expr.size = srcExpr.size;
-				expr.returntype = srcExpr.returntype;
-				expr.location = srcExpr.location;
-				expr.locref = srcExpr.locref;
-			}
-			break;
-		case MATCHACTION_INHERIT_ARG_SIZE:
-			if (copyArgs.srcFoundExprId && copyArgs.srcFoundExprId <= context->expressionsMatched.size()) {
-				HId srcExprId = context->expressionsMatched[copyArgs.srcFoundExprId - 1];
-				SSAExpression& srcExpr = rep->expressions[srcExprId];
-				SSAArgument* dstArg;
-				if (argIndex)
-					dstArg = &expr.subExpressions[argIndex - 1];
-				else
-					dstArg = &expr.subExpressions.back();
-				dstArg->size = srcExpr.size;
-			}
-			break;
+			assert(false);
+			
+		}return;
+		case MATCHACTION_INSTR_TYPE:{
+			dstExpr->type = types.type;
+			if(types.flagType)
+				dstExpr->flagType = types.flagType;
+			if(types.opType)
+				dstExpr->opType = types.opType;
+		}return;
+		case MATCHACTION_INSTR_EXPRTYPE:{
+			dstExpr->returntype = exprType;
+		}return;
+		case MATCHACTION_INSTR_SIZE:{
+			dstExpr->size = size;
+		}return;
+		case MATCHACTION_INSTR_BUILTIN:{
+			dstExpr->builtinId = builtinId;
+		}return;
+		case MATCHACTION_ARG_SIZE:{
+			assert(dstExpressionId);
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			dstExpr->subExpressions[dstIndex - 1].size = size;
+		}return;
+		case MATCHACTION_ARG_SVAL:{
+			assert(dstExpressionId);
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_SINT;
+			dstExpr->subExpressions[dstIndex - 1].sval = sval;
+		}return;
+		case MATCHACTION_ARG_UVAL:{
+			assert(dstExpressionId);
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_UINT;
+			dstExpr->subExpressions[dstIndex - 1].uval = uval;
+		}return;
+		case MATCHACTION_ARG_FVAL:{
+			assert(dstExpressionId);
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_FLOAT;
+			dstExpr->subExpressions[dstIndex - 1].fval = fval;
+		}return;
+		case MATCHACTION_ARG_MEM:{
+			assert(dstExpressionId);
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_MEM;
+			dstExpr->subExpressions[dstIndex - 1].ref = ref;
+		}return;
+		case MATCHACTION_ARG_STACK:{
+			assert(dstExpressionId);
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_STACK;
+			dstExpr->subExpressions[dstIndex - 1].ref = ref;
+		}return;
+		case MATCHACTION_ARG_REG:{
+			assert(dstExpressionId);
+			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
+			dstIndex = std::max(dstIndex, (HId)1);
+			
+			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_REG;
+			dstExpr->subExpressions[dstIndex - 1].ref = ref;
+		}return;
 		}
 	}
 
@@ -157,9 +239,8 @@ namespace holodec {
 			}
 		}
 		if (matched) {
-			std::vector<HId> createdExprs;
 			for (MatchAction& action : actions) {
-				action.doAction (rep, context, &createdExprs);
+				action.doAction (rep, context);
 			}
 		}
 		context->expressionsMatched.pop_back();
@@ -172,8 +253,19 @@ namespace holodec {
 		{Matcher (SSA_EXPR_CJMP) }, {
 			ExprMatcher (
 			    1,
-			{Matcher (SSA_EXPR_FLAG, SSA_FLAG_C) },
-			{}
+			{Matcher (SSA_EXPR_FLAG, SSA_FLAG_Z) },
+			{},
+			{
+				createInsertInstrAction({0,2,0}),
+				createInsertInstrAction({0,2,0}),
+				createInsertInstrAction({0,2,0}),
+				createInsertInstrAction({0,2,0}),
+				createInsertInstrAction({0,2,0}),
+				createInsertInstrAction({0,2,0}),
+				createInsertInstrAction({0,2,0}),
+				createInsertInstrAction({0,2,0}),
+				createInsertInstrAction({0,2,0})
+				}
 			)
 		}
 		);
@@ -185,13 +277,16 @@ namespace holodec {
 		        0, {Matcher (SSA_EXPR_JMP) },
 				{}, {
 					//createdId, foundId, argIndex: create
-					MatchAction (0, 1, 0, SSA_EXPR_CAST),
-					MatchAction (1, 0, 0, SSA_EXPR_CAST),
-					//set the data of the first created to the 
-					MatchAction (1, 0, 1),
-					MatchAction (2, 0, 1),
+					createInsertInstrAction({0,1,0}),
+					createInsertInstrAction({1,0,0}),
+					createInstrTypeAction({1,0,0},SSA_EXPR_CAST),
+					createInstrTypeAction({2,0,0},SSA_EXPR_CAST),
+					//inherit data
+					createInheritInstrAction({0,1,0},{1,0,0}, 0),
+					createInheritInstrAction({0,1,0},{2,0,0}, 0),
+					
 					//createdId, foundId, argIndex: copy arg from foundId 1
-					MatchAction (0, 1, 0, 1)
+					createInheritArgsAction({0,1,0},{1,0,0}, 1)
 				}
 		    )
 		);

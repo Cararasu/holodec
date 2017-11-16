@@ -29,94 +29,219 @@ namespace holodec {
 	
 	struct MatchContext{
 		std::vector<HId> expressionsMatched;
+		std::vector<HId> expressionsCreated;
 	};
+	
+	//inherit: expr-type, size, write-location, instrAddress
+	//write: type, size, argument(id, sval, uval, fval)
+	
+	/*
+		 * Argument
+		HId ssaId = 0;
+		SSAArgTypes type = SSA_ARGTYPE_UNKN;
+		uint32_t size = 0;
+		union {
+			ArgSInt sval;
+			ArgUInt uval;
+			ArgFloat fval;
+			Reference ref;
+		};
+	 * 
+	 */
 	
 	//Insert Instruction
 	//Insert Argument
 	//Copy Arguments
 	//Replace Argument
-	enum MatchActionType{
-		MATCHACTION_INSERT_AS_ARG,
-		MATCHACTION_INSERT_ARG,
-		MATCHACTION_COPY_ARG,
-		MATCHACTION_SET_EXPR_DATA,
-		MATCHACTION_INHERIT_EXPR_DATA,
-		MATCHACTION_INHERIT_ARG_SIZE,
+	
+	enum MatchActionInheritInstrBits{
+		MATCHACTION_INHERIT_INSTR_SIZE = 0x1,
+		MATCHACTION_INHERIT_INSTR_LOCATION = 0x2,
+		MATCHACTION_INHERIT_INSTR_ADDR = 0x4,
+		MATCHACTION_INHERIT_INSTR_EXPRTYPE = 0x8,
 	};
-	struct MatchAction{
-		MatchActionType actionType;
-		HId createdExprIndex;
+	enum MatchActionInheritArgBits{
+		MATCHACTION_INHERIT_ARG_SIZE = 0x1,
+		MATCHACTION_INHERIT_ARG_LOCATION = 0x2,
+	};
+	
+	enum MatchCompareType{
+		MATCHCOMPARE_INSTR_SIZE = 1,
+		MATCHCOMPARE_INSTR_TYPE,
+		MATCHCOMPARE_INSTR_EXPRTYPE,
+		MATCHCOMPARE_INSTR_BUILTIN,
+		MATCHCOMPARE_ARG_SIZE,
+		MATCHCOMPARE_ARG_SVAL,
+		MATCHCOMPARE_ARG_UVAL,
+		MATCHCOMPARE_ARG_FVAL,
+	};
+	enum MatchActionType{
+		MATCHACTION_INVALID = 0,
+		MATCHACTION_INHERIT_INSTR = 1,
+		//src, dst
+		MATCHACTION_INHERIT_ARG,
+		//src, dst, dst-arg
+		
+		MATCHACTION_INHERIT_ARGS,//inherit[args](f1,1,1,c1,1)
+		//src, src-arg, src-argcount
+		//dst, dst-arg
+		
+		MATCHACTION_INSTR_INSERT_AS_ARG,//instr[insert-arg]()
+		//dst, dst-arg
+		
+		MATCHACTION_INSTR_TYPE,
+		//type, flagtype, optype, dst
+		MATCHACTION_INSTR_SIZE,
+		MATCHACTION_INSTR_EXPRTYPE,
+		//exprtype, dst
+		MATCHACTION_INSTR_BUILTIN,
+		//builtinId, dst
+		
+		MATCHACTION_ARG_SIZE,
+		//dst, dst-arg, size
+		MATCHACTION_ARG_SVAL,
+		//dst, dst-arg, sval
+		MATCHACTION_ARG_UVAL,
+		//dst, dst-arg, uval
+		MATCHACTION_ARG_FVAL,
+		//dst, dst-arg, favl
+		
+		MATCHACTION_ARG_MEM,
+		MATCHACTION_ARG_STACK,
+		MATCHACTION_ARG_REG
+		//dst, dst-arg, ref
+	};
+	struct MatchActionSelector{
+		HId createExprIndex;
 		HId foundExprIndex;
 		HId argIndex;
+	};
+	
+	struct MatchAction{
+		MatchActionType actionType = MATCHACTION_INVALID;
+		MatchActionSelector src = {0,0,0};
+		MatchActionSelector dst = {0,0,0};
 		
 		union{
 			struct{
 				SSAExprType type;
-				SSAOpType opType = H_OP_INVALID;
-				SSAFlagType flagType = SSA_FLAG_UNKNOWN;
-			}expressionTypes;
-			struct{
-				uint64_t size = 0;
-				SSAType type = SSA_TYPE_UNKNOWN;
-				SSAExprLocation loc = SSA_LOCATION_NONE;
-				Reference locRef = {0,0};
-			}expressionData;
-			struct{
-				SSAArgTypes type = SSA_ARGTYPE_UNKN;
-				uint32_t size = 0;
-				ArgSInt sval = 0;
-				ArgUInt uval = 0;
-				ArgFloat fval = 0.0f;
-				Reference ref = {0,0};
-			}argInfos;
-			struct{
-				HId srcFoundExprId = 0;
-				HId argumentIndex = 0;
-				uint32_t argumentCount = 0;
-			}copyArgs;
+				SSAOpType opType;
+				SSAFlagType flagType;
+			}types;
+			uint32_t inheritInstrFlags;
+			uint32_t inheritArgFlags;
+			SSAType exprType;
+			HId builtinId;
+			uint32_t size;
+			uint64_t uval;
+			int64_t sval;
+			double fval;
+			Reference ref;
 		};
 		
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId argIndex, SSAExprType type) :
-			actionType(MATCHACTION_INSERT_AS_ARG), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(argIndex),
-			expressionTypes({type, H_OP_INVALID, SSA_FLAG_UNKNOWN}){}
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId argIndex, SSAExprType type, SSAOpType opType) :
-			actionType(MATCHACTION_INSERT_AS_ARG), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(argIndex),
-			expressionTypes({type, opType, SSA_FLAG_UNKNOWN}){}
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId argIndex, SSAExprType type, SSAFlagType flagType) :
-			actionType(MATCHACTION_INSERT_AS_ARG), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(argIndex),
-			expressionTypes({type, H_OP_INVALID, flagType}){}
-			
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId argIndex, uint32_t size, ArgSInt sval) : 
-			actionType(MATCHACTION_INSERT_ARG), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(argIndex),
-			argInfos({SSA_ARGTYPE_SINT, size, sval, 0, 0.0f, {0, 0}}){}
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId argIndex, uint32_t size, ArgUInt uval) : 
-			actionType(MATCHACTION_INSERT_ARG), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(argIndex),
-			argInfos({SSA_ARGTYPE_SINT, size, 0, uval, 0.0f, {0, 0}}){}
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId argIndex, uint32_t size, ArgFloat fval) : 
-			actionType(MATCHACTION_INSERT_ARG), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(argIndex),
-			argInfos({SSA_ARGTYPE_SINT, size, 0, 0, fval, {0, 0}}){}
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId argIndex, uint32_t size, Reference ref) : 
-			actionType(MATCHACTION_INSERT_ARG), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(argIndex),
-			argInfos({SSA_ARGTYPE_SINT, size, 0, 0, 0.0f, ref}){}
-			
-		MatchAction(HId createdExprIndex, HId foundExprIndex, uint64_t size, SSAType type, SSAExprLocation loc, Reference locRef) : 
-			actionType(MATCHACTION_SET_EXPR_DATA), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(0),
-			expressionData({size, type, loc, locRef}){}
-			
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId argIndex, HId srcFoundExprId, HId argumentIndex, uint32_t argumentCount) : 
-			actionType(MATCHACTION_COPY_ARG), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(argIndex),
-			copyArgs({srcFoundExprId, argumentIndex, argumentCount}){}
-			
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId srcFoundExprId) : 
-			actionType(MATCHACTION_INHERIT_EXPR_DATA), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(0),
-			copyArgs({srcFoundExprId, 0, 0}){}
-			
-		MatchAction(HId createdExprIndex, HId foundExprIndex, HId argIndex, HId srcFoundExprId) : 
-			actionType(MATCHACTION_INHERIT_ARG_SIZE), createdExprIndex(createdExprIndex), foundExprIndex(foundExprIndex), argIndex(argIndex),
-			copyArgs({srcFoundExprId, 0, 0}){}
+		void doAction(SSARepresentation* rep, MatchContext* context);
 		
-		HId doAction(SSARepresentation* rep, MatchContext* context, std::vector<HId>* createdExpressions);
-		
+	};
+	inline MatchAction createInheritInstrAction(MatchActionSelector src, MatchActionSelector dst, uint32_t inheritInstrFlags){
+		MatchAction action;
+		action.actionType = MATCHACTION_INHERIT_INSTR;
+		action.src = src;
+		action.dst = dst;
+		action.inheritInstrFlags = inheritInstrFlags;
+		return action;
+	};
+	inline MatchAction createInheritArgAction(MatchActionSelector src, MatchActionSelector dst, uint32_t inheritArgFlags){
+		MatchAction action;
+		action.actionType = MATCHACTION_INHERIT_ARG;
+		action.src = src;
+		action.dst = dst;
+		action.inheritArgFlags = inheritArgFlags;
+		return action;
+	};
+	inline MatchAction createInheritArgsAction(MatchActionSelector src, MatchActionSelector dst, uint32_t count){
+		MatchAction action;
+		action.actionType = MATCHACTION_INHERIT_ARGS;
+		action.src = src;
+		action.dst = dst;
+		action.size = count;
+		return action;
+	};
+	inline MatchAction createInsertInstrAction(MatchActionSelector dst){
+		MatchAction action;
+		action.actionType = MATCHACTION_INSTR_INSERT_AS_ARG;
+		action.dst = dst;
+		return action;
+	};
+	inline MatchAction createInstrTypeAction(MatchActionSelector dst, SSAExprType type, SSAOpType opType = H_OP_INVALID, SSAFlagType flagType = SSA_FLAG_UNKNOWN){
+		MatchAction action;
+		action.actionType = MATCHACTION_INSTR_TYPE;
+		action.dst = dst;
+		action.types.type = type;
+		action.types.opType = opType;
+		action.types.flagType = flagType;
+		return action;
+	};
+	inline MatchAction createInstrSizeAction(MatchActionSelector dst, uint32_t size){
+		MatchAction action;
+		action.actionType = MATCHACTION_INSTR_SIZE;
+		action.size = size;
+		return action;
+	};
+	inline MatchAction createInstrExprTypeAction(MatchActionSelector dst, SSAType exprType){
+		MatchAction action;
+		action.actionType = MATCHACTION_INSTR_EXPRTYPE;
+		action.dst = dst;
+		action.exprType = exprType;
+		return action;
+	};
+	inline MatchAction createInstrBuiltinTypeAction(MatchActionSelector dst, uint32_t builtinId){
+		MatchAction action;
+		action.actionType = MATCHACTION_INSTR_BUILTIN;
+		action.dst = dst;
+		action.builtinId = builtinId;
+		return action;
+	};
+	inline MatchAction createInstrValueAction(MatchActionSelector dst, uint64_t uval){
+		MatchAction action;
+		action.actionType = MATCHACTION_ARG_UVAL;
+		action.dst = dst;
+		action.uval = uval;
+		return action;
+	};
+	inline MatchAction createInstrValueAction(MatchActionSelector dst, int64_t sval){
+		MatchAction action;
+		action.actionType = MATCHACTION_ARG_SVAL;
+		action.dst = dst;
+		action.sval = sval;
+		return action;
+	};
+	inline MatchAction createInstrValueAction(MatchActionSelector dst, double fval){
+		MatchAction action;
+		action.actionType = MATCHACTION_ARG_FVAL;
+		action.dst = dst;
+		action.fval = fval;
+		return action;
+	};
+	inline MatchAction createInstrMemLocAction(MatchActionSelector dst, Reference ref){
+		MatchAction action;
+		action.actionType = MATCHACTION_ARG_MEM;
+		action.dst = dst;
+		action.ref = ref;
+		return action;
+	};
+	inline MatchAction createInstrStackLocAction(MatchActionSelector dst, Reference ref){
+		MatchAction action;
+		action.actionType = MATCHACTION_ARG_STACK;
+		action.dst = dst;
+		action.ref = ref;
+		return action;
+	};
+	inline MatchAction createInstrRegLocAction(MatchActionSelector dst, Reference ref){
+		MatchAction action;
+		action.actionType = MATCHACTION_ARG_REG;
+		action.dst = dst;
+		action.ref = ref;
+		return action;
 	};
 	enum MatchType{
 		MATCH_TYPE = 1,
@@ -130,6 +255,7 @@ namespace holodec {
 		MATCH_ARGUMENTVALUE,
 	};
 	struct Matcher{
+		//
 		MatchType matchType;
 		union{
 			struct{
@@ -196,6 +322,7 @@ namespace holodec {
 		
 		bool match(SSAExpression* expression);
 	};
+	
 	struct ExprMatcher{
 		HId subexprIndex;
 		HList<Matcher> matchers;

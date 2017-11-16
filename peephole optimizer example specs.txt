@@ -1,0 +1,62 @@
+
+
+
+//rules
+type(type=...,op=...,flag=...,size=...){}
+
+cmp_arg(foundIndex=...,foundArgIndex=...,argIndex=...)//compares id/uval/sval/fval
+
+argtype(type=...){}
+argvalue(index=...,uval=...,sval=...,fval=...){}
+
+builtin(name=...){}
+
+reg(name=...){}
+stack(name=...,index=...){}
+mem(name=...){}
+
+
+//actions
+inherit_instr(srcCreateId=...,srcFoundId=...,dstCreateId=...,dstFoundId=..., exprtype,size,location,addr)
+inherit_addr(srcCreateId=...,srcFoundId=...,dstCreateId=...,dstFoundId=..., size,location)
+inherit_args(srcCreateId=...,srcFoundId=...,srcArgIndex=...,dstCreateId=...,dstFoundId=...,dstArgIndex=...,count=...)
+
+insert_instr(dstCreateId=...,dstFoundId=...,dstArgIndex=...,replace)
+
+set_instr_type(dstCreateId=...,dstFoundId=...,type=...,op=...,flag=...,size=...)
+
+set_instr_exprtype(dstCreateId=...,dstFoundId=...,exprtype=...)
+set_instr_size(dstCreateId=...,dstFoundId=...,size=...)
+set_instr_builtin(dstCreateId=...,dstFoundId=...,builtin=...)
+
+insert_arg_val(dstCreateId=...,dstFoundId=...,dstArgIndex=...,uval=...,sval=...,fval=...,replace)
+
+set_arg_size(dstCreateId=...,dstFoundId=...,dstArgIndex=...,size=...)
+set_arg_mem(dstCreateId=...,dstFoundId=...,dstArgIndex=...,name=...)
+set_arg_stack(dstCreateId=...,dstFoundId=...,dstArgIndex=...,name=...,index=...)
+set_arg_reg(dstCreateId=...,dstFoundId=...,dstArgIndex=...,name=...)
+
+matcher{
+	rules{//required
+		type(name=...,op=...,flag=...,size=...)
+		argtype(name=...)
+		argtype(name=...)
+	}
+	submatches{//optional
+		match(index=1){
+			matcher{...}
+		}
+	}
+	actions{//optional - is executed if no submatch was found
+		action ...
+	}
+}
+
+action src(createdId = 1, argIndex = 0)
+
+rules{
+
+
+
+
+}
