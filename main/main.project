@@ -87,6 +87,8 @@
       <File Name="SSAAddressToBlockTransformer.h"/>
       <File Name="SSATransformToC.h"/>
       <File Name="SSATransformToC.cpp"/>
+      <File Name="PeepholeOptimizer.h"/>
+      <File Name="PeepholeOptimizer.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="binary">
       <VirtualDirectory Name="elf">

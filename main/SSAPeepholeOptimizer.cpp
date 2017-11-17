@@ -177,28 +177,24 @@ namespace holodec {
 		}
 	}
 
-	bool Matcher::match (SSAExpression* expression) {
-		switch (matchType) {
-		case MATCH_TYPE:
-			return expression->type == type.type;
-		case MATCH_OPTYPE:
-			return expression->type == type.type && expression->opType == type.opType;
-		case MATCH_FLAGTYPE:
-			return expression->type == type.type && expression->flagType == type.flagType;
+	bool MatchRule::match (SSAExpression* expression) {
+		switch (matchRuleType) {
+		case MATCHRULE_TYPE:
+			return expression->type == type.type && expression->opType == type.opType && expression->flagType == type.flagType;
 
-		case MATCH_BUILTIN:
+		case MATCHRULE_BUILTIN:
 			return expression->type == SSA_EXPR_BUILTIN && expression->builtinId == builtin.id;
-		case MATCH_LOCATION:
+		case MATCHRULE_LOCATION:
 			return expression->location == location.loc && expression->locref == location.ref;
 
-		case MATCH_ARGUMENTTYPE:
+		case MATCHRULE_ARGUMENTTYPE:
 			if (!argument.index || argument.index > expression->subExpressions.size())
 				return false;
 			{
 				SSAArgument& arg = expression->subExpressions[argument.index - 1];
 				return arg.type == argument.type;
 			}
-		case MATCH_ARGUMENTVALUE:
+		case MATCHRULE_ARGUMENTVALUE:
 			if (!argument.index || argument.index > expression->subExpressions.size())
 				return false;
 			{
@@ -219,20 +215,20 @@ namespace holodec {
 		return false;
 	}
 
-	bool ExprMatcher::match (SSARepresentation* rep, SSAExpression* expr, MatchContext* context) {
+	bool Matcher::match (SSARepresentation* rep, SSAExpression* expr, MatchContext* context) {
 		if (subexprIndex) {
 			if (subexprIndex > expr->subExpressions.size())
 				return false;
 			if (HId subExpressionId = expr->subExpressions[subexprIndex - 1].ssaId)
 				expr = & (rep->expressions[subExpressionId]);
 		}
-		for (Matcher& matcher : matchers) {
-			if (!matcher.match (expr))
+		for (MatchRule& matchrule : matchrules) {
+			if (!matchrule.match (expr))
 				return false;
 		}
 		context->expressionsMatched.push_back (expr->id);
 		bool matched = true;
-		for (ExprMatcher& subMatcher : subMatchers) {
+		for (Matcher& subMatcher : subMatchers) {
 			if (!subMatcher.match (rep, expr, context)) {
 				matched = false;
 				break;
@@ -248,24 +244,15 @@ namespace holodec {
 	}
 
 	SSAPeepholeOptimizer::SSAPeepholeOptimizer() {
-		ExprMatcher matcher (
+		Matcher matcher (
 		    0,
-		{Matcher (SSA_EXPR_CJMP) }, {
-			ExprMatcher (
+		{createTypeRule(SSA_EXPR_CJMP) }, {
+			Matcher (
 			    1,
-			{Matcher (SSA_EXPR_FLAG, SSA_FLAG_Z) },
+			{createTypeRule (SSA_EXPR_FLAG, SSA_FLAG_Z) },
 			{},
 			{
-				createInsertInstrAction({0,2,0}),
-				createInsertInstrAction({0,2,0}),
-				createInsertInstrAction({0,2,0}),
-				createInsertInstrAction({0,2,0}),
-				createInsertInstrAction({0,2,0}),
-				createInsertInstrAction({0,2,0}),
-				createInsertInstrAction({0,2,0}),
-				createInsertInstrAction({0,2,0}),
-				createInsertInstrAction({0,2,0})
-				}
+				createInsertInstrAction({0,2,0})}
 			)
 		}
 		);
@@ -273,8 +260,8 @@ namespace holodec {
 		exprTemp.type = SSA_EXPR_CAST;
 		matchers.push_back (matcher);
 		matchers.push_back (
-		    ExprMatcher (
-		        0, {Matcher (SSA_EXPR_JMP) },
+		    Matcher (
+		        0, {createTypeRule (SSA_EXPR_JMP) },
 				{}, {
 					//createdId, foundId, argIndex: create
 					createInsertInstrAction({0,1,0}),
@@ -298,7 +285,7 @@ namespace holodec {
 		for (SSABB& bb : rep.bbs) {
 
 			for (HId exprId : bb.exprIds) {
-				for (ExprMatcher& matcher : matchers) {
+				for (Matcher& matcher : matchers) {
 					MatchContext context;
 					matcher.match (&rep, rep.expressions.get (exprId), &context);
 				}

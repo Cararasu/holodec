@@ -11,9 +11,7 @@ argvalue(index=...,uval=...,sval=...,fval=...){}
 
 builtin(name=...){}
 
-reg(name=...){}
-stack(name=...,index=...){}
-mem(name=...){}
+location(reg=...,stack=...,mem=...,index=...){}
 
 
 //actions

@@ -16,6 +16,7 @@
 #include "HIdList.h"
 #include "SSAPeepholeOptimizer.h"
 #include "SSATransformToC.h"
+#include "PeepholeOptimizer.h"
 
 using namespace holodec;
 
@@ -78,6 +79,9 @@ int main (int argc, char** argv) {
 	binary->print();
 
 	holox86::x86architecture.print();
+	
+	PeepholeOptimizer* optimizer = parsePhOptimizer("../../workingdir/standard.ph", &holox86::x86architecture);
+	return 0;
 
 	std::vector<SSATransformer*> transformers = {
 		new SSAAddressToBlockTransformer(),

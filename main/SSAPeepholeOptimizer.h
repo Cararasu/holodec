@@ -243,20 +243,19 @@ namespace holodec {
 		action.ref = ref;
 		return action;
 	};
-	enum MatchType{
-		MATCH_TYPE = 1,
-		MATCH_OPTYPE,
-		MATCH_FLAGTYPE,
+	enum MatchRuleType{
+		MATCHRULE_UNKNOWN = 0,
+		MATCHRULE_TYPE = 1,
 		
-		MATCH_BUILTIN,
-		MATCH_LOCATION,
+		MATCHRULE_BUILTIN,
+		MATCHRULE_LOCATION,
 		
-		MATCH_ARGUMENTTYPE,
-		MATCH_ARGUMENTVALUE,
+		MATCHRULE_ARGUMENTTYPE,
+		MATCHRULE_ARGUMENTVALUE,
 	};
-	struct Matcher{
+	struct MatchRule{
 		//
-		MatchType matchType;
+		MatchRuleType matchRuleType = MATCHRULE_UNKNOWN;
 		union{
 			struct{
 				SSAExprType type;
@@ -282,63 +281,99 @@ namespace holodec {
 				Reference ref;
 			} location;
 		};
-		Matcher(SSAExprType exprType, uint64_t size = 0): matchType(MATCH_TYPE){
-			type.type = exprType;
-			type.size = size;
-		}
-		Matcher(SSAExprType exprType, SSAOpType opType, uint64_t size = 0): matchType(MATCH_OPTYPE){
-			type.type = exprType;
-			type.opType = opType;
-			type.size = size;
-		}
-		Matcher(SSAExprType exprType, SSAFlagType flagType, uint64_t size = 0): matchType(MATCH_FLAGTYPE){
-			type.type = exprType;
-			type.flagType = flagType;
-			type.size = size;
-		}
-		Matcher(HId argIndex, SSAArgTypes argtype): matchType(MATCH_ARGUMENTTYPE){
-			argument.index = argIndex;
-			argument.type = argtype;
-		}
-		Matcher(HId argIndex, ArgSInt sval): matchType(MATCH_ARGUMENTVALUE){
-			argument.index = argIndex;
-			argument.type = SSA_ARGTYPE_SINT;
-		}
-		Matcher(HId argIndex, ArgUInt uval): matchType(MATCH_ARGUMENTVALUE){
-			argument.index = argIndex;
-			argument.type = SSA_ARGTYPE_UINT;
-		}
-		Matcher(HId argIndex, ArgFloat fval): matchType(MATCH_ARGUMENTVALUE){
-			argument.index = argIndex;
-			argument.type = SSA_ARGTYPE_FLOAT;
-		}
-		Matcher(HId id): matchType(MATCH_BUILTIN){
-			builtin.id = id;
-		}
-		Matcher(SSAExprLocation loc, Reference ref): matchType(MATCH_LOCATION){
-			location.loc = loc;
-			location.ref = ref;
-		}
 		
 		bool match(SSAExpression* expression);
+		
 	};
+	inline MatchRule createTypeRule(SSAExprType type, uint64_t size = 0){
+		MatchRule rule;
+		rule.matchRuleType = MATCHRULE_TYPE;
+		rule.type.type = type;
+		rule.type.opType = H_OP_INVALID;
+		rule.type.flagType = SSA_FLAG_UNKNOWN;
+		rule.type.size = size;
+		return rule;
+	}
+	inline MatchRule createTypeRule(SSAExprType type, SSAOpType opType, uint64_t size = 0){
+		MatchRule rule;
+		rule.matchRuleType = MATCHRULE_TYPE;
+		rule.type.type = type;
+		rule.type.opType = opType;
+		rule.type.flagType = SSA_FLAG_UNKNOWN;
+		rule.type.size = size;
+		return rule;
+	}
+	inline MatchRule createTypeRule(SSAExprType type, SSAFlagType flagType, uint64_t size = 0){
+		MatchRule rule;
+		rule.matchRuleType = MATCHRULE_TYPE;
+		rule.type.type = type;
+		rule.type.opType = H_OP_INVALID;
+		rule.type.flagType = flagType;
+		rule.type.size = size;
+		return rule;
+	}
+	inline MatchRule createArgTypeRule(HId index, SSAArgTypes type){
+		MatchRule rule;
+		rule.matchRuleType = MATCHRULE_ARGUMENTTYPE;
+		rule.argument.index = index;
+		rule.argument.type = type;
+		return rule;
+	}
+	inline MatchRule createArgValueRule(HId index, ArgSInt sval){
+		MatchRule rule;
+		rule.matchRuleType = MATCHRULE_ARGUMENTVALUE;
+		rule.argument.type = SSA_ARGTYPE_SINT;
+		rule.argument.index = index;
+		rule.argument.value.sval = sval;
+		return rule;
+	}
+	inline MatchRule createArgValueRule(HId index, ArgUInt uval){
+		MatchRule rule;
+		rule.matchRuleType = MATCHRULE_ARGUMENTVALUE;
+		rule.argument.type = SSA_ARGTYPE_UINT;
+		rule.argument.index = index;
+		rule.argument.value.uval = uval;
+		return rule;
+	}
+	inline MatchRule createArgValueRule(HId index, ArgFloat fval){
+		MatchRule rule;
+		rule.matchRuleType = MATCHRULE_ARGUMENTVALUE;
+		rule.argument.type = SSA_ARGTYPE_FLOAT;
+		rule.argument.index = index;
+		rule.argument.value.fval = fval;
+		return rule;
+	}
+	inline MatchRule createBuiltinRule(HId id){
+		MatchRule rule;
+		rule.matchRuleType = MATCHRULE_BUILTIN;
+		rule.builtin.id = id;
+		return rule;
+	}
+	inline MatchRule createLocationRule(SSAExprLocation loc, Reference ref){
+		MatchRule rule;
+		rule.matchRuleType = MATCHRULE_LOCATION;
+		rule.location.loc = loc;
+		rule.location.ref = ref;
+		return rule;
+	}
 	
-	struct ExprMatcher{
+	struct Matcher{
 		HId subexprIndex;
-		HList<Matcher> matchers;
-		HList<ExprMatcher> subMatchers;
+		HList<MatchRule> matchrules;
+		HList<Matcher> subMatchers;
 		HList<MatchAction> actions;
 		
-		ExprMatcher(HId subexprIndex, HList<Matcher> matchers, HList<ExprMatcher> subMatchers, HList<MatchAction> actions = HList<MatchAction>()) : 
-			subexprIndex(subexprIndex), matchers(matchers), subMatchers(subMatchers), actions(actions) {}
+		Matcher(HId subexprIndex, HList<MatchRule> matchrules, HList<Matcher> subMatchers, HList<MatchAction> actions = HList<MatchAction>()) : 
+			subexprIndex(subexprIndex), matchrules(matchrules), subMatchers(subMatchers), actions(actions) {}
 		
 		bool match(SSARepresentation* rep, SSAExpression* expr, MatchContext* context);
+		
 	};
 	
 	
 	struct SSAPeepholeOptimizer : public SSATransformer {
 		
-		HList<ExprMatcher> matchers;
+		HList<Matcher> matchers;
 		
 		SSAPeepholeOptimizer();
 		
