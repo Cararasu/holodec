@@ -17,6 +17,7 @@
 #include "SSAPeepholeOptimizer.h"
 #include "SSATransformToC.h"
 #include "PeepholeOptimizer.h"
+#include "ScriptingInterface.h"
 
 using namespace holodec;
 
@@ -42,6 +43,21 @@ extern Architecture holox86::x86architecture;
 
 int main (int argc, char** argv) {
 	
+	
+	/*
+	 * Ok
+	 * Let's go
+	 * 
+	 * Input i = MemAccess(0, unlimited)
+	 * 
+	 * uint64 xx = Lea(...)
+	 * MemoryAccess yy = MemAccess(xx, size, list of possible overlapping MemoryAccesses)
+	 * uint(size) zz = Load(yy, value, other MemoryAccess)
+	 * MemoryAccess aa = Store(yy, value)
+	 * 
+	 */
+	
+	
 	Main::initMain();
 	Data* data = Main::loadDataFromFile (filename);
 	if (!data) {
@@ -54,6 +70,11 @@ int main (int argc, char** argv) {
 
 	printf ("Init X86\n");
 	holox86::x86architecture.init();
+
+	ScriptingInterface script;
+	script.testModule(&holox86::x86architecture);
+	return 0;
+
 
 	BinaryAnalyzer* analyzer = nullptr;
 	for (FileFormat * fileformat : Main::g_main->fileformats) {
@@ -81,7 +102,7 @@ int main (int argc, char** argv) {
 	holox86::x86architecture.print();
 	
 	PeepholeOptimizer* optimizer = parsePhOptimizer("../../workingdir/standard.ph", &holox86::x86architecture);
-	return 0;
+	//return 0;
 
 	std::vector<SSATransformer*> transformers = {
 		new SSAAddressToBlockTransformer(),

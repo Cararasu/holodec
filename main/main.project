@@ -166,16 +166,21 @@
       <Compiler Options="-g -Wall -static-libgcc -static-libstdc++" C_Options="-g -Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../capstone/include"/>
+        <IncludePath Value="../cpython/Include"/>
       </Compiler>
       <Linker Options="-O0" Required="yes">
         <LibraryPath Value="../capstone/build"/>
+        <LibraryPath Value="../cpython/PCbuild/amd64"/>
         <Library Value="capstone"/>
+        <Library Value="python37"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./DebugWin" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
-        <![CDATA[]]>
+        <![CDATA[PATH=$(PATH);../../cpython/PCbuild/amd64
+PYTHONHOME=../../cpython/PCbuild/amd64
+PYTHONPATH=../../cpython/Lib]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
         <DebuggerSearchPaths/>

@@ -26,7 +26,7 @@ namespace holodec {
 		SSA_EXPR_NOP		= 0x12,
 		
 		SSA_EXPR_OP			= 0x13,
-		SSA_EXPR_MEM		= 0x14,
+		SSA_EXPR_LOADADDR	= 0x14,
 		SSA_EXPR_FLAG		= 0x15,
 		SSA_EXPR_BUILTIN	= 0x16,
 		SSA_EXPR_EXTEND		= 0x17,
@@ -50,10 +50,11 @@ namespace holodec {
 		SSA_EXPR_CJMP		= SSA_EXPR_CONTROL_FLOW | 0x42,
 		SSA_EXPR_MULTIBR	= SSA_EXPR_CONTROL_FLOW | 0x43,
 
-		SSA_EXPR_PUSH		= 0x51,
-		SSA_EXPR_POP		= 0x52,
-		SSA_EXPR_STORE		= 0x53,
-		SSA_EXPR_LOAD		= 0x54,
+		SSA_EXPR_MEMACCESS	= 0x50,
+		SSA_EXPR_PUSH		= 0x54,
+		SSA_EXPR_POP		= 0x55,
+		SSA_EXPR_STORE		= 0x58,
+		SSA_EXPR_LOAD		= 0x59,
 
 	};
 	enum SSAOpType {
@@ -94,7 +95,7 @@ namespace holodec {
 		SSA_TYPE_UINT,
 		SSA_TYPE_FLOAT,
 		SSA_TYPE_PC,
-		SSA_TYPE_MEM,
+		SSA_TYPE_MEMACCESS,
 	};
 	enum SSAFlagType {
 		SSA_FLAG_UNKNOWN = 0,

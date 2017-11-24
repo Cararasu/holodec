@@ -24,8 +24,8 @@ namespace holodec {
 		case SSA_TYPE_PC:
 			printf ("pc");
 			break;
-		case SSA_TYPE_MEM:
-			printf ("mem");
+		case SSA_TYPE_MEMACCESS:
+			printf ("memaccess");
 			break;
 		}
 		printf ("%d ", this->size);
@@ -145,8 +145,8 @@ namespace holodec {
 				break;
 			}
 			break;
-		case SSA_EXPR_MEM:
-			printf ("Mem ");
+		case SSA_EXPR_LOADADDR:
+			printf ("Load Effective Addr ");
 			break;
 		case SSA_EXPR_CALL:
 			printf ("Call ");
@@ -180,6 +180,9 @@ namespace holodec {
 			break;
 		case SSA_EXPR_CAST:
 			printf ("Cast ");
+			break;
+		case SSA_EXPR_MEMACCESS:
+			printf ("MemAccess ");
 			break;
 		case SSA_EXPR_STORE:
 			printf ("Store ");

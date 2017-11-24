@@ -227,7 +227,7 @@ namespace holodec {
 					addRegDef (exprId, reg, &wrap.outputs, true);
 				}
 			}
-			
+			/*
 			for (SSAMemDef& memDef : wrap.inputMems) {
 				HId gatheredIds[bbwrappers.size()] = {0};
 				uint64_t gatheredIdCount = 0;
@@ -243,7 +243,7 @@ namespace holodec {
 				
 				SSAExpression phinode;
 				phinode.type = SSA_EXPR_PHI;
-				phinode.returntype = SSA_TYPE_MEM;
+				phinode.returntype = SSA_TYPE_MEMACCESS;
 				phinode.location = SSA_LOCATION_MEM;
 				phinode.locref = {mem->id, 0};
 				phinode.size = 0;
@@ -263,7 +263,7 @@ namespace holodec {
 				if (needInOutput) {
 					addMemDef (exprId, mem, &wrap.outputMems);
 				}
-			}
+			}*/
 			//wrap.print(arch);
 		}
 
@@ -327,6 +327,7 @@ namespace holodec {
 			}
 		}
 	}
+	/*
 	void SSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, Memory* mem,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount) {
 		//printf("\nHandling Block %d\n", wrapper->ssaBB->id);
 
@@ -350,6 +351,6 @@ namespace holodec {
 		for (HId inBlockId : wrapper->ssaBB->inBlocks) {
 			handleBBs (getWrapper (inBlockId), mem, gatheredIds, gatheredIdCount, visitedBlocks, visitedBlockCount);
 		}
-	}
+	}*/
 
 }

@@ -66,7 +66,7 @@ namespace holodec {
 		{"undef", SSA_EXPR_UNDEF},
 		{"nop", SSA_EXPR_NOP},
 		{"op", SSA_EXPR_OP},
-		{"mem", SSA_EXPR_MEM},
+		{"loadaddr", SSA_EXPR_LOADADDR},
 		{"flag", SSA_EXPR_FLAG},
 		{"builtin", SSA_EXPR_BUILTIN},
 		{"extend", SSA_EXPR_EXTEND},

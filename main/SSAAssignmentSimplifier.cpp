@@ -110,7 +110,7 @@ namespace holodec{
 						}
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, arg));
 					}
-				}else if(expr.type == SSA_EXPR_MEM){
+				}else if(expr.type == SSA_EXPR_LOADADDR){
 					if(expr.subExpressions.size() == 5){
 						SSAArgument &arg0 = expr.subExpressions[0], &arg1 = expr.subExpressions[1], &arg2 = expr.subExpressions[2], &arg3 = expr.subExpressions[3], &arg4 = expr.subExpressions[4];
 						if(arg0.isValue(0)){
