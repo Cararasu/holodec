@@ -44,6 +44,7 @@ extern Architecture holox86::x86architecture;
 int main (int argc, char** argv) {
 	
 	
+	
 	/*
 	 * Ok
 	 * Let's go
@@ -71,9 +72,8 @@ int main (int argc, char** argv) {
 	printf ("Init X86\n");
 	holox86::x86architecture.init();
 
-	ScriptingInterface script;
-	script.testModule(&holox86::x86architecture);
-	return 0;
+	//ScriptingInterface script;
+	//script.testModule(&holox86::x86architecture);
 
 
 	BinaryAnalyzer* analyzer = nullptr;
@@ -110,7 +110,7 @@ int main (int argc, char** argv) {
 		new SSAPhiNodeGenerator(),
 		new SSAAssignmentSimplifier(),
 		new SSADeadCodeEliminationTransformer(),
-		new SSAPeepholeOptimizer(),
+		//new SSAPeepholeOptimizer(),
 		new SSATransformToC()
 	};
 

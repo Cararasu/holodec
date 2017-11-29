@@ -6,6 +6,16 @@
 namespace holodec {
 
 
+	void setSSAID(SSARepresentation* ssaRep, SSAArgument* arg, HId id, SSAExprType type){
+		if(arg->ssaId && !EXPR_IS_TRANSIENT(type)){
+			ssaRep->changeRefCount(arg->ssaId, -1);
+		}
+		arg->ssaId = id;
+		if(id && !EXPR_IS_TRANSIENT(type)){
+			ssaRep->changeRefCount(id, 1);
+		}
+	}
+	
 	void BasicBlockWrapper::print (Architecture* arch) {
 		printf ("BB %d\n", ssaBB->id);
 		printf ("Address 0x%x - 0x%x\n", ssaBB->startaddr, ssaBB->endaddr);
@@ -104,7 +114,7 @@ namespace holodec {
 							bool found = false;
 							for (SSARegDef& def : bbwrapper.outputs) {
 								if (def.regId == reg->id) {
-									expr->subExpressions[i].ssaId = def.ssaId;
+									setSSAID(&function->ssaRep, &expr->subExpressions[i], def.ssaId, expr->type);
 									found = true;
 									break;
 								}
@@ -122,12 +132,11 @@ namespace holodec {
 										newExpr.subExpressions.push_back (SSAArgument::createReg (reg, def.ssaId));
 										newExpr.subExpressions.push_back (SSAArgument::createVal (reg->offset - def.offset, arch->bitbase));
 										newExpr.subExpressions.push_back (SSAArgument::createVal ( (def.offset + def.size) - (reg->offset + reg->size), arch->bitbase));
-
-										HId newId = function->ssaRep.expressions.push_back (newExpr);
-										it = bbwrapper.ssaBB->exprIds.insert (it, newId);
+										
+										it = function->ssaRep.addBefore(&newExpr, bbwrapper.ssaBB->exprIds, it);
 
 										expr = function->ssaRep.expressions.get (id); //reload expression in case we have a reallocate
-										expr->subExpressions[i].ssaId = newId;
+										setSSAID(&function->ssaRep, &expr->subExpressions[i], *it, expr->type);
 
 										found = true;
 										break;
@@ -141,7 +150,7 @@ namespace holodec {
 							bool found = false;
 							for (SSAMemDef& def : bbwrapper.outputMems) {
 								if (def.memId == mem->id) {
-									expr->subExpressions[i].ssaId = def.ssaId;
+									setSSAID(&function->ssaRep, &expr->subExpressions[i], def.ssaId, expr->type);
 									found = true;
 									break;
 								}
@@ -178,8 +187,9 @@ namespace holodec {
 				for (int i = 0; i < expr->subExpressions.size(); i++) {
 					SSAArgument& arg = expr->subExpressions[i];
 					//reset id of register/memory/stack so that we can redo them to find non defined reg-arguments
-					if (arg.type == SSA_ARGTYPE_REG || arg.type == SSA_ARGTYPE_MEM || arg.type == SSA_ARGTYPE_STACK) 
-						arg.ssaId = 0;
+					if (arg.type == SSA_ARGTYPE_REG || arg.type == SSA_ARGTYPE_MEM || arg.type == SSA_ARGTYPE_STACK) {
+						setSSAID(&function->ssaRep, &expr->subExpressions[i], 0, expr->type);
+					}
 				}
 			}
 		}
@@ -214,8 +224,7 @@ namespace holodec {
 				for (int i = 0; i < gatheredIdCount; i++) {
 					phinode.subExpressions.push_back (SSAArgument::createReg (reg, gatheredIds[i]));
 				}
-				HId exprId = function->ssaRep.expressions.push_back (phinode);
-				wrap.ssaBB->exprIds.insert (wrap.ssaBB->exprIds.begin(), exprId);
+				HId exprId = function->ssaRep.addAtStart(&phinode, wrap.ssaBB);
 				bool needInOutput = true;
 				for (SSARegDef& def : wrap.outputs) {
 					if (def.parentId == (HId)reg->parentRef) {
@@ -251,8 +260,7 @@ namespace holodec {
 				for (int i = 0; i < gatheredIdCount; i++) {
 					phinode.subExpressions.push_back (SSAArgument::createMem (mem->id, gatheredIds[i]));
 				}
-				HId exprId = function->ssaRep.expressions.push_back (phinode);
-				wrap.ssaBB->exprIds.insert (wrap.ssaBB->exprIds.begin(), exprId);
+				HId exprId = function->ssaRep.addAtStart(&phinode, wrap.ssaBB);
 				bool needInOutput = true;
 				for (SSAMemDef& def : wrap.outputMems) {
 					if (def.memId == mem->id) {
@@ -304,8 +312,8 @@ namespace holodec {
 			for(auto it = wrapper->ssaBB->exprIds.begin(); it != wrapper->ssaBB->exprIds.end(); ++it){
 				if(foundParentDef->ssaId == *it) {
 					expr.instrAddr = function->ssaRep.expressions[foundParentDef->ssaId].instrAddr;
-					HId exprId = function->ssaRep.expressions.push_back (expr);
-					wrapper->ssaBB->exprIds.insert(++it, exprId);
+					
+					HId exprId = *function->ssaRep.addAfter(&expr, wrapper->ssaBB->exprIds, it);
 					addRegDef (exprId, reg, &wrapper->outputs, false);
 					gatheredIds[ (*gatheredIdCount)++] = exprId;
 					found = true;

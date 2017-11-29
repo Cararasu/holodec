@@ -16,8 +16,13 @@ namespace holodec {
 	class Architecture;
 	
 #define SSA_EXPR_CONTROL_FLOW		(0x1000)
-#define SSA_EXPR_TRANSIENT_NODE	(0x2000)//TODO rename as this is a bad name
-	
+#define SSA_EXPR_TRANSIENT_NODE		(0x2000)//TODO rename as this is a bad name
+#define SSA_EXPR_MEMWRITE			(0x4000)
+
+#define EXPR_IS_CONTROLFLOW(type) (type & SSA_EXPR_CONTROL_FLOW)
+#define EXPR_IS_TRANSIENT(type) (type & SSA_EXPR_TRANSIENT_NODE)
+
+#define EXPR_HAS_SIDEEFFECT(type) (type & (SSA_EXPR_CONTROL_FLOW | SSA_EXPR_MEMWRITE))
 	enum SSAExprType {
 		SSA_EXPR_INVALID	= 0x0,
 		
@@ -31,7 +36,7 @@ namespace holodec {
 		SSA_EXPR_BUILTIN	= 0x16,
 		SSA_EXPR_EXTEND		= 0x17,
 		SSA_EXPR_SPLIT		= 0x18,
-		SSA_EXPR_UPDATEPART	= SSA_EXPR_TRANSIENT_NODE | 0x19,
+		SSA_EXPR_UPDATEPART	= 0x19,
 		SSA_EXPR_APPEND		= 0x1A,
 		SSA_EXPR_CAST		= 0x1B,
 		
@@ -44,16 +49,16 @@ namespace holodec {
 		SSA_EXPR_TRAP		= SSA_EXPR_CONTROL_FLOW | 0x26,
 
 		SSA_EXPR_PHI		= SSA_EXPR_TRANSIENT_NODE | 0x31,
-		SSA_EXPR_ASSIGN		= SSA_EXPR_TRANSIENT_NODE | 0x32,
+		SSA_EXPR_ASSIGN		= 0x32,
 
 		SSA_EXPR_JMP		= SSA_EXPR_CONTROL_FLOW | 0x41,
 		SSA_EXPR_CJMP		= SSA_EXPR_CONTROL_FLOW | 0x42,
 		SSA_EXPR_MULTIBR	= SSA_EXPR_CONTROL_FLOW | 0x43,
 
 		SSA_EXPR_MEMACCESS	= 0x50,
-		SSA_EXPR_PUSH		= 0x54,
+		SSA_EXPR_PUSH		= SSA_EXPR_MEMWRITE | 0x54,
 		SSA_EXPR_POP		= 0x55,
-		SSA_EXPR_STORE		= 0x58,
+		SSA_EXPR_STORE		= SSA_EXPR_MEMWRITE | 0x58,
 		SSA_EXPR_LOAD		= 0x59,
 
 	};
@@ -116,6 +121,7 @@ namespace holodec {
 	struct SSAExpression {
 		HId id = 0;
 		SSAExprType type = SSA_EXPR_INVALID;
+		uint64_t refcount = 0;
 		uint64_t size = 0;
 		SSAType returntype = SSA_TYPE_UNKNOWN;
 		union { //64 bit
@@ -189,102 +195,33 @@ namespace holodec {
 			expressions.clear();
 		}
 
-		void replaceNodes(HMap<HId,SSAArgument>* replacements){
-			
-			bool replaced = false;
-			do{
-				replaced = false;
-				for(auto it = replacements->begin(); it != replacements->end();++it){
-					if((*it).first == (*it).second.ssaId)//to prevent unlimited loops in circualr dependencies
-						continue;
-					auto innerIt = it;
-					for(++innerIt; innerIt != replacements->end(); ++innerIt){
-						if((*it).first == (*innerIt).second.ssaId){
-							(*innerIt).second = (*it).second;
-							replaced = true;
-						}else if((*innerIt).first == (*it).second.ssaId){
-							(*it).second = (*innerIt).second;
-							replaced = true;
-						}
-					}
-				}
-			}while(replaced);
-			
-			for(SSAExpression& expr : expressions){
-				for (SSAArgument& arg : expr.subExpressions) {
-					auto repIt = replacements->find(arg.ssaId);
-					if(repIt != replacements->end()){
-						arg = repIt->second;
-					}
-				}
-			}
-			
-			for(SSABB& bb : bbs){
-				for(auto it = bb.exprIds.begin(); it != bb.exprIds.end();){
-					if(replacements->find(*it) != replacements->end()){
-						bb.exprIds.erase(it);
-						continue;
-					}
-					it++;
-				}
-			}
-			for(auto it = expressions.begin(); it != expressions.end();){
-				if(replacements->find(it->id) != replacements->end()){
-					expressions.erase(it);
-					continue;
-				}
-				it++;
-			}
-		}
-		void removeNodes(HSet<HId>* ids){
-			for(auto it = expressions.begin(); it != expressions.end();){
-				if(ids->find(it->id) != ids->end()){
-					expressions.erase(it);
-					continue;
-				}
-				for(SSAArgument& arg : it->subExpressions){
-					if(arg.ssaId && ids->find(it->id) != ids->end())
-						arg = SSAArgument::create(SSA_ARGTYPE_UNKN);
-				}
-				++it;
-			}
-			for(SSABB& bb : bbs){
-				for(auto it = bb.exprIds.begin(); it != bb.exprIds.end();){
-					if(ids->find(*it) != ids->end()){
-						bb.exprIds.erase(it);
-						continue;
-					}
-					++it;
-				}
-			}
-		}
+		void replaceNodes(HMap<HId,SSAArgument>* replacements);
+		void removeNodes(HSet<HId>* ids);
 		
-		void compress(){
-			
-			std::map<HId, HId> replacements;
-			
-			expressions.shrink([&replacements](HId oldId, HId newId){replacements[oldId] = newId;});
-			
-			if(!replacements.empty()){
-				for(SSAExpression& expr : expressions){
-					for(SSAArgument& arg : expr.subExpressions){
-						auto it = replacements.find(arg.ssaId);
-						if(it != replacements.end()){
-							arg.ssaId = it->second;
-						}
-					}
-				}
-				for(SSABB& bb : bbs){
-					for(HId& id : bb.exprIds){
-						auto it = replacements.find(id);
-						if(it != replacements.end()){
-							id = it->second;
-						}
-					}
-				}
-			}
-			
-		}
+		void compress();
+		
+		void propagateRefCount(HId id, int64_t count = 1);
+		
+		void changeRefCount(HId id, int64_t count = 1);
+		void changeRefCount(HId id, std::vector<bool>& visited, int64_t count = 1);
+		
+		HId addExpr(SSAExpression* expr);
+		
+		HId addAtEnd(SSAExpression* expr, HId blockId);
+		HId addAtEnd(SSAExpression* expr, SSABB* bb);
+		HId addAtStart(SSAExpression* expr, HId blockId);
+		HId addAtStart(SSAExpression* expr, SSABB* bb);
+		
+		HId addBefore(SSAExpression* expr, HId ssaId, HId blockId);
+		HId addBefore(SSAExpression* expr, HId ssaId, SSABB* bb = nullptr);
+		HList<HId>::iterator addBefore(SSAExpression* expr, HList<HId>& ids, HList<HId>::iterator it);
+		HId addAfter(SSAExpression* expr, HId ssaId, HId blockId);
+		HId addAfter(SSAExpression* expr, HId ssaId, SSABB* bb = nullptr);
+		HList<HId>::iterator addAfter(SSAExpression* expr, HList<HId>& ids, HList<HId>::iterator it);
+		
+		HList<HId>::iterator removeExpr(HList<HId>& ids, HList<HId>::iterator it);
+		void removeExpr(HId ssaId, HId blockId);
+		void removeExpr(HId ssaId, SSABB* bb = nullptr);
 
 
 		void print (Architecture* arch, int indent = 0);

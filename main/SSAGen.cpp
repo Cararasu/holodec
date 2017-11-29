@@ -256,12 +256,7 @@ namespace holodec {
 		if (instruction) {
 			expression->instrAddr = instruction->addr;
 		}
-
-		ssaRepresentation->expressions.push_back (*expression);
-		activeblock->exprIds.push_back (ssaRepresentation->expressions.back().id);
-		
-		
-		HId ssaId = ssaRepresentation->expressions.back().id;
+		HId ssaId = ssaRepresentation->addAtEnd(expression, activeblock);
 		if (expression->type == SSA_EXPR_OP)
 			lastOp = ssaId;
 		return ssaId;
@@ -607,7 +602,7 @@ namespace holodec {
 					assert (false);
 					break;
 				}
-				expression.subExpressions = {srcSSAArg};
+				expression.subExpressions.push_back(srcSSAArg);
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
 			}
 

@@ -2,6 +2,9 @@
 #define HSCHIPTINGINTEHFACE_H
 
 #include "Architecture.h"
+
+
+
 namespace holodec {
 
 	class ScriptingInterface {

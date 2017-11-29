@@ -23,13 +23,13 @@ namespace holodec {
 		uint64_t wordbase;
 
 		HList<std::function<FunctionAnalyzer* (Binary*) >> functionanalyzerfactories;
-		HSparseIdList<Register> registers;
+		HIdList<Register> registers;
 
-		HSparseIdList<Stack> stacks;
+		HIdList<Stack> stacks;
 		
-		HSparseIdList<Memory> memories;
+		HIdList<Memory> memories;
 
-		HSparseIdList<CallingConvention> callingconventions;
+		HIdList<CallingConvention> callingconventions;
 
 		HIdMap<HId, InstrDefinition> instrdefs;
 

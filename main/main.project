@@ -55,6 +55,8 @@
       <File Name="Console.cpp"/>
       <File Name="Main.cpp"/>
       <File Name="Main.h"/>
+      <File Name="CHolodec.h"/>
+      <File Name="CHolodec.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="DataAnalyzer">
       <File Name="FileFormat.h"/>

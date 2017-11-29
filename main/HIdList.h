@@ -44,9 +44,9 @@ namespace holodec {
 			list.push_back (ele);
 			return ele.id;
 		}
-		void relabel (std::function<void (HId, HId) > replacer = nullptr) {
+		void relabel () {
 			for (T& ele : list) {
-				ele.relabel(&gen,replacer);
+				ele.id = gen.next();
 			}
 		}
 		auto begin() -> decltype(list.begin()){
@@ -130,6 +130,9 @@ namespace holodec {
 			list.push_back (ele);
 			return ele.id;
 		}
+		void pop_back () {
+			list.pop_back ();
+		}
 		void shrink (std::function<void (HId, HId)> replacer = nullptr) {
 			auto fit = list.begin();
 			auto rit = list.end() - 1;
@@ -166,6 +169,9 @@ namespace holodec {
 		void erase(iterator it){
 			it->id = 0;
 			++it;
+		}
+		iterator it_at (HId id) {
+			return list.begin() + (id-1);
 		}
 		T* get (HId id) {
 			return &list[id-1];

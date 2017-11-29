@@ -10,8 +10,6 @@ namespace holodec {
 		SSARepresentation* ssaRep;
 		HList<HId> usecount;
 		
-		void addNewUse(HId id, std::set<HId>* visited);
-		
 		virtual void doTransformation (Function* function);
 		
 	};
