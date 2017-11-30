@@ -302,7 +302,6 @@ namespace holodec {
 
 	void SSARepresentation::propagateRefCount (HId id, int64_t count) {
 		if (!id) return;
-		
 		for (SSAArgument& arg : expressions[id].subExpressions) {
 			changeRefCount (arg.ssaId, count);
 		}
