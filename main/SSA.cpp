@@ -56,7 +56,7 @@ namespace holodec {
 		case SSAExprType::eJmp:
 			printf ("Jmp ");
 			break;
-		case SSAExprType::eCjmp:
+		case SSAExprType::eCJmp:
 			printf ("Cjmp ");
 			break;
 		case SSAExprType::eMultiBranch:

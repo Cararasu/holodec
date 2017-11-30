@@ -34,7 +34,7 @@ namespace holodec {
 					}
 				}
 			}
-		}else if(expression->type == SSAExprType::eCjmp){
+		}else if(expression->type == SSAExprType::eCJmp){
 			if(expression->subExpressions[1].type == SSA_ARGTYPE_UINT){
 				for(SSABB& bb : function->ssaRep.bbs){
 					if(bb.startaddr == expression->subExpressions[1].uval){

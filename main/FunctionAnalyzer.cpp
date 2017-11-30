@@ -33,10 +33,10 @@ bool holodec::FunctionAnalyzer::postInstruction (Instruction* instruction) {
 		return instruction->nojumpdest ? !trySplitBasicBlock(instruction->nojumpdest) : true;
 	}
 
-	if (instruction->instrdef->type == H_INSTR_TYPE_JMP || instruction->instrdef->type2 == H_INSTR_TYPE_JMP) {
+	if (instruction->instrdef->type == InstructionType::eJmp || instruction->instrdef->type2 == InstructionType::eJmp) {
 		addAddressToAnalyze (instruction->jumpdest);
 		return false;
-	} else if (instruction->instrdef->type == H_INSTR_TYPE_CJMP || instruction->instrdef->type2 == H_INSTR_TYPE_CJMP) {
+	} else if (instruction->instrdef->type == InstructionType::eCJmp || instruction->instrdef->type2 == InstructionType::eCJmp) {
 		addAddressToAnalyze (instruction->jumpdest);
 		addAddressToAnalyze (instruction->nojumpdest);
 		return false;

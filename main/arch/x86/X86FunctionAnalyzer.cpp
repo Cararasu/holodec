@@ -162,15 +162,15 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 }
 
 void holox86::X86FunctionAnalyzer::setJumpDest (Instruction* instruction) {
-	if (instruction->instrdef && instruction->instrdef->type == H_INSTR_TYPE_RET)
+	if (instruction->instrdef && instruction->instrdef->type == InstructionType::eRet)
 		return;
 
 	instruction->nojumpdest = instruction->addr + instruction->size;
 	if (instruction->instrdef){
 		switch(instruction->instrdef->type){
-		case H_INSTR_TYPE_JMP:
+		case InstructionType::eJmp:
 			instruction->nojumpdest = 0;
-		case H_INSTR_TYPE_CJMP:
+		case InstructionType::eCJmp:
 			if (instruction->operands[0].type == IR_ARGTYPE_UINT)
 				instruction->jumpdest = instruction->operands[0].uval;
 			else if (instruction->operands[0].type == IR_ARGTYPE_SINT)

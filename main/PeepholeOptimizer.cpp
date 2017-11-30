@@ -82,7 +82,7 @@ namespace holodec {
 		{"phi", SSAExprType::ePhi},
 		{"assign", SSAExprType::eAssign},
 		{"jmp", SSAExprType::eJmp},
-		{"cjmp", SSAExprType::eCjmp},
+		{"cjmp", SSAExprType::eCJmp},
 		{"multibr", SSAExprType::eMultiBranch},
 		{"push", SSAExprType::ePush},
 		{"pop", SSAExprType::ePop},

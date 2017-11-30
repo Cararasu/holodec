@@ -45,7 +45,7 @@ namespace holodec {
 		eAssign		= SSA_EXPR_ASSIGN,
 
 		eJmp		= SSA_EXPR_JMP,
-		eCjmp		= SSA_EXPR_CJMP,
+		eCJmp		= SSA_EXPR_CJMP,
 		eMultiBranch	= SSA_EXPR_MULTIBR,
 
 		eMemAccess	= SSA_EXPR_MEMACCESS,

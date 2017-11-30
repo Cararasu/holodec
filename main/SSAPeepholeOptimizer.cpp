@@ -246,7 +246,7 @@ namespace holodec {
 	SSAPeepholeOptimizer::SSAPeepholeOptimizer() {
 		Matcher matcher (
 		    0,
-		{createTypeRule(SSAExprType::eCjmp) }, {
+		{createTypeRule(SSAExprType::eCJmp) }, {
 			Matcher (
 			    1,
 			{createTypeRule (SSAExprType::eFlag, eFlagZ) },

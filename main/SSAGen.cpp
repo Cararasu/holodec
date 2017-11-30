@@ -611,7 +611,7 @@ namespace holodec {
 
 			case IR_EXPR_IF: {
 				SSAExpression expression;
-				expression.type = SSAExprType::eCjmp;
+				expression.type = SSAExprType::eCJmp;
 				expression.returntype = SSAType::ePc;
 				expression.size = arch->bitbase;
 				
@@ -665,7 +665,7 @@ namespace holodec {
 			}
 			case IR_EXPR_CJMP: {
 				SSAExpression expression;
-				expression.type = SSAExprType::eCjmp;
+				expression.type = SSAExprType::eCJmp;
 				expression.returntype = SSAType::ePc;
 				expression.size = arch->bitbase;
 
@@ -1009,7 +1009,7 @@ namespace holodec {
 
 				activateBlock (startCondId);
 				SSAExpression expression;
-				expression.type = SSAExprType::eCjmp;
+				expression.type = SSAExprType::eCJmp;
 				expression.returntype = SSAType::ePc;
 				expression.size = arch->bitbase;
 				expression.subExpressions.push_back (parseIRArg2SSAArg(parseExpression (irExpr->subExpressions[0])));

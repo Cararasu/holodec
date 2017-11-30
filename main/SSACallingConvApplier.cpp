@@ -44,7 +44,7 @@ namespace holodec {
 							break;
 						}
 					}
-					if (!isParam && localStackReg && expr.locref.refId == localStackReg->id && cc->callerstackadjust == H_CC_STACK_ADJUST_CALLEE) {
+					if (!isParam && localStackReg && expr.locref.refId == localStackReg->id && cc->callerstackadjust == eCallee) {
 						expr.type = SSAExprType::eAssign;
 						for (SSAArgument& arg : callExpr->subExpressions) {
 							if (arg.type == SSA_ARGTYPE_REG && arg.ref.refId == expr.locref.refId) {
