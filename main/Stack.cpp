@@ -8,5 +8,5 @@ namespace holodec {
 			replacer (id, newid);
 		id = newid;
 	}
-	Stack invalidStack = {0, "invalid stack", H_STACK_REGBACKED, H_STACKPOLICY_BOTTOM, 0, 0, nullptr, nullptr};
+	Stack invalidStack = {0, "invalid stack", StackType::eRegBacked, StackPolicy::eBottom, 0, 0, nullptr, nullptr};
 }

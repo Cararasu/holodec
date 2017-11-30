@@ -31,6 +31,7 @@ namespace holodec {
 
 		HIdList<CallingConvention> callingconventions;
 
+		HUniqueList<HId> instrIds;
 		HIdMap<HId, InstrDefinition> instrdefs;
 
 		HSparseIdList<IRExpression> irExpressions;

@@ -17,24 +17,24 @@ namespace holodec {
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (!expr.id)
 				continue;
-			if (expr.type == SSA_EXPR_OUTPUT) {
+			if (expr.type == SSAExprType::eOutput) {
 				//TODO get Call method and get the calling convention of the target
 				//currently HACK to use own calling convention
 				SSAExpression* callExpr = function->ssaRep.expressions.get (expr.subExpressions[0].ssaId);
-				assert (callExpr && callExpr->type == SSA_EXPR_CALL);
+				assert (callExpr && callExpr->type == SSAExprType::eCall);
 
 				//TODO get correct stackreg
 				Register* localStackReg = stackreg;
 
 				bool isParam = false;
 				switch (expr.location) {
-				case SSA_LOCATION_REG: {
+				case SSAExprLocation::eReg: {
 					for (StringRef& regStr : cc->nonVolatileReg) {
 						Register* reg = arch->getRegister (regStr);
 						if (expr.locref.refId == reg->id) {
 							assert (expr.subExpressions[0].type == SSA_ARGTYPE_ID);
 
-							expr.type = SSA_EXPR_ASSIGN;
+							expr.type = SSAExprType::eAssign;
 							for (SSAArgument& arg : callExpr->subExpressions) {
 								if (arg.type == SSA_ARGTYPE_REG && arg.ref.refId == expr.locref.refId) {
 									expr.subExpressions[0] = arg;
@@ -45,7 +45,7 @@ namespace holodec {
 						}
 					}
 					if (!isParam && localStackReg && expr.locref.refId == localStackReg->id && cc->callerstackadjust == H_CC_STACK_ADJUST_CALLEE) {
-						expr.type = SSA_EXPR_ASSIGN;
+						expr.type = SSAExprType::eAssign;
 						for (SSAArgument& arg : callExpr->subExpressions) {
 							if (arg.type == SSA_ARGTYPE_REG && arg.ref.refId == expr.locref.refId) {
 								expr.subExpressions[0] = arg;
@@ -66,7 +66,7 @@ namespace holodec {
 					}
 				}
 				break;
-				case SSA_LOCATION_MEM: {
+				case SSAExprLocation::eMem: {
 					for (Memory& mem : arch->memories) {
 						if (expr.locref.refId == mem.id) {
 							expr.subExpressions.push_back (SSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
@@ -77,12 +77,12 @@ namespace holodec {
 				break;
 				}
 				if (!isParam) {
-					expr.type = SSA_EXPR_UNDEF;
+					expr.type = SSAExprType::eUndef;
 					if (!expr.subExpressions.empty())
 						expr.subExpressions.clear();
 				}
 			}
-			if (expr.type == SSA_EXPR_RETURN) {
+			if (expr.type == SSAExprType::eReturn) {
 				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();) {
 					SSAArgument& arg = *it;
 					bool isParam = false;
@@ -108,11 +108,11 @@ namespace holodec {
 					it++;
 				}
 			}
-			if (expr.type == SSA_EXPR_INPUT) {
+			if (expr.type == SSAExprType::eInput) {
 
 				bool isParam = false;
 				switch (expr.location) {
-				case SSA_LOCATION_REG: {
+				case SSAExprLocation::eReg: {
 					for (CCParameter& para : cc->parameters) {
 						Register* reg = arch->getRegister (para.regref);
 						if (expr.locref.refId == reg->id) {
@@ -127,7 +127,7 @@ namespace holodec {
 					}
 				}
 				break;
-				case SSA_LOCATION_MEM:
+				case SSAExprLocation::eMem:
 					for (Memory& mem : arch->memories) {
 						if (expr.locref.refId == mem.id) {
 							expr.subExpressions.push_back (SSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
@@ -137,7 +137,7 @@ namespace holodec {
 				}
 
 				if (!isParam) {
-					expr.type = SSA_EXPR_UNDEF;
+					expr.type = SSAExprType::eUndef;
 					if (!expr.subExpressions.empty())
 						expr.subExpressions.clear();
 				}
@@ -147,7 +147,7 @@ namespace holodec {
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (!expr.id)
 				continue;
-			if (expr.type == SSA_EXPR_CALL) {
+			if (expr.type == SSAExprType::eCall) {
 				//TODO get the calling convention of the target
 				//currently HACK to use own calling convention
 

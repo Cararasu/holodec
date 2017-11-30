@@ -234,8 +234,8 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{
 			0,
 			"stack",//name
-			H_STACK_MEMORY,//what backs the memory
-			H_STACKPOLICY_BOTTOM,//where to add new elements
+			StackType::eMemory,//what backs the memory
+			StackPolicy::eBottom,//where to add new elements
 			0, 8, //maxcount(0 = infinite), wordbitsize
 			"mem",
 			"rsp",//stackptr
@@ -244,8 +244,8 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{
 			0,
 			"st",
-			H_STACK_REGBACKED,
-			H_STACKPOLICY_BOTTOM,
+			StackType::eRegBacked,
+			StackPolicy::eBottom,
 			8, 80,
 			nullptr,
 			nullptr,
@@ -335,6 +335,7 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 			H_CC_STACK_R2L
 		},
 	},
+	{},//instructionIds
 	{
 		{X86_INS_INVALID, "invalid", {}, H_INSTR_TYPE_MOV},
 		{X86_INS_MOV, "mov", {{2, "=(#arg[1],#arg[2])"}}, H_INSTR_TYPE_MOV},

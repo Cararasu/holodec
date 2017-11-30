@@ -151,7 +151,7 @@ bool holodec::FunctionAnalyzer::analyzeFunction (Function* function) {
 	for (SSABB& bb : state.function->ssaRep.bbs) {
 		for (HId& id : bb.exprIds) {
 			SSAExpression* expr = state.function->ssaRep.expressions.get (id);
-			if (expr->type == SSA_EXPR_CALL) {
+			if (expr->type == SSAExprType::eCall) {
 				assert (expr->subExpressions.size());
 				if (expr->subExpressions[0].type == SSA_ARGTYPE_UINT) {
 					printf ("Found Function 0x%x\n", expr->subExpressions[0].uval);

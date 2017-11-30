@@ -15,9 +15,9 @@ namespace holodec {
 	struct HExpressionRef{
 		HArgumentRef exprRef;
 		
-		SSAExprType type = SSA_EXPR_INVALID;
+		SSAExprType type = SSAExprType::eInvalid;
 		uint64_t size = 0;
-		SSAType returntype = SSA_TYPE_UNKNOWN;
+		SSAType returntype = SSAType::eUnknown;
 		union { //64 bit
 			SSAFlagType flagType;
 			SSAOpType opType;
@@ -172,7 +172,7 @@ namespace holodec {
 		action.dst = dst;
 		return action;
 	};
-	inline MatchAction createInstrTypeAction(MatchActionSelector dst, SSAExprType type, SSAOpType opType = H_OP_INVALID, SSAFlagType flagType = SSA_FLAG_UNKNOWN){
+	inline MatchAction createInstrTypeAction(MatchActionSelector dst, SSAExprType type, SSAOpType opType = SSAOpType::eInvalid, SSAFlagType flagType = SSAFlagType::eUnknown){
 		MatchAction action;
 		action.actionType = MATCHACTION_INSTR_TYPE;
 		action.dst = dst;
@@ -289,8 +289,8 @@ namespace holodec {
 		MatchRule rule;
 		rule.matchRuleType = MATCHRULE_TYPE;
 		rule.type.type = type;
-		rule.type.opType = H_OP_INVALID;
-		rule.type.flagType = SSA_FLAG_UNKNOWN;
+		rule.type.opType = SSAOpType::eInvalid;
+		rule.type.flagType = SSAFlagType::eUnknown;
 		rule.type.size = size;
 		return rule;
 	}
@@ -299,7 +299,7 @@ namespace holodec {
 		rule.matchRuleType = MATCHRULE_TYPE;
 		rule.type.type = type;
 		rule.type.opType = opType;
-		rule.type.flagType = SSA_FLAG_UNKNOWN;
+		rule.type.flagType = SSAFlagType::eUnknown;
 		rule.type.size = size;
 		return rule;
 	}
@@ -307,7 +307,7 @@ namespace holodec {
 		MatchRule rule;
 		rule.matchRuleType = MATCHRULE_TYPE;
 		rule.type.type = type;
-		rule.type.opType = H_OP_INVALID;
+		rule.type.opType = SSAOpType::eInvalid;
 		rule.type.flagType = flagType;
 		rule.type.size = size;
 		return rule;

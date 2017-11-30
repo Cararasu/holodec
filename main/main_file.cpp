@@ -12,12 +12,14 @@
 #include "SSAAddressToBlockTransformer.h"
 #include "SSACallingConvApplier.h"
 #include "SSAAssignmentSimplifier.h"
-#include "SSADeadCodeEliminationTransformer.h"
+#include "SSADCETransformer.h"
 #include "HIdList.h"
 #include "SSAPeepholeOptimizer.h"
 #include "SSATransformToC.h"
 #include "PeepholeOptimizer.h"
 #include "ScriptingInterface.h"
+
+#include "CHolodec.h"
 
 using namespace holodec;
 
@@ -65,10 +67,10 @@ int main (int argc, char** argv) {
 		printf ("Could not Load File %s\n", filename.cstr());
 		return -1;
 	}
-
+	
 	Main::g_main->registerFileFormat (&elffileformat);
 	Main::g_main->registerArchitecture (&holox86::x86architecture);
-
+	
 	printf ("Init X86\n");
 	holox86::x86architecture.init();
 
@@ -109,7 +111,7 @@ int main (int argc, char** argv) {
 		new SSACallingConvApplier(),
 		new SSAPhiNodeGenerator(),
 		new SSAAssignmentSimplifier(),
-		new SSADeadCodeEliminationTransformer(),
+		new SSADCETransformer(),
 		//new SSAPeepholeOptimizer(),
 		new SSATransformToC()
 	};

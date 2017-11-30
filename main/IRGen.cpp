@@ -7,7 +7,7 @@ namespace holodec {
 	
 	IRParser::IRParser (Architecture* arch) : arch (arch) {
 		IRExpression expression;
-		{expression.returntype = SSA_TYPE_UNKNOWN;
+		{expression.returntype = SSAType::eUnknown;
 			expression.type = IR_EXPR_UNDEF;
 			expressionmap.insert(std::make_pair("undef", expression));
 			expression.type = IR_EXPR_SEQUENCE;
@@ -34,76 +34,76 @@ namespace holodec {
 			expressionmap.insert(std::make_pair("assign", expression));
 		}
 		
-		{expression.returntype = SSA_TYPE_UINT;
+		{expression.returntype = SSAType::eUint;
 			{expression.type = IR_EXPR_FLAG;
 				expression.size = 1;
-				expression.mod.flagType = SSA_FLAG_Z;
+				expression.mod.flagType = eFlagZ;
 				expressionmap.insert(std::make_pair("z", expression));
-				expression.mod.flagType = SSA_FLAG_P;
+				expression.mod.flagType = eFlagP;
 				expressionmap.insert(std::make_pair("p", expression));
-				expression.mod.flagType = SSA_FLAG_O;
+				expression.mod.flagType = eFlagO;
 				expressionmap.insert(std::make_pair("o", expression));
-				expression.mod.flagType = SSA_FLAG_S;
+				expression.mod.flagType = eFlagS;
 				expressionmap.insert(std::make_pair("s", expression));
-				expression.mod.flagType = SSA_FLAG_C;
+				expression.mod.flagType = eFlagC;
 				expressionmap.insert(std::make_pair("c", expression));
-				expression.mod.flagType = SSA_FLAG_A;
+				expression.mod.flagType = eFlagA;
 				expressionmap.insert(std::make_pair("a", expression));
 				expression.type = IR_EXPR_APPEND;
 				expressionmap.insert(std::make_pair("app", expression));
 			}
 			{expression.type = IR_EXPR_OP;
-				expression.mod.opType = H_OP_ADD;
+				expression.mod.opType = SSAOpType::eAdd;
 				expressionmap.insert(std::make_pair("add", expression));
-				expression.mod.opType = H_OP_SUB;
+				expression.mod.opType = SSAOpType::eSub;
 				expressionmap.insert(std::make_pair("sub", expression));
-				expression.mod.opType = H_OP_MUL;
+				expression.mod.opType = SSAOpType::eMul;
 				expressionmap.insert(std::make_pair("mul", expression));
-				expression.mod.opType = H_OP_DIV;
+				expression.mod.opType = SSAOpType::eDiv;
 				expressionmap.insert(std::make_pair("div", expression));
-				expression.mod.opType = H_OP_MOD;
+				expression.mod.opType = SSAOpType::eMod;
 				expressionmap.insert(std::make_pair("mod", expression));
-				expression.mod.opType = H_OP_SHR;
+				expression.mod.opType = SSAOpType::eShr;
 				expressionmap.insert(std::make_pair("shr", expression));
-				expression.mod.opType = H_OP_SHL;
+				expression.mod.opType = SSAOpType::eShl;
 				expressionmap.insert(std::make_pair("shl", expression));
-				expression.mod.opType = H_OP_SAR;
+				expression.mod.opType = SSAOpType::eSar;
 				expressionmap.insert(std::make_pair("sar", expression));
-				expression.mod.opType = H_OP_SAL;
+				expression.mod.opType = SSAOpType::eSal;
 				expressionmap.insert(std::make_pair("sal", expression));
-				expression.mod.opType = H_OP_ROR;
+				expression.mod.opType = SSAOpType::eRor;
 				expressionmap.insert(std::make_pair("ror", expression));
-				expression.mod.opType = H_OP_ROL;
+				expression.mod.opType = SSAOpType::eRol;
 				expressionmap.insert(std::make_pair("rol", expression));
-				expression.mod.opType = H_OP_AND;
+				expression.mod.opType = SSAOpType::eAnd;
 				expressionmap.insert(std::make_pair("and", expression));
-				expression.mod.opType = H_OP_OR;
+				expression.mod.opType = SSAOpType::eOr;
 				expressionmap.insert(std::make_pair("or", expression));
-				expression.mod.opType = H_OP_XOR;
+				expression.mod.opType = SSAOpType::eXor;
 				expressionmap.insert(std::make_pair("xor", expression));
-				expression.mod.opType = H_OP_NOT;
+				expression.mod.opType = SSAOpType::eNot;
 				expressionmap.insert(std::make_pair("not", expression));
-				expression.mod.opType = H_OP_BAND;
+				expression.mod.opType = SSAOpType::eBAnd;
 				expressionmap.insert(std::make_pair("band", expression));
-				expression.mod.opType = H_OP_BOR;
+				expression.mod.opType = SSAOpType::eBOr;
 				expressionmap.insert(std::make_pair("bor", expression));
-				expression.mod.opType = H_OP_BXOR;
+				expression.mod.opType = SSAOpType::eBXor;
 				expressionmap.insert(std::make_pair("bxor", expression));
-				expression.mod.opType = H_OP_BNOT;
+				expression.mod.opType = SSAOpType::eBNot;
 				expressionmap.insert(std::make_pair("bnot", expression));
 				
 				expression.size = 1;
-				expression.mod.opType = H_OP_EQ;
+				expression.mod.opType = SSAOpType::eEq;
 				expressionmap.insert(std::make_pair("eq", expression));
-				expression.mod.opType = H_OP_NE;
+				expression.mod.opType = SSAOpType::eNe;
 				expressionmap.insert(std::make_pair("ne", expression));
-				expression.mod.opType = H_OP_L;
+				expression.mod.opType = SSAOpType::eLower;
 				expressionmap.insert(std::make_pair("l", expression));
-				expression.mod.opType = H_OP_LE;
+				expression.mod.opType = SSAOpType::eLe;
 				expressionmap.insert(std::make_pair("le", expression));
-				expression.mod.opType = H_OP_G;
+				expression.mod.opType = SSAOpType::eGreater;
 				expressionmap.insert(std::make_pair("g", expression));
-				expression.mod.opType = H_OP_GE;
+				expression.mod.opType = SSAOpType::eGe;
 				expressionmap.insert(std::make_pair("ge", expression));
 			}
 			expression.type = IR_EXPR_EXTEND;
@@ -131,17 +131,17 @@ namespace holodec {
 			expressionmap.insert(std::make_pair("size", expression));
 			
 		}
-		{expression.returntype = SSA_TYPE_INT;
+		{expression.returntype = SSAType::eInt;
 			{expression.type = IR_EXPR_OP;
-				expression.mod.opType = H_OP_ADD;
+				expression.mod.opType = SSAOpType::eAdd;
 				expressionmap.insert(std::make_pair("sadd", expression));
-				expression.mod.opType = H_OP_SUB;
+				expression.mod.opType = SSAOpType::eSub;
 				expressionmap.insert(std::make_pair("ssub", expression));
-				expression.mod.opType = H_OP_MUL;
+				expression.mod.opType = SSAOpType::eMul;
 				expressionmap.insert(std::make_pair("smul", expression));
-				expression.mod.opType = H_OP_DIV;
+				expression.mod.opType = SSAOpType::eDiv;
 				expressionmap.insert(std::make_pair("sdiv", expression));
-				expression.mod.opType = H_OP_MOD;
+				expression.mod.opType = SSAOpType::eMod;
 				expressionmap.insert(std::make_pair("smod", expression));
 			}
 			expression.type = IR_EXPR_EXTEND;
@@ -163,17 +163,17 @@ namespace holodec {
 			expressionmap.insert(std::make_pair("sst", expression));
 			
 		}
-		{expression.returntype = SSA_TYPE_FLOAT;
+		{expression.returntype = SSAType::eFloat;
 			{expression.type = IR_EXPR_OP;
-				expression.mod.opType = H_OP_ADD;
+				expression.mod.opType = SSAOpType::eAdd;
 				expressionmap.insert(std::make_pair("fadd", expression));
-				expression.mod.opType = H_OP_SUB;
+				expression.mod.opType = SSAOpType::eSub;
 				expressionmap.insert(std::make_pair("fsub", expression));
-				expression.mod.opType = H_OP_MUL;
+				expression.mod.opType = SSAOpType::eMul;
 				expressionmap.insert(std::make_pair("fmul", expression));
-				expression.mod.opType = H_OP_DIV;
+				expression.mod.opType = SSAOpType::eDiv;
 				expressionmap.insert(std::make_pair("fdiv", expression));
-				expression.mod.opType = H_OP_MOD;
+				expression.mod.opType = SSAOpType::eMod;
 				expressionmap.insert(std::make_pair("fmod", expression));
 			}
 			expression.type = IR_EXPR_EXTEND;

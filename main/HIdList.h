@@ -71,7 +71,7 @@ namespace holodec {
 			if (upperbound >= id) {//optimization for quick access
 				T& val = list[id - 1];
 				if (val.id == id) //quick return
-					return &list[id - 1];
+					return &val;
 			}
 			
 			while(lowerbound <= upperbound) {// binary seach
@@ -96,6 +96,47 @@ namespace holodec {
 
 	};
 	
+	template<typename T>
+	struct HUniqueList {
+		HList<T> list;
+		
+		typedef typename HList<T>::iterator iterator;
+
+		HUniqueList() {}
+		HUniqueList (std::initializer_list<T> list) : list (list) {
+		}
+		HUniqueList (HList<T> list) : list (list) {
+		}
+		
+		void insert (T& ele) {
+			for(T& e : list)
+				if(e == ele)
+					return;
+			list.push_back (ele);
+		}
+		auto begin() -> decltype(list.begin()){
+			return list.begin();
+		}
+		auto end() -> decltype(list.end()){
+			return list.end();
+		}
+		auto size() -> decltype(list.size()){
+			return list.size();
+		}
+		auto back() -> decltype(list.back()){
+			return list.back();
+		}
+		void erase(iterator it) {
+			list.erase(it);
+		}
+		T& operator[] (HId id) {
+			return list[id];
+		}
+		auto clear() -> decltype(list.clear()){
+			list.clear();
+		}
+
+	};
 	
 	template<typename T>
 	class HSparseIdList {

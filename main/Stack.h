@@ -7,13 +7,21 @@
 #include "Register.h"
 namespace holodec {
 
-	enum StackType {
+	enum HStackType {
 		H_STACK_REGBACKED,
 		H_STACK_MEMORY
 	};
-	enum StackPolicy {
+	enum HStackPolicy {
 		H_STACKPOLICY_BOTTOM,
 		H_STACKPOLICY_TOP
+	};
+	enum class StackType {
+		eRegBacked = H_STACK_REGBACKED,
+		eMemory = H_STACK_MEMORY
+	};
+	enum class StackPolicy {
+		eBottom = H_STACKPOLICY_BOTTOM,
+		eTop = H_STACKPOLICY_TOP
 	};
 	struct Stack {
 		HId id;

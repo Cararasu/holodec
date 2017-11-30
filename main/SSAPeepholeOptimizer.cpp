@@ -51,9 +51,9 @@ namespace holodec {
 				dstExpr->subExpressions[dstIndex - 1].size = srcExpr->size;
 			if(inheritArgFlags & MATCHACTION_INHERIT_ARG_LOCATION){
 				switch(srcExpr->location){
-				case SSA_LOCATION_REG:
-				case SSA_LOCATION_STACK:
-				case SSA_LOCATION_MEM:{
+				case SSAExprLocation::eReg:
+				case SSAExprLocation::eStack:
+				case SSAExprLocation::eMem:{
 					dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_REG;
 					dstExpr->subExpressions[dstIndex - 1].ref = srcExpr->locref;
 				}break;
@@ -183,7 +183,7 @@ namespace holodec {
 			return expression->type == type.type && expression->opType == type.opType && expression->flagType == type.flagType;
 
 		case MATCHRULE_BUILTIN:
-			return expression->type == SSA_EXPR_BUILTIN && expression->builtinId == builtin.id;
+			return expression->type == SSAExprType::eBuiltin && expression->builtinId == builtin.id;
 		case MATCHRULE_LOCATION:
 			return expression->location == location.loc && expression->locref == location.ref;
 
@@ -246,10 +246,10 @@ namespace holodec {
 	SSAPeepholeOptimizer::SSAPeepholeOptimizer() {
 		Matcher matcher (
 		    0,
-		{createTypeRule(SSA_EXPR_CJMP) }, {
+		{createTypeRule(SSAExprType::eCjmp) }, {
 			Matcher (
 			    1,
-			{createTypeRule (SSA_EXPR_FLAG, SSA_FLAG_Z) },
+			{createTypeRule (SSAExprType::eFlag, eFlagZ) },
 			{},
 			{
 				createInsertInstrAction({0,2,0})}
@@ -257,17 +257,17 @@ namespace holodec {
 		}
 		);
 		SSAExpression exprTemp;
-		exprTemp.type = SSA_EXPR_CAST;
+		exprTemp.type = SSAExprType::eCast;
 		matchers.push_back (matcher);
 		matchers.push_back (
 		    Matcher (
-		        0, {createTypeRule (SSA_EXPR_JMP) },
+		        0, {createTypeRule (SSAExprType::eJmp) },
 				{}, {
 					//createdId, foundId, argIndex: create
 					createInsertInstrAction({0,1,0}),
 					createInsertInstrAction({1,0,0}),
-					createInstrTypeAction({1,0,0},SSA_EXPR_CAST),
-					createInstrTypeAction({2,0,0},SSA_EXPR_CAST),
+					createInstrTypeAction({1,0,0}, SSAExprType::eCast),
+					createInstrTypeAction({2,0,0}, SSAExprType::eCast),
 					//inherit data
 					createInheritInstrAction({0,1,0},{1,0,0}, 0),
 					createInheritInstrAction({0,1,0},{2,0,0}, 0),

@@ -111,22 +111,22 @@ namespace holodec {
 		case IR_EXPR_FLAG:
 			printf ("Flag ");
 			switch (this->mod.flagType) {
-			case SSA_FLAG_C:
+			case eFlagC:
 				printf ("C");
 				break;
-			case SSA_FLAG_A:
+			case eFlagA:
 				printf ("A");
 				break;
-			case SSA_FLAG_P:
+			case eFlagP:
 				printf ("P");
 				break;
-			case SSA_FLAG_O:
+			case eFlagO:
 				printf ("O");
 				break;
-			case SSA_FLAG_Z:
+			case eFlagZ:
 				printf ("Z");
 				break;
-			case SSA_FLAG_S:
+			case eFlagS:
 				printf ("S");
 				break;
 			}

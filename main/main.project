@@ -57,6 +57,9 @@
       <File Name="Main.h"/>
       <File Name="CHolodec.h"/>
       <File Name="CHolodec.cpp"/>
+      <File Name="CHolodecStruct.h"/>
+      <File Name="CHolodecStruct.cpp"/>
+      <File Name="CHolodecHeader.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="DataAnalyzer">
       <File Name="FileFormat.h"/>
@@ -79,8 +82,6 @@
       <File Name="SSAPhiNodeGenerator.cpp"/>
       <File Name="SSAPeepholeOptimizer.h"/>
       <File Name="SSAPeepholeOptimizer.cpp"/>
-      <File Name="SSADeadCodeEliminationTransformer.h"/>
-      <File Name="SSADeadCodeEliminationTransformer.cpp"/>
       <File Name="SSACallingConvApplier.h"/>
       <File Name="SSACallingConvApplier.cpp"/>
       <File Name="SSAAssignmentSimplifier.h"/>
@@ -91,6 +92,8 @@
       <File Name="SSATransformToC.cpp"/>
       <File Name="PeepholeOptimizer.h"/>
       <File Name="PeepholeOptimizer.cpp"/>
+      <File Name="SSADCETransformer.cpp"/>
+      <File Name="SSADCETransformer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="binary">
       <VirtualDirectory Name="elf">

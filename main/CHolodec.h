@@ -6,72 +6,47 @@
 
 #define HOLODEC_PTR(type) typedef void* type;
 
-HOLODEC_PTR(HArchitecture)
-HOLODEC_PTR(HBinary)
-HOLODEC_PTR(HFunction)
-HOLODEC_PTR(HString)
-HOLODEC_PTR(HRegister)
-HOLODEC_PTR(HStack)
-HOLODEC_PTR(HMemory)
-HOLODEC_PTR(HCallingConvention)
+HOLODEC_PTR (HArchitecture)
+HOLODEC_PTR (HBinary)
+HOLODEC_PTR (HFunction)
+HOLODEC_PTR (HRegister)
+HOLODEC_PTR (HStack)
+HOLODEC_PTR (HMemory)
+HOLODEC_PTR (HCallingConvention)
+HOLODEC_PTR (HInstrDefinition)
 
-struct HContext{
-	HArchitecture arch;
-	HBinary binary;
-	HFunction function;
-};
-/*
-		HString name;
-		HString desc;
-		uint64_t bitbase;
-		uint64_t wordbase;
+HOLODEC_PTR (HSSARepresentation)
+HOLODEC_PTR (HSSABB)
+HOLODEC_PTR (HSSAExpression)
+HOLODEC_PTR (HSSAArgument)
 
-		HList<std::function<FunctionAnalyzer* (Binary*) >> functionanalyzerfactories;
-		HIdList<Register> registers;
+typedef uint32_t HId;
 
-		HSparseIdList<Stack> stacks;
-		
-		HSparseIdList<Memory> memories;
+void holodec_init (void);
+HArchitecture holodec_get_arch (uint64_t index);
+HArchitecture holodec_get_arch_by_name (const char* name);
+uint64_t holodec_get_archcount (void);
 
-		HSparseIdList<CallingConvention> callingconventions;
+const char* arch_get_name (HArchitecture arch);
+const char* arch_get_description (HArchitecture arch);
+uint64_t arch_get_bitbase (HArchitecture arch);
+uint64_t arch_get_wordbase (HArchitecture arch);
 
-		HIdMap<HId, InstrDefinition> instrdefs;
+HRegister arch_get_register (HArchitecture arch, uint64_t index);
+HRegister arch_get_register_by_id (HArchitecture arch, uint32_t index);
+uint64_t arch_get_regcount (HArchitecture arch);
 
-		HSparseIdList<IRExpression> irExpressions;*/
+HStack arch_get_stack (HArchitecture arch, uint64_t index);
+HStack arch_get_stack_by_id (HArchitecture arch, uint32_t index);
+uint64_t arch_get_stackcount (HArchitecture arch);
 
-extern struct Holodec{
-	
-	
-	
-	
-	struct{
-		HString (*get_name)(HArchitecture);
-		HString (*get_description)(HArchitecture);
-		uint64_t (*get_bitbase)(HArchitecture);
-		uint64_t (*get_wordbase)(HArchitecture);
-		
-		HRegister (*get_register)(HArchitecture, uint64_t);
-		uint64_t (*get_regcount)(HArchitecture);
-		
-		HStack (*get_stack)(HArchitecture, uint64_t);
-		uint64_t (*get_stackcount)(HArchitecture);
-		
-		HCallingConvention (*get_cc)(HArchitecture, uint64_t);
-		uint64_t (*get_cccount)(HArchitecture);
-		
-	}arch;
-	
-	struct{
-		
-	}reg;
-	
-	struct{
-		const char* (*unpack_string)(HString);
-		HString (*pack_string)(const char*);
-		HString (*dup_string)(const char*);
-	}misc;
-	
-}holodec;
+HCallingConvention arch_get_cc (HArchitecture arch, uint64_t index);
+HCallingConvention arch_get_cc_by_id (HArchitecture arch, uint32_t index);
+uint64_t arch_get_cccount (HArchitecture arch);
+
+HInstrDefinition arch_get_instrdef (HArchitecture arch, uint64_t index);
+HInstrDefinition arch_get_instrdef_by_id (HArchitecture arch, uint32_t index);
+uint64_t arch_get_instrdefcount (HArchitecture arch);
 
 
 #endif //CHOLODEC_H

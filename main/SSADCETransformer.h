@@ -5,7 +5,7 @@
 
 namespace holodec {
 
-	class SSADeadCodeEliminationTransformer : public SSATransformer {
+	class SSADCETransformer : public SSATransformer {
 
 		SSARepresentation* ssaRep;
 		HList<HId> usecount;

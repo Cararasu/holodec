@@ -29,7 +29,13 @@ namespace holodec {
 			}
 		}
 
+		instrIds.clear();
+
 		for (auto& entry : instrdefs) {
+			entry.second.id = entry.first;
+			printf("%d\n", entry.first);
+			HId id = entry.first;
+			instrIds.insert(id);
 			IRParser parser (this);
 			for (int i = 0; i < entry.second.irs.size(); i++) {
 				if (entry.second.irs[i]) {

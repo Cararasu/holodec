@@ -8,6 +8,7 @@
 #include "Register.h"
 #include "Stack.h"
 #include "Memory.h"
+#include "CHolodecHeader.h"
 
 namespace holodec {
 
@@ -44,6 +45,9 @@ namespace holodec {
 		
 		explicit operator bool(){
 			return (bool)refId;
+		}
+		explicit operator HReference(){
+			return {refId, index};
 		}
 		operator !(){
 			return !refId;

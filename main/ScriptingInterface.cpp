@@ -32,7 +32,7 @@ namespace holodec {
 	//setExpr...(arch, binary, func, exprId, value)
 
 	extern "C" {
-		PyObject * holodec_test (PyObject *self, PyObject *args) {
+		PyObject * py_holodec_test (PyObject *self, PyObject *args) {
 			PyObject* obj = PyTuple_GetItem (args, 0);
 			PyObject* archObj = PyDict_GetItemString (obj, "arch");
 
@@ -41,7 +41,7 @@ namespace holodec {
 			printf ("Test %s\n", arch->name.cstr());
 			return PyUnicode_FromString (arch->name.cstr());
 		}
-		PyObject * arch_get_name (PyObject *self, PyObject *args) {
+		PyObject * py_arch_get_name (PyObject *self, PyObject *args) {
 			if (PyTuple_Size (args) < 1)
 				assert (false);
 			PyObject* context = PyTuple_GetItem (args, 0);
@@ -49,7 +49,7 @@ namespace holodec {
 			Architecture* arch = (Architecture*) PyCapsule_GetPointer (archObj, "holodec::Architecture");
 			return PyUnicode_FromString (arch->name.cstr());
 		}
-		PyObject * arch_get_descr (PyObject *self, PyObject *args) {
+		PyObject * py_arch_get_descr (PyObject *self, PyObject *args) {
 			if (PyTuple_Size (args) < 1)
 				assert (false);
 			PyObject* context = PyTuple_GetItem (args, 0);
@@ -57,7 +57,7 @@ namespace holodec {
 			Architecture* arch = (Architecture*) PyCapsule_GetPointer (archObj, "holodec::Architecture");
 			return PyUnicode_FromString (arch->desc.cstr());
 		}
-		PyObject * arch_get_bitbase (PyObject *self, PyObject *args) {
+		PyObject * py_arch_get_bitbase (PyObject *self, PyObject *args) {
 			if (PyTuple_Size (args) < 1)
 				assert (false);
 			PyObject* context = PyTuple_GetItem (args, 0);
@@ -65,7 +65,7 @@ namespace holodec {
 			Architecture* arch = (Architecture*) PyCapsule_GetPointer (archObj, "holodec::Architecture");
 			return PyLong_FromUnsignedLongLong (arch->bitbase);
 		}
-		PyObject * arch_get_wordbase (PyObject *self, PyObject *args) {
+		PyObject * py_arch_get_wordbase (PyObject *self, PyObject *args) {
 			if (PyTuple_Size (args) < 1)
 				assert (false);
 			PyObject* context = PyTuple_GetItem (args, 0);
@@ -99,13 +99,13 @@ namespace holodec {
 
 	static PyMethodDef holodecMethods[] = {
 		{
-			"test", holodec_test, METH_VARARGS,
+			"test", py_holodec_test, METH_VARARGS,
 			"Return the number of arguments received by the process."
 		},
-		{ "getName", arch_get_name, METH_VARARGS, nullptr },
-		{ "getDescr", arch_get_descr, METH_VARARGS, nullptr },
-		{ "getBitbase", arch_get_bitbase, METH_VARARGS, nullptr },
-		{ "getWordbase", arch_get_wordbase, METH_VARARGS, nullptr },
+		{ "getName", py_arch_get_name, METH_VARARGS, nullptr },
+		{ "getDescr", py_arch_get_descr, METH_VARARGS, nullptr },
+		{ "getBitbase", py_arch_get_bitbase, METH_VARARGS, nullptr },
+		{ "getWordbase", py_arch_get_wordbase, METH_VARARGS, nullptr },
 		{NULL, NULL, 0, NULL}
 	};
 	static PyModuleDef holodecModule = {

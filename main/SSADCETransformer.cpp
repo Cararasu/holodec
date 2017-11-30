@@ -1,4 +1,4 @@
-#include "SSADeadCodeEliminationTransformer.h"
+#include "SSADCETransformer.h"
 #include <set>
 
 #include "SSA.h"
@@ -8,7 +8,7 @@
 
 namespace holodec {
 
-	void SSADeadCodeEliminationTransformer::doTransformation (Function* function) {
+	void SSADCETransformer::doTransformation (Function* function) {
 
 		printf ("DCE for Function at Address 0x%llx\n", function->baseaddr);
 		

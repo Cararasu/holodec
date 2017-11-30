@@ -8,6 +8,7 @@
 #include "Argument.h"
 #include "General.h"
 #include "HIdList.h"
+#include "CHolodecHeader.h"
 
 #define SSA_LOCAL_USEID_MAX (4)
 
@@ -15,122 +16,114 @@ namespace holodec {
 
 	class Architecture;
 	
-#define SSA_EXPR_CONTROL_FLOW		(0x1000)
-#define SSA_EXPR_TRANSIENT_NODE		(0x2000)//TODO rename as this is a bad name
-#define SSA_EXPR_MEMWRITE			(0x4000)
-
-#define EXPR_IS_CONTROLFLOW(type) (type & SSA_EXPR_CONTROL_FLOW)
-#define EXPR_IS_TRANSIENT(type) (type & SSA_EXPR_TRANSIENT_NODE)
-
-#define EXPR_HAS_SIDEEFFECT(type) (type & (SSA_EXPR_CONTROL_FLOW | SSA_EXPR_MEMWRITE))
-	enum SSAExprType {
-		SSA_EXPR_INVALID	= 0x0,
+	enum class SSAExprType {
+		eInvalid	= SSA_EXPR_INVALID,
 		
-		SSA_EXPR_LABEL		= 0x10,
-		SSA_EXPR_UNDEF		= 0x11,
-		SSA_EXPR_NOP		= 0x12,
+		eLabel		= SSA_EXPR_LABEL,
+		eUndef		= SSA_EXPR_UNDEF,
+		eNop		= SSA_EXPR_NOP,
 		
-		SSA_EXPR_OP			= 0x13,
-		SSA_EXPR_LOADADDR	= 0x14,
-		SSA_EXPR_FLAG		= 0x15,
-		SSA_EXPR_BUILTIN	= 0x16,
-		SSA_EXPR_EXTEND		= 0x17,
-		SSA_EXPR_SPLIT		= 0x18,
-		SSA_EXPR_UPDATEPART	= SSA_EXPR_TRANSIENT_NODE | 0x19,
-		SSA_EXPR_APPEND		= 0x1A,
-		SSA_EXPR_CAST		= 0x1B,
+		eOp			= SSA_EXPR_OP,
+		eLoadAddr	= SSA_EXPR_LOADADDR,
+		eFlag		= SSA_EXPR_FLAG,
+		eBuiltin	= SSA_EXPR_BUILTIN,
+		eExtend		= SSA_EXPR_EXTEND,
+		eSplit		= SSA_EXPR_SPLIT,
+		eUpdatePart	= SSA_EXPR_UPDATEPART,
+		eAppend		= SSA_EXPR_APPEND,
+		eCast		= SSA_EXPR_CAST,
 		
-		SSA_EXPR_INPUT		= 0x21,
-		SSA_EXPR_OUTPUT		= 0x22,
+		eInput		= SSA_EXPR_INPUT,
+		eOutput		= SSA_EXPR_OUTPUT,
 		
-		SSA_EXPR_CALL		= SSA_EXPR_CONTROL_FLOW | 0x23,
-		SSA_EXPR_RETURN		= SSA_EXPR_CONTROL_FLOW | 0x24,
-		SSA_EXPR_SYSCALL	= SSA_EXPR_CONTROL_FLOW | 0x25,
-		SSA_EXPR_TRAP		= SSA_EXPR_CONTROL_FLOW | 0x26,
+		eCall		= SSA_EXPR_CALL,
+		eReturn		= SSA_EXPR_RETURN,
+		eSyscall	= SSA_EXPR_SYSCALL,
+		eTrap		= SSA_EXPR_TRAP,
 
-		SSA_EXPR_PHI		= SSA_EXPR_TRANSIENT_NODE | 0x31,
-		SSA_EXPR_ASSIGN		= 0x32,
+		ePhi		= SSA_EXPR_PHI,
+		eAssign		= SSA_EXPR_ASSIGN,
 
-		SSA_EXPR_JMP		= SSA_EXPR_CONTROL_FLOW | 0x41,
-		SSA_EXPR_CJMP		= SSA_EXPR_CONTROL_FLOW | 0x42,
-		SSA_EXPR_MULTIBR	= SSA_EXPR_CONTROL_FLOW | 0x43,
+		eJmp		= SSA_EXPR_JMP,
+		eCjmp		= SSA_EXPR_CJMP,
+		eMultiBranch	= SSA_EXPR_MULTIBR,
 
-		SSA_EXPR_MEMACCESS	= 0x50,
-		SSA_EXPR_PUSH		= SSA_EXPR_MEMWRITE | 0x54,
-		SSA_EXPR_POP		= 0x55,
-		SSA_EXPR_STORE		= SSA_EXPR_MEMWRITE | 0x58,
-		SSA_EXPR_LOAD		= 0x59,
+		eMemAccess	= SSA_EXPR_MEMACCESS,
+		ePush		= SSA_EXPR_PUSH,
+		ePop		= SSA_EXPR_POP,
+		eStore		= SSA_EXPR_STORE,
+		eLoad		= SSA_EXPR_LOAD,
 
 	};
 	enum SSAOpType {
-		H_OP_INVALID = 0,
-		H_OP_ADD,
-		H_OP_SUB,
-		H_OP_MUL,
-		H_OP_DIV,
-		H_OP_MOD,
+		eInvalid = SSA_OP_INVALID,
+		eAdd = SSA_OP_ADD,
+		eSub = SSA_OP_SUB,
+		eMul = SSA_OP_MUL,
+		eDiv = SSA_OP_DIV,
+		eMod = SSA_OP_MOD,
 
-		H_OP_AND,
-		H_OP_OR,
-		H_OP_XOR,
-		H_OP_NOT,
+		eAnd = SSA_OP_AND,
+		eOr = SSA_OP_OR,
+		eXor = SSA_OP_XOR,
+		eNot = SSA_OP_NOT,
 
-		H_OP_EQ,
-		H_OP_NE,
-		H_OP_L,
-		H_OP_LE,
-		H_OP_G,
-		H_OP_GE,
+		eEq = SSA_OP_EQ,
+		eNe = SSA_OP_NE,
+		eLower = SSA_OP_LOWER,
+		eLe = SSA_OP_LE,
+		eGreater = SSA_OP_GREATER,
+		eGe = SSA_OP_GE,
 
-		H_OP_BAND,
-		H_OP_BOR,
-		H_OP_BXOR,
-		H_OP_BNOT,
+		eBAnd = SSA_OP_BAND,
+		eBOr = SSA_OP_BOR,
+		eBXor = SSA_OP_BXOR,
+		eBNot = SSA_OP_BNOT,
 
-		H_OP_SHR,
-		H_OP_SHL,
-		H_OP_SAR,
-		H_OP_SAL,
-		H_OP_ROR,
-		H_OP_ROL,
+		eShr = SSA_OP_SHR,
+		eShl = SSA_OP_SHL,
+		eSar = SSA_OP_SAR,
+		eSal = SSA_OP_SAL,
+		eRor = SSA_OP_ROR,
+		eRol = SSA_OP_ROL,
 	};
-	enum SSAType {
-		SSA_TYPE_UNKNOWN = 0,
-		SSA_TYPE_INT,
-		SSA_TYPE_UINT,
-		SSA_TYPE_FLOAT,
-		SSA_TYPE_PC,
-		SSA_TYPE_MEMACCESS,
+	enum class SSAType {
+		eUnknown = SSA_TYPE_UNKNOWN,
+		eInt = SSA_TYPE_INT,
+		eUint = SSA_TYPE_UINT,
+		eFloat = SSA_TYPE_FLOAT,
+		ePc = SSA_TYPE_PC,
+		eMemaccess = SSA_TYPE_MEMACCESS,
 	};
 	enum SSAFlagType {
-		SSA_FLAG_UNKNOWN = 0,
-		SSA_FLAG_C,
-		SSA_FLAG_A,
-		SSA_FLAG_P,
-		SSA_FLAG_O,
-		SSA_FLAG_U,
-		SSA_FLAG_Z,
-		SSA_FLAG_S,
+		eUnknown = SSA_FLAG_UNKNOWN,
+		eFlagC = SSA_FLAG_C,
+		eFlagA = SSA_FLAG_A,
+		eFlagP = SSA_FLAG_P,
+		eFlagO = SSA_FLAG_O,
+		eFlagU = SSA_FLAG_U,
+		eFlagZ = SSA_FLAG_Z,
+		eFlagS = SSA_FLAG_S,
 	};
-	enum SSAExprLocation{
-		SSA_LOCATION_NONE,
-		SSA_LOCATION_REG,
-		SSA_LOCATION_STACK,
-		SSA_LOCATION_MEM,
+	enum class SSAExprLocation{
+		eNone = SSA_LOCATION_NONE,
+		eReg = SSA_LOCATION_REG,
+		eStack = SSA_LOCATION_STACK,
+		eMem = SSA_LOCATION_MEM,
 	};
 	struct SSAExpression {
 		HId id = 0;
-		SSAExprType type = SSA_EXPR_INVALID;
+		SSAExprType type = SSAExprType::eInvalid;
 		uint64_t refcount = 0;
 		uint64_t size = 0;
-		SSAType returntype = SSA_TYPE_UNKNOWN;
+		SSAType returntype = SSAType::eUnknown;
 		union { //64 bit
 			SSAFlagType flagType;
 			SSAOpType opType;
 			HId builtinId;
 			//HId instrId;
 		};
-		SSAExprLocation location = SSA_LOCATION_NONE;
+		SSAExprLocation location = SSAExprLocation::eNone;
 		Reference locref = {0,0};
 		uint64_t instrAddr = 0;
 		
@@ -138,10 +131,10 @@ namespace holodec {
 		HList<SSAArgument> subExpressions;
 
 		bool operator!() {
-			return type == SSA_EXPR_INVALID;
+			return type == SSAExprType::eInvalid;
 		}
 		operator bool() {
-			return type != SSA_EXPR_INVALID;
+			return type != SSAExprType::eInvalid;
 		}
 		void print(Architecture* arch, int indent = 0);
 	};
@@ -154,11 +147,11 @@ namespace holodec {
 				}
 			}
 			switch (rhs.type) {
-			case SSA_EXPR_FLAG:
+			case SSAExprType::eFlag:
 				return lhs.flagType == rhs.flagType;
-			case SSA_EXPR_OP:
+			case SSAExprType::eOp:
 				return lhs.opType == rhs.opType;
-			case SSA_EXPR_BUILTIN:
+			case SSAExprType::eBuiltin:
 				return lhs.builtinId == rhs.builtinId;
 			default:
 				return true;
@@ -173,11 +166,11 @@ namespace holodec {
 		uint64_t startaddr = (uint64_t)-1;
 		uint64_t endaddr = 0;
 		HList<HId> exprIds;
-		HSet<HId> inBlocks;
-		HSet<HId> outBlocks;
+		HUniqueList<HId> inBlocks;
+		HUniqueList<HId> outBlocks;
 
 		SSABB() {}
-		SSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds, HSet<HId> inBlocks, HSet<HId> outBlocks) :
+		SSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds, HUniqueList<HId> inBlocks, HUniqueList<HId> outBlocks) :
 			id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds),inBlocks(inBlocks),outBlocks(outBlocks){}
 		~SSABB() = default;
 

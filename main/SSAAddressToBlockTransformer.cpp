@@ -8,7 +8,7 @@ namespace holodec {
 
 	void SSAAddressToBlockTransformer::parseBlock (SSABB* block) {
 		if(block->exprIds.size())
-			if(function->ssaRep.expressions[block->exprIds.back()].type == SSA_EXPR_RETURN)//if last statement is return then we do nothing
+			if(function->ssaRep.expressions[block->exprIds.back()].type == SSAExprType::eReturn)//if last statement is return then we do nothing
 				return;
 		if(!block->fallthroughId){
 			for(SSABB& bb : function->ssaRep.bbs){
@@ -23,7 +23,7 @@ namespace holodec {
 	}
 	void SSAAddressToBlockTransformer::parseExpression (SSABB* basicBlock, SSAExpression* expression) {
 		
-		if(expression->type == SSA_EXPR_JMP){
+		if(expression->type == SSAExprType::eJmp){
 			if(expression->subExpressions[0].type == SSA_ARGTYPE_UINT){
 				for(SSABB& bb : function->ssaRep.bbs){
 					if(bb.startaddr == expression->subExpressions[0].uval){
@@ -34,7 +34,7 @@ namespace holodec {
 					}
 				}
 			}
-		}else if(expression->type == SSA_EXPR_CJMP){
+		}else if(expression->type == SSAExprType::eCjmp){
 			if(expression->subExpressions[1].type == SSA_ARGTYPE_UINT){
 				for(SSABB& bb : function->ssaRep.bbs){
 					if(bb.startaddr == expression->subExpressions[1].uval){
@@ -45,7 +45,7 @@ namespace holodec {
 					}
 				}
 			}
-		}else if(expression->type == SSA_EXPR_MULTIBR){
+		}else if(expression->type == SSAExprType::eMultiBranch){
 			for(auto it = expression->subExpressions.begin() + 1; it != expression->subExpressions.end(); ++it){
 				if(it->type == SSA_ARGTYPE_UINT){
 					for(SSABB& bb : function->ssaRep.bbs){

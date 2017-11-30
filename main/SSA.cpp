@@ -9,202 +9,202 @@ namespace holodec {
 		printf ("0x%x:", instrAddr);
 
 		switch (this->returntype) {
-		case SSA_TYPE_UNKNOWN:
+		case SSAType::eUnknown:
 			printf ("Unknown Type");
 			break;
-		case SSA_TYPE_INT:
+		case SSAType::eInt:
 			printf ("int");
 			break;
-		case SSA_TYPE_UINT:
+		case SSAType::eUint:
 			printf ("uint");
 			break;
-		case SSA_TYPE_FLOAT:
+		case SSAType::eFloat:
 			printf ("float");
 			break;
-		case SSA_TYPE_PC:
+		case SSAType::ePc:
 			printf ("pc");
 			break;
-		case SSA_TYPE_MEMACCESS:
+		case SSAType::eMemaccess:
 			printf ("memaccess");
 			break;
 		}
 		printf ("%d ", this->size);
 
 		switch (type) {
-		case SSA_EXPR_INVALID:
+		case SSAExprType::eInvalid:
 			printf ("---------------------------------------");
 			printf ("Invalid%d ", type);
 			break;
-		case SSA_EXPR_LABEL:
+		case SSAExprType::eLabel:
 			printf ("Label ");
 			break;
-		case SSA_EXPR_INPUT:
+		case SSAExprType::eInput:
 			printf ("Input ");
 			break;
-		case SSA_EXPR_UNDEF:
+		case SSAExprType::eUndef:
 			printf ("Undef ");
 			break;
-		case SSA_EXPR_NOP:
+		case SSAExprType::eNop:
 			printf ("Nop ");
 			break;
-		case SSA_EXPR_PHI:
+		case SSAExprType::ePhi:
 			printf ("Phi ");
 			break;
-		case SSA_EXPR_ASSIGN:
+		case SSAExprType::eAssign:
 			printf ("Assign ");
 			break;
-		case SSA_EXPR_JMP:
+		case SSAExprType::eJmp:
 			printf ("Jmp ");
 			break;
-		case SSA_EXPR_CJMP:
+		case SSAExprType::eCjmp:
 			printf ("Cjmp ");
 			break;
-		case SSA_EXPR_MULTIBR:
+		case SSAExprType::eMultiBranch:
 			printf ("Multi-Branch ");
 			break;
-		case SSA_EXPR_OP:
+		case SSAExprType::eOp:
 			printf ("Op ");
 			switch (opType) {
-			case H_OP_INVALID:
+			case SSAOpType::eInvalid:
 				printf ("Invalid ");
 				break;
-			case H_OP_ADD:
+			case SSAOpType::eAdd:
 				printf ("+ ");
 				break;
-			case H_OP_SUB:
+			case SSAOpType::eSub:
 				printf ("- ");
 				break;
-			case H_OP_MUL:
+			case SSAOpType::eMul:
 				printf ("* ");
 				break;
-			case H_OP_DIV:
+			case SSAOpType::eDiv:
 				printf ("/ ");
 				break;
-			case H_OP_MOD:
+			case SSAOpType::eMod:
 				printf ("% ");
 				break;
-			case H_OP_AND:
+			case SSAOpType::eAnd:
 				printf ("&& ");
 				break;
-			case H_OP_OR:
+			case SSAOpType::eOr:
 				printf ("|| ");
 				break;
-			case H_OP_XOR:
+			case SSAOpType::eXor:
 				printf ("xor ");
 				break;
-			case H_OP_NOT:
+			case SSAOpType::eNot:
 				printf ("! ");
 				break;
-			case H_OP_EQ:
+			case SSAOpType::eEq:
 				printf ("== ");
 				break;
-			case H_OP_NE:
+			case SSAOpType::eNe:
 				printf ("!= ");
 				break;
-			case H_OP_L:
+			case SSAOpType::eLower:
 				printf ("< ");
 				break;
-			case H_OP_LE:
+			case SSAOpType::eLe:
 				printf ("<= ");
 				break;
-			case H_OP_G:
+			case SSAOpType::eGreater:
 				printf ("> ");
 				break;
-			case H_OP_GE:
+			case SSAOpType::eGe:
 				printf (">= ");
 				break;
-			case H_OP_BAND:
+			case SSAOpType::eBAnd:
 				printf ("& ");
 				break;
-			case H_OP_BOR:
+			case SSAOpType::eBOr:
 				printf ("| ");
 				break;
-			case H_OP_BXOR:
+			case SSAOpType::eBXor:
 				printf ("^ ");
 				break;
-			case H_OP_BNOT:
+			case SSAOpType::eBNot:
 				printf ("~ ");
 				break;
-			case H_OP_SHR:
+			case SSAOpType::eShr:
 				printf (">> ");
 				break;
-			case H_OP_SHL:
+			case SSAOpType::eShl:
 				printf ("<< ");
 				break;
-			case H_OP_SAR:
+			case SSAOpType::eSar:
 				printf ("pow ");
 				break;
-			case H_OP_SAL:
+			case SSAOpType::eSal:
 				printf ("sqrt2 ");
 				break;
-			case H_OP_ROR:
+			case SSAOpType::eRor:
 				printf (">>> ");
 				break;
-			case H_OP_ROL:
+			case SSAOpType::eRol:
 				printf ("<<< ");
 				break;
 			}
 			break;
-		case SSA_EXPR_LOADADDR:
+		case SSAExprType::eLoadAddr:
 			printf ("Load Effective Addr ");
 			break;
-		case SSA_EXPR_CALL:
+		case SSAExprType::eCall:
 			printf ("Call ");
 			break;
-		case SSA_EXPR_OUTPUT:
+		case SSAExprType::eOutput:
 			printf ("Output ");
 			break;
-		case SSA_EXPR_RETURN:
+		case SSAExprType::eReturn:
 			printf ("Return ");
 			break;
-		case SSA_EXPR_SYSCALL:
+		case SSAExprType::eSyscall:
 			printf ("Syscall ");
 			break;
-		case SSA_EXPR_TRAP:
+		case SSAExprType::eTrap:
 			printf ("Trap ");
 			break;
-		case SSA_EXPR_BUILTIN:
+		case SSAExprType::eBuiltin:
 			printf ("Builtin ");
 			break;
-		case SSA_EXPR_UPDATEPART:
+		case SSAExprType::eUpdatePart:
 			printf ("Update Part ");
 			break;
-		case SSA_EXPR_EXTEND:
+		case SSAExprType::eExtend:
 			printf ("Extend ");
 			break;
-		case SSA_EXPR_SPLIT:
+		case SSAExprType::eSplit:
 			printf ("Split ");
 			break;
-		case SSA_EXPR_APPEND:
+		case SSAExprType::eAppend:
 			printf ("Append ");
 			break;
-		case SSA_EXPR_CAST:
+		case SSAExprType::eCast:
 			printf ("Cast ");
 			break;
-		case SSA_EXPR_MEMACCESS:
+		case SSAExprType::eMemAccess:
 			printf ("MemAccess ");
 			break;
-		case SSA_EXPR_STORE:
+		case SSAExprType::eStore:
 			printf ("Store ");
 			break;
-		case SSA_EXPR_LOAD:
+		case SSAExprType::eLoad:
 			printf ("Load ");
 			break;
-		case SSA_EXPR_FLAG:
+		case SSAExprType::eFlag:
 			printf ("Flag ");
 			break;
 		}
 		switch (location) {
-		case SSA_LOCATION_REG:
+		case SSAExprLocation::eReg:
 			printf ("Reg: %s, ", arch->getRegister (locref.refId)->name.cstr());
 			break;
-		case SSA_LOCATION_STACK:
+		case SSAExprLocation::eStack:
 			printf ("Stack: %s[%d], ", arch->getStack (locref.refId)->name.cstr(), locref.index);
 			break;
-		case SSA_LOCATION_MEM:
+		case SSAExprLocation::eMem:
 			printf ("Mem: %d, ", locref.refId);
 			break;
-		case SSA_LOCATION_NONE:
+		case SSAExprLocation::eNone:
 			break;
 		}
 		printf ("Ref: %d | %d = ", refcount, id);
