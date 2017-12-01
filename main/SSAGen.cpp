@@ -318,7 +318,7 @@ namespace holodec {
 				for (auto it = bb.exprIds.begin(); it != bb.exprIds.end(); ++it) {
 					SSAExpression* expr = ssaRepresentation->expressions.get (*it);
 					assert (expr);
-					if (expr->type == SSAExprType::eLabel && expr->subExpressions.size() > 0 && expr->subExpressions[0].type == SSA_ARGTYPE_UINT && expr->subExpressions[0].uval == addr) {
+					if (expr->type == SSAExprType::eLabel && expr->subExpressions.size() > 0 && expr->subExpressions[0].type == SSAArgType::eUInt && expr->subExpressions[0].uval == addr) {
 						printf ("Split SSA 0x%x\n", addr);
 						HId oldId = bb.id;
 						HId newEndAddr = bb.endaddr;
@@ -517,7 +517,7 @@ namespace holodec {
 
 				IRArgument srcArg = parseExpression (irExpr->subExpressions[1]);
 
-				if (srcArg.type == SSA_ARGTYPE_ID) {
+				if (srcArg.type == IR_ARGTYPE_ID) {
 					SSAExpression* ssaExpr = ssaRepresentation->expressions.get (srcArg.ref.refId);
 					assert (ssaExpr);
 					if (dstArg.type == IR_ARGTYPE_REG || dstArg.type == IR_ARGTYPE_STACK) {
@@ -839,9 +839,9 @@ namespace holodec {
 				expression.size = 0;
 				assert (subexpressioncount == 3);
 				SSAArgument memarg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0]));
-				assert(memarg.type == SSA_ARGTYPE_MEM);
+				assert(memarg.location == SSAExprLocation::eMem);
 				expression.location = SSAExprLocation::eMem;
-				expression.locref = memarg.ref;
+				expression.locref = memarg.locref;
 				expression.subExpressions = {
 					parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[1])),
 					parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[2]))
@@ -854,9 +854,9 @@ namespace holodec {
 				expression.returntype = SSAType::eUint;
 				assert (subexpressioncount == 3);
 				SSAArgument memarg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0]));
-				assert(memarg.type == SSA_ARGTYPE_MEM);
+				assert(memarg.location == SSAExprLocation::eMem);
 				expression.location = SSAExprLocation::eMem;
-				expression.locref = memarg.ref;
+				expression.locref = memarg.locref;
 				expression.size = irExpr->subExpressions[2].size;
 				expression.subExpressions = {
 					parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[1])),
@@ -881,7 +881,7 @@ namespace holodec {
 					SSAArgument value = parseIRArg2SSAArg(parseExpression (irExpr->subExpressions[1]));
 					Register* reg = arch->getRegister (stack->trackingReg);
 					Memory* mem = arch->getMemory (stack->backingMem);
-					assert (reg);
+					assert (reg->id);
 					assert (mem);
 					
 					SSAExpression expression;
@@ -925,7 +925,7 @@ namespace holodec {
 				case StackType::eMemory: {
 					assert (subexpressioncount == 2);
 					SSAArgument sizeadjust = parseIRArg2SSAArg(parseExpression (irExpr->subExpressions[1]));
-					assert (sizeadjust.type == SSA_ARGTYPE_UINT);
+					assert (sizeadjust.type == SSAArgType::eUInt);
 					Register* reg = arch->getRegister (stack->trackingReg);
 					Memory* mem = arch->getMemory (stack->backingMem);
 					assert (reg);

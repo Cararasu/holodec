@@ -80,6 +80,15 @@ enum HInstructionType {
 	INSTR_TYPE_ILLEGAL,
 };
 
+enum HStackType {
+	STACK_REGBACKED,
+	STACK_MEMORY
+};
+enum HStackPolicy {
+	STACKPOLICY_BOTTOM,
+	STACKPOLICY_TOP
+};
+
 enum HSSAExprType {
 	SSA_EXPR_INVALID	= 0x0,
 
@@ -124,6 +133,7 @@ enum HSSAExprLocation {
 	SSA_LOCATION_REG,
 	SSA_LOCATION_STACK,
 	SSA_LOCATION_MEM,
+	SSA_LOCATION_BLOCK,
 };
 enum HSSAFlagType {
 	SSA_FLAG_UNKNOWN = 0,
@@ -167,6 +177,13 @@ enum HSSAOpType {
 	SSA_OP_ROR,
 	SSA_OP_ROL,
 };
+enum HSSAArgType {
+	SSA_ARGTYPE_UNDEF = 0x0,
+	SSA_ARGTYPE_SINT,
+	SSA_ARGTYPE_UINT,
+	SSA_ARGTYPE_FLOAT,
+	SSA_ARGTYPE_ID
+};
 enum HSSAType {
 	SSA_TYPE_UNKNOWN = 0,
 	SSA_TYPE_INT,
@@ -180,6 +197,9 @@ typedef struct {
 	HId refId;
 	HId index;
 } HReference;
+
+
+
 
 #ifdef __cplusplus
 }

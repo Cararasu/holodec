@@ -20,44 +20,25 @@ namespace holodec{
 				if(!expr.id)
 					continue;
 				if(expr.type == SSAExprType::eAssign/* && !expr.subExpressions[0].isConst()*/) {
-					if(expr.subExpressions[0].type == SSA_ARGTYPE_ID){
+					if(expr.subExpressions[0].location == SSAExprLocation::eNone){
 						SSAArgument arg = expr.subExpressions[0];
 						switch(expr.location){
 						case SSAExprLocation::eReg:
-							arg.type = SSA_ARGTYPE_REG;
-							arg.ref = expr.locref;
-							break;
 						case SSAExprLocation::eStack:
-							arg.type = SSA_ARGTYPE_STACK;
-							arg.ref = expr.locref;
-							break;
 						case SSAExprLocation::eMem:
-							arg.type = SSA_ARGTYPE_MEM;
-							arg.ref = expr.locref;
+						case SSAExprLocation::eBlock:
+							arg.location = expr.location;
+							arg.locref = expr.locref;
 							break;
 						default:
 							break;
 						}
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, arg));
-					}else{
-						
+					}else if(expr.location == SSAExprLocation::eNone){
+						replacements.insert(std::pair<HId, SSAArgument>(expr.id, expr.subExpressions[0]));
 					}
 				}else if(expr.type == SSAExprType::eUndef){
-					SSAArgument arg;
-					switch(expr.location){
-					case SSAExprLocation::eReg:
-						arg = SSAArgument::createReg(expr.locref, expr.size);
-						break;
-					case SSAExprLocation::eStack:
-						arg = SSAArgument::createStck(expr.locref, expr.size);
-						break;
-					case SSAExprLocation::eMem:
-						arg = SSAArgument::createMem(expr.locref.refId, expr.id);//TODO what is the blockId
-						break;
-					default:
-						break;
-					}
-					replacements.insert(std::pair<HId, SSAArgument>(expr.id, arg));
+					replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::createUndef (expr.location, expr.locref, expr.size)));
 				}else if(expr.type == SSAExprType::eLabel){
 					replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::create()));
 				}else if(expr.type == SSAExprType::ePhi) {
@@ -66,7 +47,7 @@ namespace holodec{
 					bool alwaysTheSame = true;
 					
 					for(SSAArgument& arg : expr.subExpressions){
-						if(arg.type != SSA_ARGTYPE_UNKN){
+						if(arg.type != SSAArgType::eUndef){
 							undef = false;
 						}
 						if(arg != firstArg){
@@ -74,41 +55,13 @@ namespace holodec{
 						}
 					}
 					if(undef){
-						SSAArgument arg;
-						switch(expr.location){
-						case SSAExprLocation::eReg:
-							arg = SSAArgument::createReg(expr.locref, expr.size);
-							break;
-						case SSAExprLocation::eStack:
-							arg = SSAArgument::createMem(expr.locref.refId);
-							break;
-						case SSAExprLocation::eMem:
-							arg = SSAArgument::createStck(expr.locref, expr.size);
-							break;
-						default:
-							break;
-						}
-						replacements.insert(std::pair<HId, SSAArgument>(expr.id, arg));
+						replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::createUndef (expr.location, expr.locref, expr.size)));
 					}else if(alwaysTheSame){
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, firstArg));
 					}
 				}else if(expr.type == SSAExprType::eSplit || expr.type == SSAExprType::eUpdatePart){
-					if(expr.subExpressions[0].type == SSA_ARGTYPE_UNKN){
-						SSAArgument arg;
-						switch(expr.location){
-						case SSAExprLocation::eReg:
-							arg = SSAArgument::createReg(expr.locref, expr.size);
-							break;
-						case SSAExprLocation::eStack:
-							arg = SSAArgument::createMem(expr.locref.refId);
-							break;
-						case SSAExprLocation::eMem:
-							arg = SSAArgument::createStck(expr.locref, expr.size);
-							break;
-						default:
-							break;
-						}
-						replacements.insert(std::pair<HId, SSAArgument>(expr.id, arg));
+					if(expr.subExpressions[0].type == SSAArgType::eUndef){
+						replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::createUndef(expr.location, expr.locref, expr.size)));
 					}
 				}else if(expr.type == SSAExprType::eLoadAddr){
 					if(expr.subExpressions.size() == 5){

@@ -38,7 +38,7 @@ namespace holodec {
 	/*
 		 * Argument
 		HId ssaId = 0;
-		SSAArgTypes type = SSA_ARGTYPE_UNKN;
+		SSAArgType type = SSA_ARGTYPE_UNKN;
 		uint32_t size = 0;
 		union {
 			ArgSInt sval;
@@ -265,7 +265,7 @@ namespace holodec {
 			} type;
 			struct{
 				HId index;
-				SSAArgTypes type;
+				SSAArgType type;
 				union{
 					ArgSInt sval;
 					ArgUInt uval;
@@ -312,7 +312,7 @@ namespace holodec {
 		rule.type.size = size;
 		return rule;
 	}
-	inline MatchRule createArgTypeRule(HId index, SSAArgTypes type){
+	inline MatchRule createArgTypeRule(HId index, SSAArgType type){
 		MatchRule rule;
 		rule.matchRuleType = MATCHRULE_ARGUMENTTYPE;
 		rule.argument.index = index;
@@ -322,7 +322,7 @@ namespace holodec {
 	inline MatchRule createArgValueRule(HId index, ArgSInt sval){
 		MatchRule rule;
 		rule.matchRuleType = MATCHRULE_ARGUMENTVALUE;
-		rule.argument.type = SSA_ARGTYPE_SINT;
+		rule.argument.type = SSAArgType::eSInt;
 		rule.argument.index = index;
 		rule.argument.value.sval = sval;
 		return rule;
@@ -330,7 +330,7 @@ namespace holodec {
 	inline MatchRule createArgValueRule(HId index, ArgUInt uval){
 		MatchRule rule;
 		rule.matchRuleType = MATCHRULE_ARGUMENTVALUE;
-		rule.argument.type = SSA_ARGTYPE_UINT;
+		rule.argument.type = SSAArgType::eUInt;
 		rule.argument.index = index;
 		rule.argument.value.uval = uval;
 		return rule;
@@ -338,7 +338,7 @@ namespace holodec {
 	inline MatchRule createArgValueRule(HId index, ArgFloat fval){
 		MatchRule rule;
 		rule.matchRuleType = MATCHRULE_ARGUMENTVALUE;
-		rule.argument.type = SSA_ARGTYPE_FLOAT;
+		rule.argument.type = SSAArgType::eFloat;
 		rule.argument.index = index;
 		rule.argument.value.fval = fval;
 		return rule;

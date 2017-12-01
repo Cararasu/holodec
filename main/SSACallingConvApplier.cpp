@@ -20,6 +20,7 @@ namespace holodec {
 			if (expr.type == SSAExprType::eOutput) {
 				//TODO get Call method and get the calling convention of the target
 				//currently HACK to use own calling convention
+				assert(expr.subExpressions[0].type == SSAArgType::eId);
 				SSAExpression* callExpr = function->ssaRep.expressions.get (expr.subExpressions[0].ssaId);
 				assert (callExpr && callExpr->type == SSAExprType::eCall);
 
@@ -32,11 +33,11 @@ namespace holodec {
 					for (StringRef& regStr : cc->nonVolatileReg) {
 						Register* reg = arch->getRegister (regStr);
 						if (expr.locref.refId == reg->id) {
-							assert (expr.subExpressions[0].type == SSA_ARGTYPE_ID);
+							assert (expr.subExpressions[0].type == SSAArgType::eId);
 
 							expr.type = SSAExprType::eAssign;
 							for (SSAArgument& arg : callExpr->subExpressions) {
-								if (arg.type == SSA_ARGTYPE_REG && arg.ref.refId == expr.locref.refId) {
+								if (arg.location == SSAExprLocation::eReg && arg.locref == expr.locref) {
 									expr.subExpressions[0] = arg;
 								}
 							}
@@ -44,10 +45,10 @@ namespace holodec {
 							break;
 						}
 					}
-					if (!isParam && localStackReg && expr.locref.refId == localStackReg->id && cc->callerstackadjust == eCallee) {
+					if (!isParam && localStackReg && expr.locref.refId == localStackReg->id && cc->callerstackadjust == CCStackAdjust::eCallee) {
 						expr.type = SSAExprType::eAssign;
 						for (SSAArgument& arg : callExpr->subExpressions) {
-							if (arg.type == SSA_ARGTYPE_REG && arg.ref.refId == expr.locref.refId) {
+							if (arg.location == SSAExprLocation::eReg && arg.locref == expr.locref) {
 								expr.subExpressions[0] = arg;
 							}
 						}
@@ -87,18 +88,18 @@ namespace holodec {
 					SSAArgument& arg = *it;
 					bool isParam = false;
 
-					if (arg.type == SSA_ARGTYPE_REG) {
+					if (arg.location == SSAExprLocation::eReg) {
 						if (!isParam) {
 							for (CCParameter& para : cc->returns) {
 								Register* reg = arch->getRegister (para.regref);
-								if (arg.ref.refId == reg->id) {
+								if (arg.locref.refId == reg->id) {
 									//leave as arg
 									isParam = true;
 									break;
 								}
 							}
 						}
-					} else if (arg.type == SSA_ARGTYPE_MEM) {
+					} else if (arg.location == SSAExprLocation::eMem) {
 						isParam = true;
 					}
 					if (!isParam) {
@@ -155,19 +156,19 @@ namespace holodec {
 					SSAArgument& arg = *it;
 					bool isParam = false;
 
-					if (arg.type == SSA_ARGTYPE_MEM)
+					if (arg.location == SSAExprLocation::eMem)
 						isParam = true;
 					if (!isParam) {
 						for (CCParameter& para : cc->parameters) {
 							Register* reg = arch->getRegister (para.regref);
-							if (arg.ref.refId == reg->id) {
+							if (arg.locref.refId == reg->id) {
 								//leave the arg
 								isParam = true;
 								break;
 							}
 						}
 					}
-					if (!isParam && stackreg && arg.ref.refId == stackreg->id) {
+					if (!isParam && stackreg && arg.locref.refId == stackreg->id) {
 						//leave the arg
 						isParam = true;
 					}

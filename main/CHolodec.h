@@ -2,6 +2,10 @@
 #ifndef CHOLODEC_H
 #define CHOLODEC_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #define HOLODEC_PTR(type) typedef void* type;
@@ -48,5 +52,10 @@ HInstrDefinition arch_get_instrdef (HArchitecture arch, uint64_t index);
 HInstrDefinition arch_get_instrdef_by_id (HArchitecture arch, uint32_t index);
 uint64_t arch_get_instrdefcount (HArchitecture arch);
 
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //CHOLODEC_H

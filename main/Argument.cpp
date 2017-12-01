@@ -5,49 +5,6 @@
 
 namespace holodec {
 	
-	void SSAArgument::print (Architecture* arch) {
-		switch (type) {
-		case SSA_ARGTYPE_UNKN:
-			printf ("Undef");
-			break;
-		case SSA_ARGTYPE_REG:
-			if (ref.refId)
-				printf ("%s", arch->getRegister (ref.refId)->name.cstr());
-			else
-				printf ("No Reg Def");
-			break;
-		case SSA_ARGTYPE_STACK:
-			printf ("Stack-%s[%d]", arch->getStack (ref.refId)->name.cstr(), ref.index);
-			break;
-		case SSA_ARGTYPE_MEM: 
-			printf("Memory %d", ref.refId);
-			break;
-		case SSA_ARGTYPE_SINT:
-			if(sval < 0)
-				printf ("-0x%x", -sval);
-			else
-				printf ("0x%x", sval);
-			break;
-		case SSA_ARGTYPE_UINT:
-			printf ("0x%X", uval);
-			break;
-		case SSA_ARGTYPE_FLOAT:
-			printf ("%f", fval);
-			break;
-		case SSA_ARGTYPE_ID:
-			printf ("SSA");
-			break;
-		case SSA_ARGTYPE_BLOCK:
-			printf ("Block %d", ref.refId);
-			break;
-		default:
-			printf ("Unknown Argtype %x ", type);
-		}
-		if (ssaId) printf (" id: %d", ssaId);
-		if (size) printf (" S%d", size);
-	}
-	
-	
 	
 	void IRArgument::print (Architecture* arch) {
 		switch (type) {

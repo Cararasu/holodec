@@ -5,23 +5,17 @@
 #include <stdint.h>
 #include "General.h"
 #include "Register.h"
+#include "CHolodecHeader.h"
+
 namespace holodec {
 
-	enum HStackType {
-		H_STACK_REGBACKED,
-		H_STACK_MEMORY
-	};
-	enum HStackPolicy {
-		H_STACKPOLICY_BOTTOM,
-		H_STACKPOLICY_TOP
-	};
 	enum class StackType {
-		eRegBacked = H_STACK_REGBACKED,
-		eMemory = H_STACK_MEMORY
+		eRegBacked = STACK_REGBACKED,
+		eMemory = STACK_MEMORY
 	};
 	enum class StackPolicy {
-		eBottom = H_STACKPOLICY_BOTTOM,
-		eTop = H_STACKPOLICY_TOP
+		eBottom = STACKPOLICY_BOTTOM,
+		eTop = STACKPOLICY_TOP
 	};
 	struct Stack {
 		HId id;

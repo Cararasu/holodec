@@ -215,21 +215,67 @@ namespace holodec {
 		printf ("\n");
 	}
 
+	void SSAArgument::print (Architecture* arch) {
+		switch (type) {
+		case SSAArgType::eUndef:
+			printf ("Undef");
+			break;
+		case SSAArgType::eSInt:
+			if (sval < 0)
+				printf ("-0x%x", -sval);
+			else
+				printf ("0x%x", sval);
+			break;
+		case SSAArgType::eUInt:
+			printf ("0x%X", uval);
+			break;
+		case SSAArgType::eFloat:
+			printf ("%f", fval);
+			break;
+		case SSAArgType::eId:
+			printf ("SSA: %d", ssaId);
+			break;
+		default:
+			printf ("Unknown Argtype %x ", type);
+		}
+		switch (location) {
+		case SSAExprLocation::eReg:
+			if (locref.refId)
+				printf (" Reg: %s", arch->getRegister (locref.refId)->name.cstr());
+			else
+				printf ("No Reg Def");
+			break;
+		case SSAExprLocation::eStack:
+			printf ("Stack-%s[%d]", arch->getStack (locref.refId)->name.cstr(), locref.index);
+			break;
+		case SSAExprLocation::eMem:
+			printf ("Memory %d", locref.refId);
+			break;
+		case SSAExprLocation::eBlock:
+			printf ("Block %d", locref.refId);
+			break;
+		}
+		if (size) printf (" S%d", size);
+	}
+
+
 	void SSARepresentation::replaceNodes (HMap<HId, SSAArgument>* replacements) {
 
 		bool replaced = false;
 		do {
 			replaced = false;
 			for (auto it = replacements->begin(); it != replacements->end(); ++it) {
-				if ( (*it).first == (*it).second.ssaId) //to prevent unlimited loops in circualr dependencies
+				if (it->second.type != SSAArgType::eId || it->first == it->second.ssaId)  //
 					continue;
 				auto innerIt = it;
 				for (++innerIt; innerIt != replacements->end(); ++innerIt) {
-					if ( (*it).first == (*innerIt).second.ssaId) {
-						(*innerIt).second = (*it).second;
+					if (innerIt->second.type == SSAArgType::eId)  //
+						continue;
+					if (it->first == innerIt->second.ssaId) {
+						innerIt->second = it->second;
 						replaced = true;
-					} else if ( (*innerIt).first == (*it).second.ssaId) {
-						(*it).second = (*innerIt).second;
+					} else if (innerIt->first == it->second.ssaId) {
+						it->second = innerIt->second;
 						replaced = true;
 					}
 				}
@@ -247,14 +293,17 @@ namespace holodec {
 		}
 		for (SSAExpression& expr : expressions) {
 			for (SSAArgument& arg : expr.subExpressions) {
-				auto it = replacements->find (arg.ssaId);
-				if (it != replacements->end()) {
-					if(EXPR_IS_TRANSIENT(expr.type))
-						arg = (*it).second;
-					else{
-						changeRefCount (it->first, -1);
-						arg = (*it).second;
-						changeRefCount (it->second.ssaId, 1);
+				if(arg.type == SSAArgType::eId){
+					auto it = replacements->find (arg.ssaId);
+					if(it != replacements->end()){
+						if (EXPR_IS_TRANSIENT (expr.type))
+							arg = it->second;
+						else {
+							changeRefCount (it->first, -1);
+							if(it->second.type == SSAArgType::eId)
+								changeRefCount (it->second.ssaId, 1);
+							arg = it->second;
+						}
 					}
 				}
 			}
@@ -283,9 +332,11 @@ namespace holodec {
 		if (!replacements.empty()) {
 			for (SSAExpression& expr : expressions) {
 				for (SSAArgument& arg : expr.subExpressions) {
-					auto it = replacements.find (arg.ssaId);
-					if (it != replacements.end()) {
-						arg.ssaId = it->second;
+					if(arg.type == SSAArgType::eId){
+						auto it = replacements.find (arg.ssaId);
+						if (it != replacements.end()) {
+							arg.ssaId = it->second;
+						}
 					}
 				}
 			}
@@ -303,12 +354,13 @@ namespace holodec {
 	void SSARepresentation::propagateRefCount (HId id, int64_t count) {
 		if (!id) return;
 		for (SSAArgument& arg : expressions[id].subExpressions) {
-			changeRefCount (arg.ssaId, count);
+			if(arg.type == SSAArgType::eId)
+				changeRefCount (arg.ssaId, count);
 		}
 	}
 	void SSARepresentation::changeRefCount (HId id, int64_t count) {
 		if (!id) return;
-		if (EXPR_IS_TRANSIENT(expressions[id].type)) {
+		if (EXPR_IS_TRANSIENT (expressions[id].type)) {
 			std::vector<bool> visited;
 			visited.resize (expressions.size(), false);
 			changeRefCount (id, visited, count);
@@ -321,9 +373,9 @@ namespace holodec {
 			return;
 		visited[id - 1] = true;
 		expressions[id].refcount += count;
-		if (EXPR_IS_TRANSIENT(expressions[id].type)) {
+		if (EXPR_IS_TRANSIENT (expressions[id].type)) {
 			for (SSAArgument& arg : expressions[id].subExpressions) {
-				if (arg.ssaId)
+				if (arg.type == SSAArgType::eId)
 					changeRefCount (arg.ssaId, visited, count);
 			}
 		}
@@ -331,7 +383,7 @@ namespace holodec {
 	HId SSARepresentation::addExpr (SSAExpression* expr) {
 		expressions.push_back (*expr);
 		HId newId = expressions.back().id;
-		if(!EXPR_IS_TRANSIENT(expr->type))
+		if (!EXPR_IS_TRANSIENT (expr->type))
 			propagateRefCount (newId, 1);
 		return newId;
 	}
@@ -413,10 +465,10 @@ namespace holodec {
 
 	HList<HId>::iterator SSARepresentation::removeExpr (HList<HId>& ids, HList<HId>::iterator it) {
 		auto expr_it = expressions.it_at (*it);
-		if(EXPR_IS_TRANSIENT(expr_it->type)){
-			propagateRefCount(expr_it->id, -1*expr_it->refcount);
-		}else{
-			propagateRefCount(expr_it->id, -1);
+		if (EXPR_IS_TRANSIENT (expr_it->type)) {
+			propagateRefCount (expr_it->id, -1 * expr_it->refcount);
+		} else {
+			propagateRefCount (expr_it->id, -1);
 		}
 		expressions.erase (expr_it);
 		return ids.erase (it);

@@ -54,8 +54,9 @@ namespace holodec {
 				case SSAExprLocation::eReg:
 				case SSAExprLocation::eStack:
 				case SSAExprLocation::eMem:{
-					dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_REG;
-					dstExpr->subExpressions[dstIndex - 1].ref = srcExpr->locref;
+					dstExpr->subExpressions[dstIndex - 1].type = SSAArgType::eId;
+					dstExpr->subExpressions[dstIndex - 1].location = SSAExprLocation::eReg;
+					dstExpr->subExpressions[dstIndex - 1].locref = srcExpr->locref;
 				}break;
 				}
 			}
@@ -83,7 +84,7 @@ namespace holodec {
 			context->expressionsCreated.push_back(createdExpression.id);
 			
 			SSAArgument arg;
-			arg.type = SSA_ARGTYPE_ID;
+			arg.type = SSAArgType::eId;
 			arg.ssaId = createdExpression.id;
 			
 			dstExpr->subExpressions.insert(dstExpr->subExpressions.begin() + (dstIndex - 1), arg);
@@ -105,9 +106,9 @@ namespace holodec {
 		}return;
 		case MATCHACTION_INSTR_TYPE:{
 			dstExpr->type = types.type;
-			if(types.flagType)
+			if(types.flagType != SSAFlagType::eUnknown)
 				dstExpr->flagType = types.flagType;
-			if(types.opType)
+			if(types.opType != SSAOpType::eInvalid)
 				dstExpr->opType = types.opType;
 		}return;
 		case MATCHACTION_INSTR_EXPRTYPE:{
@@ -131,7 +132,7 @@ namespace holodec {
 			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
 			dstIndex = std::max(dstIndex, (HId)1);
 			
-			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_SINT;
+			dstExpr->subExpressions[dstIndex - 1].type = SSAArgType::eSInt;
 			dstExpr->subExpressions[dstIndex - 1].sval = sval;
 		}return;
 		case MATCHACTION_ARG_UVAL:{
@@ -139,7 +140,7 @@ namespace holodec {
 			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
 			dstIndex = std::max(dstIndex, (HId)1);
 			
-			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_UINT;
+			dstExpr->subExpressions[dstIndex - 1].type = SSAArgType::eUInt;
 			dstExpr->subExpressions[dstIndex - 1].uval = uval;
 		}return;
 		case MATCHACTION_ARG_FVAL:{
@@ -147,7 +148,7 @@ namespace holodec {
 			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
 			dstIndex = std::max(dstIndex, (HId)1);
 			
-			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_FLOAT;
+			dstExpr->subExpressions[dstIndex - 1].type = SSAArgType::eFloat;
 			dstExpr->subExpressions[dstIndex - 1].fval = fval;
 		}return;
 		case MATCHACTION_ARG_MEM:{
@@ -155,24 +156,27 @@ namespace holodec {
 			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
 			dstIndex = std::max(dstIndex, (HId)1);
 			
-			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_MEM;
-			dstExpr->subExpressions[dstIndex - 1].ref = ref;
+			dstExpr->subExpressions[dstIndex - 1].type = SSAArgType::eId;
+			dstExpr->subExpressions[dstIndex - 1].location = SSAExprLocation::eMem;
+			dstExpr->subExpressions[dstIndex - 1].locref = ref;
 		}return;
 		case MATCHACTION_ARG_STACK:{
 			assert(dstExpressionId);
 			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
 			dstIndex = std::max(dstIndex, (HId)1);
 			
-			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_STACK;
-			dstExpr->subExpressions[dstIndex - 1].ref = ref;
+			dstExpr->subExpressions[dstIndex - 1].type = SSAArgType::eId;
+			dstExpr->subExpressions[dstIndex - 1].location = SSAExprLocation::eStack;
+			dstExpr->subExpressions[dstIndex - 1].locref = ref;
 		}return;
 		case MATCHACTION_ARG_REG:{
 			assert(dstExpressionId);
 			HId dstIndex = dst.argIndex ? dst.argIndex : dstExpr->subExpressions.size();
 			dstIndex = std::max(dstIndex, (HId)1);
 			
-			dstExpr->subExpressions[dstIndex - 1].type = SSA_ARGTYPE_REG;
-			dstExpr->subExpressions[dstIndex - 1].ref = ref;
+			dstExpr->subExpressions[dstIndex - 1].type = SSAArgType::eId;
+			dstExpr->subExpressions[dstIndex - 1].location = SSAExprLocation::eReg;
+			dstExpr->subExpressions[dstIndex - 1].locref = ref;
 		}return;
 		}
 	}
@@ -202,11 +206,11 @@ namespace holodec {
 				if (arg.type != argument.type)
 					return false;
 				switch (arg.type) {
-				case SSA_ARGTYPE_SINT:
+				case SSAArgType::eSInt:
 					return arg.sval == argument.value.sval;
-				case SSA_ARGTYPE_UINT:
+				case SSAArgType::eUInt:
 					return arg.uval == argument.value.uval;
-				case SSA_ARGTYPE_FLOAT:
+				case SSAArgType::eFloat:
 					return arg.fval == argument.value.fval;
 				}
 				return false;
@@ -219,8 +223,8 @@ namespace holodec {
 		if (subexprIndex) {
 			if (subexprIndex > expr->subExpressions.size())
 				return false;
-			if (HId subExpressionId = expr->subExpressions[subexprIndex - 1].ssaId)
-				expr = & (rep->expressions[subExpressionId]);
+			if (expr->subExpressions[subexprIndex - 1].type == SSAArgType::eId)
+				expr = & (rep->expressions[expr->subExpressions[subexprIndex - 1].ssaId]);
 		}
 		for (MatchRule& matchrule : matchrules) {
 			if (!matchrule.match (expr))
@@ -249,7 +253,7 @@ namespace holodec {
 		{createTypeRule(SSAExprType::eCJmp) }, {
 			Matcher (
 			    1,
-			{createTypeRule (SSAExprType::eFlag, eFlagZ) },
+			{createTypeRule (SSAExprType::eFlag, SSAFlagType::eFlagZ) },
 			{},
 			{
 				createInsertInstrAction({0,2,0})}

@@ -9,39 +9,41 @@
 namespace holodec {
 
 	enum HCCStackPolicy{
-		H_CC_STACK_R2L,
-		H_CC_STACK_L2R,
-	};
-	enum CCStackPolicy{
-		eR2L = H_CC_STACK_R2L,
-		eL2R = H_CC_STACK_L2R,
+		CC_STACK_R2L,
+		CC_STACK_L2R,
 	};
 	enum HCCParameterTypeFlags{
-		H_CC_PARA_INT = 0x1,
-		H_CC_PARA_FLOAT = 0x2,
-		H_CC_PARA_VEC128 = 0x4,
-		H_CC_PARA_VEC256 = 0x8,
-		H_CC_PARA_ALL = 0xF,
+		CC_PARA_NONE = 0x0,
+		CC_PARA_INT = 0x1,
+		CC_PARA_FLOAT = 0x2,
+		CC_PARA_VEC128 = 0x4,
+		CC_PARA_VEC256 = 0x8,
+		CC_PARA_ALL = 0xF,
 	};
-	enum CCParameterTypeFlags{
-		eInt = H_CC_PARA_INT,
-		eFloat = H_CC_PARA_FLOAT,
-		eVec128 = H_CC_PARA_VEC128,
-		eVec256 = H_CC_PARA_VEC256,
-		eAll = H_CC_PARA_ALL,
+	enum HCCStackAdjust{
+		CC_STACK_ADJUST_CALLER,
+		CC_STACK_ADJUST_CALLEE,
+	};
+	enum class CCStackPolicy{
+		eR2L = CC_STACK_R2L,
+		eL2R = CC_STACK_L2R,
+	};
+	enum class CCParameterTypeFlags{
+		eNone = CC_PARA_NONE,
+		eInt = CC_PARA_INT,
+		eFloat = CC_PARA_FLOAT,
+		eVec128 = CC_PARA_VEC128,
+		eVec256 = CC_PARA_VEC256,
+		eAll = CC_PARA_ALL,
+	};
+	enum class CCStackAdjust{
+		eCaller = CC_STACK_ADJUST_CALLER,
+		eCallee = CC_STACK_ADJUST_CALLEE,
 	};
 	struct CCParameter{
 		StringRef regref;
-		uint32_t typeflags;
+		Flags<CCParameterTypeFlags> typeflags;
 		uint32_t index;
-	};
-	enum HCCStackAdjust{
-		H_CC_STACK_ADJUST_CALLER,
-		H_CC_STACK_ADJUST_CALLEE,
-	};
-	enum CCStackAdjust{
-		eCaller = H_CC_STACK_ADJUST_CALLER,
-		eCallee = H_CC_STACK_ADJUST_CALLEE,
 	};
 
 	struct CallingConvention {
@@ -53,7 +55,7 @@ namespace holodec {
 		StringRef parameterCount;
 		
 		StringRef stack;
-		bool callerstackadjust;
+		CCStackAdjust callerstackadjust;
 		CCStackPolicy stackPolicy;
 		
 		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer) {

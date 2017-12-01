@@ -24,7 +24,7 @@ namespace holodec {
 	void SSAAddressToBlockTransformer::parseExpression (SSABB* basicBlock, SSAExpression* expression) {
 		
 		if(expression->type == SSAExprType::eJmp){
-			if(expression->subExpressions[0].type == SSA_ARGTYPE_UINT){
+			if(expression->subExpressions[0].type == SSAArgType::eUInt){
 				for(SSABB& bb : function->ssaRep.bbs){
 					if(bb.startaddr == expression->subExpressions[0].uval){
 						expression->subExpressions[0] = SSAArgument::createBlock(bb.id);
@@ -35,7 +35,7 @@ namespace holodec {
 				}
 			}
 		}else if(expression->type == SSAExprType::eCJmp){
-			if(expression->subExpressions[1].type == SSA_ARGTYPE_UINT){
+			if(expression->subExpressions[1].type == SSAArgType::eUInt){
 				for(SSABB& bb : function->ssaRep.bbs){
 					if(bb.startaddr == expression->subExpressions[1].uval){
 						expression->subExpressions[1] = SSAArgument::createBlock(bb.id);
@@ -47,7 +47,7 @@ namespace holodec {
 			}
 		}else if(expression->type == SSAExprType::eMultiBranch){
 			for(auto it = expression->subExpressions.begin() + 1; it != expression->subExpressions.end(); ++it){
-				if(it->type == SSA_ARGTYPE_UINT){
+				if(it->type == SSAArgType::eUInt){
 					for(SSABB& bb : function->ssaRep.bbs){
 						if(bb.startaddr == it->uval){
 							*it = SSAArgument::createBlock(bb.id);

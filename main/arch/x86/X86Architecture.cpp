@@ -264,76 +264,77 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		//x86
 		{
 			"cdecl",//name
-			H_CC_STACK_CALLER_SAVED, {"eax", "ecx", "edx"},//saved registers
+			CC_STACK_CALLER_SAVED, {"eax", "ecx", "edx"},//saved registers
 			{},//register parameters
 			nullptr,//register te count of parameters is passed
 			{{"eax", "eax", "st0"}, {"edx", "edx", "st0"}}, //return value
 			"mem", //backing stack
-			H_CC_STACK_R2L//
+			CC_STACK_R2L//
 		},
 		{
 			"syscall",
-			H_CC_STACK_CALLER_SAVED, {"eax", "ecx", "edx"},
+			CC_STACK_CALLER_SAVED, {"eax", "ecx", "edx"},
 			{},
 			"al",
 			{{"eax", "eax", "eax"}},
 			"mem",
-			H_CC_STACK_R2L
+			CC_STACK_R2L
 		},
 		{
 			"pascal",
-			H_CC_STACK_CALLER_SAVED, {},
+			CC_STACK_CALLER_SAVED, {},
 			{},
 			"al",
 			{{"eax", "eax", "eax"}},
 			"mem",
-			H_CC_STACK_L2R
+			CC_STACK_L2R
 		},
 		//x86_64
 		{
 			"microsoft64",
-			H_CC_STACK_CALLER_SAVED, {"rax", "rcx", "rdx", "r8", "r9", "r10", "r11"},
+			CC_STACK_CALLER_SAVED, {"rax", "rcx", "rdx", "r8", "r9", "r10", "r11"},
 			{{"rcx", "rcx", "xmm0", "xmm0", "ymm0"}, {"rdx", "rdx", "xmm1", "xmm1", "ymm1"}, {"r8", "r8", "xmm2", "xmm2", "ymm2"}, {"r9", "r9", "xmm3", "xmm3", "ymm3"}},
 			nullptr,
 			{{"rax", "rax", "xmm0", "xmm0", "ymm0"}},
 			"mem",
-			H_CC_STACK_R2L
+			CC_STACK_R2L
 		},*/
 		{
 			0, "vectorcall",
 			{"rax", "rcx", "rdx", "r8", "r9", "r10", "r11", "cs"},
 			{
-				{"rcx", eInt, 1}, {"rdx", eInt, 2}, {"r8", eInt, 3}, {"r9", eInt, 4},
-				{"zmm0", eFloat | eVec128 | eVec256, 1},
-				{"zmm1", eFloat | eVec128 | eVec256, 2},
-				{"zmm2", eFloat | eVec128 | eVec256, 3},
-				{"zmm3", eFloat | eVec128 | eVec256, 4}
+				{"rcx", CCParameterTypeFlags::eInt, 1}, {"rdx", CCParameterTypeFlags::eInt, 2}, {"r8", CCParameterTypeFlags::eInt, 3}, {"r9", CCParameterTypeFlags::eInt, 4},
+				{"zmm0", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 1},
+				{"zmm1", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 2},
+				{"zmm2", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 3},
+				{"zmm3", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 4}
 			},
-			{{"rax", eInt, 1}, {"zmm0", eFloat | eVec128 | eVec256, 1}},
+			{{"rax", CCParameterTypeFlags::eInt, 1}, {"zmm0", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 1}},
 			nullptr,
 			"stack",
-			eCallee,
-			eR2L
+			CCStackAdjust::eCallee,
+			CCStackPolicy::eR2L
 		},
 		{
 			0, "amd64",
 			{"rbp", "rbx", "r12", "r13", "r14", "r15", "cs"},
 			{
-				{"rdi", eInt, 1}, {"rsi", eInt, 2}, {"rdx", eInt, 3}, {"rcx", eInt, 4}, {"r8", eInt, 5}, {"r9", eInt, 6},
-				{"zmm0", eFloat | eVec128 | eVec256, 1},
-				{"zmm1", eFloat | eVec128 | eVec256, 2},
-				{"zmm2", eFloat | eVec128 | eVec256, 3},
-				{"zmm3", eFloat | eVec128 | eVec256, 4},
-				{"zmm4", eFloat | eVec128 | eVec256, 5},
-				{"zmm5", eFloat | eVec128 | eVec256, 6},
-				{"cs", 0, 0}
+				{"rdi", CCParameterTypeFlags::eInt, 1}, {"rsi", CCParameterTypeFlags::eInt, 2}, {"rdx", CCParameterTypeFlags::eInt, 3}, {"rcx", CCParameterTypeFlags::eInt, 4}, 
+				{"r8", CCParameterTypeFlags::eInt, 5}, {"r9", CCParameterTypeFlags::eInt, 6},
+				{"zmm0", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 1},
+				{"zmm1", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 2},
+				{"zmm2", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 3},
+				{"zmm3", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 4},
+				{"zmm4", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 5},
+				{"zmm5", Flags<CCParameterTypeFlags>() | CCParameterTypeFlags::eFloat | CCParameterTypeFlags::eVec128 | CCParameterTypeFlags::eVec256, 6},
+				{"cs", CCParameterTypeFlags::eNone, 0}
 			},
-			{{"rax", eAll, 1}, {"rdx", eAll, 2}},
+			{{"rax", CCParameterTypeFlags::eAll, 1}, {"rdx", CCParameterTypeFlags::eAll, 2}},
 			"rax",
 			"stack",
-			eCallee,
-			eR2L
-		},
+			CCStackAdjust::eCallee,
+			CCStackPolicy::eR2L
+		}
 	},
 	{},//instructionIds
 	{
