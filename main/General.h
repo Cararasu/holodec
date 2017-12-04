@@ -27,16 +27,12 @@ namespace holodec {
 	template <typename Key, typename Value>
 	using HMap = std::map<Key, Value>;
 
-	struct VisibilityType {
-		HString name;
-	};
-
 	struct StringRef {
 		HString name;
 		HId refId;
 		StringRef (const char* name) : name (name), refId (0) {}
 		StringRef (HString name) : name (name), refId (0) {}
-		StringRef (HId refId) : name (nullptr), refId (refId) {}
+		StringRef (HId refId) : name (""), refId (refId) {}
 
 		explicit operator bool() {
 			return name;
@@ -191,10 +187,6 @@ namespace holodec {
 			return mask;
 		}
 	};
-
-	extern VisibilityType g_visibilityPublic;
-	extern VisibilityType g_visibilityProtected;
-	extern VisibilityType g_visibilityPrivate;
 
 	void printIndent (int indent);
 }

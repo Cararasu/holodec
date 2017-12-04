@@ -16,29 +16,26 @@ namespace holodec {
 	struct Function;
 
 	struct SubType {
-		HString name;
 		HId typeId;
-		VisibilityType* visibility;
+		HString name;
 
 		size_t offset;
 		HList<TypeModifier> modifiers;
 	};
 	
 	enum TypeType{
-		H_TYPE_AGGREGATION,
-		H_TYPE_FUNCTION,
-		H_TYPE_POINTER,
-		H_TYPE_FLOAT,
-		H_TYPE_UINT,
-		H_TYPE_INT,
-		H_TYPE_UNKNOWN
+		TYPE_AGGREGATION,
+		TYPE_FUNCTION,
+		TYPE_POINTER,
+		TYPE_FLOAT,
+		TYPE_UINT,
+		TYPE_INT,
+		TYPE_UNKNOWN
 	};
 	struct Type {
 		HId id;
 		HString name;
 		TypeType type;
-		
-		VisibilityType* visibility;
 
 		size_t size;
 		HList<SubType> fields;//for aggregates

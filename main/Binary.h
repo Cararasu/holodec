@@ -18,7 +18,6 @@ namespace holodec {
 		
 		HList<HId> entrypoints;
 		HIdList<Symbol> symbols;
-		HIdGenerator gen_sections;
 		HIdList<Section> sections;
 		HIdList<Function> functions;
 		//which architecture

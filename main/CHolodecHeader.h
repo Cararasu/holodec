@@ -17,6 +17,23 @@ extern "C" {
 
 typedef uint32_t HId;
 
+enum HRegTrackType {
+	REG_TRACK_TRACKED = 0,
+	REG_TRACK_VOLATILE
+};
+enum HRegType {
+	REG_OTHER = 0,
+	REG_GPR,
+	REG_ADDRESS,
+	REG_FLOAT,
+	REG_VEC,
+	REG_STACKPTR,
+	REG_INSTRPTR,
+	REG_FLAG,
+	REG_CONTROL,
+	REG_DEBUG,
+	REG_SEGMENT
+};
 enum HInstructionType {
 	INSTR_TYPE_UNKNOWN = 0,
 

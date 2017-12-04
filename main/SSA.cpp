@@ -300,9 +300,9 @@ namespace holodec {
 							arg = it->second;
 						else {
 							changeRefCount (it->first, -1);
+							arg = it->second;
 							if(it->second.type == SSAArgType::eId)
 								changeRefCount (it->second.ssaId, 1);
-							arg = it->second;
 						}
 					}
 				}

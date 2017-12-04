@@ -7,262 +7,81 @@
 
 namespace holodec {
 
-	void parseComment (std::ifstream* file) {
-		char c;
-		while (file->get (c).good() && c != '\n');
-	}
-	void parseWhitespaces (std::ifstream* file) {
-		char c;
-		do {
-			while (file->get (c).good() && (c == ' ' || c == '\t' || c == '\n'));
-			if (c == '/' && file->peek() == '/') {
-				file->get (c);
-				parseComment (file);
-			} else break;
-		} while (true);
-		file->putback (c);
-	}
-	size_t parseIdentifier (std::ifstream* file, char* buffer, size_t buffersize) {
-		parseWhitespaces (file);
-		if (!file->good()) {
-			buffer[0] = '\0';
-			return 0;
-		}
-		char c;
-		size_t read = 0;
-		while (true) {
-			if (file->get (c).good() && (isalnum (c) || c == '-' || c == '.') && read < buffersize) {
-				buffer[read] = c;
-				read++;
-			} else {
-				file->putback (c);
-				buffer[read] = '\0';
-				return read;
+	
+	typedef std::function<bool (Architecture*, SSARepresentation*, MatchContext*)> PhExecutor;
+	
+	struct PhRule {
+		HId argIndex;
+		SSAExprType type;
+		std::vector<PhRule*> subRules;
+		std::vector<PhExecutor> executors;
+		
+		PhRule(HId argIndex, SSAExprType type) : argIndex(argIndex), type(type){}
+		
+		bool matchRule(Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr, MatchContext* context){
+			if(argIndex && argIndex <= expr->subExpressions.size() && expr->subExpressions[argIndex - 1].type == SSAArgType::eId)
+				expr = &ssaRep->expressions[expr->subExpressions[argIndex - 1].ssaId];
+			if(argIndex)
+				printf("--------------------------- Arg %d\n", argIndex);
+			if(type != SSAExprType::eInvalid){
+				if(type != expr->type)
+					return false;
+				context->expressionsMatched.push_back(expr->id);
 			}
-		}
-	}
-	bool parseSingleChar (std::ifstream* file, char matchC) {
-		parseWhitespaces (file);
-		char c;
-		if (!file->get (c).good() || c != matchC) {
-			file->putback (c);
-			return false;
-		}
-		return true;
-	}
-	bool parseKeyValue (std::ifstream* file, char* keyBuffer, size_t keyBuffersize, char* valueBuffer, size_t valueBuffersize) {
-		return parseIdentifier (file, keyBuffer, keyBuffersize) && parseSingleChar (file, '=') && parseIdentifier (file, valueBuffer, valueBuffersize);
-	}
-
-	std::vector<std::pair<HString, MatchRuleType>> typerules = {
-		{"type", MATCHRULE_TYPE},
-		{"builtin", MATCHRULE_BUILTIN},
-		{"location", MATCHRULE_LOCATION},
-		{"argtype", MATCHRULE_ARGUMENTTYPE},
-		{"argvalue", MATCHRULE_ARGUMENTVALUE},
-	};
-	std::vector<std::pair<HString, SSAExprType>> ssatypes = {
-		{"label", SSAExprType::eLabel},
-		{"undef", SSAExprType::eUndef},
-		{"nop", SSAExprType::eNop},
-		{"op", SSAExprType::eOp},
-		{"loadaddr", SSAExprType::eLoadAddr},
-		{"flag", SSAExprType::eFlag},
-		{"builtin", SSAExprType::eBuiltin},
-		{"extend", SSAExprType::eExtend},
-		{"split", SSAExprType::eSplit},
-		{"updatepart", SSAExprType::eUpdatePart},
-		{"append", SSAExprType::eAppend},
-		{"cast", SSAExprType::eCast},
-		{"input", SSAExprType::eInput},
-		{"output", SSAExprType::eOutput},
-		{"call", SSAExprType::eCall},
-		{"return", SSAExprType::eReturn},
-		{"syscall", SSAExprType::eSyscall},
-		{"phi", SSAExprType::ePhi},
-		{"assign", SSAExprType::eAssign},
-		{"jmp", SSAExprType::eJmp},
-		{"cjmp", SSAExprType::eCJmp},
-		{"multibr", SSAExprType::eMultiBranch},
-		{"push", SSAExprType::ePush},
-		{"pop", SSAExprType::ePop},
-		{"store", SSAExprType::eStore},
-		{"load", SSAExprType::eLoad},
-	};
-	std::vector<std::pair<HString, SSAOpType>> ssaoptypes = {
-		{"add", SSAOpType::eAdd},
-		{"sub", SSAOpType::eSub},
-		{"mul", SSAOpType::eMul},
-		{"div", SSAOpType::eDiv},
-		{"mod", SSAOpType::eMod},
-		{"and", SSAOpType::eAnd},
-		{"or", SSAOpType::eOr},
-		{"xor", SSAOpType::eXor},
-		{"not", SSAOpType::eNot},
-		{"eq", SSAOpType::eEq},
-		{"ne", SSAOpType::eNe},
-		{"l", SSAOpType::eLower},
-		{"le", SSAOpType::eLe},
-		{"g", SSAOpType::eGreater},
-		{"ge", SSAOpType::eGe},
-		{"band", SSAOpType::eBAnd},
-		{"bor", SSAOpType::eBOr},
-		{"bxor", SSAOpType::eBXor},
-		{"bnot", SSAOpType::eBNot},
-		{"shr", SSAOpType::eShr},
-		{"shl", SSAOpType::eShl},
-		{"sar", SSAOpType::eSar},
-		{"sal", SSAOpType::eSal},
-		{"ror", SSAOpType::eRor},
-		{"rol", SSAOpType::eRol}
-	};
-	std::vector<std::pair<HString, std::function<bool (MatchRule*, const char*) >>> ruleparams = {
-		{
-			"type", [] (MatchRule * rule, const char* value) {
-				HString valuestr = value;
-				for (auto& p : ssatypes) {
-					if (p.first == valuestr) {
-						rule->type.type = p.second;
-						return true;
-					}
-				}
-				return false;
+			for(PhRule* rule : subRules){
+				rule->matchRule(arch, ssaRep, expr, context);
 			}
-		}, {
-			"op", [] (MatchRule * rule, const char* value) {
-				HString valuestr = value;
-				for (auto& p : ssaoptypes) {
-					if (p.first == valuestr) {
-						rule->type.opType = p.second;
-						return true;
-					}
-				}
-				return false;
+			for(PhExecutor& phExecutor : executors){
+				phExecutor(arch, ssaRep, context);
 			}
 		}
 	};
-
-	void* parseMatchRule (std::ifstream* file) {
-		char buffer[100];
-		size_t parsedchars = parseIdentifier (file, buffer, 100);
-		MatchRule matchRule;
-		HString rulename = buffer;
-		for (auto& p : typerules) {
-			if (p.first == rulename) {
-				matchRule.matchRuleType = p.second;
-			}
-		}
-		if (!matchRule.matchRuleType)
-			return nullptr;
-		printf ("Rule %s\n", buffer);
-		if (!parseSingleChar (file, '(')) {
-			return nullptr;
-		}
-		do {
-			char keyBuffer[100];
-			char valueBuffer[100];
-			if (!parseKeyValue (file, keyBuffer, 100, valueBuffer, 100)) {
-				printf ("Rule %s\n", buffer);
-				return nullptr;
-			}
-			HString keyname = buffer;
-			for (auto& p : ruleparams) {
-				if (p.first == keyname) {
-					p.second (&matchRule, valueBuffer);
+	
+	struct PhRuleSet {
+		PhRule baserule = PhRule(0, SSAExprType::eInvalid);
+	};
+	
+	struct RuleBuilder {
+		PhRuleSet* ruleSet;
+		PhRule* rule;
+		
+		RuleBuilder(PhRuleSet& ruleSet): ruleSet(&ruleSet), rule(&ruleSet.baserule){}
+		
+		RuleBuilder& ssaType(HId index, SSAExprType type){
+			for(PhRule* itRule : rule->subRules){
+				if(itRule->argIndex == index && itRule->type == type){
+					rule = itRule;
+					return *this;
 				}
 			}
-			if (strcmp (keyBuffer, "flag") == 0) {
-
-			} else if (strcmp (keyBuffer, "size") == 0) {
-
-			} else if (strcmp (keyBuffer, "foundIndex") == 0) {
-
-			} else if (strcmp (keyBuffer, "foundArgIndex") == 0) {
-
-			} else if (strcmp (keyBuffer, "argIndex") == 0) {
-
-			} else if (strcmp (keyBuffer, "index") == 0) {
-
-			} else if (strcmp (keyBuffer, "uval") == 0) {
-
-			} else if (strcmp (keyBuffer, "sval") == 0) {
-
-			} else if (strcmp (keyBuffer, "fval") == 0) {
-
-			} else if (strcmp (keyBuffer, "name") == 0) {
-
-			} else if (strcmp (keyBuffer, "reg") == 0) {
-
-			} else if (strcmp (keyBuffer, "stack") == 0) {
-
-			} else if (strcmp (keyBuffer, "mem") == 0) {
-
-			} else {
-				printf ("Invalid Key %s\n", keyBuffer);
-			}
-
-		} while (parseSingleChar (file, ','));
-		if (!parseSingleChar (file, ')')) {
-			return nullptr;
+			PhRule* newRule = new PhRule(index, type);
+			rule->subRules.push_back(newRule);
+			rule = newRule;
+			return *this;
 		}
-
-		return (void*) 1;
-	}
-
-
-	void* parseMatcher (std::ifstream* file) {
-		char buffer[100];
-		size_t parsedchars = parseIdentifier (file, buffer, 100);
-		if (parsedchars == 7 && strcmp (buffer, "matcher") == 0) {
-			if (!parseSingleChar (file, '{')) {
-				return nullptr;
-			}
-			while (parsedchars = parseIdentifier (file, buffer, 100)) {
-				if (parsedchars == 5 && strcmp (buffer, "rules") == 0) {
-					printf ("Rules\n");
-					if (!parseSingleChar (file, '{')) {
-						return nullptr;
-					}
-					while (parseMatchRule (file));
-					if (!parseSingleChar (file, '}')) {
-						return nullptr;
-					}
-				} else if (parsedchars == 10 && strcmp (buffer, "submatches") == 0) {
-					printf ("Submatches\n");
-					if (!parseSingleChar (file, '{')) {
-						return nullptr;
-					}
-					if (!parseSingleChar (file, '}')) {
-						return nullptr;
-					}
-				} else if (parsedchars == 7 && strcmp (buffer, "actions") == 0) {
-					printf ("Actions\n");
-					if (!parseSingleChar (file, '{')) {
-						return nullptr;
-					}
-					if (!parseSingleChar (file, '}')) {
-						return nullptr;
-					}
-				} else {
-					printf ("End");
-					return nullptr;
-				}
-			}
-			if (!parseSingleChar (file, '}')) {
-				return nullptr;
-			}
+		
+		RuleBuilder& execute(PhExecutor executor){
+			if(rule)
+				rule->executors.push_back(executor);
 		}
+		
+		RuleBuilder& build(){
+			rule = &ruleSet->baserule;
+		}
+	};
 
-	}
-
-
-	PeepholeOptimizer* parsePhOptimizer (const char* filename, Architecture* arch) {
-		std::ifstream file (filename);
-		if (!file.good())
-			return nullptr;
-
-		parseMatcher (&file);
-
+	PeepholeOptimizer* parsePhOptimizer (Architecture* arch, Function& func) {
+		
+		PhRuleSet ruleSet;
+		
+		RuleBuilder builder(ruleSet);
+		builder.ssaType(0, SSAExprType::eCJmp).ssaType(1, SSAExprType::eFlag).execute([](Architecture*, SSARepresentation*, MatchContext*){printf("WWWWWWWWWWW\n");return false;});
+		for(SSAExpression& expr : func.ssaRep.expressions){
+			MatchContext context;
+			ruleSet.baserule.matchRule(arch, &func.ssaRep, &expr, &context);
+			
+		}
+		
 		return nullptr;
 	}
 

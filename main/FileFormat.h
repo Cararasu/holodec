@@ -14,7 +14,7 @@ namespace holodec {
 
 		HList<std::function<BinaryAnalyzer*(Data*, HString)>> binaryanalyzerfactory;
 
-		BinaryAnalyzer* createBinaryAnalyzer (Data* data,HString name = 0) {
+		BinaryAnalyzer* createBinaryAnalyzer (Data* data,HString name) {
 			for (std::function<BinaryAnalyzer*(Data*, HString)>& fac : binaryanalyzerfactory){
 				BinaryAnalyzer* analyzer = fac(data,name);
 				if(analyzer)

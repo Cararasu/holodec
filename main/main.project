@@ -184,8 +184,8 @@
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[PATH=$(PATH);../../cpython/PCbuild/amd64
-PYTHONHOME=../../cpython/PCbuild/amd64
-PYTHONPATH=../../cpython/Lib]]>
+#PYTHONHOME=../../cpython/PCbuild/amd64
+#PYTHONPATH=../../cpython/Lib]]>
       </Environment>
       <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
         <DebuggerSearchPaths/>

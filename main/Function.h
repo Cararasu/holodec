@@ -72,7 +72,6 @@ namespace holodec {
 		uint64_t baseaddr;
 		HIdList<HBasicBlock> basicblocks;
 		HIdList<HJumpTable> jumptables;
-		VisibilityType* visibility;
 		SSARepresentation ssaRep;
 
 		HList<uint64_t> addrToAnalyze;
@@ -110,7 +109,6 @@ namespace holodec {
 			symbolref = 0;
 			basicblocks.clear();
 			ssaRep.clear();
-			visibility = 0;
 		}
 
 		void print (Architecture* arch, int indent = 0) {

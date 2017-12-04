@@ -29,7 +29,6 @@ namespace holodec {
 	
 	struct MatchContext{
 		std::vector<HId> expressionsMatched;
-		std::vector<HId> expressionsCreated;
 	};
 	
 	//inherit: expr-type, size, write-location, instrAddress

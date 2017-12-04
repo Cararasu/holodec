@@ -37,19 +37,19 @@ uint64_t arch_get_bitbase (HArchitecture arch);
 uint64_t arch_get_wordbase (HArchitecture arch);
 
 HRegister arch_get_register (HArchitecture arch, uint64_t index);
-HRegister arch_get_register_by_id (HArchitecture arch, uint32_t index);
+HRegister arch_get_register_by_id (HArchitecture arch, HId index);
 uint64_t arch_get_regcount (HArchitecture arch);
 
 HStack arch_get_stack (HArchitecture arch, uint64_t index);
-HStack arch_get_stack_by_id (HArchitecture arch, uint32_t index);
+HStack arch_get_stack_by_id (HArchitecture arch, HId index);
 uint64_t arch_get_stackcount (HArchitecture arch);
 
 HCallingConvention arch_get_cc (HArchitecture arch, uint64_t index);
-HCallingConvention arch_get_cc_by_id (HArchitecture arch, uint32_t index);
+HCallingConvention arch_get_cc_by_id (HArchitecture arch, HId index);
 uint64_t arch_get_cccount (HArchitecture arch);
 
 HInstrDefinition arch_get_instrdef (HArchitecture arch, uint64_t index);
-HInstrDefinition arch_get_instrdef_by_id (HArchitecture arch, uint32_t index);
+HInstrDefinition arch_get_instrdef_by_id (HArchitecture arch, HId index);
 uint64_t arch_get_instrdefcount (HArchitecture arch);
 
 

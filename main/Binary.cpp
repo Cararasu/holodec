@@ -13,7 +13,6 @@ holodec::Binary::~Binary() {
 }
 
 holodec::HId holodec::Binary::addSection (Section section) {
-	section.id = gen_sections.next();
 	for (Section & sectionit : sections) {
 		HId ret = sectionit.addSection (section);
 		if (ret) return ret;

@@ -112,7 +112,7 @@ namespace holodec {
 		IRArgument condExpr = IRArgument::create();
 		IRArgument rootExpr = IRArgument::create();
 
-		IRRepresentation() : IRRepresentation (-1, nullptr, nullptr) {}
+		IRRepresentation() : IRRepresentation (-1, nullptr, "") {}
 		IRRepresentation (HString irstring) :  IRRepresentation (-1, nullptr, irstring) {}
 		IRRepresentation (int64_t argcount, HString irstring) : IRRepresentation (argcount, nullptr, irstring) {}
 		IRRepresentation (HString condstring, HString irstring) : IRRepresentation (-1, condstring, irstring) {}

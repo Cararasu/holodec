@@ -5,25 +5,26 @@
 #include "HString.h"
 #include "General.h"
 #include "HIdList.h"
+#include "CHolodecHeader.h"
 
 namespace holodec {
 
-	enum RegTrackType {
-		H_REG_TRACK_TRACKED = 0,
-		H_REG_TRACK_VOLATILE
+	enum class RegTrackType {
+		eTracked = REG_TRACK_TRACKED,
+		eVolatile = REG_TRACK_VOLATILE
 	};
-	enum RegType {
-		H_REG_OTHER = 0,
-		H_REG_GPR,
-		H_REG_ADDRESS,
-		H_REG_FLOAT,
-		H_REG_VEC,
-		H_REG_STACKPTR,
-		H_REG_INSTRPTR,
-		H_REG_FLAGS,
-		H_REG_CONTROL,
-		H_REG_DEBUG,
-		H_REG_SEGMENT
+	enum class RegType {
+		eOther = REG_OTHER,
+		eGPR = REG_GPR,
+		eAddress = REG_ADDRESS,
+		eFloat = REG_FLOAT,
+		eVec = REG_VEC,
+		eStackPtr = REG_STACKPTR,
+		eInstrPtr = REG_INSTRPTR,
+		eFlag = REG_FLAG,
+		eControl = REG_CONTROL,
+		eDebug = REG_DEBUG,
+		eSegment = REG_SEGMENT
 	};
 
 	struct Register {

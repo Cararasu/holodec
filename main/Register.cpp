@@ -3,7 +3,7 @@
 namespace holodec{
 
 
-	Register invalidReg = {0, "invalid reg", H_REG_OTHER, nullptr, nullptr, 0, 0, false};
+	Register invalidReg = {0, "invalid reg", RegType::eOther, nullptr, nullptr, 0, 0, false};
 
 	void Register::print (int indent) {
 		printIndent (indent);

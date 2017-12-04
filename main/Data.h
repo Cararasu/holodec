@@ -11,7 +11,7 @@ namespace holodec {
 		const size_t size;
 		HString filename;
 
-		Data (uint8_t* data, size_t size, const HString filename = 0);
+		Data (uint8_t* data, size_t size, const HString filename);
 		Data (Data& file);
 		Data (Data && file);
 		virtual ~Data ();

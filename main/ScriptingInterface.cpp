@@ -81,10 +81,10 @@ namespace holodec {
 		
 		
 		//helpers
-		//.module("", "")
-		//.function("", ptr, "", ptr)
-		//.enum("").value("", 1)
-		//.value("", ...)
+		//.module(nullptr, "")
+		//.function(nullptr, ptr, nullptr, ptr)
+		//.enum("").value(nullptr, 1)
+		//.value(nullptr, ...)
 		
 		//desc
 		//bitbase

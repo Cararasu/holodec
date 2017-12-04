@@ -284,7 +284,7 @@ namespace holodec {
 			char buffer[100];
 			if (!parseIdentifier (buffer, 100))
 				return false;
-			HString s = HString::create (buffer);
+			HString s = buffer;
 			expression->mod.instrId = arch->getInstrDef (s)->id;
 			if (parseCharacter (']')) {
 				return true;

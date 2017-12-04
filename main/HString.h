@@ -12,73 +12,58 @@ namespace holodec {
 
 	class HString {
 		uint64_t m_hash;
-		const char * m_cstr;
+		std::string m_str;
 
 		void doHash() {
 			m_hash = 0;
-			if (m_cstr == 0) return;
 			uint64_t val = 5381;
-			for (int i = 0; m_cstr[i]; i++) val = (val * 33) ^ m_cstr[i];
+			for (int i = 0; m_str[i]; i++) val = (val * 33) ^ m_str[i];
 			m_hash = val;
 		}
 	public:
-		HString() : m_hash (0), m_cstr (0) {}
-		HString (const char* ptr) : m_hash (0), m_cstr (ptr) {
+		HString (const char* ptr = "") : m_hash (0) {
+			if(!ptr)
+				ptr = "";
+			m_str = ptr;
 			doHash();
 		}
-		HString (const HString& str) : m_hash (str.m_hash), m_cstr (str.m_cstr) {}
-		HString& operator= (const HString& str) {
-			m_hash = str.m_hash;
-			m_cstr = str.m_cstr;
-			return *this;
-		}
-		HString& operator= (const char* str) {
-			m_cstr = str;
-			doHash();
-			return *this;
-		}
+		HString (const HString& str) : m_hash (str.m_hash), m_str (str.m_str) {}
 
 		uint64_t hash() const {
 			return m_hash;
 		}
 		const char* cstr() const {
-			return m_cstr;
+			return m_str.c_str();
 		}
 		operator bool() const {
-			return m_cstr != nullptr;
+			return m_str.size();
 		}
 		bool operator!() const {
-			return m_cstr == nullptr;
+			return !m_str.size();
 		}
 
 		char operator[] (int i) const {
-			return m_cstr[i];
+			return m_str[i];
 		}
-		void del(){
-			if(m_cstr)
-				free(const_cast<char*>(m_cstr));
-			*this = nullptr;
+		void update(const char* name){
+			m_str = name;
+			doHash();
 		}
-		HString copy(){
-			return HString(strdup(m_cstr));
+		void update(HString name){
+			m_hash = name.m_hash;
+			m_str = name.m_str;
 		}
 		
-		static HString create(const char* ptr){
-			return HString(strdup(ptr));
-		}
-		static HString create(HString ptr){
-			return ptr.copy();
-		}
 		bool staertsWith (HString arg) {
 			if(*this == arg)
 				return true;
-			return strncmp (m_cstr, arg.cstr(),strlen(m_cstr)) == 0;
+			return strncmp (m_str.c_str(), arg.cstr(), m_str.size()) == 0;
 		}
 		
 		friend int64_t compare (const HString* lhs, const HString* rhs);
 	};
 	inline int64_t compare (const HString* lhs, const HString* rhs) {
-		return lhs->m_hash == rhs->m_hash ? (lhs->m_cstr == rhs->m_cstr ? 0 : strcmp (lhs->m_cstr, rhs->m_cstr)) : lhs->m_hash - rhs->m_hash;
+		return lhs->m_hash == rhs->m_hash ? lhs->m_str.compare(rhs->m_str) : lhs->m_hash - rhs->m_hash;
 	}
 	inline bool operator== (const HString& lhs, const HString& rhs) {
 		return compare (&lhs, &rhs) == 0;

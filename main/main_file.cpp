@@ -45,12 +45,7 @@ extern Architecture holox86::x86architecture;
 
 int main (int argc, char** argv) {
 	
-	
-	
 	/*
-	 * Ok
-	 * Let's go
-	 * 
 	 * Input i = MemAccess(0, unlimited)
 	 * 
 	 * uint64 xx = Lea(...)
@@ -59,7 +54,7 @@ int main (int argc, char** argv) {
 	 * MemoryAccess aa = Store(yy, value)
 	 * 
 	 */
-	
+	printf ("Init X86\n");
 	
 	Main::initMain();
 	Data* data = Main::loadDataFromFile (filename);
@@ -80,7 +75,7 @@ int main (int argc, char** argv) {
 
 	BinaryAnalyzer* analyzer = nullptr;
 	for (FileFormat * fileformat : Main::g_main->fileformats) {
-		analyzer = fileformat->createBinaryAnalyzer (data);
+		analyzer = fileformat->createBinaryAnalyzer (data, "binary");
 		if (analyzer)
 			break;
 	}
@@ -103,7 +98,6 @@ int main (int argc, char** argv) {
 
 	holox86::x86architecture.print();
 	
-	PeepholeOptimizer* optimizer = parsePhOptimizer("../../workingdir/standard.ph", &holox86::x86architecture);
 	//return 0;
 
 	std::vector<SSATransformer*> transformers = {
@@ -135,6 +129,7 @@ int main (int argc, char** argv) {
 		for(SSATransformer* transform : transformers){
 			transform->doTransformation(&func);
 		}
+		PeepholeOptimizer* optimizer = parsePhOptimizer(&holox86::x86architecture, func);
 		func.print (&holox86::x86architecture);
 	}
 	return 0;

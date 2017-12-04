@@ -80,7 +80,7 @@ namespace holodec {
 	struct InstrDefinition {//16*8 -> 128 bytes
 		HId id;
 		HString mnemonics;
-		HLocalBackedList<IRRepresentation,4> irs;
+		HList<IRRepresentation> irs;
 		InstructionType type;
 		InstructionType type2;
 
