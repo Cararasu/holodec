@@ -34,20 +34,20 @@ namespace holodec {
 			expressionmap.insert(std::make_pair("assign", expression));
 		}
 		
-		{expression.returntype = SSAType::eUint;
+		{expression.returntype = SSAType::eUInt;
 			{expression.type = IR_EXPR_FLAG;
 				expression.size = 1;
-				expression.mod.flagType = SSAFlagType::eFlagZ;
+				expression.mod.flagType = SSAFlagType::eZ;
 				expressionmap.insert(std::make_pair("z", expression));
-				expression.mod.flagType = SSAFlagType::eFlagP;
+				expression.mod.flagType = SSAFlagType::eP;
 				expressionmap.insert(std::make_pair("p", expression));
-				expression.mod.flagType = SSAFlagType::eFlagO;
+				expression.mod.flagType = SSAFlagType::eO;
 				expressionmap.insert(std::make_pair("o", expression));
-				expression.mod.flagType = SSAFlagType::eFlagS;
+				expression.mod.flagType = SSAFlagType::eS;
 				expressionmap.insert(std::make_pair("s", expression));
-				expression.mod.flagType = SSAFlagType::eFlagC;
+				expression.mod.flagType = SSAFlagType::eC;
 				expressionmap.insert(std::make_pair("c", expression));
-				expression.mod.flagType = SSAFlagType::eFlagA;
+				expression.mod.flagType = SSAFlagType::eA;
 				expressionmap.insert(std::make_pair("a", expression));
 				expression.type = IR_EXPR_APPEND;
 				expressionmap.insert(std::make_pair("app", expression));

@@ -130,6 +130,7 @@ int main (int argc, char** argv) {
 			transform->doTransformation(&func);
 		}
 		PeepholeOptimizer* optimizer = parsePhOptimizer(&holox86::x86architecture, func);
+		transformers[4]->doTransformation(&func);
 		func.print (&holox86::x86architecture);
 	}
 	return 0;

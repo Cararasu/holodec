@@ -15,7 +15,7 @@ namespace holodec {
 		case SSAType::eInt:
 			printf ("int");
 			break;
-		case SSAType::eUint:
+		case SSAType::eUInt:
 			printf ("uint");
 			break;
 		case SSAType::eFloat:
@@ -425,7 +425,7 @@ namespace holodec {
 		for (SSABB& basicblock : bbs) {
 			for (auto it = basicblock.exprIds.begin(); it != basicblock.exprIds.end(); ++it) {
 				if (*it == ssaId) {
-					return *addBefore (expr, bb->exprIds, it);
+					return *addBefore (expr, basicblock.exprIds, it);
 				}
 			}
 		}

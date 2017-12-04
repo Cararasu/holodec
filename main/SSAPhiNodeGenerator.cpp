@@ -128,7 +128,7 @@ namespace holodec {
 
 										SSAExpression newExpr;
 										newExpr.type = SSAExprType::eSplit;
-										newExpr.returntype = SSAType::eUint;
+										newExpr.returntype = SSAType::eUInt;
 										newExpr.instrAddr = expr->instrAddr;
 										newExpr.location = SSAExprLocation::eReg;
 										newExpr.locref = {reg->id, 0};
@@ -222,7 +222,7 @@ namespace holodec {
 
 				SSAExpression phinode;
 				phinode.type = SSAExprType::ePhi;
-				phinode.returntype = SSAType::eUint;
+				phinode.returntype = SSAType::eUInt;
 				phinode.location = SSAExprLocation::eReg;
 				phinode.locref = {reg->id, 0};
 				phinode.size = reg->size;
@@ -307,7 +307,7 @@ namespace holodec {
 			//printf("Found parent Match %d\n", foundParentDef->ssaId);
 			SSAExpression expr;
 			expr.type = SSAExprType::eSplit;
-			expr.returntype = SSAType::eUint;
+			expr.returntype = SSAType::eUInt;
 			expr.size = reg->size;
 			expr.location = SSAExprLocation::eReg;
 			expr.locref = {reg->id, 0};

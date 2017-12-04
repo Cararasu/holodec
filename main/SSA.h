@@ -90,20 +90,20 @@ namespace holodec {
 	enum class SSAType {
 		eUnknown = SSA_TYPE_UNKNOWN,
 		eInt = SSA_TYPE_INT,
-		eUint = SSA_TYPE_UINT,
+		eUInt = SSA_TYPE_UINT,
 		eFloat = SSA_TYPE_FLOAT,
 		ePc = SSA_TYPE_PC,
 		eMemaccess = SSA_TYPE_MEMACCESS,
 	};
 	enum class SSAFlagType {
 		eUnknown = SSA_FLAG_UNKNOWN,
-		eFlagC = SSA_FLAG_C,
-		eFlagA = SSA_FLAG_A,
-		eFlagP = SSA_FLAG_P,
-		eFlagO = SSA_FLAG_O,
-		eFlagU = SSA_FLAG_U,
-		eFlagZ = SSA_FLAG_Z,
-		eFlagS = SSA_FLAG_S,
+		eC = SSA_FLAG_C,
+		eA = SSA_FLAG_A,
+		eP = SSA_FLAG_P,
+		eO = SSA_FLAG_O,
+		eU = SSA_FLAG_U,
+		eZ = SSA_FLAG_Z,
+		eS = SSA_FLAG_S,
 	};
 	enum class SSAExprLocation{
 		eNone = SSA_LOCATION_NONE,
@@ -177,7 +177,7 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument create (HId ssaId, SSAExprLocation location = SSAExprLocation::eNone, Reference locref = {0, 0}, uint32_t size = 0) {
+		static inline SSAArgument create (HId ssaId, uint32_t size = 0, SSAExprLocation location = SSAExprLocation::eNone, Reference locref = {0, 0}) {
 			SSAArgument arg;
 			arg.type = SSAArgType::eId;
 			arg.ssaId = ssaId;
@@ -195,28 +195,28 @@ namespace holodec {
 			return arg;
 		}
 		static inline SSAArgument createId (HId ssaId, uint64_t size) {
-			return create(ssaId, SSAExprLocation::eNone, {0, 0}, size);
+			return create(ssaId, size, SSAExprLocation::eNone, {0, 0});
 		}
 		static inline SSAArgument createReg (Register* reg, HId ssaId = 0) {
-			return create(ssaId, SSAExprLocation::eReg, {reg->id, 0}, reg->size);
+			return create(ssaId, reg->size, SSAExprLocation::eReg, {reg->id, 0});
 		}
 		static inline SSAArgument createReg (Reference ref, uint32_t size, HId ssaId = 0) {
-			return create(ssaId, SSAExprLocation::eReg, ref, size);
+			return create(ssaId, size, SSAExprLocation::eReg, ref);
 		}
 		static inline SSAArgument createMem (Memory* mem, HId ssaId = 0) {
-			return create(ssaId, SSAExprLocation::eMem, {mem->id, 0}, 0);
+			return create(ssaId, 0, SSAExprLocation::eMem, {mem->id, 0});
 		}
 		static inline SSAArgument createMem (HId memId, HId ssaId = 0) {
-			return create(ssaId, SSAExprLocation::eMem, {memId, 0}, 0);
+			return create(ssaId, 0, SSAExprLocation::eMem, {memId, 0});
 		}
 		static inline SSAArgument createStck (Stack* stack, HId index) {
-			return create(0, SSAExprLocation::eStack, {stack->id, index}, stack->wordbitsize);
+			return create(0, stack->wordbitsize, SSAExprLocation::eStack, {stack->id, index});
 		}
 		static inline SSAArgument createStck (Reference ref, uint32_t size, HId ssaId = 0) {
-			return create(ssaId, SSAExprLocation::eStack, ref, size);
+			return create(ssaId, size, SSAExprLocation::eStack, ref);
 		}
 		static inline SSAArgument createBlock (HId blockId) {
-			return create(0, SSAExprLocation::eBlock, {blockId, 0});
+			return create(0, 0, SSAExprLocation::eBlock, {blockId, 0});
 		}
 
 		void print (Architecture* arch);
