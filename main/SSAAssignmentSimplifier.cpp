@@ -36,6 +36,8 @@ namespace holodec{
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, arg));
 					}else if(expr.location == SSAExprLocation::eNone){
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, expr.subExpressions[0]));
+					}else if(expr.subExpressions[0].location == expr.location && expr.subExpressions[0].locref == expr.locref){
+						replacements.insert(std::pair<HId, SSAArgument>(expr.id, expr.subExpressions[0]));
 					}
 				}else if(expr.type == SSAExprType::eUndef){
 					replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::createUndef (expr.location, expr.locref, expr.size)));

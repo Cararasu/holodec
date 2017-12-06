@@ -6,15 +6,21 @@
 namespace holodec {
 
 
-	void setSSAID (SSARepresentation* ssaRep, SSAArgument* arg, HId id, SSAExprType type) {
-		if (arg->type == SSAArgType::eId && !EXPR_IS_TRANSIENT (type)) {
-			ssaRep->changeRefCount (arg->ssaId, -1);
+	void setSSAID (SSARepresentation* ssaRep, SSAExpression* expr, HId argIndex, HId id) {
+		if (expr->subExpressions[argIndex].type == SSAArgType::eId && !EXPR_IS_TRANSIENT (expr->type)) {
+			if(EXPR_IS_TRANSIENT (expr->type))
+				ssaRep->changeRefCount (expr->subExpressions[argIndex].ssaId, -1 * expr->refcount);
+			else
+				ssaRep->changeRefCount (expr->subExpressions[argIndex].ssaId, -1);
 		}else{
-			arg->type = SSAArgType::eId;
+			expr->subExpressions[argIndex].type = SSAArgType::eId;
 		}
-		arg->ssaId = id;
-		if (id && !EXPR_IS_TRANSIENT (type)) {
-			ssaRep->changeRefCount (id, 1);
+		expr->subExpressions[argIndex].ssaId = id;
+		if (id) {
+			if(EXPR_IS_TRANSIENT (expr->type))
+				ssaRep->changeRefCount (id, expr->refcount);
+			else
+				ssaRep->changeRefCount (id, 1);
 		}
 	}
 
@@ -117,7 +123,7 @@ namespace holodec {
 							bool found = false;
 							for (SSARegDef& def : bbwrapper.outputs) {
 								if (def.regId == reg->id) {
-									setSSAID (&function->ssaRep, &expr->subExpressions[i], def.ssaId, expr->type);
+									setSSAID (&function->ssaRep, expr, i, def.ssaId);
 									found = true;
 									break;
 								}
@@ -128,18 +134,21 @@ namespace holodec {
 
 										SSAExpression newExpr;
 										newExpr.type = SSAExprType::eSplit;
+										newExpr.size = (def.offset + def.size) - (reg->offset + reg->size);
 										newExpr.returntype = SSAType::eUInt;
 										newExpr.instrAddr = expr->instrAddr;
 										newExpr.location = SSAExprLocation::eReg;
 										newExpr.locref = {reg->id, 0};
-										newExpr.subExpressions.push_back (SSAArgument::createReg (reg, def.ssaId));
-										newExpr.subExpressions.push_back (SSAArgument::createVal (reg->offset - def.offset, arch->bitbase));
-										newExpr.subExpressions.push_back (SSAArgument::createVal ( (def.offset + def.size) - (reg->offset + reg->size), arch->bitbase));
+										newExpr.subExpressions = {
+											SSAArgument::createReg (reg, def.ssaId),
+											SSAArgument::createVal (reg->offset - def.offset, arch->bitbase),
+											SSAArgument::createVal ( newExpr.size, arch->bitbase)
+										};
 
 										it = function->ssaRep.addBefore (&newExpr, bbwrapper.ssaBB->exprIds, it);
 
 										expr = function->ssaRep.expressions.get (id); //reload expression in case we have a reallocate
-										setSSAID (&function->ssaRep, &expr->subExpressions[i], *it, expr->type);
+										setSSAID (&function->ssaRep, expr, i, *it);
 
 										found = true;
 										break;
@@ -154,7 +163,7 @@ namespace holodec {
 							bool found = false;
 							for (SSAMemDef& def : bbwrapper.outputMems) {
 								if (def.memId == mem->id) {
-									setSSAID (&function->ssaRep, &expr->subExpressions[i], def.ssaId, expr->type);
+									setSSAID (&function->ssaRep, expr, i, def.ssaId);
 									found = true;
 									break;
 								}
@@ -192,7 +201,7 @@ namespace holodec {
 					SSAArgument& arg = expr->subExpressions[i];
 					//reset id of register/memory/stack so that we can redo them to find non defined reg-arguments
 					if (arg.location != SSAExprLocation::eNone) {
-						setSSAID (&function->ssaRep, &expr->subExpressions[i], 0, expr->type);
+						setSSAID (&function->ssaRep, expr, i, 0);
 					}
 				}
 			}
@@ -311,9 +320,11 @@ namespace holodec {
 			expr.size = reg->size;
 			expr.location = SSAExprLocation::eReg;
 			expr.locref = {reg->id, 0};
-			expr.subExpressions.push_back (SSAArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId));
-			expr.subExpressions.push_back (SSAArgument::createVal (reg->offset, arch->bitbase));
-			expr.subExpressions.push_back (SSAArgument::createVal (reg->size, arch->bitbase));
+			expr.subExpressions = {
+				SSAArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId),
+				SSAArgument::createVal (reg->offset, arch->bitbase),
+				SSAArgument::createVal (reg->size, arch->bitbase)
+			};
 			bool found = false;
 			for (auto it = wrapper->ssaBB->exprIds.begin(); it != wrapper->ssaBB->exprIds.end(); ++it) {
 				if (foundParentDef->ssaId == *it) {

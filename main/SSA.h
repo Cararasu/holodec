@@ -327,6 +327,7 @@ namespace holodec {
 		
 		void compress();
 		
+		void propagateRefCount(SSAExpression* expr);
 		void propagateRefCount(HId id, int64_t count = 1);
 		
 		void changeRefCount(HId id, int64_t count = 1);

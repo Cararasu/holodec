@@ -805,6 +805,8 @@ namespace holodec {
 				for (int i = 0; i < subexpressioncount; i++) {
 					expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i])));
 				}
+				if(expression.subExpressions[2].isConst() && expression.subExpressions[2].type == SSAArgType::eUInt)
+					expression.size = expression.subExpressions[2].uval;
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
 			}
 			case IR_EXPR_APPEND: {
