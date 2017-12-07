@@ -26,7 +26,7 @@ namespace holodec {
 
 		void print (Architecture* arch, int indent = 0);
 	};
-	struct HJumpTable {
+	struct JumpTable {
 		struct HEntry {
 			uint64_t addr;//where the entry is in memory
 			uint64_t targetaddr;//the target of the jump
@@ -46,7 +46,7 @@ namespace holodec {
 			}
 		}
 	};
-	struct HBasicBlock {
+	struct DisAsmBasicBlock {
 		HId id;
 		HList<Instruction> instructions;
 		HId nextblock;
@@ -65,29 +65,47 @@ namespace holodec {
 			}
 		}
 	};
+	// Unknown -> FunctionRead
+	enum class RegisterUsedFlag{
+		eNone	= 0x0,
+		eWrite	= 0x1,
+		eRead	= 0x2,
+		eFuncWrite	= 0x4,
+		eFuncRead	= 0x8,
+	};
+	struct RegisterState{
+		HId regId;
+		Flags<RegisterUsedFlag> flags;
+	};
+	
 	struct Function {
 		HId id;
 		HId symbolref;
 		HId callingconvention;
 		uint64_t baseaddr;
-		HIdList<HBasicBlock> basicblocks;
-		HIdList<HJumpTable> jumptables;
+		
+		HList<RegisterState> regStates;
+		HList<uint64_t> funcsCalled;
+		HList<uint64_t> funcsCall;
+		
+		HIdList<DisAsmBasicBlock> basicblocks;
+		HIdList<JumpTable> jumptables;
 		SSARepresentation ssaRep;
 
 		HList<uint64_t> addrToAnalyze;
 		
-		HBasicBlock* findBasicBlock (size_t addr) {
+		DisAsmBasicBlock* findBasicBlock (size_t addr) {
 			if (addr) {
-				for (HBasicBlock& bb : basicblocks) {
+				for (DisAsmBasicBlock& bb : basicblocks) {
 					if (bb.addr == addr)
 						return &bb;
 				}
 			}
 			return nullptr;
 		}
-		HBasicBlock* findBasicBlockDeep (size_t addr) {
+		DisAsmBasicBlock* findBasicBlockDeep (size_t addr) {
 			if (addr) {
-				for (HBasicBlock& bb : basicblocks) {
+				for (DisAsmBasicBlock& bb : basicblocks) {
 					if (bb.addr == addr)
 						return &bb;
 					if (bb.addr <= addr && addr < (bb.addr + bb.size)) {
@@ -101,7 +119,7 @@ namespace holodec {
 			return nullptr;
 		}
 
-		HId addBasicBlock (HBasicBlock basicblock) {
+		HId addBasicBlock (DisAsmBasicBlock basicblock) {
 			return basicblocks.push_back (basicblock);
 		}
 		void clear() {
@@ -114,7 +132,13 @@ namespace holodec {
 		void print (Architecture* arch, int indent = 0) {
 			printIndent (indent);
 			printf ("Printing Function\n");
-			for (HBasicBlock& bb : basicblocks) {
+			printf ("Calling Functions: ");
+			
+			for (uint64_t addr : funcsCalled) {
+				printf("0x%x, ", addr);
+			}
+			printf ("\n");
+			for (DisAsmBasicBlock& bb : basicblocks) {
 				bb.print (arch, indent + 1);
 			}
 			

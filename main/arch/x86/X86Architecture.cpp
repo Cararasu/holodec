@@ -193,7 +193,6 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{0, "ymm15", RegType::eVec, "zmm15", "zmm15", 512, 0, true},
 		{0, "xmm15", RegType::eVec, "zmm15", "ymm15", 512, 0, true},
 		
-		{0, "zmm15", RegType::eVec, nullptr, "zmm15", 512, 0, true},
 		{0, "zmm16", RegType::eVec, nullptr, "zmm16", 512, 0, true},
 		{0, "zmm17", RegType::eVec, nullptr, "zmm17", 512, 0, true},
 		{0, "zmm18", RegType::eVec, nullptr, "zmm18", 512, 0, true},

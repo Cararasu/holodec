@@ -8,21 +8,21 @@ const holodec::SymbolType holodec::SymbolType::symfloat = {"float"};
 const holodec::SymbolType holodec::SymbolType::symstring = {"string"};
 const holodec::SymbolType holodec::SymbolType::symfunc = {"func"};
 
-holodec::HId holodec::Section::addSection (Section section) {
-	if (vaddr > section.vaddr || vaddr + size <= section.vaddr)
+holodec::HId holodec::Section::addSection (Section* section) {
+	if (vaddr > section->vaddr || vaddr + size <= section->vaddr)
 		return 0;
-	for (Section& sectionit : subsections) {
-		HId ret = sectionit.addSection (section);
+	for (Section* sectionit : subsections) {
+		HId ret = sectionit->addSection (section);
 		if (ret) return ret;
 	}
 	subsections.push_back (section);
-	return section.id;
+	return section->id;
 }
 holodec::Section* holodec::Section::getSection (HId id){
 	if(this->id == id)
 		return this;
-	for (Section& section : subsections) {
-		Section* sec = section.getSection (id);
+	for (Section* section : subsections) {
+		Section* sec = section->getSection (id);
 		if (sec) return sec;
 	}
 	return nullptr;
@@ -30,8 +30,8 @@ holodec::Section* holodec::Section::getSection (HId id){
 holodec::Section* holodec::Section::getSection (HString name){
 	if(this->name == name)
 		return this;
-	for (Section& section : subsections) {
-		Section* sec = section.getSection (name);
+	for (Section* section : subsections) {
+		Section* sec = section->getSection (name);
 		if (sec) return sec;
 	}
 	return nullptr;

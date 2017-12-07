@@ -102,7 +102,7 @@ int main (int argc, char** argv) {
 
 	std::vector<SSATransformer*> transformers = {
 		new SSAAddressToBlockTransformer(),
-		new SSACallingConvApplier(),
+		//new SSACallingConvApplier(),
 		new SSAPhiNodeGenerator(),
 		new SSAAssignmentSimplifier(),
 		new SSADCETransformer(),
@@ -115,23 +115,54 @@ int main (int argc, char** argv) {
 	}
 
 	
-	for (Symbol& sym : binary->symbols){
-		if(sym.symboltype == &SymbolType::symfunc){
-			func_analyzer->analyzeFunction (&sym);
+	for (Symbol* sym : binary->symbols){
+		if(sym->symboltype == &SymbolType::symfunc){
+			Function* newfunction = new Function();
+			newfunction->symbolref = sym->id;
+			newfunction->baseaddr = sym->vaddr;
+			newfunction->addrToAnalyze.push_back (sym->vaddr);
+			binary->functions.push_back(newfunction);
 		}
 	}
+	bool funcAnalyzed;
+	do{
+		funcAnalyzed = false;
+		for(Function* func : binary->functions){
+			if(!func->addrToAnalyze.empty()){
+				func_analyzer->analyzeFunction (func);
+				funcAnalyzed = true;
+				if(!func->funcsCalled.empty()){
+					for(uint64_t addr : func->funcsCalled){
+						if(binary->findSymbol(addr, &SymbolType::symfunc) == nullptr){
+							char buffer[100];
+							snprintf(buffer, 100, "func_0x%x", addr);
+							Symbol* symbol = new Symbol();
+							*symbol = {0, buffer, &SymbolType::symfunc, 0, addr, 0};
+							binary->addSymbol(symbol);
+							Function* newfunction = new Function();
+							newfunction->symbolref = symbol->id;
+							newfunction->baseaddr = symbol->vaddr;
+							newfunction->addrToAnalyze.push_back (symbol->vaddr);
+							binary->functions.push_back(newfunction);
+						}
+					}
+				}
+				break;
+			}
+		}
+	}while(funcAnalyzed);
 	
 	
-	for (Function& func : binary->functions) {
+	for (Function* func : binary->functions) {
 		
-		func.callingconvention = holox86::x86architecture.getCallingConvention("amd64")->id;
+		func->callingconvention = holox86::x86architecture.getCallingConvention("amd64")->id;
 		
 		for(SSATransformer* transform : transformers){
-			transform->doTransformation(&func);
+			transform->doTransformation(func);
 		}
 		PeepholeOptimizer* optimizer = parsePhOptimizer(&holox86::x86architecture, func);
-		transformers[4]->doTransformation(&func);
-		func.print (&holox86::x86architecture);
+		transformers[4]->doTransformation(func);
+		func->print (&holox86::x86architecture);
 	}
 	return 0;
 }

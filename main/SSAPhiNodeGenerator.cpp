@@ -7,21 +7,10 @@ namespace holodec {
 
 
 	void setSSAID (SSARepresentation* ssaRep, SSAExpression* expr, HId argIndex, HId id) {
-		if (expr->subExpressions[argIndex].type == SSAArgType::eId && !EXPR_IS_TRANSIENT (expr->type)) {
-			if(EXPR_IS_TRANSIENT (expr->type))
-				ssaRep->changeRefCount (expr->subExpressions[argIndex].ssaId, -1 * expr->refcount);
-			else
-				ssaRep->changeRefCount (expr->subExpressions[argIndex].ssaId, -1);
-		}else{
-			expr->subExpressions[argIndex].type = SSAArgType::eId;
-		}
-		expr->subExpressions[argIndex].ssaId = id;
-		if (id) {
-			if(EXPR_IS_TRANSIENT (expr->type))
-				ssaRep->changeRefCount (id, expr->refcount);
-			else
-				ssaRep->changeRefCount (id, 1);
-		}
+		SSAArgument arg = expr->subExpressions[argIndex];
+		arg.type = SSAArgType::eId;
+		arg.ssaId = id;
+		expr->subExpressions[argIndex] = arg;
 	}
 
 	void BasicBlockWrapper::print (Architecture* arch) {
@@ -119,7 +108,7 @@ namespace holodec {
 					if (expr->subExpressions[i].type == SSAArgType::eId && !expr->subExpressions[i].ssaId) {
 						if (expr->subExpressions[i].location == SSAExprLocation::eReg) {
 							Register* reg = arch->getRegister (expr->subExpressions[i].locref.refId);
-							assert(reg->id);
+							assert (reg->id);
 							bool found = false;
 							for (SSARegDef& def : bbwrapper.outputs) {
 								if (def.regId == reg->id) {
@@ -142,7 +131,7 @@ namespace holodec {
 										newExpr.subExpressions = {
 											SSAArgument::createReg (reg, def.ssaId),
 											SSAArgument::createVal (reg->offset - def.offset, arch->bitbase),
-											SSAArgument::createVal ( newExpr.size, arch->bitbase)
+											SSAArgument::createVal (newExpr.size, arch->bitbase)
 										};
 
 										it = function->ssaRep.addBefore (&newExpr, bbwrapper.ssaBB->exprIds, it);
@@ -175,7 +164,7 @@ namespace holodec {
 				}
 				switch (expr->location) {
 				case SSAExprLocation::eReg:
-					addRegDef (expr->id, arch->getRegister (expr->locref.refId), &bbwrapper.outputs, ! (expr->type == SSAExprType::eUpdatePart || expr->type == SSAExprType::ePhi));
+					addRegDef (expr->id, arch->getRegister (expr->locref.refId), &bbwrapper.outputs, ! EXPR_IS_TRANSIENT (expr->type));
 					break;
 				case SSAExprLocation::eMem:
 					addMemDef (expr->id, arch->getMemory (expr->locref.refId), &bbwrapper.outputMems);
@@ -191,7 +180,7 @@ namespace holodec {
 
 		printf ("Generating Phi-Nodes for Function at Address 0x%x\n", function->baseaddr);
 		this->function = function;
-
+		
 		for (SSABB& bb : function->ssaRep.bbs) {
 			for (HId id : bb.exprIds) {
 				SSAExpression* expr = function->ssaRep.expressions.get (id);
@@ -222,11 +211,11 @@ namespace holodec {
 				if (!reg->id)
 					printf ("%d - %d %s\n", wrap.ssaBB->id, regDef.regId, reg->name.cstr());
 
-				//printf("Searching Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
+				//printf ("Searching Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
 				for (HId inBlockId : wrap.ssaBB->inBlocks) {
 					handleBBs (getWrapper (inBlockId), reg, gatheredIds, &gatheredIdCount, visitedBlocks, &visitedBlockCount);
 				}
-				//printf("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
+				//printf ("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
 				assert (gatheredIdCount);
 
 				SSAExpression phinode;
@@ -236,13 +225,14 @@ namespace holodec {
 				phinode.locref = {reg->id, 0};
 				phinode.size = reg->size;
 				phinode.instrAddr = wrap.ssaBB->startaddr;
+				phinode.subExpressions.resize (gatheredIdCount);
 				for (int i = 0; i < gatheredIdCount; i++) {
-					phinode.subExpressions.push_back (SSAArgument::createReg (reg, gatheredIds[i]));
+					phinode.subExpressions[i] = SSAArgument::createReg (reg, gatheredIds[i]);
 				}
 				HId exprId = function->ssaRep.addAtStart (&phinode, wrap.ssaBB);
 				bool needInOutput = true;
 				for (SSARegDef& def : wrap.outputs) {
-					if (def.parentId == (HId) reg->parentRef) {
+					if (def.parentId == reg->parentRef.refId) {
 						needInOutput = false;
 						break;
 					}
@@ -295,19 +285,19 @@ namespace holodec {
 	}
 
 	void SSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, Register* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount) {
-		//printf("\nHandling Block %d\n", wrapper->ssaBB->id);
+		//printf ("\nHandling Block %d\n", wrapper->ssaBB->id);
 
-		//printf("Found no match on BB %d\n", wrapper->ssaBB->id);
+		//printf ("Found no match on BB %d\n", wrapper->ssaBB->id);
 
 		SSARegDef* foundParentDef = nullptr;
 		for (SSARegDef& regDef : wrapper->outputs) {
-			if (regDef.parentId == (HId) reg->parentRef) {
+			if (regDef.parentId == reg->parentRef.refId) {
 				if (regDef.regId == reg->id) {
 					gatheredIds[ (*gatheredIdCount)++] = regDef.ssaId;
-					//printf("\Found perfect Match %d\n", regDef.ssaId);
+					//printf ("\Found perfect Match %d\n", regDef.ssaId);
 					return;
-				} else if (regDef.regId == (HId) reg->parentRef) {
-					//printf("\Found parent Match %d\n", regDef.ssaId);
+				} else if (regDef.regId == reg->parentRef.refId) {
+					//printf ("\Found parent Match %d\n", regDef.ssaId);
 					foundParentDef = &regDef;
 				}
 			}

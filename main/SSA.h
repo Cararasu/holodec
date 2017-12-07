@@ -327,11 +327,13 @@ namespace holodec {
 		
 		void compress();
 		
-		void propagateRefCount(SSAExpression* expr);
-		void propagateRefCount(HId id, int64_t count = 1);
+		void propagateRefCount(SSAExpression* expr, int64_t modifier);
+		void propagateRefCount(HId id, int64_t modifier = 1);
 		
 		void changeRefCount(HId id, int64_t count = 1);
 		void changeRefCount(HId id, std::vector<bool>& visited, int64_t count = 1);
+		
+		void recalcRefCounts();
 		
 		HId addExpr(SSAExpression* expr);
 		

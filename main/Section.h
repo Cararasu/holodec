@@ -51,7 +51,7 @@ namespace holodec {
 		//read/write/executable
 		uint32_t srwx;
 
-		HList<Section> subsections;
+		HList<Section*> subsections;
 
 		Section() = default;
 		Section (const Section&) = default;
@@ -59,7 +59,7 @@ namespace holodec {
 			return Section (sec);
 		}
 
-		HId addSection (Section section);
+		HId addSection (Section* section);
 		Section* getSection (HId id);
 		Section* getSection (HString name);
 
@@ -81,8 +81,8 @@ namespace holodec {
 			printf ("Section %s \t0x%x-0x%x\n", name.cstr(), vaddr, vaddr + size);
 			printIndent (indent);
 			printf ("Offset: 0x%x Flags: %s %s %s\n", offset, srwx & 0x1 ? "H" : " ", srwx & 0x2 ? "W" : " ", srwx & 0x4 ? "X" : " ");
-			for (Section & section : subsections) {
-				section.print (indent + 1);
+			for (Section* section : subsections) {
+				section->print (indent + 1);
 			}
 		}
 	};

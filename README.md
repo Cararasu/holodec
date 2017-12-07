@@ -8,12 +8,8 @@ The goal of HoloDec is to write an open source decompiler for x86/x86-64 binarie
 * Recursive descending disassembler(in the works)
 * Semantic based Decompiler
     * Raising of disassembled result into intermediate representation(IR)
-    * Probably convert IR into an SSA form
+    * Convert IR into an SSA form
     * Generation of Pseudocode from SSA
-* Maybe a structural decompiler (something easy like Python just to show possibilites)
-    * A per-instructionset decompiler
-
-
 
 
 

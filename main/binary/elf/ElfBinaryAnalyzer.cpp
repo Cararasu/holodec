@@ -33,30 +33,38 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 	//handle entry and exit points
 	{
 		uint32_t entrypoint = binary->data->get<uint32_t> (0x18);
-		binary->addEntrypoint (binary->addSymbol ({0, "entry0", &SymbolType::symfunc, 0, entrypoint, 0}));
+		binary->addEntrypoint (binary->addSymbol( new Symbol({0, "entry0", &SymbolType::symfunc, 0, entrypoint, 0})));
 		int entrycount = 1;
 		int exitcount = 0;
 		char buffer[20];
 		if (Section* init = binary->getSection (".init")) {
 			snprintf (buffer, 20, "entry%d", entrycount++);
-			binary->addEntrypoint (binary->addSymbol ({0, buffer, &SymbolType::symfunc, 0, init->vaddr, 0}));
+			Symbol* symbol = new Symbol();
+			*symbol = {0, buffer, &SymbolType::symfunc, 0, init->vaddr, 0};
+			binary->addEntrypoint (binary->addSymbol (symbol));
 		}
 		if (Section* finit = binary->getSection (".finit")) {
 			snprintf (buffer, 20, "exit%d", entrycount);
-			binary->addEntrypoint (binary->addSymbol ({0, buffer, &SymbolType::symfunc, 0, finit->vaddr, 0}));
+			Symbol* symbol = new Symbol();
+			*symbol = {0, buffer, &SymbolType::symfunc, 0, finit->vaddr, 0};
+			binary->addSymbol (symbol);
 		}
 		if (Section* init_array = binary->getSection (".init_array")) {
 			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < init_array->size; i += 4) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, "entry%d", entrycount++);
-					binary->addEntrypoint (binary->addSymbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
+					Symbol* symbol = new Symbol();
+					*symbol = {0, buffer, &SymbolType::symfunc, 0, fncptr, 0};
+					binary->addEntrypoint (binary->addSymbol (symbol));
 				}
 			} else if (binary->bitbase == 64) {
 				for (size_t i = 0; i < init_array->size; i += 8) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, "entry%d", entrycount++);
-					binary->addEntrypoint (binary->addSymbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
+					Symbol* symbol = new Symbol();
+					*symbol = {0, buffer, &SymbolType::symfunc, 0, fncptr, 0};
+					binary->addEntrypoint (binary->addSymbol (symbol));
 				}
 			}
 		}
@@ -65,14 +73,18 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 				for (size_t i = 0; i < finit_array->size; i += 4) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, "exit%d", exitcount++);
-					binary->addEntrypoint (binary->addSymbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
+					Symbol* symbol = new Symbol();
+					*symbol = {0, buffer, &SymbolType::symfunc, 0, fncptr, 0};
+					binary->addSymbol (symbol);
 				}
 			} else if (binary->bitbase == 64) {
 				printf ("%p", finit_array->vaddr);
 				for (size_t i = 0; i < finit_array->size; i += 8) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, "exit%d", exitcount++);
-					binary->addEntrypoint (binary->addSymbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
+					Symbol* symbol = new Symbol();
+					*symbol = {0, buffer, &SymbolType::symfunc, 0, fncptr, 0};
+					binary->addSymbol (symbol);
 				}
 			}
 		}
@@ -106,7 +118,9 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 						sym->name = s;
 						sym->size = size;
 					} else {
-						binary->addSymbol ({0, name, &holodec::SymbolType::symfunc, 0, value, size});
+						Symbol* sym = new Symbol();
+						*sym = {0, name, &holodec::SymbolType::symfunc, 0, value, size};
+						binary->addSymbol (sym);
 					}
 				}
 			}
@@ -274,28 +288,28 @@ bool holoelf::ElfBinaryAnalyzer::parseProgramHeaderTable () {
 		size_t size = binary->data->size - entryoffset;
 
 		if (data.get<uint32_t> (entryoffset) == 0x1) {
-			Section section = Section();
+			Section* section = new Section();
 
 			uint32_t flags;
 			if (binary->bitbase == 32)
 				flags = data.get<uint32_t> (entryoffset + 0x18);
 			else if (binary->bitbase == 64)
 				flags = data.get<uint32_t> (entryoffset + 0x04);
-			section.srwx = (flags & 0x4 ? 0x1 : 0x0) | (flags & 0x2 ? 0x2 : 0x0) | (flags & 0x1 ? 0x4 : 0x0);
+			section->srwx = (flags & 0x4 ? 0x1 : 0x0) | (flags & 0x2 ? 0x2 : 0x0) | (flags & 0x1 ? 0x4 : 0x0);
 
 			if (binary->bitbase == 32) {
-				section.offset = data.get<uint32_t> (entryoffset + 0x04);
-				section.vaddr = data.get<uint32_t> (entryoffset + 0x08);
+				section->offset = data.get<uint32_t> (entryoffset + 0x04);
+				section->vaddr = data.get<uint32_t> (entryoffset + 0x08);
 				//section.paddr = data.get<uint32_t> (entryoffset + 0x0C);
 				//section.size = data.get<uint32_t> (entryoffset +0x10);//Size in File Image
-				section.size = data.get<uint32_t> (entryoffset + 0x14);//Size in Memory
+				section->size = data.get<uint32_t> (entryoffset + 0x14);//Size in Memory
 				//printf ("Alignment: %X\n", data.get<uint32_t> (entryoffset + 0x1C));
 			} else if (binary->bitbase == 64) {
-				section.offset = data.get<uint32_t> (entryoffset + 0x08);
-				section.vaddr = data.get<uint32_t> (entryoffset + 0x10);
+				section->offset = data.get<uint32_t> (entryoffset + 0x08);
+				section->vaddr = data.get<uint32_t> (entryoffset + 0x10);
 				//section.paddr = data.get<uint32_t> (entryoffset + 0x18);
 				//section.size = data.get<uint32_t> (entryoffset + 0x20);//Size in File Image
-				section.size = data.get<uint32_t> (entryoffset + 0x28);//Size in Memory
+				section->size = data.get<uint32_t> (entryoffset + 0x28);//Size in Memory
 				//printf ("Alignment: %X\n", data.get<uint32_t> (entryoffset + 0x30));
 			}
 
@@ -315,9 +329,9 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable () {
 	else if (binary->bitbase == 64)
 		entrysize = 0x40;
 
-	Section sections[sectionHeaderTable.entries];
-	for (Section & section : sections)
-		section = Section();
+	Section* sections[sectionHeaderTable.entries];
+	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++)
+		sections[i] = new Section();
 
 	uint32_t nameoffset[sectionHeaderTable.entries];
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
@@ -327,43 +341,43 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable () {
 		nameoffset[i] = binary->getValue<uint32_t> (entryoffset + 0x00);
 
 		uint64_t flags = binary->bitbase == 32 ? binary->getValue<uint32_t> (entryoffset + 0x08) : binary->getValue<uint32_t> (entryoffset + 0x08);
-		sections[i].srwx = 0;
+		sections[i]->srwx = 0;
 		if (flags & 0x1)
-			sections[i].srwx |= 0x2;
+			sections[i]->srwx |= 0x2;
 		//printf ("SHF_WRITE\n");
 		if (flags & 0x2)
-			sections[i].srwx |= 0x1;
+			sections[i]->srwx |= 0x1;
 		//printf ("SHF_ALLOC\n");
 		if (flags & 0x4)
-			sections[i].srwx |= 0x4;
+			sections[i]->srwx |= 0x4;
 		//printf ("SHF_EXECINSTR\n");
 
 		if (binary->bitbase == 32) {
-			sections[i].vaddr = binary->getValue<uint32_t> (entryoffset + 0x0C);
-			sections[i].offset = binary->getValue<uint32_t> (entryoffset + 0x10);
-			sections[i].size = binary->getValue<uint32_t> (entryoffset + 0x14);
+			sections[i]->vaddr = binary->getValue<uint32_t> (entryoffset + 0x0C);
+			sections[i]->offset = binary->getValue<uint32_t> (entryoffset + 0x10);
+			sections[i]->size = binary->getValue<uint32_t> (entryoffset + 0x14);
 			//printf ("Link: %X\n", binary->getValue<uint32_t> (entryoffset + 0x18));
 			//printf ("Info: %X\n", binary->getValue<uint32_t> (entryoffset + 0x1C));
 			//printf ("Alignment: %X\n", binary->getValue<uint32_t> (entryoffset + 0x20));
 			//printf ("Entrysize: %X\n", binary->getValue<uint32_t> (entryoffset + 0x24));
 		} else if (binary->bitbase == 64) {
-			sections[i].vaddr = binary->getValue<uint32_t> (entryoffset + 0x10);
-			sections[i].offset = binary->getValue<uint32_t> (entryoffset + 0x18);
-			sections[i].size = binary->getValue<uint32_t> (entryoffset + 0x20);
+			sections[i]->vaddr = binary->getValue<uint32_t> (entryoffset + 0x10);
+			sections[i]->offset = binary->getValue<uint32_t> (entryoffset + 0x18);
+			sections[i]->size = binary->getValue<uint32_t> (entryoffset + 0x20);
 			//printf ("Link: %X\n", binary->getValue<uint32_t> (entryoffset + 0x28));
 			//printf ("Info: %X\n", binary->getValue<uint32_t> (entryoffset + 0x2C));
 			//printf ("Alignment: %X\n", getValue<uint64_t> (data, 0x30));
 			//printf ("Entrysize: %X\n", getValue<uint64_t> (data, 0x38));
 		}
 	}
-	void* nameentryptr = binary->data->data + sections[sectionHeaderTable.namesectionindex].offset;
+	void* nameentryptr = binary->data->data + sections[sectionHeaderTable.namesectionindex]->offset;
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
-		Section & section = sections[i];
-		sections[i].name = (char*) (nameentryptr) + nameoffset[i];
-		printf ("Name: %s\n", section.name.cstr());
-		printf ("Addr: 0x%X\n", section.offset);
-		printf ("Size: 0x%X\n", section.size);
-		if (!section.vaddr)
+		Section* section = sections[i];
+		section->name = (char*) (nameentryptr) + nameoffset[i];
+		printf ("Name: %s\n", section->name.cstr());
+		printf ("Addr: 0x%X\n", section->offset);
+		printf ("Size: 0x%X\n", section->size);
+		if (!section->vaddr)
 			continue;
 		binary->addSection (section);
 	}

@@ -17,9 +17,9 @@ namespace holodec {
 		Data* data;
 		
 		HList<HId> entrypoints;
-		HIdList<Symbol> symbols;
-		HIdList<Section> sections;
-		HIdList<Function> functions;
+		HIdPtrList<Symbol*> symbols;
+		HIdPtrList<Section*> sections;
+		HIdPtrList<Function*> functions;
 		//which architecture
 		//global string
 		size_t bitbase;
@@ -32,16 +32,16 @@ namespace holodec {
 		virtual ~Binary();
 
 		uint8_t* getVDataPtr (size_t addr) {
-			for (Section & section : sections) {
-				if (section.pointsToSection (addr))
-					return section.getPtr<uint8_t>(data, addr - section.vaddr);
+			for (Section* section : sections) {
+				if (section->pointsToSection (addr))
+					return section->getPtr<uint8_t>(data, addr - section->vaddr);
 			}
 			return 0;
 		}
 		size_t getVDataSize (size_t addr) {
-			for (Section & section : sections) {
-				if (section.pointsToSection (addr))
-					return section.size - (addr - section.vaddr);
+			for (Section* section : sections) {
+				if (section->pointsToSection (addr))
+					return section->size - (addr - section->vaddr);
 			}
 			return 0;
 		}
@@ -53,14 +53,14 @@ namespace holodec {
 			return ( (T*) (data->data + offset)) [0];
 		}
 
-		HId addSection (Section section);
+		HId addSection (Section* section);
 		Section* getSection (HString string);
 		Section* getSection (HId id);
-		HId addSymbol (Symbol symbol);
+		HId addSymbol (Symbol* symbol);
 		Symbol* getSymbol (HString string);
 		Symbol* getSymbol (HId id);
 		Symbol* findSymbol(size_t addr,const SymbolType* type);
-		HId addFunction (Function function);
+		HId addFunction (Function* function);
 		Function* getFunction (HString string);
 		Function* getFunction (HId id);
 		bool addEntrypoint (HId name);
@@ -69,14 +69,14 @@ namespace holodec {
 			printIndent (indent);
 			printf ("Printing Binary %s\n", data->filename.cstr());
 			printf ("Printing Sections\n");
-			for (Section & section : sections) {
-				section.print (indent + 1);
+			for (Section* section : sections) {
+				section->print (indent + 1);
 			}
 			printf ("Printing Symbols\n");
-			for (Symbol & symbol : symbols) {
-				symbol.print (indent + 1);
+			for (Symbol* symbol : symbols) {
+				symbol->print (indent + 1);
 				for (HId id : entrypoints) {
-					if (id == symbol.id) {
+					if (id == symbol->id) {
 						printIndent (indent + 2);
 						printf ("Is EntryPoint\n");
 					}

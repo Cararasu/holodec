@@ -95,7 +95,7 @@ namespace holodec {
 		}
 	};
 
-	PeepholeOptimizer* parsePhOptimizer (Architecture* arch, Function& func) {
+	PeepholeOptimizer* parsePhOptimizer (Architecture* arch, Function* func) {
 
 		PhRuleSet ruleSet;
 
@@ -119,9 +119,8 @@ namespace holodec {
 				flagExpr.subExpressions = {opExpr.subExpressions[0], SSAArgument::create(ssaRep->addBefore (&addExpr, opExpr.id), addExpr.size)};
 				
 			} else if (opExpr.subExpressions.size() == 2) {
-				flagExpr.subExpressions = opExpr.subExpressions;
+				flagExpr.subExpressions = {opExpr.subExpressions[0], opExpr.subExpressions[1]};
 			}
-			ssaRep->changeRefCount(opExpr.id, -1);
 		});
 		builder.ssaType (0, 0, SSAExprType::eFlag, SSAFlagType::eC).ssaType (0, 1, SSAExprType::eOp, SSAOpType::eSub).execute ([] (Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& flagExpr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -141,17 +140,17 @@ namespace holodec {
 				flagExpr.subExpressions = {opExpr.subExpressions[0], SSAArgument::create(ssaRep->addBefore (&addExpr, opExpr.id), addExpr.size)};
 				
 			} else if (opExpr.subExpressions.size() == 2) {
-				flagExpr.subExpressions = opExpr.subExpressions;
+				flagExpr.subExpressions = {opExpr.subExpressions[0], opExpr.subExpressions[1]};
 			}
-			//ssaRep->changeRefCount(opExpr.id, -1);
 		});
 
-		for (SSAExpression& expr : func.ssaRep.expressions) {
+		for (SSAExpression& expr : func->ssaRep.expressions) {
 			MatchContext context;
-			ruleSet.baserule.matchRule (arch, &func.ssaRep, &expr, &context);
-
+			ruleSet.baserule.matchRule (arch, &func->ssaRep, &expr, &context);
 		}
-
+		
+		func->ssaRep.recalcRefCounts();
+		
 		return nullptr;
 	}
 

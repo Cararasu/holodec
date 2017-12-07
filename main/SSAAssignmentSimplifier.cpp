@@ -20,25 +20,15 @@ namespace holodec{
 				if(!expr.id)
 					continue;
 				if(expr.type == SSAExprType::eAssign/* && !expr.subExpressions[0].isConst()*/) {
-					if(expr.subExpressions[0].location == SSAExprLocation::eNone){
-						SSAArgument arg = expr.subExpressions[0];
-						switch(expr.location){
-						case SSAExprLocation::eReg:
-						case SSAExprLocation::eStack:
-						case SSAExprLocation::eMem:
-						case SSAExprLocation::eBlock:
+					
+					SSAArgument arg = expr.subExpressions[0];
+					if(arg.location == SSAExprLocation::eNone){
+						if(expr.location != SSAExprLocation::eNone){
 							arg.location = expr.location;
 							arg.locref = expr.locref;
-							break;
-						default:
-							break;
 						}
-						replacements.insert(std::pair<HId, SSAArgument>(expr.id, arg));
-					}else if(expr.location == SSAExprLocation::eNone){
-						replacements.insert(std::pair<HId, SSAArgument>(expr.id, expr.subExpressions[0]));
-					}else if(expr.subExpressions[0].location == expr.location && expr.subExpressions[0].locref == expr.locref){
-						replacements.insert(std::pair<HId, SSAArgument>(expr.id, expr.subExpressions[0]));
 					}
+					replacements.insert(std::pair<HId, SSAArgument>(expr.id, arg));
 				}else if(expr.type == SSAExprType::eUndef){
 					replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::createUndef (expr.location, expr.locref, expr.size)));
 				}else if(expr.type == SSAExprType::eLabel){
@@ -83,6 +73,20 @@ namespace holodec{
 								}
 							}
 						}
+					}
+				}else if(expr.type == SSAExprType::eReturn){
+					for(auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();){
+						SSAArgument& arg = *it;
+						SSAExprType type = function->ssaRep.expressions[arg.ssaId].type;
+						while(arg.type == SSAArgType::eId && arg.ssaId && EXPR_IS_TRANSIENT(type)){
+							arg = function->ssaRep.expressions[arg.ssaId].subExpressions[0];
+							type = function->ssaRep.expressions[arg.ssaId].type;
+						}
+						if(arg.type == SSAArgType::eId && arg.ssaId && type == SSAExprType::eInput){
+							it = expr.subExpressions.erase(it);
+							continue;
+						}
+						++it;
 					}
 				}
 			}

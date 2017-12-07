@@ -11,7 +11,7 @@ namespace holodec {
 	void SSADCETransformer::doTransformation (Function* function) {
 
 		printf ("DCE for Function at Address 0x%llx\n", function->baseaddr);
-		
+		function->ssaRep.recalcRefCounts();
 		ssaRep = &function->ssaRep;
 		do {
 			HSet<HId> toRemove;

@@ -26,6 +26,7 @@ namespace holodec {
 
 		SSABB* activeblock = nullptr;
 
+		Function* function = nullptr;
 		SSARepresentation* ssaRepresentation = nullptr;
 
 		HList<SSATmpDef> tmpdefs;
@@ -34,7 +35,7 @@ namespace holodec {
 		~SSAGen();
 
 		void reset();
-		void setup(SSARepresentation* ssaReg, uint64_t addr);
+		void setup(Function* function, uint64_t addr);
 		void setupForInstr();
 
 		HId splitBasicBlock (uint64_t addr);

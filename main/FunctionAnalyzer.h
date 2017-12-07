@@ -48,17 +48,16 @@ namespace holodec {
 
 		void prepareBuffer (uint64_t addr);
 		bool postInstruction (Instruction* instruction);
-		bool postBasicBlock (HBasicBlock* basicblock);
-		bool changedBasicBlock (HBasicBlock* basicblock);
+		bool postBasicBlock (DisAsmBasicBlock* basicblock);
+		bool changedBasicBlock (DisAsmBasicBlock* basicblock);
 		//is triggered at the end of basic blocks
 		bool registerBasicBlock (uint64_t addr);
-		bool splitBasicBlock (HBasicBlock* basicblock, uint64_t splitaddr);
+		bool splitBasicBlock (DisAsmBasicBlock* basicblock, uint64_t splitaddr);
 		bool trySplitBasicBlock (uint64_t splitaddr);
 		void addAddressToAnalyze(uint64_t addr);
 
 		virtual void preAnalysis();
 
-		virtual HId analyzeFunction (Symbol* functionsymbol);
 		virtual bool analyzeFunction (Function* function);
 		virtual bool analyzeInsts (uint64_t addr) = 0;
 

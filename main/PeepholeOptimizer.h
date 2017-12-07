@@ -18,7 +18,7 @@ namespace holodec {
 		}
 	};
 	
-	PeepholeOptimizer* parsePhOptimizer(Architecture* arch, Function& func);
+	PeepholeOptimizer* parsePhOptimizer(Architecture* arch, Function* func);
 }
 
 #endif // PEEPHOLEOPTIMIZER_H
