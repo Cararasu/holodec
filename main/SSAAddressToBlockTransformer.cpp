@@ -2,6 +2,7 @@
 #include "SSAAddressToBlockTransformer.h"
 #include "SSA.h"
 #include "Function.h"
+#include "Architecture.h"
 
 
 namespace holodec {
@@ -33,6 +34,12 @@ namespace holodec {
 						break;
 					}
 				}
+			}else{
+				for(Register& reg : arch->registers){
+					if(!reg.id || reg.directParentRef)
+						continue;
+					expression->subExpressions.push_back(SSAArgument::createReg(&reg, 0));
+				}
 			}
 		}else if(expression->type == SSAExprType::eCJmp){
 			if(expression->subExpressions[1].type == SSAArgType::eUInt){
@@ -43,6 +50,12 @@ namespace holodec {
 						bb.inBlocks.insert(basicBlock->id);
 						break;
 					}
+				}
+			}else{
+				for(Register& reg : arch->registers){
+					if(!reg.id || reg.directParentRef)
+						continue;
+					expression->subExpressions.push_back(SSAArgument::createReg(&reg, 0));
 				}
 			}
 		}else if(expression->type == SSAExprType::eMultiBranch){
