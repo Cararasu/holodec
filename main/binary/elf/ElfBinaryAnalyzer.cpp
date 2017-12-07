@@ -38,33 +38,23 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 		int exitcount = 0;
 		char buffer[20];
 		if (Section* init = binary->getSection (".init")) {
-			snprintf (buffer, 20, "entry%d", entrycount++);
-			Symbol* symbol = new Symbol();
-			*symbol = {0, buffer, &SymbolType::symfunc, 0, init->vaddr, 0};
-			binary->addEntrypoint (binary->addSymbol (symbol));
+			binary->addEntrypoint (binary->addSymbol (new Symbol({0, ".init", &SymbolType::symfunc, 0, init->vaddr, 0})));
 		}
 		if (Section* finit = binary->getSection (".finit")) {
-			snprintf (buffer, 20, "exit%d", entrycount);
-			Symbol* symbol = new Symbol();
-			*symbol = {0, buffer, &SymbolType::symfunc, 0, finit->vaddr, 0};
-			binary->addSymbol (symbol);
+			binary->addSymbol (new Symbol({0, ".finit", &SymbolType::symfunc, 0, finit->vaddr, 0}));
 		}
 		if (Section* init_array = binary->getSection (".init_array")) {
 			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < init_array->size; i += 4) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, "entry%d", entrycount++);
-					Symbol* symbol = new Symbol();
-					*symbol = {0, buffer, &SymbolType::symfunc, 0, fncptr, 0};
-					binary->addEntrypoint (binary->addSymbol (symbol));
+					snprintf (buffer, 20, ".init_array%d", i);
+					binary->addEntrypoint (binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
 				}
 			} else if (binary->bitbase == 64) {
 				for (size_t i = 0; i < init_array->size; i += 8) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, "entry%d", entrycount++);
-					Symbol* symbol = new Symbol();
-					*symbol = {0, buffer, &SymbolType::symfunc, 0, fncptr, 0};
-					binary->addEntrypoint (binary->addSymbol (symbol));
+					snprintf (buffer, 20, ".init_array%d", i);
+					binary->addEntrypoint (binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
 				}
 			}
 		}
@@ -72,19 +62,15 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < finit_array->size; i += 4) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, "exit%d", exitcount++);
-					Symbol* symbol = new Symbol();
-					*symbol = {0, buffer, &SymbolType::symfunc, 0, fncptr, 0};
-					binary->addSymbol (symbol);
+					snprintf (buffer, 20, ".finit_array%d", i);
+					binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
 				}
 			} else if (binary->bitbase == 64) {
 				printf ("%p", finit_array->vaddr);
 				for (size_t i = 0; i < finit_array->size; i += 8) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, "exit%d", exitcount++);
-					Symbol* symbol = new Symbol();
-					*symbol = {0, buffer, &SymbolType::symfunc, 0, fncptr, 0};
-					binary->addSymbol (symbol);
+					snprintf (buffer, 20, ".finit_array%d", i);
+					binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
 				}
 			}
 		}
@@ -102,6 +88,7 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 
 			for (size_t entryoffset = 0; entryoffset < dynsym->size; entryoffset += structlength) {
 				char* name = dynstr->getPtr<char> (binary->data, dynsym->getValue<uint32_t> (binary->data, entryoffset));
+				printf("Dynamic Symbol: %s\n", name);
 				uint64_t value;
 				uint64_t size;
 				if (binary->bitbase == 32) {
@@ -112,14 +99,14 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 					size = dynsym->getValue<uint64_t> (binary->data, entryoffset + 0x10);
 				}
 				if (value) {
-					Symbol* sym = binary->findSymbol (value, &SymbolType::symfunc);
+					Symbol* sym = binary->findSymbol (value, &SymbolType::symdynfunc);
 					if (sym) {
 						HString s = name;
 						sym->name = s;
 						sym->size = size;
 					} else {
 						Symbol* sym = new Symbol();
-						*sym = {0, name, &holodec::SymbolType::symfunc, 0, value, size};
+						*sym = {0, name, &holodec::SymbolType::symdynfunc, 0, value, size};
 						binary->addSymbol (sym);
 					}
 				}

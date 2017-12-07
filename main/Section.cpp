@@ -7,6 +7,7 @@ const holodec::SymbolType holodec::SymbolType::symuint = {"uint"};
 const holodec::SymbolType holodec::SymbolType::symfloat = {"float"};
 const holodec::SymbolType holodec::SymbolType::symstring = {"string"};
 const holodec::SymbolType holodec::SymbolType::symfunc = {"func"};
+const holodec::SymbolType holodec::SymbolType::symdynfunc = {"dynfunc"};
 
 holodec::HId holodec::Section::addSection (Section* section) {
 	if (vaddr > section->vaddr || vaddr + size <= section->vaddr)

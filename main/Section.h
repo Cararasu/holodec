@@ -22,6 +22,7 @@ namespace holodec {
 		static const SymbolType symfloat;
 		static const SymbolType symstring;
 		static const SymbolType symfunc;
+		static const SymbolType symdynfunc;
 	};
 
 	struct Symbol {

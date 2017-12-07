@@ -136,8 +136,7 @@ int main (int argc, char** argv) {
 						if(binary->findSymbol(addr, &SymbolType::symfunc) == nullptr){
 							char buffer[100];
 							snprintf(buffer, 100, "func_0x%x", addr);
-							Symbol* symbol = new Symbol();
-							*symbol = {0, buffer, &SymbolType::symfunc, 0, addr, 0};
+							Symbol* symbol = new Symbol({0, buffer, &SymbolType::symfunc, 0, addr, 0});
 							binary->addSymbol(symbol);
 							Function* newfunction = new Function();
 							newfunction->symbolref = symbol->id;
@@ -162,6 +161,7 @@ int main (int argc, char** argv) {
 		}
 		PeepholeOptimizer* optimizer = parsePhOptimizer(&holox86::x86architecture, func);
 		transformers[4]->doTransformation(func);
+		printf("Symbol %s\n", binary->getSymbol(func->symbolref)->name.cstr());
 		func->print (&holox86::x86architecture);
 	}
 	return 0;
