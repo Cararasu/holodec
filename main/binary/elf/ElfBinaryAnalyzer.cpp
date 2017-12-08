@@ -66,7 +66,6 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 					binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
 				}
 			} else if (binary->bitbase == 64) {
-				printf ("%p", finit_array->vaddr);
 				for (size_t i = 0; i < finit_array->size; i += 8) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, ".finit_array%d", i);

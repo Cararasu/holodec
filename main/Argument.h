@@ -71,6 +71,7 @@ namespace holodec {
 		IR_ARGTYPE_SSAID,
 		IR_ARGTYPE_ARG,
 		IR_ARGTYPE_TMP,
+		IR_ARGTYPE_IP,
 		IR_ARGTYPE_MEMOP,
 	};
 	struct IRArgument {
@@ -161,6 +162,8 @@ namespace holodec {
 	inline bool operator== (IRArgument& lhs, IRArgument& rhs) {
 		if (lhs.type == rhs.type && lhs.size == rhs.size) {
 			switch (lhs.type) {
+			case IR_ARGTYPE_IP:
+				return true;
 			case IR_ARGTYPE_SINT:
 				return lhs.sval == rhs.sval;
 			case IR_ARGTYPE_UINT:

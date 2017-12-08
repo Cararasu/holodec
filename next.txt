@@ -1,0 +1,20 @@
+
+
+next planned
+
+detect what regs are written and read for every register
+	written/read:
+		unknown/none/used/functionused
+		Lattice?:
+			unknown -> functionused
+			functionused -> none/used
+	none written / none read -> no change
+	used read -> input param
+	used written -> return param
+	
+recursively apply this informations so that only used or none remains
+
+detect memory on the stack that is written to and read from
+	
+parse c/c++ files to generate function types for dynamically loaded functions
+

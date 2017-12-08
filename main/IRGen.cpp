@@ -362,7 +362,8 @@ namespace holodec {
 						} else if (string == "rec") {
 							expression.type = IR_EXPR_REC;
 							parseStringIndex (&expression);
-							//TODO do the recursion here already
+						} else if (string == "ip") {
+							return IRArgument::create (IR_ARGTYPE_IP);
 						} else {
 							printf ("Invalid Token %s\n", buffer);
 							printParseFailure ("Token");

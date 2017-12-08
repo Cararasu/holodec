@@ -209,6 +209,26 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{0, "zmm29", RegType::eVec, nullptr, "zmm29", 512, 0, true},
 		{0, "zmm30", RegType::eVec, nullptr, "zmm30", 512, 0, true},
 		{0, "zmm31", RegType::eVec, nullptr, "zmm31", 512, 0, true},
+		
+		{0, "mxcsr", RegType::eFlag, nullptr, "mxcsr", 32, 0, false},
+		
+		{0, "ie", RegType::eFlag, "mxcsr", "mxcsr", 1, 0, false},
+		{0, "de", RegType::eFlag, "mxcsr", "mxcsr", 1, 1, false},
+		{0, "ze", RegType::eFlag, "mxcsr", "mxcsr", 1, 2, false},
+		{0, "oe", RegType::eFlag, "mxcsr", "mxcsr", 1, 3, false},
+		{0, "ue", RegType::eFlag, "mxcsr", "mxcsr", 1, 4, false},
+		{0, "pe", RegType::eFlag, "mxcsr", "mxcsr", 1, 5, false},
+		{0, "daz", RegType::eFlag, "mxcsr", "mxcsr", 1, 6, false},
+		{0, "im", RegType::eFlag, "mxcsr", "mxcsr", 1, 7, false},
+		{0, "dm", RegType::eFlag, "mxcsr", "mxcsr", 1, 8, false},
+		{0, "zm", RegType::eFlag, "mxcsr", "mxcsr", 1, 9, false},
+		{0, "om", RegType::eFlag, "mxcsr", "mxcsr", 1, 10, false},
+		{0, "um", RegType::eFlag, "mxcsr", "mxcsr", 1, 11, false},
+		{0, "pm", RegType::eFlag, "mxcsr", "mxcsr", 1, 12, false},
+		{0, "rnd", RegType::eFlag, "mxcsr", "mxcsr", 2, 13, false},
+		{0, "r-", RegType::eFlag, "rnd", "mxcsr", 1, 13, false},
+		{0, "r+", RegType::eFlag, "rnd", "mxcsr", 1, 14, false},
+		{0, "fz", RegType::eFlag, "mxcsr", "mxcsr", 1, 15, false},
 
 		{0, "st0", RegType::eVec, nullptr, "st0", 80, 0, true},
 		{0, "st1", RegType::eVec, nullptr, "st1", 80, 0, true},
@@ -488,12 +508,12 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_POPAW, "popad", {{1, "#seq(#rec[pop]($edi),#rec[pop]($esi),#rec[pop]($ebp),=($esp,+($esp,4)),#rec[pop]($ebx),#rec[pop]($edx),#rec[pop]($ecx),#rec[pop]($eax))"}}, InstructionType::ePush},
 		{X86_INS_POPAL, "popa", {{1, "#seq(#rec[pop]($di),#rec[pop]($si),#rec[pop]($bp),=($esp,+($esp,2)),#rec[pop]($bx),#rec[pop]($dx),#rec[pop]($cx),#rec[pop]($ax))"}}, InstructionType::ePush},
 
-		{X86_INS_RET, "ret", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, InstructionType::eRet},
-		{X86_INS_IRET, "iret", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, InstructionType::eRet},
-		{X86_INS_IRETD, "iretd", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, InstructionType::eRet},
-		{X86_INS_IRETQ, "iretq", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, InstructionType::eRet},
-		{X86_INS_RETF, "retf", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, InstructionType::eRet},
-		{X86_INS_RETFQ, "retfq", {{0, "#ret"}, {1, "#seq(#pop($stack,#arg[1]),#ret)"}}, InstructionType::eRet},
+		{X86_INS_RET, "ret", {{0, "#ret(#pop($stack,8))"}, {1, "#seq(#pop($stack,#arg[1]),#ret(#pop($stack,8)))"}}, InstructionType::eRet},
+		{X86_INS_IRET, "iret", {{0, "#ret(#pop($stack,8))"}, {1, "#seq(#pop($stack,#arg[1]),#ret(#pop($stack,8)))"}}, InstructionType::eRet},
+		{X86_INS_IRETD, "iretd", {{0, "#ret(#pop($stack,8))"}, {1, "#seq(#pop($stack,#arg[1]),#ret(#pop($stack,8)))"}}, InstructionType::eRet},
+		{X86_INS_IRETQ, "iretq", {{0, "#ret(#pop($stack,8))"}, {1, "#seq(#pop($stack,#arg[1]),#ret(#pop($stack,8)))"}}, InstructionType::eRet},
+		{X86_INS_RETF, "retf", {{0, "#ret(#pop($stack,8))"}, {1, "#seq(#pop($stack,#arg[1]),#ret(#pop($stack,8)))"}}, InstructionType::eRet},
+		{X86_INS_RETFQ, "retfq", {{0, "#ret(#pop($stack,8))"}, {1, "#seq(#pop($stack,#arg[1]),#ret(#pop($stack,8)))"}}, InstructionType::eRet},
 
 		{X86_INS_HLT, "hlt", {{0, "#trap"}}},
 
@@ -646,7 +666,7 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 
 		{X86_INS_LOOPNE, "loopne", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#not(#and($ecx,#not($zf))),#arg[1]))"}}, InstructionType::eCJmp},
 
-		{X86_INS_CALL, "call", {{1, "#call(#arg[1])"}},InstructionType::eCall},
+		{X86_INS_CALL, "call", {{1, "#seq(#push($stack,#ip),#call(#arg[1]))"}},InstructionType::eCall},
 
 		{X86_INS_INT, "int", {{1, "#syscall(#arg[1])"}}, InstructionType::eSyscall, InstructionType::eUnknown},
 		{X86_INS_INTO, "into", {{"#syscall"}}, InstructionType::eSyscall, InstructionType::eUnknown},

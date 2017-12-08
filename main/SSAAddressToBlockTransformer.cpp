@@ -22,7 +22,9 @@ namespace holodec {
 			}
 		}
 	}
-	void SSAAddressToBlockTransformer::parseExpression (SSABB* basicBlock, SSAExpression* expression) {
+	HList<HId>::iterator SSAAddressToBlockTransformer::parseExpression (SSABB* basicBlock, HList<HId>::iterator it) {
+		
+		SSAExpression* expression = &function->ssaRep.expressions[*it];
 		
 		if(expression->type == SSAExprType::eJmp){
 			if(expression->subExpressions[0].type == SSAArgType::eUInt){
@@ -72,5 +74,6 @@ namespace holodec {
 				}
 			}
 		}
+		return it;
 	}
 }

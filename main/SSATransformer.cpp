@@ -13,8 +13,8 @@ namespace holodec {
 		}
 		
 		for(SSABB& bb : function->ssaRep.bbs){
-			for(HId id : bb.exprIds){
-				parseExpression (&bb, function->ssaRep.expressions.get(id));
+			for(auto it = bb.exprIds.begin(); it != bb.exprIds.end(); ++it){
+				it = parseExpression (&bb, it);
 			}
 		}
 		

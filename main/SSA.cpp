@@ -30,7 +30,7 @@ namespace holodec {
 			printf ("memaccess");
 			break;
 		}
-		printf ("%d ", this->size);
+		printf ("%d ", size);
 
 		switch (type) {
 		case SSAExprType::eInvalid:
@@ -580,6 +580,8 @@ namespace holodec {
 
 			printIndent (indent + 1);
 			printf ("Fallthrough: %d\n", bb.fallthroughId);
+			printIndent (indent + 1);
+			printf ("Number Of Ids: %d\n", bb.exprIds.size());
 			for (HId id : bb.exprIds) {
 				expressions[id].print (arch, indent + 2);
 			}

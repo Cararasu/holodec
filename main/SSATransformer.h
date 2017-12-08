@@ -20,7 +20,7 @@ namespace holodec {
 
 		virtual void parseBlock (SSABB* block){};
 		
-		virtual void parseExpression (SSABB* basicBlock, SSAExpression* expression){};
+		virtual HList<HId>::iterator parseExpression (SSABB* basicBlock, HList<HId>::iterator it){};
 
 		virtual void doTransformation (Function* function);
 	};
