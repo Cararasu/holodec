@@ -36,6 +36,8 @@
       <File Name="CRepresentation.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <File Name="JobController.cpp"/>
+      <File Name="JobController.h"/>
       <File Name="HString.h"/>
       <File Name="SSA.h"/>
       <File Name="SSA.cpp"/>

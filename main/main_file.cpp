@@ -20,6 +20,9 @@
 #include "ScriptingInterface.h"
 
 #include "CHolodec.h"
+#include "JobController.h"
+
+#include <thread>
 
 using namespace holodec;
 
@@ -43,29 +46,73 @@ FileFormat elffileformat = {"elf", "elf", {
 };
 extern Architecture holox86::x86architecture;
 
+
+holodec::JobController jc;
+
+void job_thread (int id) {
+	printf ("Job-Thread %d Starting\n", id);
+	jc.start_job_loop ({id});
+	printf ("Job-Thread %d Exiting\n", id);
+}
 int main (int argc, char** argv) {
-	
+
 	/*
 	 * Input i = MemAccess(0, unlimited)
-	 * 
+	 *
 	 * uint64 xx = Lea(...)
 	 * MemoryAccess yy = MemAccess(xx, size, list of possible overlapping MemoryAccesses)
 	 * uint(size) zz = Load(yy, value, other MemoryAccess)
 	 * MemoryAccess aa = Store(yy, value)
-	 * 
+	 *
 	 */
 	printf ("Init X86\n");
+
+	std::vector<std::thread*> threads;
+	for (int i = 0; i < 10; i++) {
+		threads.push_back (new std::thread (job_thread, i));
+	}
+
+
+
+	for (int i = 0; i < 1000; i++) {
+		holodec::Job job = {[i, &jc] (holodec::JobContext context) {
+			if (i == 999) {
+				std::this_thread::sleep_for(std::chrono::seconds(2));
+				for (int j = 0; j < 500; j++) {
+					holodec::Job job = {[j, &jc] (holodec::JobContext context) {
+						printf ("Inner Job: %d from Thread: %d\n", j, context.threadId);
+					}};
+					jc.queue_job (job);
+				}
+			}
+			printf ("Job: %d from Thread: %d\n", i, context.threadId);
+		}
+		                   };
+		jc.queue_job (job);
+	}
+
+	jc.wait_for_finish();
 	
+	jc.wait_for_exit();
+	
+	printf("Jobs %d\n", jc.jobs.size());
+
+	for (auto it = threads.begin(); it != threads.end(); ++it) {
+		(*it)->join();
+		delete *it;
+	}
+	return 0;
+
 	Main::initMain();
 	Data* data = Main::loadDataFromFile (filename);
 	if (!data) {
 		printf ("Could not Load File %s\n", filename.cstr());
 		return -1;
 	}
-	
+
 	Main::g_main->registerFileFormat (&elffileformat);
 	Main::g_main->registerArchitecture (&holox86::x86architecture);
-	
+
 	printf ("Init X86\n");
 	holox86::x86architecture.init();
 
@@ -97,7 +144,7 @@ int main (int argc, char** argv) {
 	binary->print();
 
 	holox86::x86architecture.print();
-	
+
 	//return 0;
 
 	std::vector<SSATransformer*> transformers = {
@@ -110,58 +157,58 @@ int main (int argc, char** argv) {
 		new SSATransformToC()
 	};
 
-	for(SSATransformer* transform : transformers){
+	for (SSATransformer* transform : transformers) {
 		transform->arch = &holox86::x86architecture;
 	}
 
-	
-	for (Symbol* sym : binary->symbols){
-		if(sym->symboltype == &SymbolType::symfunc){
+
+	for (Symbol* sym : binary->symbols) {
+		if (sym->symboltype == &SymbolType::symfunc) {
 			Function* newfunction = new Function();
 			newfunction->symbolref = sym->id;
 			newfunction->baseaddr = sym->vaddr;
 			newfunction->addrToAnalyze.push_back (sym->vaddr);
-			binary->functions.push_back(newfunction);
+			binary->functions.push_back (newfunction);
 		}
 	}
 	bool funcAnalyzed;
-	do{
+	do {
 		funcAnalyzed = false;
-		for(Function* func : binary->functions){
-			if(!func->addrToAnalyze.empty()){
+		for (Function* func : binary->functions) {
+			if (!func->addrToAnalyze.empty()) {
 				func_analyzer->analyzeFunction (func);
 				funcAnalyzed = true;
-				if(!func->funcsCalled.empty()){
-					for(uint64_t addr : func->funcsCalled){
-						if(binary->findSymbol(addr, &SymbolType::symfunc) == nullptr){
+				if (!func->funcsCalled.empty()) {
+					for (uint64_t addr : func->funcsCalled) {
+						if (binary->findSymbol (addr, &SymbolType::symfunc) == nullptr) {
 							char buffer[100];
-							snprintf(buffer, 100, "func_0x%x", addr);
-							Symbol* symbol = new Symbol({0, buffer, &SymbolType::symfunc, 0, addr, 0});
-							binary->addSymbol(symbol);
+							snprintf (buffer, 100, "func_0x%x", addr);
+							Symbol* symbol = new Symbol ({0, buffer, &SymbolType::symfunc, 0, addr, 0});
+							binary->addSymbol (symbol);
 							Function* newfunction = new Function();
 							newfunction->symbolref = symbol->id;
 							newfunction->baseaddr = symbol->vaddr;
 							newfunction->addrToAnalyze.push_back (symbol->vaddr);
-							binary->functions.push_back(newfunction);
+							binary->functions.push_back (newfunction);
 						}
 					}
 				}
 				break;
 			}
 		}
-	}while(funcAnalyzed);
-	
-	
+	} while (funcAnalyzed);
+
+
 	for (Function* func : binary->functions) {
-		
-		func->callingconvention = holox86::x86architecture.getCallingConvention("amd64")->id;
-		
-		for(SSATransformer* transform : transformers){
-			transform->doTransformation(func);
+
+		func->callingconvention = holox86::x86architecture.getCallingConvention ("amd64")->id;
+
+		for (SSATransformer* transform : transformers) {
+			transform->doTransformation (func);
 		}
-		PeepholeOptimizer* optimizer = parsePhOptimizer(&holox86::x86architecture, func);
-		transformers[4]->doTransformation(func);
-		printf("Symbol %s\n", binary->getSymbol(func->symbolref)->name.cstr());
+		PeepholeOptimizer* optimizer = parsePhOptimizer (&holox86::x86architecture, func);
+		transformers[4]->doTransformation (func);
+		printf ("Symbol %s\n", binary->getSymbol (func->symbolref)->name.cstr());
 		func->print (&holox86::x86architecture);
 	}
 	return 0;
