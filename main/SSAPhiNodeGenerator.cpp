@@ -15,7 +15,7 @@ namespace holodec {
 
 	void BasicBlockWrapper::print (Architecture* arch) {
 		printf ("BB %d\n", ssaBB->id);
-		printf ("Address 0x%x - 0x%x\n", ssaBB->startaddr, ssaBB->endaddr);
+		printf ("Address 0x%" PRIx64 " - 0x%" PRIx64 "\n", ssaBB->startaddr, ssaBB->endaddr);
 		printf ("Fallthrough %d\n", ssaBB->fallthroughId);
 
 		printf ("InBlocks ");
@@ -104,7 +104,7 @@ namespace holodec {
 			for (auto it = bbwrapper.ssaBB->exprIds.begin(); it != bbwrapper.ssaBB->exprIds.end(); ++it) {
 				HId id = *it;
 				SSAExpression* expr = function->ssaRep.expressions.get (id);
-				for (int i = 0; i < expr->subExpressions.size(); i++) {
+				for (size_t i = 0; i < expr->subExpressions.size(); i++) {
 					if (expr->subExpressions[i].type == SSAArgType::eId && !expr->subExpressions[i].ssaId) {
 						if (expr->subExpressions[i].location == SSAExprLocation::eReg) {
 							Register* reg = arch->getRegister (expr->subExpressions[i].locref.refId);
@@ -169,6 +169,8 @@ namespace holodec {
 				case SSAExprLocation::eMem:
 					addMemDef (expr->id, arch->getMemory (expr->locref.refId), &bbwrapper.outputMems);
 					break;
+				default:
+					break;
 				}
 			}
 		}
@@ -178,7 +180,7 @@ namespace holodec {
 	void SSAPhiNodeGenerator::doTransformation (Function* function) {
 
 
-		printf ("Generating Phi-Nodes for Function at Address 0x%x\n", function->baseaddr);
+		printf ("Generating Phi-Nodes for Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 		this->function = function;
 		
 		for (SSABB& bb : function->ssaRep.bbs) {
@@ -186,7 +188,7 @@ namespace holodec {
 				SSAExpression* expr = function->ssaRep.expressions.get (id);
 				if (expr->type == SSAExprType::ePhi) //don't clear already created phi nodes
 					continue;
-				for (int i = 0; i < expr->subExpressions.size(); i++) {
+				for (size_t i = 0; i < expr->subExpressions.size(); i++) {
 					SSAArgument& arg = expr->subExpressions[i];
 					//reset id of register/memory/stack so that we can redo them to find non defined reg-arguments
 					if (arg.location != SSAExprLocation::eNone) {
@@ -226,7 +228,7 @@ namespace holodec {
 				phinode.size = reg->size;
 				phinode.instrAddr = wrap.ssaBB->startaddr;
 				phinode.subExpressions.resize (gatheredIdCount);
-				for (int i = 0; i < gatheredIdCount; i++) {
+				for (uint64_t i = 0; i < gatheredIdCount; i++) {
 					phinode.subExpressions[i] = SSAArgument::createReg (reg, gatheredIds[i]);
 				}
 				HId exprId = function->ssaRep.addAtStart (&phinode, wrap.ssaBB);
@@ -329,7 +331,7 @@ namespace holodec {
 			}
 			assert (found);
 		} else {
-			for (int i = 0; i < *visitedBlockCount; i++) {
+			for (uint64_t i = 0; i < *visitedBlockCount; i++) {
 				if (visitedBlocks[i] == wrapper->ssaBB->id) {
 					//printf("Already Visited BB %d\n", wrapper->ssaBB->id);
 					return;

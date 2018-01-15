@@ -1,7 +1,6 @@
 #include "X86FunctionAnalyzer.h"
 
-#include <stdio.h>
-#include <inttypes.h>
+#include "General.h"
 #include <string.h>
 #include "Architecture.h"
 #include "HString.h"
@@ -93,7 +92,7 @@ bool holox86::X86FunctionAnalyzer::analyzeInsts (size_t addr) {
 
 			cs_free (insn, count);
 		} else {
-			printf ("ERROR:: Failed to disassemble given code at address : 0x%x!\n", addr);
+			printf ("ERROR:: Failed to disassemble given code at address : 0x%" PRIx64 "!\n", addr);
 			running = false;
 			return false;
 		}
@@ -115,8 +114,8 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 			break;
 		case X86_OP_REG:{
 			const char* regname = cs_reg_name (handle, x86.operands[i].reg);
-			int index;
-			int res = sscanf(regname,"st%d", &index);
+			uint32_t index;
+			int res = sscanf(regname,"st%" SCNd32, &index);
 			if(res == 1){
 				arg = IRArgument::createStck (arch->getStack ("st"),index);
 			}else{
@@ -164,7 +163,7 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 void holox86::X86FunctionAnalyzer::setJumpDest (Instruction* instruction) {
 	if (instruction->instrdef && instruction->instrdef->type == InstructionType::eRet)
 		return;
-
+/*
 	instruction->nojumpdest = instruction->addr + instruction->size;
 	if (instruction->instrdef){
 		switch(instruction->instrdef->type){
@@ -180,5 +179,5 @@ void holox86::X86FunctionAnalyzer::setJumpDest (Instruction* instruction) {
 			instruction->jumpdest = 0;
 			break;
 		}
-	}
+	}*/
 }

@@ -3,200 +3,208 @@
 #include <assert.h>
 
 namespace holodec {
-	
-	
+
+
 	IRParser::IRParser (Architecture* arch) : arch (arch) {
 		IRExpression expression;
-		{expression.returntype = SSAType::eUnknown;
+		{
+			expression.returntype = SSAType::eUnknown;
 			expression.type = IR_EXPR_UNDEF;
-			expressionmap.insert(std::make_pair("undef", expression));
+			expressionmap.insert (std::make_pair ("undef", expression));
 			expression.type = IR_EXPR_SEQUENCE;
-			expressionmap.insert(std::make_pair("seq", expression));
+			expressionmap.insert (std::make_pair ("seq", expression));
 			expression.type = IR_EXPR_TRAP;
-			expressionmap.insert(std::make_pair("trap", expression));
+			expressionmap.insert (std::make_pair ("trap", expression));
 			expression.type = IR_EXPR_SYSCALL;
-			expressionmap.insert(std::make_pair("syscall", expression));
+			expressionmap.insert (std::make_pair ("syscall", expression));
 			expression.type = IR_EXPR_CALL;
-			expressionmap.insert(std::make_pair("call", expression));
+			expressionmap.insert (std::make_pair ("call", expression));
 			expression.type = IR_EXPR_JMP;
-			expressionmap.insert(std::make_pair("jmp", expression));
+			expressionmap.insert (std::make_pair ("jmp", expression));
 			expression.type = IR_EXPR_CJMP;
-			expressionmap.insert(std::make_pair("cjmp", expression));
+			expressionmap.insert (std::make_pair ("cjmp", expression));
 			expression.type = IR_EXPR_RETURN;
-			expressionmap.insert(std::make_pair("ret", expression));
+			expressionmap.insert (std::make_pair ("ret", expression));
 			expression.type = IR_EXPR_NOP;
-			expressionmap.insert(std::make_pair("nop", expression));
+			expressionmap.insert (std::make_pair ("nop", expression));
 			expression.type = IR_EXPR_IF;
-			expressionmap.insert(std::make_pair("if", expression));
+			expressionmap.insert (std::make_pair ("if", expression));
 			expression.type = IR_EXPR_REP;
-			expressionmap.insert(std::make_pair("rep", expression));
+			expressionmap.insert (std::make_pair ("rep", expression));
 			expression.type = IR_EXPR_ASSIGN;
-			expressionmap.insert(std::make_pair("assign", expression));
+			expressionmap.insert (std::make_pair ("assign", expression));
 		}
-		
-		{expression.returntype = SSAType::eUInt;
-			{expression.type = IR_EXPR_FLAG;
+
+		{
+			expression.returntype = SSAType::eUInt;
+			{
+				expression.type = IR_EXPR_FLAG;
 				expression.size = 1;
 				expression.mod.flagType = SSAFlagType::eZ;
-				expressionmap.insert(std::make_pair("z", expression));
+				expressionmap.insert (std::make_pair ("z", expression));
 				expression.mod.flagType = SSAFlagType::eP;
-				expressionmap.insert(std::make_pair("p", expression));
+				expressionmap.insert (std::make_pair ("p", expression));
 				expression.mod.flagType = SSAFlagType::eO;
-				expressionmap.insert(std::make_pair("o", expression));
+				expressionmap.insert (std::make_pair ("o", expression));
 				expression.mod.flagType = SSAFlagType::eS;
-				expressionmap.insert(std::make_pair("s", expression));
+				expressionmap.insert (std::make_pair ("s", expression));
 				expression.mod.flagType = SSAFlagType::eC;
-				expressionmap.insert(std::make_pair("c", expression));
+				expressionmap.insert (std::make_pair ("c", expression));
 				expression.mod.flagType = SSAFlagType::eA;
-				expressionmap.insert(std::make_pair("a", expression));
+				expressionmap.insert (std::make_pair ("a", expression));
 				expression.type = IR_EXPR_APPEND;
-				expressionmap.insert(std::make_pair("app", expression));
+				expressionmap.insert (std::make_pair ("app", expression));
 			}
-			{expression.type = IR_EXPR_OP;
+			{
+				expression.type = IR_EXPR_OP;
 				expression.mod.opType = SSAOpType::eAdd;
-				expressionmap.insert(std::make_pair("add", expression));
+				expressionmap.insert (std::make_pair ("add", expression));
 				expression.mod.opType = SSAOpType::eSub;
-				expressionmap.insert(std::make_pair("sub", expression));
+				expressionmap.insert (std::make_pair ("sub", expression));
 				expression.mod.opType = SSAOpType::eMul;
-				expressionmap.insert(std::make_pair("mul", expression));
+				expressionmap.insert (std::make_pair ("mul", expression));
 				expression.mod.opType = SSAOpType::eDiv;
-				expressionmap.insert(std::make_pair("div", expression));
+				expressionmap.insert (std::make_pair ("div", expression));
 				expression.mod.opType = SSAOpType::eMod;
-				expressionmap.insert(std::make_pair("mod", expression));
+				expressionmap.insert (std::make_pair ("mod", expression));
 				expression.mod.opType = SSAOpType::eShr;
-				expressionmap.insert(std::make_pair("shr", expression));
+				expressionmap.insert (std::make_pair ("shr", expression));
 				expression.mod.opType = SSAOpType::eShl;
-				expressionmap.insert(std::make_pair("shl", expression));
+				expressionmap.insert (std::make_pair ("shl", expression));
 				expression.mod.opType = SSAOpType::eSar;
-				expressionmap.insert(std::make_pair("sar", expression));
+				expressionmap.insert (std::make_pair ("sar", expression));
 				expression.mod.opType = SSAOpType::eSal;
-				expressionmap.insert(std::make_pair("sal", expression));
+				expressionmap.insert (std::make_pair ("sal", expression));
 				expression.mod.opType = SSAOpType::eRor;
-				expressionmap.insert(std::make_pair("ror", expression));
+				expressionmap.insert (std::make_pair ("ror", expression));
 				expression.mod.opType = SSAOpType::eRol;
-				expressionmap.insert(std::make_pair("rol", expression));
+				expressionmap.insert (std::make_pair ("rol", expression));
 				expression.mod.opType = SSAOpType::eAnd;
-				expressionmap.insert(std::make_pair("and", expression));
+				expressionmap.insert (std::make_pair ("and", expression));
 				expression.mod.opType = SSAOpType::eOr;
-				expressionmap.insert(std::make_pair("or", expression));
+				expressionmap.insert (std::make_pair ("or", expression));
 				expression.mod.opType = SSAOpType::eXor;
-				expressionmap.insert(std::make_pair("xor", expression));
+				expressionmap.insert (std::make_pair ("xor", expression));
 				expression.mod.opType = SSAOpType::eNot;
-				expressionmap.insert(std::make_pair("not", expression));
+				expressionmap.insert (std::make_pair ("not", expression));
 				expression.mod.opType = SSAOpType::eBAnd;
-				expressionmap.insert(std::make_pair("band", expression));
+				expressionmap.insert (std::make_pair ("band", expression));
 				expression.mod.opType = SSAOpType::eBOr;
-				expressionmap.insert(std::make_pair("bor", expression));
+				expressionmap.insert (std::make_pair ("bor", expression));
 				expression.mod.opType = SSAOpType::eBXor;
-				expressionmap.insert(std::make_pair("bxor", expression));
+				expressionmap.insert (std::make_pair ("bxor", expression));
 				expression.mod.opType = SSAOpType::eBNot;
-				expressionmap.insert(std::make_pair("bnot", expression));
-				
+				expressionmap.insert (std::make_pair ("bnot", expression));
+
 				expression.size = 1;
 				expression.mod.opType = SSAOpType::eEq;
-				expressionmap.insert(std::make_pair("eq", expression));
+				expressionmap.insert (std::make_pair ("eq", expression));
 				expression.mod.opType = SSAOpType::eNe;
-				expressionmap.insert(std::make_pair("ne", expression));
+				expressionmap.insert (std::make_pair ("ne", expression));
 				expression.mod.opType = SSAOpType::eLower;
-				expressionmap.insert(std::make_pair("l", expression));
+				expressionmap.insert (std::make_pair ("l", expression));
 				expression.mod.opType = SSAOpType::eLe;
-				expressionmap.insert(std::make_pair("le", expression));
+				expressionmap.insert (std::make_pair ("le", expression));
 				expression.mod.opType = SSAOpType::eGreater;
-				expressionmap.insert(std::make_pair("g", expression));
+				expressionmap.insert (std::make_pair ("g", expression));
 				expression.mod.opType = SSAOpType::eGe;
-				expressionmap.insert(std::make_pair("ge", expression));
+				expressionmap.insert (std::make_pair ("ge", expression));
 			}
 			expression.type = IR_EXPR_EXTEND;
-			expressionmap.insert(std::make_pair("ext", expression));
-			
+			expressionmap.insert (std::make_pair ("ext", expression));
+
 			expression.type = IR_EXPR_CAST;
-			expressionmap.insert(std::make_pair("f2i", expression));
-			
+			expressionmap.insert (std::make_pair ("f2i", expression));
+
 			expression.type = IR_EXPR_PUSH;
-			expressionmap.insert(std::make_pair("push", expression));
+			expressionmap.insert (std::make_pair ("push", expression));
 			expression.type = IR_EXPR_POP;
-			expressionmap.insert(std::make_pair("pop", expression));
-			
+			expressionmap.insert (std::make_pair ("pop", expression));
+
 			expression.type = IR_EXPR_LOAD;
-			expressionmap.insert(std::make_pair("ld", expression));
+			expressionmap.insert (std::make_pair ("ld", expression));
 			expression.type = IR_EXPR_STORE;
-			expressionmap.insert(std::make_pair("st", expression));
-			
+			expressionmap.insert (std::make_pair ("st", expression));
+
 			expression.type = IR_EXPR_VALUE;
-			expressionmap.insert(std::make_pair("val", expression));
-			
+			expressionmap.insert (std::make_pair ("val", expression));
+
 			expression.type = IR_EXPR_BSIZE;
-			expressionmap.insert(std::make_pair("bsize", expression));
+			expressionmap.insert (std::make_pair ("bsize", expression));
 			expression.type = IR_EXPR_SIZE;
-			expressionmap.insert(std::make_pair("size", expression));
-			
+			expressionmap.insert (std::make_pair ("size", expression));
+
 		}
-		{expression.returntype = SSAType::eInt;
-			{expression.type = IR_EXPR_OP;
+		{
+			expression.returntype = SSAType::eInt;
+			{
+				expression.type = IR_EXPR_OP;
 				expression.mod.opType = SSAOpType::eAdd;
-				expressionmap.insert(std::make_pair("sadd", expression));
+				expressionmap.insert (std::make_pair ("sadd", expression));
 				expression.mod.opType = SSAOpType::eSub;
-				expressionmap.insert(std::make_pair("ssub", expression));
+				expressionmap.insert (std::make_pair ("ssub", expression));
 				expression.mod.opType = SSAOpType::eMul;
-				expressionmap.insert(std::make_pair("smul", expression));
+				expressionmap.insert (std::make_pair ("smul", expression));
 				expression.mod.opType = SSAOpType::eDiv;
-				expressionmap.insert(std::make_pair("sdiv", expression));
+				expressionmap.insert (std::make_pair ("sdiv", expression));
 				expression.mod.opType = SSAOpType::eMod;
-				expressionmap.insert(std::make_pair("smod", expression));
+				expressionmap.insert (std::make_pair ("smod", expression));
 			}
 			expression.type = IR_EXPR_EXTEND;
-			expressionmap.insert(std::make_pair("sext", expression));
-			
+			expressionmap.insert (std::make_pair ("sext", expression));
+
 			expression.type = IR_EXPR_CAST;
-			expressionmap.insert(std::make_pair("f2s", expression));
-			
+			expressionmap.insert (std::make_pair ("f2s", expression));
+
 			expression.type = IR_EXPR_PUSH;
-			expressionmap.insert(std::make_pair("spush", expression));
-			
+			expressionmap.insert (std::make_pair ("spush", expression));
+
 			expression.type = IR_EXPR_POP;
-			expressionmap.insert(std::make_pair("spop", expression));
-			
+			expressionmap.insert (std::make_pair ("spop", expression));
+
 			expression.type = IR_EXPR_LOAD;
-			expressionmap.insert(std::make_pair("sld", expression));
-			
+			expressionmap.insert (std::make_pair ("sld", expression));
+
 			expression.type = IR_EXPR_STORE;
-			expressionmap.insert(std::make_pair("sst", expression));
-			
+			expressionmap.insert (std::make_pair ("sst", expression));
+
 		}
-		{expression.returntype = SSAType::eFloat;
-			{expression.type = IR_EXPR_OP;
+		{
+			expression.returntype = SSAType::eFloat;
+			{
+				expression.type = IR_EXPR_OP;
 				expression.mod.opType = SSAOpType::eAdd;
-				expressionmap.insert(std::make_pair("fadd", expression));
+				expressionmap.insert (std::make_pair ("fadd", expression));
 				expression.mod.opType = SSAOpType::eSub;
-				expressionmap.insert(std::make_pair("fsub", expression));
+				expressionmap.insert (std::make_pair ("fsub", expression));
 				expression.mod.opType = SSAOpType::eMul;
-				expressionmap.insert(std::make_pair("fmul", expression));
+				expressionmap.insert (std::make_pair ("fmul", expression));
 				expression.mod.opType = SSAOpType::eDiv;
-				expressionmap.insert(std::make_pair("fdiv", expression));
+				expressionmap.insert (std::make_pair ("fdiv", expression));
 				expression.mod.opType = SSAOpType::eMod;
-				expressionmap.insert(std::make_pair("fmod", expression));
+				expressionmap.insert (std::make_pair ("fmod", expression));
 			}
 			expression.type = IR_EXPR_EXTEND;
-			expressionmap.insert(std::make_pair("fext", expression));
-			
+			expressionmap.insert (std::make_pair ("fext", expression));
+
 			expression.type = IR_EXPR_CAST;
-			expressionmap.insert(std::make_pair("i2f", expression));
-			
+			expressionmap.insert (std::make_pair ("i2f", expression));
+
 			expression.type = IR_EXPR_PUSH;
-			expressionmap.insert(std::make_pair("fpush", expression));
-			
+			expressionmap.insert (std::make_pair ("fpush", expression));
+
 			expression.type = IR_EXPR_POP;
-			expressionmap.insert(std::make_pair("fpop", expression));
-			
+			expressionmap.insert (std::make_pair ("fpop", expression));
+
 			expression.type = IR_EXPR_LOAD;
-			expressionmap.insert(std::make_pair("fld", expression));
-			
+			expressionmap.insert (std::make_pair ("fld", expression));
+
 			expression.type = IR_EXPR_STORE;
-			expressionmap.insert(std::make_pair("fst", expression));
-			
+			expressionmap.insert (std::make_pair ("fst", expression));
+
 		}
 	}
-	
+
 	void IRParser::skipWhitespaces() {
 		while (pop() == ' ');
 		pushback();
@@ -206,7 +214,6 @@ namespace holodec {
 		printf ("Invalid Token at '%s' expected %s\n", string.cstr() + index, str);
 	}
 	bool IRParser::parseIdentifier (char *buffer, size_t buffersize) {
-		size_t current_index = index;
 		for (size_t i = 0; i < buffersize; i++) {
 			char c = peek();
 			if ( ('a' <= c && c <= 'z') || ('0' <= c && c <= '9') || ('A' <= c && c <= 'Z')) {
@@ -230,18 +237,13 @@ namespace holodec {
 		return false;
 	}
 	IRArgument IRParser::parseIndex (IRArgument arg) {
-		size_t current_index = index;
 		if (parseCharacter ('[')) {
-			const char* x = string.cstr() + index;
 			IRArgument offset, size;
-			bool hasSize = false;
 			if (! (offset = parseIRExpression())) {
 				printf ("Cannot parse Offset\n");
 				return IRArgument::create();//false;
 			}
-			x = string.cstr() + index;
 			if (parseCharacter (',')) {
-				hasSize = true;
 				if (! (size = parseIRExpression())) {
 					printf ("Cannot parse Size\n");
 					return IRArgument::create();
@@ -249,7 +251,6 @@ namespace holodec {
 			} else {
 				size = IRArgument::createVal ( (uint64_t) 0, arch->bitbase);
 			}
-			x = string.cstr() + index;
 			if (parseCharacter (']')) {
 				IRExpression expression;
 				expression.type = IR_EXPR_SPLIT;
@@ -264,7 +265,6 @@ namespace holodec {
 		return arg;
 	}
 	int64_t IRParser::parseNumberIndex () {
-		size_t current_index = index;
 		if (parseCharacter ('[')) {
 			int64_t number;
 			if (!parseNumber (&number))
@@ -279,7 +279,6 @@ namespace holodec {
 		}
 	}
 	bool IRParser::parseStringIndex (IRExpression* expression) {
-		size_t current_index = index;
 		if (parseCharacter ('[')) {
 			char buffer[100];
 			if (!parseIdentifier (buffer, 100))
@@ -296,7 +295,6 @@ namespace holodec {
 		}
 	}
 	bool IRParser::parseNumber (int64_t* num) {
-		size_t current_index = index;
 		skipWhitespaces();
 		int64_t pos;
 		int parsed = sscanf (string.cstr() + index, "%d%n", num, &pos);
@@ -308,7 +306,6 @@ namespace holodec {
 		return true;
 	}
 	int IRParser::parseArguments (IRExpression* expr) {
-		size_t current_index = index;
 		skipWhitespaces();
 		int i = 0;
 		if (parseCharacter ('(')) {
@@ -335,29 +332,26 @@ namespace holodec {
 		return i;
 	}
 	IRArgument IRParser::parseIRExpression() {
-		size_t current_index = index;
 
 		IRExpression expression;
 		expression.type = IR_EXPR_INVALID;
 		skipWhitespaces();
 		char c;
-		if (c = pop()) {
-			size_t current_index = index;
+		if ( (c = pop())) {
 			switch (c) {
 			case '#': {
-				size_t current_index = index;
 				char buffer[100];
 				if (parseIdentifier (buffer, 100)) {
 					HString string (buffer);
-					auto it = expressionmap.find(string);
-					if(it !=  expressionmap.end()){
+					auto it = expressionmap.find (string);
+					if (it !=  expressionmap.end()) {
 						expression = it->second;
-					}else{
+					} else {
 						if (string == "arg") {
-							IRArgument arg = IRArgument::create (IR_ARGTYPE_ARG, {parseNumberIndex(),0});
+							IRArgument arg = IRArgument::create (IR_ARGTYPE_ARG, { (HId) parseNumberIndex(), 0});
 							return parseIndex (arg);
 						} else if (string == "tmp" || string == "t") {
-							IRArgument arg = IRArgument::create (IR_ARGTYPE_TMP,  {parseNumberIndex(),0});
+							IRArgument arg = IRArgument::create (IR_ARGTYPE_TMP,  { (HId) parseNumberIndex(), 0});
 							return parseIndex (arg);
 						} else if (string == "rec") {
 							expression.type = IR_EXPR_REC;
@@ -393,7 +387,7 @@ namespace holodec {
 
 					printf ("Parsed Custom %s\n", buffer);
 					printParseFailure ("Custom");
-					assert(false);
+					assert (false);
 					//printf ("Parsed Custom %s\n", buffer);
 				} else {
 					printf ("No custom token");
@@ -401,35 +395,35 @@ namespace holodec {
 				return IRArgument::create();
 			}
 			case '?':
-				expression = expressionmap.find("if")->second;
+				expression = expressionmap.find ("if")->second;
 				break;
 			case '+':
-				expression = expressionmap.find("add")->second;
+				expression = expressionmap.find ("add")->second;
 				break;
 			case '*':
-				expression = expressionmap.find("mul")->second;
+				expression = expressionmap.find ("mul")->second;
 				break;
 			case '=':
 				if (parseCharacter ('=')) {
-					expression = expressionmap.find("eq")->second;
+					expression = expressionmap.find ("eq")->second;
 					break;
 				}
-				expression = expressionmap.find("assign")->second;
+				expression = expressionmap.find ("assign")->second;
 				break;
 			case '<':
 				if (parseCharacter ('=')) {
-					expression = expressionmap.find("le")->second;
+					expression = expressionmap.find ("le")->second;
 				} else if (parseCharacter ('>')) {
-					expression = expressionmap.find("ne")->second;
+					expression = expressionmap.find ("ne")->second;
 				} else {
-					expression = expressionmap.find("l")->second;
+					expression = expressionmap.find ("l")->second;
 				}
 				break;
 			case '>':
 				if (parseCharacter ('=')) {
-					expression = expressionmap.find("ge")->second;
+					expression = expressionmap.find ("ge")->second;
 				} else {
-					expression = expressionmap.find("g")->second;
+					expression = expressionmap.find ("g")->second;
 				}
 				break;
 			case ' ':
@@ -438,7 +432,7 @@ namespace holodec {
 			case '-': {
 				char c2 = peek();
 				if (c2 < '0' || '9' < c2) {
-					expression = expressionmap.find("sub")->second;
+					expression = expressionmap.find ("sub")->second;
 					break;
 				}
 			}

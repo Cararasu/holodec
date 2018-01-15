@@ -50,6 +50,7 @@ namespace holodec {
 			}
 			if (executor)
 				executor (arch, ssaRep, context);
+			return true;
 		}
 	};
 
@@ -88,10 +89,12 @@ namespace holodec {
 		RuleBuilder& execute (PhExecutor executor) {
 			if (rule)
 				rule->executor = executor;
+			return *this;
 		}
 
 		RuleBuilder& build() {
 			rule = &ruleSet->baserule;
+			return *this;
 		}
 	};
 

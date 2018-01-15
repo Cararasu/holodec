@@ -97,6 +97,8 @@ namespace holodec {
 				return lhs.mod.opType == rhs.mod.opType;
 			case IR_EXPR_BUILTIN:
 				return lhs.mod.builtinId == rhs.mod.builtinId;
+			default:
+				return true;
 			}
 			return true;
 		}
@@ -105,7 +107,7 @@ namespace holodec {
 
 
 	struct IRRepresentation {
-		int64_t argcount;
+		uint64_t argcount;
 		HString condstring;
 		HString irstring;
 
@@ -114,9 +116,9 @@ namespace holodec {
 
 		IRRepresentation() : IRRepresentation (-1, nullptr, "") {}
 		IRRepresentation (HString irstring) :  IRRepresentation (-1, nullptr, irstring) {}
-		IRRepresentation (int64_t argcount, HString irstring) : IRRepresentation (argcount, nullptr, irstring) {}
+		IRRepresentation (uint64_t argcount, HString irstring) : IRRepresentation (argcount, nullptr, irstring) {}
 		IRRepresentation (HString condstring, HString irstring) : IRRepresentation (-1, condstring, irstring) {}
-		IRRepresentation (int64_t argcount, HString condstring, HString irstring) : argcount (argcount), condstring (condstring), irstring (irstring) {}
+		IRRepresentation (uint64_t argcount, HString condstring, HString irstring) : argcount (argcount), condstring (condstring), irstring (irstring) {}
 
 		bool operator!() {
 			return !irstring;

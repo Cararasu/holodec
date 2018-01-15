@@ -6,7 +6,6 @@
 namespace holodec {
 
 	void printIndent (int indent) {
-		for (int i = 0; i < indent ; i++)
-			printf ("\t");
+		printf("%*c", indent*4, ' ');
 	}
 }

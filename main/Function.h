@@ -20,7 +20,6 @@ namespace holodec {
 
 		uint64_t nojumpdest = 0;//fall through dst
 		uint64_t jumpdest = 0;//if condition is true
-		uint64_t calldest = 0;//if call succeeds -> creates new function symbol
 
 		HLocalBackedList<IRArgument,HINSTRUCTION_MAX_OPERANDS> operands;
 
@@ -42,7 +41,7 @@ namespace holodec {
 			printf ("JumpTable \n");
 			for (HEntry& entry : entries) {
 				printIndent (indent + 1);
-				printf ("0x%X", entry.addr);
+				printf ("0x%" PRIX64, entry.addr);
 			}
 		}
 	};
@@ -59,7 +58,7 @@ namespace holodec {
 
 		void print (Architecture* arch, int indent = 0) {
 			printIndent (indent);
-			printf ("BB 0x%x-0x%x t:0x%x f:0x%x\n", addr, addr + size, instructions.back().jumpdest, instructions.back().nojumpdest);
+			printf ("BB 0x%" PRIx64 "-0x%" PRIx64 " t:0x%" PRIx64 " f:0x%" PRIx64 "\n", addr, addr + size, instructions.back().jumpdest, instructions.back().nojumpdest);
 			for (Instruction& instruction : instructions) {
 				instruction.print (arch, indent + 1);
 			}
@@ -135,7 +134,7 @@ namespace holodec {
 			printf ("Calling Functions: ");
 			
 			for (uint64_t addr : funcsCalled) {
-				printf("0x%x, ", addr);
+				printf("0x%" PRIx64 ", ", addr);
 			}
 			printf ("\n");
 			for (DisAsmBasicBlock& bb : basicblocks) {

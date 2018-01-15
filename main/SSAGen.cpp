@@ -16,7 +16,7 @@ namespace holodec {
 	IRRepresentation* SSAGen::matchIr (Instruction* instr) {
 
 		InstrDefinition* instrdef = instr->instrdef;
-		for (int i = 0; i < instrdef->irs.size(); i++) {
+		for (size_t i = 0; i < instrdef->irs.size(); i++) {
 			if (instr->operands.size() == instrdef->irs[i].argcount) {
 				IRArgument constArg = parseConstExpression (instrdef->irs[i].condExpr, &instr->operands);
 				if (constArg && constArg.type == IR_ARGTYPE_UINT && constArg.uval) {
@@ -30,7 +30,7 @@ namespace holodec {
 				}
 			}
 		}
-		for (int i = 0; i < instr->operands.size(); i++) {
+		for (size_t i = 0; i < instr->operands.size(); i++) {
 			instr->operands[i].print (arch);
 			printf ("\n");
 		}
@@ -210,6 +210,8 @@ namespace holodec {
 			case IR_EXPR_BSIZE:
 				assert (irExpr->subExpressions.size() == 1);
 				return IRArgument::createVal ( (uint64_t) parseConstExpression (irExpr->subExpressions[0], arglist).size, arch->wordbase);
+			default:
+				return IRArgument::create();
 			}
 		}
 
@@ -303,7 +305,7 @@ namespace holodec {
 					SSAExpression* expr = ssaRepresentation->expressions.get (*it);
 					assert (expr);
 					if (expr->type == SSAExprType::eLabel && expr->subExpressions.size() > 0 && expr->subExpressions[0].type == SSAArgType::eUInt && expr->subExpressions[0].uval == addr) {
-						printf ("Split SSA 0x%x\n", addr);
+						printf ("Split SSA 0x%" PRIx64 "\n", addr);
 						HId oldId = bb.id;
 						HId newEndAddr = bb.endaddr;
 						bb.endaddr = addr;
@@ -400,7 +402,7 @@ namespace holodec {
 		if (rep) {
 			setupForInstr();
 			this->instruction = instruction;
-			for (int i = 0; i < instruction->operands.size(); i++) {
+			for (size_t i = 0; i < instruction->operands.size(); i++) {
 				arguments.push_back (instruction->operands[i]);
 			}
 			insertLabel (instruction->addr);
@@ -445,7 +447,7 @@ namespace holodec {
 					return def.arg;
 				}
 			}
-			printf ("0x%x\n", instruction->addr);
+			printf ("0x%" PRIx64 "\n", instruction->addr);
 			printf ("%d\n", exprId.ref.refId);
 			assert (false);
 		}
@@ -458,7 +460,7 @@ namespace holodec {
 
 			switch (irExpr->type) {
 			case IR_EXPR_UNDEF: {
-				for (int i = 0; i < subexpressioncount; i++) {
+				for (size_t i = 0; i < subexpressioncount; i++) {
 					assert (irExpr->subExpressions[i].type == IR_ARGTYPE_ARG ||
 					        irExpr->subExpressions[i].type == IR_ARGTYPE_REG ||
 					        irExpr->subExpressions[i].type == IR_ARGTYPE_STACK ||
@@ -592,7 +594,7 @@ namespace holodec {
 					break;
 				default:
 					dstArg.print (arch);
-					printf ("Invalid Type for Assignment 0x%x\n", dstArg.type);
+					printf ("Invalid Type for Assignment 0x%" PRIx64 "\n", dstArg.type);
 					assert (false);
 					break;
 				}
@@ -676,7 +678,7 @@ namespace holodec {
 				expression.opType = irExpr->mod.opType;
 				expression.returntype = irExpr->returntype;
 				uint64_t size = 0;
-				for (int i = 0; i < subexpressioncount; i++) {
+				for (size_t i = 0; i < subexpressioncount; i++) {
 					SSAArgument arg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i]));
 					size = size > arg.size ? size : arg.size;
 					expression.subExpressions.push_back (arg);
@@ -742,7 +744,7 @@ namespace holodec {
 			case IR_EXPR_SYSCALL: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eSyscall;
-				for (int i = 0; i < subexpressioncount; i++) {
+				for (size_t i = 0; i < subexpressioncount; i++) {
 					expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i])));
 				}
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
@@ -752,7 +754,7 @@ namespace holodec {
 				expression.type = SSAExprType::eTrap;
 				endOfBlock = true;
 				fallthrough = false;
-				for (int i = 0; i < subexpressioncount; i++) {
+				for (size_t i = 0; i < subexpressioncount; i++) {
 					expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i])));
 				}
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
@@ -776,7 +778,7 @@ namespace holodec {
 				SSAExpression expression;
 				expression.type = SSAExprType::eSplit;
 				expression.returntype = SSAType::eUInt;
-				for (int i = 0; i < subexpressioncount; i++) {
+				for (size_t i = 0; i < subexpressioncount; i++) {
 					expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i])));
 				}
 				if (expression.subExpressions[2].isConst() && expression.subExpressions[2].type == SSAArgType::eUInt)
@@ -788,7 +790,7 @@ namespace holodec {
 				expression.type = SSAExprType::eAppend;
 				expression.returntype = SSAType::eUInt;
 				expression.size = 0;
-				for (int i = 0; i < subexpressioncount; i++) {
+				for (size_t i = 0; i < subexpressioncount; i++) {
 					SSAArgument arg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i]));
 					expression.size += arg.size;
 					expression.subExpressions.push_back (arg);
@@ -950,7 +952,7 @@ namespace holodec {
 			}
 			case IR_EXPR_REC: {
 				HList<IRArgument> args;
-				for (int i = 0; i < subexpressioncount; i++) {
+				for (size_t i = 0; i < subexpressioncount; i++) {
 					args.push_back (parseExpression (irExpr->subExpressions[i]));
 				}
 				HList<SSATmpDef> cachedTemps = this->tmpdefs;
@@ -961,7 +963,7 @@ namespace holodec {
 
 				InstrDefinition* instrdef = arch->getInstrDef (irExpr->mod.instrId);
 
-				int i;
+				size_t i;
 				for (i = 0; i < instrdef->irs.size(); i++) {
 					if (arguments.size() == instrdef->irs[i].argcount) {
 						IRArgument constArg = parseConstExpression (instrdef->irs[i].condExpr, &arguments);
@@ -1039,7 +1041,7 @@ namespace holodec {
 				assert (subexpressioncount == 1);
 				return IRArgument::createVal ( (uint64_t) parseExpression (irExpr->subExpressions[0]).size, arch->bitbase);
 			case IR_EXPR_SEQUENCE://only for ir gets resolved in ir generation
-				for (int i = 0; i < subexpressioncount; i++) {
+				for (size_t i = 0; i < subexpressioncount; i++) {
 					parseExpression (irExpr->subExpressions[i]);
 				}
 				return IRArgument::create();

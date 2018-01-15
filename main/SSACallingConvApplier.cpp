@@ -7,7 +7,7 @@ namespace holodec {
 
 	void SSACallingConvApplier::doTransformation (Function* function) {
 
-		printf ("Apply Calling Convention in Function at Address 0x%x\n", function->baseaddr);
+		printf ("Apply Calling Convention in Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 
 		CallingConvention* cc = arch->getCallingConvention (function->callingconvention);
 
@@ -20,7 +20,7 @@ namespace holodec {
 			if (expr.type == SSAExprType::eOutput) {
 				//TODO get Call method and get the calling convention of the target
 				//currently HACK to use own calling convention
-				assert(expr.subExpressions[0].type == SSAArgType::eId);
+				assert (expr.subExpressions[0].type == SSAArgType::eId);
 				SSAExpression* callExpr = function->ssaRep.expressions.get (expr.subExpressions[0].ssaId);
 				assert (callExpr && callExpr->type == SSAExprType::eCall);
 
@@ -76,6 +76,8 @@ namespace holodec {
 					}
 				}
 				break;
+				default:
+					break;
 				}
 				if (!isParam) {
 					expr.type = SSAExprType::eUndef;
@@ -128,13 +130,17 @@ namespace holodec {
 					}
 				}
 				break;
-				case SSAExprLocation::eMem:
+				case SSAExprLocation::eMem: {
 					for (Memory& mem : arch->memories) {
 						if (expr.locref.refId == mem.id) {
 							expr.subExpressions.push_back (SSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
 							isParam = true;
 						}
 					}
+				}
+				break;
+				default:
+					break;
 				}
 
 				if (!isParam) {

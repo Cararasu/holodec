@@ -2,7 +2,7 @@
 #include "Binary.h"
 #include <assert.h>
 
-holodec::FunctionAnalyzer::FunctionAnalyzer (Architecture* arch) : binary (0), arch (arch), ssaGen (arch) {
+holodec::FunctionAnalyzer::FunctionAnalyzer (Architecture* arch) : arch (arch), binary (0), ssaGen (arch) {
 }
 
 holodec::FunctionAnalyzer::~FunctionAnalyzer() {
@@ -45,11 +45,11 @@ bool holodec::FunctionAnalyzer::postInstruction (Instruction* instruction) {
 }
 
 bool holodec::FunctionAnalyzer::postBasicBlock (DisAsmBasicBlock* basicblock) {
-	state.function->addBasicBlock (*basicblock);
+	return state.function->addBasicBlock (*basicblock) != 0;
 }
 
 bool holodec::FunctionAnalyzer::changedBasicBlock (DisAsmBasicBlock* basicblock) {
-
+	return true;
 }
 bool holodec::FunctionAnalyzer::splitBasicBlock (DisAsmBasicBlock* basicblock, uint64_t splitaddr) {
 	for (auto instrit = basicblock->instructions.begin(); instrit != basicblock->instructions.end(); instrit++) {
@@ -94,7 +94,7 @@ bool holodec::FunctionAnalyzer::trySplitBasicBlock (uint64_t splitaddr) {
 }
 void holodec::FunctionAnalyzer::addAddressToAnalyze (uint64_t addr) {
 	if (std::find (state.function->addrToAnalyze.begin(), state.function->addrToAnalyze.end(), addr) == state.function->addrToAnalyze.end()) {
-		printf ("Add Address for Analyze 0x%x\n", addr);
+		printf ("Add Address for Analyze 0x%" PRIx64 "\n", addr);
 		state.function->addrToAnalyze.push_back (addr);
 	}
 }
@@ -111,7 +111,7 @@ bool holodec::FunctionAnalyzer::analyzeFunction (Function* function) {
 	state.function = function;
 	Symbol* functionsymbol = binary->getSymbol (function->symbolref);
 	printf ("Analyzing Function %s\n", functionsymbol->name.cstr());
-	printf ("At Address 0x%x\n", functionsymbol->vaddr);
+	printf ("At Address 0x%" PRIx64 "\n", functionsymbol->vaddr);
 
 	preAnalysis();
 

@@ -2,7 +2,7 @@
 extern "C"{
 #include "CHolodec.h"
 #include "CHolodecStruct.h"
-
+/*
 	const struct Holodec_struct Holodec = {
 		.init = holodec_init,
 		.get_arch = holodec_get_arch,
@@ -31,5 +31,5 @@ extern "C"{
 			.get_instrdefcount = arch_get_instrdefcount,
 		}
 	};
-
+*/
 }

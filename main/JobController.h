@@ -13,10 +13,13 @@ namespace holodec {
 		uint32_t threadId;
 	};
 	struct Job {
+		uint64_t id;
 		std::function<void (JobContext) > func;
 	};
 
 	struct JobController {
+		uint64_t counter = 0;
+		
 		std::queue<Job> jobs;
 		
 		std::mutex mutex;
@@ -34,8 +37,8 @@ namespace holodec {
 	public:
 		JobController() = default;
 		
-		void queue_job (const Job& job);
-		void queue_job (Job&& job);
+		uint64_t queue_job (const Job& job);
+		uint64_t queue_job (Job&& job);
 		
 		Job get_next_job();
 		void get_next_job (Job& job);

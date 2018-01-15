@@ -8,8 +8,10 @@ extern "C" {
 
 #include <stdint.h>
 
-#define HOLODEC_PTR(type) typedef void* type;
-
+#define HOLODEC_PTR(type) \
+	struct type;\
+	typedef struct type type;
+	
 HOLODEC_PTR (HArchitecture)
 HOLODEC_PTR (HBinary)
 HOLODEC_PTR (HFunction)
@@ -27,30 +29,30 @@ HOLODEC_PTR (HSSAArgument)
 typedef uint32_t HId;
 
 void holodec_init (void);
-HArchitecture holodec_get_arch (uint64_t index);
-HArchitecture holodec_get_arch_by_name (const char* name);
+HArchitecture* holodec_get_arch (uint64_t index);
+HArchitecture* holodec_get_arch_by_name (const char* name);
 uint64_t holodec_get_archcount (void);
 
-const char* arch_get_name (HArchitecture arch);
-const char* arch_get_description (HArchitecture arch);
-uint64_t arch_get_bitbase (HArchitecture arch);
-uint64_t arch_get_wordbase (HArchitecture arch);
+const char* arch_get_name (HArchitecture* arch);
+const char* arch_get_description (HArchitecture* arch);
+uint64_t arch_get_bitbase (HArchitecture* arch);
+uint64_t arch_get_wordbase (HArchitecture* arch);
 
-HRegister arch_get_register (HArchitecture arch, uint64_t index);
-HRegister arch_get_register_by_id (HArchitecture arch, HId index);
-uint64_t arch_get_regcount (HArchitecture arch);
+HRegister* arch_get_register (HArchitecture* arch, uint64_t index);
+HRegister* arch_get_register_by_id (HArchitecture* arch, HId index);
+uint64_t arch_get_regcount (HArchitecture* arch);
 
-HStack arch_get_stack (HArchitecture arch, uint64_t index);
-HStack arch_get_stack_by_id (HArchitecture arch, HId index);
-uint64_t arch_get_stackcount (HArchitecture arch);
+HStack* arch_get_stack (HArchitecture* arch, uint64_t index);
+HStack* arch_get_stack_by_id (HArchitecture* arch, HId index);
+uint64_t arch_get_stackcount (HArchitecture* arch);
 
-HCallingConvention arch_get_cc (HArchitecture arch, uint64_t index);
-HCallingConvention arch_get_cc_by_id (HArchitecture arch, HId index);
-uint64_t arch_get_cccount (HArchitecture arch);
+HCallingConvention* arch_get_cc (HArchitecture* arch, uint64_t index);
+HCallingConvention* arch_get_cc_by_id (HArchitecture* arch, HId index);
+uint64_t arch_get_cccount (HArchitecture* arch);
 
-HInstrDefinition arch_get_instrdef (HArchitecture arch, uint64_t index);
-HInstrDefinition arch_get_instrdef_by_id (HArchitecture arch, HId index);
-uint64_t arch_get_instrdefcount (HArchitecture arch);
+HInstrDefinition* arch_get_instrdef (HArchitecture* arch, uint64_t index);
+HInstrDefinition* arch_get_instrdef_by_id (HArchitecture* arch, HId index);
+uint64_t arch_get_instrdefcount (HArchitecture* arch);
 
 
 

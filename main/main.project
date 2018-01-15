@@ -36,6 +36,9 @@
       <File Name="CRepresentation.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Main">
+      <File Name="HoloIO.cpp"/>
+      <File Name="HoloIO.h"/>
+      <File Name="CHolodec.cpp"/>
       <File Name="JobController.cpp"/>
       <File Name="JobController.h"/>
       <File Name="HString.h"/>
@@ -49,16 +52,11 @@
       <File Name="IRGen.h"/>
       <File Name="ScriptingInterface.h"/>
       <File Name="ScriptingInterface.cpp"/>
-      <File Name="Logger.h"/>
-      <File Name="Logger.cpp"/>
       <File Name="General.h"/>
       <File Name="General.cpp"/>
-      <File Name="Console.h"/>
-      <File Name="Console.cpp"/>
       <File Name="Main.cpp"/>
       <File Name="Main.h"/>
       <File Name="CHolodec.h"/>
-      <File Name="CHolodec.cpp"/>
       <File Name="CHolodecStruct.h"/>
       <File Name="CHolodecStruct.cpp"/>
       <File Name="CHolodecHeader.h"/>
@@ -170,7 +168,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Debug Windows" CompilerType="MinGW" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g -Wall -static-libgcc -static-libstdc++" C_Options="-g -Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-g -Wall -static-libgcc -static-libstdc++ -Wno-format" C_Options="-g -Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../capstone/include"/>
         <IncludePath Value="../cpython/Include"/>

@@ -25,9 +25,9 @@ namespace holodec {
 			break;
 		case IR_ARGTYPE_SINT:
 			if(sval < 0)
-				printf ("-0x%x", -sval);
+				printf ("-0x%" PRIx64 "", -sval);
 			else
-				printf ("0x%x", sval);
+				printf ("0x%" PRIx64 "", sval);
 			break;
 		case IR_ARGTYPE_UINT:
 			printf ("0x%X", uval);

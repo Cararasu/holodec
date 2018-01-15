@@ -10,7 +10,7 @@ namespace holodec{
 	
 	void SSAAssignmentSimplifier::doTransformation (Function* function){
 		
-		printf ("Simplifying Assignments for Function at Address 0x%x\n", function->baseaddr);
+		printf ("Simplifying Assignments for Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 		
 		HMap<HId, SSAArgument> replacements;
 		

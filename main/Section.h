@@ -1,7 +1,7 @@
 #ifndef H_SECTION_H
 #define H_SECTION_H
 
-#include <stdint.h>
+#include "General.h"
 #include <stdio.h>
 #include <vector>
 #include "Function.h"
@@ -79,9 +79,9 @@ namespace holodec {
 		
 		void print (int indent = 0) {
 			printIndent (indent);
-			printf ("Section %s \t0x%x-0x%x\n", name.cstr(), vaddr, vaddr + size);
+			printf ("Section %s \t0x%" PRIx64 "-0x%" PRIx64 "\n", name.cstr(), vaddr, vaddr + size);
 			printIndent (indent);
-			printf ("Offset: 0x%x Flags: %s %s %s\n", offset, srwx & 0x1 ? "H" : " ", srwx & 0x2 ? "W" : " ", srwx & 0x4 ? "X" : " ");
+			printf ("Offset: 0x%" PRIx64 " Flags: %s %s %s\n", offset, srwx & 0x1 ? "R" : " ", srwx & 0x2 ? "W" : " ", srwx & 0x4 ? "X" : " ");
 			for (Section* section : subsections) {
 				section->print (indent + 1);
 			}

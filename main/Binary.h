@@ -15,7 +15,7 @@ namespace holodec {
 
 	struct Binary {
 		Data* data;
-		
+
 		HList<HId> entrypoints;
 		HIdPtrList<Symbol*> symbols;
 		HIdPtrList<Section*> sections;
@@ -34,7 +34,7 @@ namespace holodec {
 		uint8_t* getVDataPtr (size_t addr) {
 			for (Section* section : sections) {
 				if (section->pointsToSection (addr))
-					return section->getPtr<uint8_t>(data, addr - section->vaddr);
+					return section->getPtr<uint8_t> (data, addr - section->vaddr);
 			}
 			return 0;
 		}
@@ -56,13 +56,16 @@ namespace holodec {
 		HId addSection (Section* section);
 		Section* getSection (HString string);
 		Section* getSection (HId id);
+
 		HId addSymbol (Symbol* symbol);
 		Symbol* getSymbol (HString string);
 		Symbol* getSymbol (HId id);
-		Symbol* findSymbol(size_t addr,const SymbolType* type);
+		Symbol* findSymbol (size_t addr, const SymbolType* type);
+
 		HId addFunction (Function* function);
 		Function* getFunction (HString string);
 		Function* getFunction (HId id);
+
 		bool addEntrypoint (HId name);
 
 		void print (int indent = 0) {

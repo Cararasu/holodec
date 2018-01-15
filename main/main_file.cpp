@@ -24,6 +24,17 @@
 
 #include <thread>
 
+#include "HoloIO.h"
+
+//Binary -> Symbol, Section, Function, Data
+//Binary -> Architecture*
+//Function -> Symbol
+//Architecture
+
+
+
+
+
 using namespace holodec;
 
 HString filename = "../../workingdir/leo";
@@ -49,7 +60,7 @@ extern Architecture holox86::x86architecture;
 
 holodec::JobController jc;
 
-void job_thread (int id) {
+void job_thread (uint32_t id) {
 	printf ("Job-Thread %d Starting\n", id);
 	jc.start_job_loop ({id});
 	printf ("Job-Thread %d Exiting\n", id);
@@ -73,24 +84,6 @@ int main (int argc, char** argv) {
 	}
 
 
-
-	for (int i = 0; i < 1000; i++) {
-		holodec::Job job = {[i, &jc] (holodec::JobContext context) {
-			if (i == 999) {
-				std::this_thread::sleep_for(std::chrono::seconds(2));
-				for (int j = 0; j < 500; j++) {
-					holodec::Job job = {[j, &jc] (holodec::JobContext context) {
-						printf ("Inner Job: %d from Thread: %d\n", j, context.threadId);
-					}};
-					jc.queue_job (job);
-				}
-			}
-			printf ("Job: %d from Thread: %d\n", i, context.threadId);
-		}
-		                   };
-		jc.queue_job (job);
-	}
-
 	jc.wait_for_finish();
 	
 	jc.wait_for_exit();
@@ -101,7 +94,6 @@ int main (int argc, char** argv) {
 		(*it)->join();
 		delete *it;
 	}
-	return 0;
 
 	Main::initMain();
 	Data* data = Main::loadDataFromFile (filename);
@@ -182,7 +174,7 @@ int main (int argc, char** argv) {
 					for (uint64_t addr : func->funcsCalled) {
 						if (binary->findSymbol (addr, &SymbolType::symfunc) == nullptr) {
 							char buffer[100];
-							snprintf (buffer, 100, "func_0x%x", addr);
+							snprintf (buffer, 100, "func_0x%" PRIx64 "", addr);
 							Symbol* symbol = new Symbol ({0, buffer, &SymbolType::symfunc, 0, addr, 0});
 							binary->addSymbol (symbol);
 							Function* newfunction = new Function();
@@ -208,8 +200,13 @@ int main (int argc, char** argv) {
 		}
 		PeepholeOptimizer* optimizer = parsePhOptimizer (&holox86::x86architecture, func);
 		transformers[4]->doTransformation (func);
-		printf ("Symbol %s\n", binary->getSymbol (func->symbolref)->name.cstr());
-		func->print (&holox86::x86architecture);
+		
+		holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol (func->symbolref)->name.cstr());
+		//func->print (&holox86::x86architecture);
 	}
+	
+	holodec::g_logger.log<LogLevel::eInfo>("WWW");
+	holodec::g_logger.log<LogLevel::eInfo>("%s", PRIx64);
+	
 	return 0;
 }

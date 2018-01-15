@@ -8,7 +8,7 @@ namespace holodec {
 
 	void SSAExpression::print (Architecture* arch, int indent) {
 		printIndent (indent);
-		printf ("0x%x:", instrAddr);
+		printf ("0x%" PRIx64 ":", instrAddr);
 
 		switch (this->returntype) {
 		case SSAType::eUnknown:
@@ -192,6 +192,12 @@ namespace holodec {
 		case SSAExprType::eLoad:
 			printf ("Load ");
 			break;
+		case SSAExprType::ePop:
+			printf ("Pop ");
+			break;
+		case SSAExprType::ePush:
+			printf ("Push ");
+			break;
 		case SSAExprType::eFlag:
 			printf ("Flag ");
 			switch (flagType) {
@@ -232,6 +238,9 @@ namespace holodec {
 		case SSAExprLocation::eMem:
 			printf ("Mem: %d, ", locref.refId);
 			break;
+		case SSAExprLocation::eBlock:
+			printf ("Block %d", locref.refId);
+			break;
 		case SSAExprLocation::eNone:
 			break;
 		}
@@ -250,9 +259,9 @@ namespace holodec {
 			break;
 		case SSAArgType::eSInt:
 			if (sval < 0)
-				printf ("-0x%x", -sval);
+				printf ("-0x%" PRIx64 "", -sval);
 			else
-				printf ("0x%x", sval);
+				printf ("0x%" PRIx64 "", sval);
 			break;
 		case SSAArgType::eUInt:
 			printf ("0x%X", uval);
@@ -281,6 +290,9 @@ namespace holodec {
 			break;
 		case SSAExprLocation::eBlock:
 			printf ("Block %d", locref.refId);
+			break;
+		case SSAExprLocation::eNone:
+			printf ("None");
 			break;
 		}
 		if (size) printf (" S%d", size);
@@ -566,7 +578,7 @@ namespace holodec {
 
 		for (SSABB& bb : bbs) {
 			printIndent (indent + 1);
-			printf ("Block bb Id: %d 0x%x - 0x%x\n", bb.id, bb.startaddr, bb.endaddr);
+			printf ("Block bb Id: %d 0x%" PRIx64 " - 0x%" PRIx64 "\n", bb.id, bb.startaddr, bb.endaddr);
 
 			printIndent (indent + 1);
 			printf ("InBlocks ");

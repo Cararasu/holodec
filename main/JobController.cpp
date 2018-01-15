@@ -2,20 +2,14 @@
 
 namespace holodec{
 
-	void JobController::queue_job (const Job& job) {
+	uint64_t JobController::queue_job (Job&& job) {
 		std::unique_lock<std::mutex> mlock (mutex);
-		jobs.push (job);
-		++jobs_to_do;
-		mlock.unlock();
-		cond.notify_one();
-	}
-
-	void JobController::queue_job (Job&& job) {
-		std::unique_lock<std::mutex> mlock (mutex);
+		job.id = ++counter;
 		jobs.push (std::move (job));
 		++jobs_to_do;
 		mlock.unlock();
 		cond.notify_one();
+		return job.id;
 	}
 	Job JobController::get_next_job() {
 		std::unique_lock<std::mutex> mlock (mutex);
@@ -37,7 +31,6 @@ namespace holodec{
 			job = Job();
 			return;
 		}
-			
 		job = jobs.front();
 		jobs.pop();
 	}
@@ -51,9 +44,10 @@ namespace holodec{
 			
 			if(nextJob.func){
 				nextJob.func(context);
-				if(!--jobs_to_do)
+				int todo = --jobs_to_do;
+				if(!todo)
 					end_cond.notify_all();
-				printf("Jobs ToDo %d\n", jobs_to_do.load());
+				printf("Jobs ToDo %d\n", todo);
 				printf("Jobs in Queue %d\n", jobs.size());
 			}
 		}

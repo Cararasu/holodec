@@ -2,11 +2,24 @@
 #define H_GENEHAL_H
 
 #include <stdint.h>
+#include <cinttypes>
 #include <vector>
 #include <set>
 #include <map>
 #include "HString.h"
 
+/*
+#ifdef PRId64
+#if defined(_MSC_VER) || defined(__MSVCRT__)
+#undef PRId64
+#define PRId64 "ld"
+#undef PRIu64
+#define PRIu64 "lu"
+#undef PRIx64
+#define PRIx64 "lx"
+#endif
+#endif
+*/
 
 namespace holodec {
 

@@ -34,8 +34,7 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 	{
 		uint32_t entrypoint = binary->data->get<uint32_t> (0x18);
 		binary->addEntrypoint (binary->addSymbol( new Symbol({0, "entry0", &SymbolType::symfunc, 0, entrypoint, 0})));
-		int entrycount = 1;
-		int exitcount = 0;
+		
 		char buffer[20];
 		if (Section* init = binary->getSection (".init")) {
 			binary->addEntrypoint (binary->addSymbol (new Symbol({0, ".init", &SymbolType::symfunc, 0, init->vaddr, 0})));
@@ -47,13 +46,13 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < init_array->size; i += 4) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, ".init_array%d", i);
+					snprintf (buffer, 20, ".init_array%zd", i);
 					binary->addEntrypoint (binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
 				}
 			} else if (binary->bitbase == 64) {
 				for (size_t i = 0; i < init_array->size; i += 8) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, ".init_array%d", i);
+					snprintf (buffer, 20, ".init_array%zd", i);
 					binary->addEntrypoint (binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
 				}
 			}
@@ -78,8 +77,7 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 		Section* dynsym, * dynstr;
 		if ( (dynsym = binary->getSection (".dynsym")) && (dynstr = binary->getSection (".dynstr"))) {
 			size_t structlength;
-			size_t valueoffset;
-			size_t sizeoffset;
+			
 			if (binary->bitbase == 32)
 				structlength = 16;
 			else
@@ -223,7 +221,8 @@ bool holoelf::ElfBinaryAnalyzer::parseFileHeader() {
 	case ELF_IS_X86:
 		binary->arch = "x86";
 		break;
-
+	default:
+		break;
 	}
 	//ELF Version
 	if (data.get<uint32_t> (0x14) == 1)
@@ -271,7 +270,6 @@ bool holoelf::ElfBinaryAnalyzer::parseProgramHeaderTable () {
 	for (unsigned int i = 0; i < programHeaderTable.entries; i++) {
 		size_t entryoffset = programHeaderTable.offset + i * entrysize;
 		Data& data = *binary->data;
-		size_t size = binary->data->size - entryoffset;
 
 		if (data.get<uint32_t> (entryoffset) == 0x1) {
 			Section* section = new Section();
@@ -323,7 +321,8 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable () {
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
 		size_t entryoffset = sectionHeaderTable.offset + i * entrysize;
 		//TODO check size
-		size_t size = binary->data->size - entryoffset;
+		//size_t size = binary->data->size - entryoffset;
+		
 		nameoffset[i] = binary->getValue<uint32_t> (entryoffset + 0x00);
 
 		uint64_t flags = binary->bitbase == 32 ? binary->getValue<uint32_t> (entryoffset + 0x08) : binary->getValue<uint32_t> (entryoffset + 0x08);
