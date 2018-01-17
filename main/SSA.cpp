@@ -292,7 +292,6 @@ namespace holodec {
 			printf ("Block %d", locref.refId);
 			break;
 		case SSAExprLocation::eNone:
-			printf ("None");
 			break;
 		}
 		if (size) printf (" S%d", size);

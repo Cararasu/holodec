@@ -4,8 +4,6 @@
 namespace holodec {
 
 	
-	
-	
 	struct CFunctionRepresentation{
 		
 		

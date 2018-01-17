@@ -26,12 +26,12 @@
 
 #include "HoloIO.h"
 
-//Binary -> Symbol, Section, Function, Data
+//Binary -> Symbol, Section, Function, Data, Architecture*
 //Binary -> Architecture*
-//Function -> Symbol
-//Architecture
-
-
+//Symbol -> Symbol, Binary*
+//Section -> Symbol, Binary*, CC*
+//Function -> Symbol, Binary*, SSARep
+//Architecture -> CC, ISA, Regs
 
 
 
@@ -76,7 +76,7 @@ int main (int argc, char** argv) {
 	 * MemoryAccess aa = Store(yy, value)
 	 *
 	 */
-	printf ("Init X86\n");
+	g_logger.log<LogLevel::eInfo> ("Init X86\n");
 
 	std::vector<std::thread*> threads;
 	for (int i = 0; i < 10; i++) {
@@ -85,10 +85,10 @@ int main (int argc, char** argv) {
 
 
 	jc.wait_for_finish();
-	
+
 	jc.wait_for_exit();
-	
-	printf("Jobs %d\n", jc.jobs.size());
+
+	g_logger.log<LogLevel::eInfo> ("Jobs %d\n", jc.jobs.size());
 
 	for (auto it = threads.begin(); it != threads.end(); ++it) {
 		(*it)->join();
@@ -98,14 +98,14 @@ int main (int argc, char** argv) {
 	Main::initMain();
 	Data* data = Main::loadDataFromFile (filename);
 	if (!data) {
-		printf ("Could not Load File %s\n", filename.cstr());
+		g_logger.log<LogLevel::eWarn> ("Could not Load File %s\n", filename.cstr());
 		return -1;
 	}
 
 	Main::g_main->registerFileFormat (&elffileformat);
 	Main::g_main->registerArchitecture (&holox86::x86architecture);
 
-	printf ("Init X86\n");
+	g_logger.log<LogLevel::eInfo> ("Init X86\n");
 	holox86::x86architecture.init();
 
 	//ScriptingInterface script;
@@ -191,6 +191,7 @@ int main (int argc, char** argv) {
 	} while (funcAnalyzed);
 
 
+	PeepholeOptimizer* optimizer = parsePhOptimizer ();
 	for (Function* func : binary->functions) {
 
 		func->callingconvention = holox86::x86architecture.getCallingConvention ("amd64")->id;
@@ -198,15 +199,20 @@ int main (int argc, char** argv) {
 		for (SSATransformer* transform : transformers) {
 			transform->doTransformation (func);
 		}
-		PeepholeOptimizer* optimizer = parsePhOptimizer (&holox86::x86architecture, func);
+
+		for (SSAExpression& expr : func->ssaRep.expressions) {
+			MatchContext context;
+			optimizer->ruleSet.baserule.matchRule (&holox86::x86architecture, &func->ssaRep, &expr, &context);
+		}
+
+		func->ssaRep.recalcRefCounts();
+
 		transformers[4]->doTransformation (func);
-		
-		holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol (func->symbolref)->name.cstr());
-		//func->print (&holox86::x86architecture);
+
+		holodec::g_logger.log<LogLevel::eInfo> ("Symbol %s", binary->getSymbol (func->symbolref)->name.cstr());
+		func->print (&holox86::x86architecture);
 	}
-	
-	holodec::g_logger.log<LogLevel::eInfo>("WWW");
-	holodec::g_logger.log<LogLevel::eInfo>("%s", PRIx64);
-	
+	delete optimizer;
+
 	return 0;
 }
