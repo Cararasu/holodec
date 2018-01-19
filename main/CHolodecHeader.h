@@ -10,10 +10,10 @@ extern "C" {
 #define SSA_EXPR_TRANSIENT_NODE		(0x2000)//TODO rename as this is a bad name
 #define SSA_EXPR_MEMWRITE			(0x4000)
 
-#define EXPR_IS_CONTROLFLOW(type) (static_cast<uint64_t>(type) & SSA_EXPR_CONTROL_FLOW)
-#define EXPR_IS_TRANSIENT(type) (static_cast<uint64_t>(type) & SSA_EXPR_TRANSIENT_NODE)
+#define EXPR_IS_CONTROLFLOW(type) ((uint64_t)(type) & SSA_EXPR_CONTROL_FLOW)
+#define EXPR_IS_TRANSIENT(type) ((uint64_t)(type) & SSA_EXPR_TRANSIENT_NODE)
 
-#define EXPR_HAS_SIDEEFFECT(type) (static_cast<uint64_t>(type) & (SSA_EXPR_CONTROL_FLOW | SSA_EXPR_MEMWRITE))
+#define EXPR_HAS_SIDEEFFECT(type) ((uint64_t)(type) & (SSA_EXPR_CONTROL_FLOW | SSA_EXPR_MEMWRITE))
 
 typedef uint32_t HId;
 

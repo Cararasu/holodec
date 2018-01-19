@@ -5,7 +5,7 @@
 
 extern "C" {
 #include "CHolodec.h"
-
+}
 	void holodec_init (void) {
 		holodec::Main::initMain();
 	}
@@ -67,9 +67,120 @@ extern "C" {
 		return reinterpret_cast<HInstrDefinition*> (&a->instrdefs[a->instrIds[index]]);
 	}
 	HInstrDefinition* arch_get_instrdef_by_id (HArchitecture* arch, uint32_t index) {
-		return reinterpret_cast<HInstrDefinition*> (&reinterpret_cast<holodec::Architecture*> (arch)->instrdefs[index]);
+		return reinterpret_cast<HInstrDefinition*> (&reinterpret_cast<holodec::Architecture*> (arch)->instrdefs.at (index));
 	}
 	uint64_t arch_get_instrdefcount (HArchitecture* arch) {
 		return reinterpret_cast<holodec::Architecture*> (arch)->instrdefs.size();
 	}
-}
+
+
+	HSSABB* ssa_get_block (HSSARepresentation* rep, uint64_t index) {
+		auto it = reinterpret_cast<holodec::SSARepresentation*> (rep)->bbs.list.begin();
+		return reinterpret_cast<HSSABB*> (&* (it + index));
+	}
+	HSSABB* ssa_get_block_by_id (HSSARepresentation* rep, HId id) {
+		return reinterpret_cast<HSSABB*> (reinterpret_cast<holodec::SSARepresentation*> (rep)->bbs.get (id));
+	}
+
+	uint64_t ssa_get_blockcount (HSSARepresentation* rep) {
+		return reinterpret_cast<holodec::SSARepresentation*> (rep)->bbs.size();
+	}
+
+	HSSAExpression* ssa_get_expr (HSSARepresentation* rep, uint64_t index) {
+		auto it = reinterpret_cast<holodec::SSARepresentation*> (rep)->expressions.list.begin();
+		return reinterpret_cast<HSSAExpression*> (&* (it + index));
+	}
+	HSSAExpression* ssa_get_expr_by_id (HSSARepresentation* rep, HId id) {
+		return reinterpret_cast<HSSAExpression*> (reinterpret_cast<holodec::SSARepresentation*> (rep)->expressions.get (id));
+	}
+	uint64_t ssa_get_exprcount (HSSARepresentation* rep) {
+		return reinterpret_cast<holodec::SSARepresentation*> (rep)->expressions.size();
+	}
+
+//SSABB
+	HId ssa_get_block_id (HSSABB* ssaBB) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->id;
+	}
+
+	HId ssa_get_blockexprid (HSSABB* ssaBB, uint64_t index) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->exprIds[index];
+	}
+	uint64_t ssa_get_blockexprid_count (HSSABB* ssaBB) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->exprIds.size();
+	}
+	HId* ssa_get_blockexprid_ptr (HSSABB* ssaBB) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->exprIds.data();
+	}
+
+	HId ssa_get_block_fallthroughId (HSSABB* ssaBB) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->fallthroughId;
+	}
+
+	HId ssa_get_inblock (HSSABB* ssaBB, uint64_t index) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->inBlocks[index];
+	}
+	HId* ssa_get_inblock_ptr (HSSABB* ssaBB) {
+		return &*reinterpret_cast<holodec::SSABB*> (ssaBB)->inBlocks.begin();
+	}
+	uint64_t ssa_get_inblock_count (HSSABB* ssaBB) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->inBlocks.size();
+	}
+
+	HId ssa_get_outblock (HSSABB* ssaBB, uint64_t index) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->outBlocks[index];
+	}
+	HId* ssa_get_outblock_ptr (HSSABB* ssaBB) {
+		return &*reinterpret_cast<holodec::SSABB*> (ssaBB)->outBlocks.begin();
+	}
+	uint64_t ssa_get_outblock_count (HSSABB* ssaBB) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->outBlocks.size();
+	}
+
+	uint64_t ssa_get_block_startaddr (HSSABB* ssaBB) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->startaddr;
+	}
+	uint64_t ssa_get_block_endaddr (HSSABB* ssaBB) {
+		return reinterpret_cast<holodec::SSABB*> (ssaBB)->endaddr;
+	}
+
+	//SSAExpression
+	HId ssa_get_expr_id (HSSAExpression ssaExpr){
+		return ssaExpr.exprId;
+	}
+	HSSAExprType ssa_get_expr_type (HSSAExpression ssaExpr){
+		return static_cast<HSSAExprType>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].type);
+	}
+	uint64_t ssa_get_expr_refcount (HSSAExpression ssaExpr){
+		return reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].refcount;
+	}
+	HSSAType ssa_get_expr_rettype (HSSAExpression ssaExpr){
+		return static_cast<HSSAType>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].returntype);
+	}
+
+	HSSAFlagType ssa_get_expr_flagtype (HSSAExpression ssaExpr){
+		return static_cast<HSSAFlagType>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].flagType);
+	}
+	HSSAOpType ssa_get_expr_optype (HSSAExpression ssaExpr){
+		return static_cast<HSSAOpType>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].opType);
+	}
+	HId ssa_get_expr_builtinid (HSSAExpression ssaExpr){
+		return reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].builtinId;
+	}
+
+	HSSAExprLocation ssa_get_expr_locationtype (HSSAExpression ssaExpr){
+		return static_cast<HSSAExprLocation>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].location);
+	}
+	HReference ssa_get_expr_locationref (HSSAExpression ssaExpr){
+		return static_cast<HReference>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].locref);
+	}
+
+	uint64_t ssa_get_expr_instraddr (HSSAExpression ssaExpr){
+		return reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].instrAddr;
+	}
+
+	HSSAArgument* ssa_get_expr_arg (HSSAExpression ssaExpr, uint64_t index){
+		return reinterpret_cast<HSSAArgument*>(&reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].subExpressions[index]);
+	}
+	uint64_t ssa_get_expr_argcount (HSSAExpression ssaExpr){
+		return reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].subExpressions.size();
+	}

@@ -212,14 +212,15 @@ namespace holodec {
 		typedef typename std::vector<T>::iterator iterator;
 		typedef typename std::vector<T>::const_iterator const_iterator;
 		
-		HList<T> list;
-		
 		void label(){
 			for(size_t i = 0; i < list.size();++i){
 				list[i].id = i + 1;
 			}
 		}
 	public:
+		
+		HList<T> list;
+		
 		HSparseIdList(){}
 		~HSparseIdList(){}
 		HSparseIdList (const std::initializer_list<T>& list) : list (list) {
