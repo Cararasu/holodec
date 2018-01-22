@@ -34,6 +34,7 @@
 //Architecture -> CC, ISA, Regs
 
 
+#include <clang/Tooling/Tooling.h>
 
 using namespace holodec;
 
@@ -76,6 +77,10 @@ int main (int argc, char** argv) {
 	 * MemoryAccess aa = Store(yy, value)
 	 *
 	 */
+	 
+	 clang::SourceManager sourceManager;
+	 
+	 
 	g_logger.log<LogLevel::eInfo> ("Init X86\n");
 
 	std::vector<std::thread*> threads;
@@ -120,6 +125,10 @@ int main (int argc, char** argv) {
 	}
 	analyzer->init (data);
 	Binary* binary = analyzer->getBinary();
+
+	for(Section* section : binary->sections){
+		section->print();
+	}
 
 	FunctionAnalyzer* func_analyzer;
 	for (Architecture * architecture : Main::g_main->architectures) {

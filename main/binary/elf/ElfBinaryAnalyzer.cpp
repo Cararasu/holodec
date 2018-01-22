@@ -33,27 +33,27 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 	//handle entry and exit points
 	{
 		uint32_t entrypoint = binary->data->get<uint32_t> (0x18);
-		binary->addEntrypoint (binary->addSymbol( new Symbol({0, "entry0", &SymbolType::symfunc, 0, entrypoint, 0})));
-		
+		binary->addEntrypoint (binary->addSymbol (new Symbol ({0, "entry0", &SymbolType::symfunc, 0, entrypoint, 0})));
+
 		char buffer[20];
 		if (Section* init = binary->getSection (".init")) {
-			binary->addEntrypoint (binary->addSymbol (new Symbol({0, ".init", &SymbolType::symfunc, 0, init->vaddr, 0})));
+			binary->addEntrypoint (binary->addSymbol (new Symbol ({0, ".init", &SymbolType::symfunc, 0, init->vaddr, 0})));
 		}
 		if (Section* finit = binary->getSection (".finit")) {
-			binary->addSymbol (new Symbol({0, ".finit", &SymbolType::symfunc, 0, finit->vaddr, 0}));
+			binary->addSymbol (new Symbol ({0, ".finit", &SymbolType::symfunc, 0, finit->vaddr, 0}));
 		}
 		if (Section* init_array = binary->getSection (".init_array")) {
 			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < init_array->size; i += 4) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, ".init_array%zd", i);
-					binary->addEntrypoint (binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
+					binary->addEntrypoint (binary->addSymbol (new Symbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
 				}
 			} else if (binary->bitbase == 64) {
 				for (size_t i = 0; i < init_array->size; i += 8) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, ".init_array%zd", i);
-					binary->addEntrypoint (binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
+					binary->addEntrypoint (binary->addSymbol (new Symbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
 				}
 			}
 		}
@@ -62,30 +62,99 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 				for (size_t i = 0; i < finit_array->size; i += 4) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, ".finit_array%d", i);
-					binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
+					binary->addSymbol (new Symbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
 				}
 			} else if (binary->bitbase == 64) {
 				for (size_t i = 0; i < finit_array->size; i += 8) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
 					snprintf (buffer, 20, ".finit_array%d", i);
-					binary->addSymbol (new Symbol({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
+					binary->addSymbol (new Symbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
 				}
 			}
 		}
 	}
 	{
-		Section* dynsym, * dynstr;
-		if ( (dynsym = binary->getSection (".dynsym")) && (dynstr = binary->getSection (".dynstr"))) {
+		Section* dynsym, * dynstr, * dynamic;
+		if ( (dynsym = binary->getSection (".dynsym")) &&
+		        (dynstr = binary->getSection (".dynstr")) &&
+		        (dynamic = binary->getSection (".dynamic"))) {
 			size_t structlength;
-			
-			if (binary->bitbase == 32)
-				structlength = 16;
-			else
-				structlength = 24;
 
-			for (size_t entryoffset = 0; entryoffset < dynsym->size; entryoffset += structlength) {
+			if (binary->bitbase == 32)
+				structlength = 0x08;
+			else
+				structlength = 0x10;
+				
+			size_t entryoffset = 0;
+			bool going = true;
+			while(going && entryoffset < dynamic->size){
+				/*
+				typedef struct dynamic{
+				  Elf32_Sword d_tag;
+				  union{
+					Elf32_Sword	d_val;
+					Elf32_Addr	d_ptr;
+				  } d_un;
+				} Elf32_Dyn;
+				typedef struct {
+				  Elf64_Sxword d_tag;
+				  union {
+					Elf64_Xword d_val;
+					Elf64_Addr d_ptr;
+				  } d_un;
+				} Elf64_Dyn;
+				*/
+
+				uint64_t tag;
+				uint64_t value;
+				if (binary->bitbase == 32) {
+					tag = dynamic->getValue<uint32_t> (binary->data, entryoffset);
+					value = dynamic->getValue<uint32_t> (binary->data, entryoffset + 0x4);
+				} else {
+					tag = dynamic->getValue<uint64_t> (binary->data, entryoffset);
+					value = dynamic->getValue<uint64_t> (binary->data, entryoffset + 0x8);
+				}
+
+				switch (tag) {
+				case 0:{
+					going = false;
+				}break;
+				case 1:{
+					char* name = dynstr->getPtr<char> (binary->data, value);
+					printf("Dynamic Library %s\n", name);
+					binary->addDynamicLibrary(new DynamicLibrary(name));
+				}break;
+				default:
+				break;
+				}
+				entryoffset += structlength;
+			}
+
+			if (binary->bitbase == 32)
+				structlength = 0x10;
+			else
+				structlength = 0x18;
+			for (entryoffset = 0; entryoffset < dynsym->size; entryoffset += structlength) {
+				/*
+				 typedef struct elf32_sym{
+				  Elf32_Word	st_name;
+				  Elf32_Addr	st_value;
+				  Elf32_Word	st_size;
+				  unsigned char	st_info;
+				  unsigned char	st_other;
+				  Elf32_Half	st_shndx;
+				} Elf32_Sym;
+				typedef struct elf64_sym {
+				  Elf64_Word st_name;
+				  unsigned char	st_info;
+				  unsigned char	st_other;
+				  Elf64_Half st_shndx;
+				  Elf64_Addr st_value;
+				  Elf64_Xword st_size;
+				} Elf64_Sym;
+				*/
 				char* name = dynstr->getPtr<char> (binary->data, dynsym->getValue<uint32_t> (binary->data, entryoffset));
-				printf("Dynamic Symbol: %s\n", name);
+				printf ("Dynamic Symbol: %s\n", name);
 				uint64_t value;
 				uint64_t size;
 				if (binary->bitbase == 32) {
@@ -322,7 +391,7 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable () {
 		size_t entryoffset = sectionHeaderTable.offset + i * entrysize;
 		//TODO check size
 		//size_t size = binary->data->size - entryoffset;
-		
+
 		nameoffset[i] = binary->getValue<uint32_t> (entryoffset + 0x00);
 
 		uint64_t flags = binary->bitbase == 32 ? binary->getValue<uint32_t> (entryoffset + 0x08) : binary->getValue<uint32_t> (entryoffset + 0x08);

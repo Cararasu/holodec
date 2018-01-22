@@ -10,6 +10,7 @@
 #include "Function.h"
 
 #include "HStringDatabase.h"
+#include "DynamicLibrary.h"
 
 namespace holodec {
 
@@ -20,6 +21,7 @@ namespace holodec {
 		HIdPtrList<Symbol*> symbols;
 		HIdPtrList<Section*> sections;
 		HIdPtrList<Function*> functions;
+		HIdPtrList<DynamicLibrary*> dynamic_libraries;
 		//which architecture
 		//global string
 		size_t bitbase;
@@ -66,15 +68,27 @@ namespace holodec {
 		Function* getFunction (HString string);
 		Function* getFunction (HId id);
 
+		HId addDynamicLibrary (DynamicLibrary* dynamicLibrary);
+		DynamicLibrary* getDynamicLibrary (HString string);
+		DynamicLibrary* getDynamicLibrary (HId id);
+
 		bool addEntrypoint (HId name);
 
 		void print (int indent = 0) {
 			printIndent (indent);
 			printf ("Printing Binary %s\n", data->filename.cstr());
+			printIndent (indent);
 			printf ("Printing Sections\n");
 			for (Section* section : sections) {
 				section->print (indent + 1);
 			}
+			printIndent (indent);
+			printf ("Printing Dynamic Libraries\n");
+			for (DynamicLibrary* dynlib : dynamic_libraries) {
+				printIndent (indent + 1);
+				printf("%s\n", dynlib->name.cstr());
+			}
+			printIndent (indent);
 			printf ("Printing Symbols\n");
 			for (Symbol* symbol : symbols) {
 				symbol->print (indent + 1);

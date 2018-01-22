@@ -9,6 +9,8 @@
   <Dependencies/>
   <VirtualDirectory Name="src">
     <VirtualDirectory Name="Objects">
+      <File Name="DynamicLibrary.cpp"/>
+      <File Name="DynamicLibrary.h"/>
       <File Name="HStringDatabase.cpp"/>
       <File Name="HStringDatabase.h"/>
       <File Name="HIdList.h"/>
@@ -172,12 +174,16 @@
         <IncludePath Value="."/>
         <IncludePath Value="../capstone/include"/>
         <IncludePath Value="../cpython/Include"/>
+        <IncludePath Value="../llvm/include/"/>
+        <IncludePath Value="../llvm/tools/clang/include"/>
       </Compiler>
       <Linker Options="-O0" Required="yes">
         <LibraryPath Value="../capstone/build"/>
         <LibraryPath Value="../cpython/PCbuild/amd64"/>
+        <LibraryPath Value="../libs/llvm/"/>
         <Library Value="capstone"/>
         <Library Value="python37"/>
+        <Library Value="liblibclang"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./DebugWin" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
