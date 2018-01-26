@@ -59,7 +59,7 @@ namespace holodec {
 						for (CCParameter& para : cc->returns) {
 							Register* reg = arch->getRegister (para.regref);
 							if (expr.locref.refId == reg->id) {
-								expr.subExpressions.push_back (SSAArgument::createVal ( (uint64_t) para.index, arch->bitbase));
+								expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) para.index, arch->bitbase));
 								isParam = true;
 								break;
 							}
@@ -70,7 +70,7 @@ namespace holodec {
 				case SSAExprLocation::eMem: {
 					for (Memory& mem : arch->memories) {
 						if (expr.locref.refId == mem.id) {
-							expr.subExpressions.push_back (SSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
+							expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase));
 							isParam = true;
 						}
 					}
@@ -119,13 +119,13 @@ namespace holodec {
 					for (CCParameter& para : cc->parameters) {
 						Register* reg = arch->getRegister (para.regref);
 						if (expr.locref.refId == reg->id) {
-							expr.subExpressions.push_back (SSAArgument::createVal ( (uint64_t) para.index, arch->bitbase));
+							expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) para.index, arch->bitbase));
 							isParam = true;
 							break;
 						}
 					}
 					if (!isParam && expr.locref.refId == stackreg->id) {
-						expr.subExpressions.push_back (SSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
+						expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase));
 						isParam = true;
 					}
 				}
@@ -133,7 +133,7 @@ namespace holodec {
 				case SSAExprLocation::eMem: {
 					for (Memory& mem : arch->memories) {
 						if (expr.locref.refId == mem.id) {
-							expr.subExpressions.push_back (SSAArgument::createVal ( (uint64_t) 0, arch->bitbase));
+							expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase));
 							isParam = true;
 						}
 					}

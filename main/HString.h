@@ -7,6 +7,13 @@
 #include <utility>
 #include <iostream>
 
+#if defined(_WIN32) || defined(_WIN64) 
+	#define snprintf _snprintf_s 
+	#define vsnprintf _vsnprintf 
+	#define strcasecmp _stricmp 
+	#define strncasecmp _strnicmp 
+#endif
+
 namespace holodec {
 
 

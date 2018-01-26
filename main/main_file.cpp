@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include <Binary.h>
-#include <binary/elf/ElfBinaryAnalyzer.h>
-#include <arch/x86/X86FunctionAnalyzer.h>
+#include <assert.h>
+#include "Binary.h"
+#include "binary/elf/ElfBinaryAnalyzer.h"
+#include "arch/x86/X86FunctionAnalyzer.h"
 
 #include "Main.h"
 #include "FileFormat.h"
@@ -33,12 +34,7 @@
 //Function -> Symbol, Binary*, SSARep
 //Architecture -> CC, ISA, Regs
 
-
-#include <clang/Tooling/Tooling.h>
-
 using namespace holodec;
-
-HString filename = "../../workingdir/leo";
 
 FileFormat elffileformat = {"elf", "elf", {
 		[] (Data * data, HString name) {
@@ -78,7 +74,7 @@ int main (int argc, char** argv) {
 	 *
 	 */
 	 
-	 clang::SourceManager sourceManager;
+	//clang::SourceManager sourceManager;
 	 
 	 
 	g_logger.log<LogLevel::eInfo> ("Init X86\n");
@@ -99,7 +95,13 @@ int main (int argc, char** argv) {
 		(*it)->join();
 		delete *it;
 	}
+	if (argc < 2) {
+		g_logger.log<LogLevel::eWarn>("No parameters given\n");
+		return -1;
+	}
 
+	g_logger.log<LogLevel::eInfo>("Analysing file %s\n", argv[1]);
+	HString filename = argv[1];
 	Main::initMain();
 	Data* data = Main::loadDataFromFile (filename);
 	if (!data) {
@@ -130,12 +132,13 @@ int main (int argc, char** argv) {
 		section->print();
 	}
 
-	FunctionAnalyzer* func_analyzer;
+	FunctionAnalyzer* func_analyzer = nullptr;
 	for (Architecture * architecture : Main::g_main->architectures) {
 		func_analyzer = architecture->createFunctionAnalyzer (binary);
 		if (func_analyzer)
 			break;
 	}
+	assert(func_analyzer);
 	func_analyzer->init (binary);
 
 	printf ("Binary File: %s\n", binary->data->filename.cstr());

@@ -10,8 +10,8 @@
 namespace holodec {
 
 #define H_FUNC_ANAL_BUFFERSIZE (128)
-	class Architecture;
-	class Binary;
+	struct Architecture;
+	struct Binary;
 
 	struct FunctionAnalyzer {
 		Architecture* arch;

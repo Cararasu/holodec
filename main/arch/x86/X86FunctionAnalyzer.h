@@ -1,11 +1,11 @@
 #ifndef H_X86FUNCTIONANALYZEH_H
 #define H_X86FUNCTIONANALYZEH_H
 
-#include "FunctionAnalyzer.h"
-#include "General.h"
+#include "../../FunctionAnalyzer.h"
+#include "../../General.h"
 
 #include <capstone.h>
-#include "Architecture.h"
+#include "../../Architecture.h"
 
 namespace holox86 {
 

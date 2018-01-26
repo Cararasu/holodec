@@ -6,10 +6,10 @@ using namespace holodec;
 
 
 bool holoelf::ElfBinaryAnalyzer::canAnalyze (holodec::Data* pdata) {
-	holodec::Data data = *pdata;
+	holodec::Data* data = pdata;
 	//Magic number
-	if (data[0] != 0x7F || data[1] != 'E' || data[2] != 'L' || data[3] != 'F') {
-		printf ("Wrong Header %s\n", data.data);
+	if (data->get<char>(0) != 0x7F || data->get<char>(1) != 'E' || data->get<char>(2) != 'L' || data->get<char>(3) != 'F') {
+		printf ("Wrong Header %s\n", data->data);
 		return false;
 	}
 	return true;
@@ -382,11 +382,19 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable () {
 	else if (binary->bitbase == 64)
 		entrysize = 0x40;
 
+#if defined(__GNUC__) || defined(__MINGW32__)
 	Section* sections[sectionHeaderTable.entries];
+#else
+	Section** sections = new Section*[sectionHeaderTable.entries];
+#endif
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++)
 		sections[i] = new Section();
-
+#if defined(__GNUC__) || defined(__MINGW32__)
 	uint32_t nameoffset[sectionHeaderTable.entries];
+#else
+	uint32_t* nameoffset = new uint32_t[sectionHeaderTable.entries];
+#endif
+
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
 		size_t entryoffset = sectionHeaderTable.offset + i * entrysize;
 		//TODO check size
@@ -429,11 +437,15 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable () {
 		Section* section = sections[i];
 		section->name = (char*) (nameentryptr) + nameoffset[i];
 		printf ("Name: %s\n", section->name.cstr());
-		printf ("Addr: 0x%X\n", section->offset);
-		printf ("Size: 0x%X\n", section->size);
+		printf ("Addr: 0x%" PRIx64 "\n", section->offset);
+		printf ("Size: 0x%" PRIx64 "\n", section->size);
 		if (!section->vaddr)
 			continue;
 		binary->addSection (section);
 	}
+#if !defined(__GNUC__) || !defined(__MINGW32__)
+	delete sections;
+	delete nameoffset;
+#endif
 	return true;
 }

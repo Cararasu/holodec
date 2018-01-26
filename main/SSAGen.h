@@ -5,7 +5,7 @@
 
 namespace holodec {
 
-	class Architecture;
+	struct Architecture;
 
 	struct SSATmpDef {
 		HId id;

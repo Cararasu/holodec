@@ -30,7 +30,7 @@ namespace holodec {
 				printf ("0x%" PRIx64 "", sval);
 			break;
 		case IR_ARGTYPE_UINT:
-			printf ("0x%X", uval);
+			printf ("0x%" PRIx64, uval);
 			break;
 		case IR_ARGTYPE_FLOAT:
 			printf ("%f", fval);
@@ -53,16 +53,16 @@ namespace holodec {
 			}
 			if (mem.index && mem.scale) {
 				if (pre) printf (" + ");
-				printf ("%s*%d", arch->getRegister (mem.index)->name.cstr(), mem.scale);
+				printf ("%s*%" PRId64, arch->getRegister (mem.index)->name.cstr(), mem.scale);
 				pre = true;
 			}
 			if (mem.disp) {
 				if (mem.disp >= 0) {
 					if (pre) printf (" + ");
-					printf ("0x%X", mem.disp);
+					printf ("0x%" PRIx64, mem.disp);
 				} else {
 					if (pre) printf (" - ");
-					printf ("%d", mem.disp * -1);
+					printf ("%" PRId64, mem.disp * -1);
 				}
 			}
 			printf ("]");

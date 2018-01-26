@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Architecture.cpp" />
+    <ClCompile Include="arch\x86\X86Architecture.cpp" />
+    <ClCompile Include="arch\x86\X86FunctionAnalyzer.cpp" />
+    <ClCompile Include="Argument.cpp" />
+    <ClCompile Include="Binary.cpp" />
+    <ClCompile Include="BinaryAnalyzer.cpp" />
+    <ClCompile Include="binary\elf\ElfBinaryAnalyzer.cpp" />
+    <ClCompile Include="binary\elf\ElfDataFile.cpp" />
+    <ClCompile Include="CallingConvention.cpp" />
+    <ClCompile Include="CHolodec.cpp" />
+    <ClCompile Include="CHolodecStruct.cpp" />
+    <ClCompile Include="Class.cpp" />
+    <ClCompile Include="CRepresentation.cpp" />
+    <ClCompile Include="Data.cpp" />
+    <ClCompile Include="DynamicLibrary.cpp" />
+    <ClCompile Include="FileFormat.cpp" />
+    <ClCompile Include="Function.cpp" />
+    <ClCompile Include="FunctionAnalyzer.cpp" />
+    <ClCompile Include="General.cpp" />
+    <ClCompile Include="HoloIO.cpp" />
+    <ClCompile Include="HStringDatabase.cpp" />
+    <ClCompile Include="InstrDefinition.cpp" />
+    <ClCompile Include="IR.cpp" />
+    <ClCompile Include="IRGen.cpp" />
+    <ClCompile Include="JobController.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="main_file.cpp" />
+    <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="PeepholeOptimizer.cpp" />
+    <ClCompile Include="Register.cpp" />
+    <ClCompile Include="ScriptingInterface.cpp" />
+    <ClCompile Include="Section.cpp" />
+    <ClCompile Include="SSA.cpp" />
+    <ClCompile Include="SSAAddressToBlockTransformer.cpp" />
+    <ClCompile Include="SSAAssignmentSimplifier.cpp" />
+    <ClCompile Include="SSACallingConvApplier.cpp" />
+    <ClCompile Include="SSADCETransformer.cpp" />
+    <ClCompile Include="SSAGen.cpp" />
+    <ClCompile Include="SSAPeepholeOptimizer.cpp" />
+    <ClCompile Include="SSAPhiNodeGenerator.cpp" />
+    <ClCompile Include="SSATransformer.cpp" />
+    <ClCompile Include="SSATransformToC.cpp" />
+    <ClCompile Include="Stack.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Architecture.h" />
+    <ClInclude Include="arch\x86\X86FunctionAnalyzer.h" />
+    <ClInclude Include="Argument.h" />
+    <ClInclude Include="Binary.h" />
+    <ClInclude Include="BinaryAnalyzer.h" />
+    <ClInclude Include="binary\elf\ElfBinaryAnalyzer.h" />
+    <ClInclude Include="CallingConvention.h" />
+    <ClInclude Include="CHolodec.h" />
+    <ClInclude Include="CHolodecHeader.h" />
+    <ClInclude Include="CHolodecStruct.h" />
+    <ClInclude Include="Class.h" />
+    <ClInclude Include="CRepresentation.h" />
+    <ClInclude Include="Data.h" />
+    <ClInclude Include="DynamicLibrary.h" />
+    <ClInclude Include="FileFormat.h" />
+    <ClInclude Include="Function.h" />
+    <ClInclude Include="FunctionAnalyzer.h" />
+    <ClInclude Include="General.h" />
+    <ClInclude Include="HIdList.h" />
+    <ClInclude Include="HoloIO.h" />
+    <ClInclude Include="HoloIR.h" />
+    <ClInclude Include="HString.h" />
+    <ClInclude Include="HStringDatabase.h" />
+    <ClInclude Include="InstrDefinition.h" />
+    <ClInclude Include="IR.h" />
+    <ClInclude Include="IRGen.h" />
+    <ClInclude Include="JobController.h" />
+    <ClInclude Include="Main.h" />
+    <ClInclude Include="Memory.h" />
+    <ClInclude Include="PeepholeOptimizer.h" />
+    <ClInclude Include="Register.h" />
+    <ClInclude Include="ScriptingInterface.h" />
+    <ClInclude Include="Section.h" />
+    <ClInclude Include="SSA.h" />
+    <ClInclude Include="SSAAddressToBlockTransformer.h" />
+    <ClInclude Include="SSAAssignmentSimplifier.h" />
+    <ClInclude Include="SSACallingConvApplier.h" />
+    <ClInclude Include="SSADCETransformer.h" />
+    <ClInclude Include="SSAGen.h" />
+    <ClInclude Include="SSAPeepholeOptimizer.h" />
+    <ClInclude Include="SSAPhiNodeGenerator.h" />
+    <ClInclude Include="SSATransformer.h" />
+    <ClInclude Include="SSATransformToC.h" />
+    <ClInclude Include="Stack.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{AF3715C2-2D0B-4503-846F-07EFDECC51C4}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>main</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\cpython\Include;..\capstone\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\capstone\msvc\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>capstone.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -17,7 +17,7 @@ namespace holodec {
 	};
 	
 	struct IRParser {
-		size_t index;
+		size_t index = 0;
 		HString string;
 
 		Architecture* arch;

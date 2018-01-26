@@ -265,6 +265,7 @@ namespace holodec {
 		return arg;
 	}
 	int64_t IRParser::parseNumberIndex () {
+		size_t x = index;
 		if (parseCharacter ('[')) {
 			int64_t number;
 			if (!parseNumber (&number))
@@ -295,13 +296,14 @@ namespace holodec {
 		}
 	}
 	bool IRParser::parseNumber (int64_t* num) {
+		size_t x = index;
 		skipWhitespaces();
-		int64_t pos;
-		int parsed = sscanf (string.cstr() + index, "%d%n", num, &pos);
+		int pos;
+		int parsed = sscanf_s(string.cstr() + index, "%" SCNd64 "%n", num, &pos);
 		if (parsed != 1) {
 			return false;
 		} else {
-			consume (pos);
+			consume (static_cast<uint64_t>(pos));
 		}
 		return true;
 	}
@@ -314,6 +316,7 @@ namespace holodec {
 			}
 			do {
 				i++;
+				size_t x = index;
 				IRArgument subexpr = parseIRExpression();
 				if (expr && subexpr) {
 					expr->subExpressions.push_back (subexpr);
@@ -446,6 +449,7 @@ namespace holodec {
 				return IRArgument::createVal ( (uint64_t) num, arch->bitbase);
 			}
 			}
+			size_t x = index;
 			parseArguments (&expression);
 			switch (expression.type) {
 			case IR_EXPR_LOAD:
@@ -479,6 +483,7 @@ namespace holodec {
 
 
 	void IRParser::parse (IRRepresentation* rep) {
+		size_t x = index;
 		this->rep = rep;
 		if (rep->condstring) {
 			string = rep->condstring;

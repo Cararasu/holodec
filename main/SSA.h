@@ -14,7 +14,7 @@
 
 namespace holodec {
 
-	class Architecture;
+	struct Architecture;
 	
 	enum class SSAExprType {
 		eInvalid	= SSA_EXPR_INVALID,
@@ -156,21 +156,21 @@ namespace holodec {
 		static inline SSAArgument create() {
 			return SSAArgument();
 		}
-		static inline SSAArgument createVal (int64_t val, uint64_t size) {
+		static inline SSAArgument createSVal (int64_t val, uint32_t size) {
 			SSAArgument arg;
 			arg.type = SSAArgType::eSInt;
 			arg.sval = val;
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument createVal (uint64_t val, uint64_t size) {
+		static inline SSAArgument createUVal (uint64_t val, uint32_t size) {
 			SSAArgument arg;
 			arg.type = SSAArgType::eUInt;
 			arg.uval = val;
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument createVal (double val, uint64_t size) {
+		static inline SSAArgument createDVal (double val, uint32_t size) {
 			SSAArgument arg;
 			arg.type = SSAArgType::eFloat;
 			arg.fval = val;
@@ -194,7 +194,7 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument createId (HId ssaId, uint64_t size) {
+		static inline SSAArgument createId (HId ssaId, uint32_t size) {
 			return create(ssaId, size, SSAExprLocation::eNone, {0, 0});
 		}
 		static inline SSAArgument createReg (Register* reg, HId ssaId = 0) {
@@ -249,7 +249,7 @@ namespace holodec {
 		HId id = 0;
 		SSAExprType type = SSAExprType::eInvalid;
 		uint64_t refcount = 0;
-		uint64_t size = 0;
+		uint32_t size = 0;
 		SSAType returntype = SSAType::eUnknown;
 		union { //64 bit
 			SSAFlagType flagType;

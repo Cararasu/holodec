@@ -22,8 +22,8 @@ namespace holodec {
 		HString name;
 		StackType type;
 		StackPolicy policy;
-		uint64_t count;
-		uint64_t wordbitsize;
+		uint32_t count;
+		uint32_t wordbitsize;
 		StringRef backingMem;
 		StringRef trackingReg;
 		HList<StringRef> backingRegs;

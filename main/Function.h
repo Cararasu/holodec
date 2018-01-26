@@ -15,7 +15,7 @@ namespace holodec {
 
 	struct Instruction {
 		uint64_t addr;
-		uint64_t size;
+		uint32_t size;
 		InstrDefinition* instrdef;
 
 		uint64_t nojumpdest = 0;//fall through dst
@@ -54,7 +54,7 @@ namespace holodec {
 		HId jumptable;
 
 		uint64_t addr;
-		uint64_t size;
+		uint32_t size;
 
 		void print (Architecture* arch, int indent = 0) {
 			printIndent (indent);

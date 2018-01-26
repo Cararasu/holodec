@@ -33,8 +33,8 @@ namespace holodec {
 		RegType type;
 		StringRef directParentRef;
 		StringRef parentRef;
-		size_t size;
-		size_t offset;
+		uint32_t size;
+		uint32_t offset;
 		bool clearParentOnWrite;
 
 		void print (int indent = 0);

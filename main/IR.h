@@ -12,7 +12,7 @@
 
 namespace holodec {
 
-	class Architecture;
+	struct Architecture;
 	
 	enum IRExprType {
 		IR_EXPR_INVALID = 0,
@@ -58,7 +58,7 @@ namespace holodec {
 	struct IRExpression {
 		HId id;
 		IRExprType type = IR_EXPR_INVALID;
-		uint64_t size = 0;
+		uint32_t size = 0;
 		SSAType returntype = SSAType::eUnknown;
 		struct { //196 bit
 			union { //64 bit

@@ -28,7 +28,7 @@ namespace holodec {
 
 		template<LogLevel LL>
 		void log (const char* fstring, ...) {
-			if (LL <= level) {
+			if (LL >= level) {
 				printf ("%s - ", module_name.cstr());
 				va_list args;
 				va_start (args, fstring);
@@ -39,7 +39,7 @@ namespace holodec {
 		}
 		template<LogLevel LL>
 		void log_clean (const char* fstring, ...) {
-			if (LL <= level) {
+			if (LL >= level) {
 				va_list args;
 				va_start (args, fstring);
 				vfprintf (g_log_output, fstring, args);

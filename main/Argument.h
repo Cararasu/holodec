@@ -12,7 +12,7 @@
 
 namespace holodec {
 
-	class Architecture;
+	struct Architecture;
 
 	typedef int64_t ArgSInt;
 	typedef uint64_t ArgUInt;
@@ -37,7 +37,7 @@ namespace holodec {
 		explicit operator HReference(){
 			return {refId, index};
 		}
-		operator !(){
+		bool operator !(){
 			return !refId;
 		}
 	};
@@ -76,7 +76,6 @@ namespace holodec {
 	};
 	struct IRArgument {
 		IRArgTypes type = IR_ARGTYPE_UNKN;
-		uint32_t size = 0;
 		union {
 			ArgSInt sval;
 			ArgUInt uval;
@@ -84,6 +83,7 @@ namespace holodec {
 			ArgMem mem;
 			Reference ref;
 		};
+		uint32_t size = 0;
 
 		bool operator!() {
 			return !type;
@@ -97,28 +97,28 @@ namespace holodec {
 		static inline IRArgument create() {
 			return IRArgument();
 		}
-		static inline IRArgument createVal (int64_t val, uint64_t size) {
+		static inline IRArgument createVal (int64_t val, uint32_t size) {
 			IRArgument arg;
 			arg.type = IR_ARGTYPE_SINT;
 			arg.sval = val;
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument createVal (uint64_t val, uint64_t size) {
+		static inline IRArgument createVal (uint64_t val, uint32_t size) {
 			IRArgument arg;
 			arg.type = IR_ARGTYPE_UINT;
 			arg.uval = val;
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument createVal (double val, uint64_t size) {
+		static inline IRArgument createVal (double val, uint32_t size) {
 			IRArgument arg;
 			arg.type = IR_ARGTYPE_FLOAT;
 			arg.fval = val;
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument createMemOp (Register* segment, Register* base, Register* index, ArgSInt scale, ArgSInt disp, uint64_t size) {
+		static inline IRArgument createMemOp (Register* segment, Register* base, Register* index, ArgSInt scale, ArgSInt disp, uint32_t size) {
 			IRArgument arg;
 			arg.type = IR_ARGTYPE_MEMOP;
 			arg.mem.segment = segment ? segment->id : 0;
@@ -136,10 +136,10 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument createIRId (HId id,uint64_t size) {
+		static inline IRArgument createIRId (HId id, uint32_t size) {
 			return create(IR_ARGTYPE_ID, {id, 0}, size);
 		}
-		static inline IRArgument createSSAId (HId ssaId, uint64_t size) {
+		static inline IRArgument createSSAId (HId ssaId, uint32_t size) {
 			return create(IR_ARGTYPE_SSAID, {ssaId, 0}, size);
 		}
 		static inline IRArgument createTmp (HId id, uint32_t size = 0) {

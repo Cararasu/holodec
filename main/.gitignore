@@ -1,5 +1,6 @@
 Debug/
 DebugWin/
 Release/
-make.mk
 *.mk
+.x64/
+.vs/

@@ -1,9 +1,9 @@
 #ifndef H_ELFBINAHYANALYZEH_H
 #define H_ELFBINAHYANALYZEH_H
 
-#include "Binary.h"
-#include "HString.h"
-#include "BinaryAnalyzer.h"
+#include "../../Binary.h"
+#include "../../HString.h"
+#include "../../BinaryAnalyzer.h"
 
 namespace holoelf {
 

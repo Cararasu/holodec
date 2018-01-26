@@ -1,5 +1,5 @@
 
-#include "HSSAGen.h"
+#include "SSAGen.h"
 #include <assert.h>
 #include <algorithm>
 
@@ -9,17 +9,17 @@ namespace holodec {
 		HId parentRegId;
 		HId regId;//can be 0
 		uint64_t offset;
-		uint64_t size;
+		uint32_t size;
 		HId ssaId;
 	};
 	struct HSSAStckDef {
 		HId id;
-		uint64_t size;
+		uint32_t size;
 		HId ssaId;
 	};
 	struct HSSATmpDef {
 		HId id;
-		uint64_t size;
+		uint32_t size;
 		HId ssaId;
 	};
 
@@ -97,7 +97,7 @@ namespace holodec {
 				}
 			}
 		}
-		HId addRegDef (HId regId, uint64_t offset, uint64_t size) {
+		HId addRegDef (HId regId, uint64_t offset, uint32_t size) {
 			HRegister* parentreg = arch->getParentRegister (regId);
 			HRegister* reg = arch->getRegister (regId);
 			HSSARegDef def = {parentreg->id, regId, reg->offset + offset, size, gen.next() };
@@ -105,7 +105,7 @@ namespace holodec {
 			return def.ssaId;
 		}
 
-		HSSARegDef getRegUseDef (HRegister* reg, uint64_t offset, uint64_t size) {
+		HSSARegDef getRegUseDef (HRegister* reg, uint64_t offset, uint32_t size) {
 			if (size == 0)
 				size = reg->size - offset;
 			HRegister* parentreg = arch->getParentRegister (reg->id);
@@ -202,13 +202,13 @@ namespace holodec {
 			}
 			return getRegUseDef (reg, reg->offset, reg->size);
 		};
-		HSSARegDef getRegUseDef (HId reg, uint64_t offset, uint64_t size) {
+		HSSARegDef getRegUseDef (HId reg, uint64_t offset, uint32_t size) {
 			return getRegUseDef (arch->getRegister (reg), offset, size);
 		};
 		HSSARegDef getRegUseDef (HId reg) {
 			return getRegUseDef (arch->getRegister (reg));
 		};
-		HId getTempUseDef (HId id, uint64_t offset = 0, uint64_t size = 0) {
+		HId getTempUseDef (HId id, uint64_t offset = 0, uint32_t size = 0) {
 			for (HSSATmpDef& def : tempDefs) {
 				if (def.id == id) {
 					if (!offset && !size) {
@@ -511,7 +511,7 @@ namespace holodec {
 	HId parseIRSizetoSSA (HIRExpression* expr, HSSAGenState* state) {
 		HId id = state->gen.next();
 		HIRExpression* subexpr = state->arch->getIrExpr (expr->subexpressions[0]);
-		uint64_t size = 0;
+		uint32_t size = 0;
 		if (subexpr->mod.size) {
 			size = subexpr->mod.size;
 		} else {

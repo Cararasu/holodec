@@ -17,7 +17,7 @@
     <WorkspaceConfiguration Name="Debug Windows" Selected="yes">
       <Environment/>
       <Project Name="VulkanTest" ConfigName="Debug Windows"/>
-      <Project Name="main" ConfigName="Debug Windows"/>
+      <Project Name="main" ConfigName="Debug VC17"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

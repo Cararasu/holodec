@@ -1,5 +1,6 @@
 #include "ScriptingInterface.h"
 
+/*
 extern "C" {
 #include <Python.h>
 }
@@ -123,7 +124,7 @@ namespace holodec {
 
 
 	void ScriptingInterface::testModule (Architecture* arch) {
-		Py_SetProgramName (L"Holodec"); /* optional but recommended */
+		Py_SetProgramName (L"Holodec"); // optional but recommended
 		PyImport_AppendInittab ("holodec", PyInit_holodec);
 		Py_Initialize();
 
@@ -147,3 +148,4 @@ namespace holodec {
 
 	}
 }
+*/

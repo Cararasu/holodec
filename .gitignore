@@ -1,4 +1,7 @@
-/.codelite/
-/cpython/
-/capstone/
-/clang/
+.codelite/
+.vs/
+x64/
+cpython/
+capstone/
+clang/
+*.batch_build

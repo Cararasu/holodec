@@ -10,9 +10,9 @@ holodec::FunctionAnalyzer::~FunctionAnalyzer() {
 
 void holodec::FunctionAnalyzer::prepareBuffer (uint64_t addr) {
 	uint8_t* ptr = binary->getVDataPtr (addr);
-	uint64_t size = binary->getVDataSize (addr);
+	uint32_t size = binary->getVDataSize (addr);
 	if (ptr) {
-		state.bufferSize = std::min (size, (uint64_t) H_FUNC_ANAL_BUFFERSIZE);
+		state.bufferSize = std::min<uint64_t> (size, (uint64_t) H_FUNC_ANAL_BUFFERSIZE);
 		memcpy (state.dataBuffer, ptr, state.bufferSize);
 	} else {
 		state.bufferSize = 0;

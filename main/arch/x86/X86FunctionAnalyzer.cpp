@@ -1,10 +1,10 @@
 #include "X86FunctionAnalyzer.h"
 
-#include "General.h"
+#include "../../General.h"
 #include <string.h>
-#include "Architecture.h"
-#include "HString.h"
-#include "Binary.h"
+#include "../../Architecture.h"
+#include "../../HString.h"
+#include "../../Binary.h"
 
 
 #define CODE "\x55\x48\x8b\x05\xb8\x13\x00\x00"
@@ -115,7 +115,7 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 		case X86_OP_REG:{
 			const char* regname = cs_reg_name (handle, x86.operands[i].reg);
 			uint32_t index;
-			int res = sscanf(regname,"st%" SCNd32, &index);
+			int res = sscanf_s(regname,"st%" SCNd32, &index);
 			if(res == 1){
 				arg = IRArgument::createStck (arch->getStack ("st"),index);
 			}else{

@@ -37,20 +37,28 @@ FileFormat* Main::getFileFormat (HString fileformat) {
 
 
 Data* Main::loadDataFromFile (HString file) {
-	std::ifstream t (file.cstr());
+	std::ifstream t (file.cstr(), std::ios_base::binary);
 	size_t size;
 	uint8_t* data;
 	if (t) {
 		t.seekg (0, t.end);
 		size = (size_t) t.tellg();
-		data = (uint8_t*) malloc (size);
+		data = new uint8_t[size];
 
 		t.seekg (0, t.beg);
 
-		t.read ( (char*) data, size);
+		uint64_t offset = 0;
+		while (offset < size) {
+			t.read((char*)data, size);
+			uint64_t read = t.gcount();
+			if (read == 0)
+				break;
+			offset += read;
+			printf("Read %d chars\n", t.gcount());
+		}
 		return new Data (data, size, file);
 	}
-	return 0;
+	return nullptr;
 }
 
 Data* Main::loadData (uint8_t* data, size_t size) {

@@ -5,9 +5,9 @@
 #include "SSA.h"
 namespace holodec {
 
-	class Architecture;
-	class Function;
-	class SSAExpression;
+	struct Architecture;
+	struct Function;
+	struct SSAExpression;
 
 	struct SSATransformer {
 		Architecture* arch;
