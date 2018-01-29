@@ -61,8 +61,8 @@ namespace holodec {
 		auto back() -> decltype(list.back()){
 			return list.back();
 		}
-		void erase(iterator it){
-			list.erase(it);
+		iterator erase(iterator it){
+			return list.erase(it);
 		}
 		T* get (HId id) {
 			if(!id)
@@ -131,8 +131,8 @@ namespace holodec {
 		auto back() -> decltype(list.back()){
 			return list.back();
 		}
-		void erase(iterator it){
-			list.erase(it);
+		iterator erase(iterator it) {
+			return list.erase(it);
 		}
 		T* get (HId id) {
 			if(!id)
@@ -195,8 +195,8 @@ namespace holodec {
 		auto back() -> decltype(list.back()){
 			return list.back();
 		}
-		void erase(iterator it) {
-			list.erase(it);
+		iterator erase(iterator it) {
+			return list.erase(it);
 		}
 		T& operator[] (HId id) {
 			return list[id];
@@ -277,9 +277,9 @@ namespace holodec {
 		auto back() -> decltype(list.back()){
 			return list.back();
 		}
-		void erase(iterator it){
+		iterator erase(iterator it){
 			it->id = 0;
-			++it;
+			return ++it;
 		}
 		iterator it_at (HId id) {
 			return list.begin() + (id-1);

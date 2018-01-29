@@ -278,6 +278,7 @@ namespace holodec {
 			SSAExpression expression;
 			expression.type = SSAExprType::eInput;
 			expression.returntype = SSAType::eUInt;
+			expression.instrAddr = 0;
 			expression.location = SSAExprLocation::eReg;
 			expression.locref = {reg.id, 0};
 			expression.size = reg.size;
@@ -486,7 +487,7 @@ namespace holodec {
 					case IR_ARGTYPE_TMP:
 						for (auto it = tmpdefs.begin(); it != tmpdefs.end(); ++it) {
 							if ( (*it).id == arg.ref.refId) {
-								tmpdefs.erase (it);
+								it = tmpdefs.erase (it);
 								break;
 							}
 						}

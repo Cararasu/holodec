@@ -159,7 +159,6 @@ enum HSSAFlagType {
 	SSA_FLAG_P,
 	SSA_FLAG_O,
 	SSA_FLAG_U,
-	SSA_FLAG_Z,
 	SSA_FLAG_S,
 };
 enum HSSAOpType {

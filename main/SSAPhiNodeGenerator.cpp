@@ -80,7 +80,7 @@ namespace holodec {
 			SSAMemDef& def = *it;
 			if (def.memId == mem->id) {
 				if (rep) {
-					list->erase (it);
+					it = list->erase (it);
 					continue;
 				} else {
 					def = {id, mem->id};

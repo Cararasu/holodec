@@ -40,8 +40,6 @@ namespace holodec {
 			{
 				expression.type = IR_EXPR_FLAG;
 				expression.size = 1;
-				expression.mod.flagType = SSAFlagType::eZ;
-				expressionmap.insert (std::make_pair ("z", expression));
 				expression.mod.flagType = SSAFlagType::eP;
 				expressionmap.insert (std::make_pair ("p", expression));
 				expression.mod.flagType = SSAFlagType::eO;

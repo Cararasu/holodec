@@ -48,7 +48,7 @@ namespace holodec{
 				if(!todo)
 					end_cond.notify_all();
 				printf("Jobs ToDo %d\n", todo);
-				printf("Jobs in Queue %d\n", jobs.size());
+				printf("Jobs in Queue %zu\n", jobs.size());
 			}
 		}
 		if(!--executors_running)

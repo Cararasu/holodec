@@ -62,8 +62,226 @@ void job_thread (uint32_t id) {
 	jc.start_job_loop ({id});
 	printf ("Job-Thread %d Exiting\n", id);
 }
-int main (int argc, char** argv) {
+#include <clang-c/Index.h>  // This is libclang.
 
+void parseCXType(CXType type) {
+	printf("Size: %d ", clang_Type_getSizeOf(type));
+	switch (type.kind) {
+
+	case CXType_Invalid:
+		break;
+
+		/**
+		* \brief A type whose specific kind is not exposed via this
+		* interface.
+		*/
+	case CXType_Unexposed:
+		break;
+
+		/* Builtin types */
+	case CXType_Void://CXType_FirstBuiltin
+		printf("Void ");
+		break;
+	case CXType_Bool:
+	case CXType_Char_U:
+	case CXType_Char16:
+	case CXType_Char32:
+
+	case CXType_UChar:
+	case CXType_UShort:
+	case CXType_UInt:
+	case CXType_ULong:
+	case CXType_ULongLong:
+	case CXType_UInt128:
+		printf("Unsigned Int ");
+		break;
+
+	case CXType_Char_S:
+	case CXType_SChar:
+	case CXType_WChar:
+
+	case CXType_Short:
+	case CXType_Int:
+	case CXType_Long:
+	case CXType_LongLong:
+	case CXType_Int128:
+		printf("Signed Int ");
+		break;
+
+	case CXType_NullPtr:
+		printf("nullptr ");
+		break;
+	case CXType_Overload:
+	case CXType_Dependent:
+		break;
+	case CXType_ObjCId:
+	case CXType_ObjCClass:
+	case CXType_ObjCSel:
+		break;
+	case CXType_Float128:
+	case CXType_Half:
+	case CXType_Float16:
+	case CXType_Float:
+	case CXType_Double:
+	case CXType_LongDouble:
+		break;//CXType_LastBuiltin
+
+	case CXType_Complex:
+		break;
+	case CXType_Pointer:
+		printf("Ptr of ");
+		parseCXType(clang_getPointeeType(type));
+		break;
+	case CXType_BlockPointer:
+	case CXType_LValueReference:
+	case CXType_RValueReference:
+	case CXType_Record:
+	case CXType_Enum:
+	case CXType_Typedef:
+	case CXType_ObjCInterface:
+	case CXType_ObjCObjectPointer:
+	case CXType_FunctionNoProto:
+	case CXType_FunctionProto:
+		break;
+	case CXType_ConstantArray:
+		printf("Array(%d) of ", clang_getArraySize(type));
+		parseCXType(clang_getArrayElementType(type));
+		break;
+	case CXType_Vector:
+	case CXType_IncompleteArray:
+	case CXType_VariableArray:
+	case CXType_DependentSizedArray:
+	case CXType_MemberPointer:
+	case CXType_Auto:
+
+	/**
+	* \brief Represents a type that was referred to using an elaborated type keyword.
+	*
+	* E.g., struct S, or via a qualified name, e.g., N::M::type, or both.
+	*/
+	case CXType_Elaborated:
+		break;
+	}
+}
+
+
+CXChildVisitResult functionDeclVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data) {
+	CXCursorKind kind = clang_getCursorKind(cursor);
+	CXType type = clang_getCursorType(cursor);
+	if (kind == CXCursor_ParmDecl) {
+		CXString name = clang_getCursorSpelling(cursor);
+		
+		parseCXType(type);
+		int *nbParams = (int *)client_data;
+		(*nbParams)++;
+	}
+
+	return CXChildVisit_Continue;
+
+}
+void printStorage(CX_StorageClass storageClass) {
+	switch (storageClass) {
+	case CX_SC_Invalid:
+		printf("Invalid "); break;
+	case CX_SC_None:
+		printf("None "); break;
+	case CX_SC_Extern:
+		printf("Extern "); break;
+	case CX_SC_Static:
+		printf("Static "); break;
+	case CX_SC_PrivateExtern:
+		printf("PrivateExtern "); break;
+	case CX_SC_OpenCLWorkGroupLocal:
+		printf("OCL "); break;
+	case CX_SC_Auto:
+		printf("Auto "); break;
+	case CX_SC_Register:
+		printf("Register "); break;
+
+	}
+}
+CXChildVisitResult cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data) {
+
+	CXCursorKind kind = clang_getCursorKind(cursor);
+	//CXType type = clang_getCursorType(cursor);
+	CXType type = clang_getCanonicalType(clang_getCursorType(cursor));
+	switch (kind) {
+	case CXCursor_StructDecl:
+		printf("Struct %s\n", clang_getCString(clang_getTypeSpelling(type)));
+		break;
+	case CXCursor_UnionDecl:
+		printf("Union %s\n", clang_getCString(clang_getTypeSpelling(type)));
+		break;
+	case CXCursor_ClassDecl:
+		printf("Class %s\n", clang_getCString(clang_getTypeSpelling(type)));
+		break;
+	case CXCursor_FieldDecl:
+		printf("Field %s Offset %lld\n", clang_getCString(clang_getTypeSpelling(type)), clang_Cursor_getOffsetOfField(cursor));
+		parseCXType(type); printf("\n");
+		break;
+	case CXCursor_EnumConstantDecl:
+		printf("EnumConst %s\n", clang_getCString(clang_getTypeSpelling(type)));
+		break;
+	case CXCursor_VarDecl:
+		printStorage(clang_Cursor_getStorageClass(cursor));
+		printf("Var %s\n", clang_getCString(clang_getTypeSpelling(type)));
+		break;
+	case CXCursor_TypedefDecl:
+		printf("Typedef %s -> %s\n", clang_getCString(clang_getTypeSpelling(type)), clang_getCString(clang_getTypedefName(type)));
+		break;
+	//...
+	//case CXCursor_FunctionDecl:
+		printStorage(clang_Cursor_getStorageClass(cursor));
+	case CXCursor_ObjCInstanceMethodDecl: {
+
+		printf("Ret: ");
+		parseCXType(clang_getResultType(type));
+		printf("\n");
+		for (unsigned i = 0; i < clang_getNumArgTypes(type); i++) {
+			printf("Arg %llu: (%s) ", i, clang_getCString(clang_getTypeSpelling(clang_getArgType(type, i))));
+			parseCXType(clang_getArgType(type, i));
+			printf("\n");
+		}
+		printf("%s %s(", clang_getCString(clang_getTypeSpelling(type)), clang_getCString(clang_getCursorSpelling(cursor)));
+
+		// visit method childs
+		int nbParams = 0;
+		clang_visitChildren(cursor, *functionDeclVisitor, &nbParams);
+
+		printf(")\n");
+
+		CXSourceLocation location = clang_getCursorLocation(cursor);
+
+		CXString filename;
+		unsigned int line, column;
+
+		clang_getPresumedLocation(location, &filename, &line, &column);
+		return CXChildVisit_Continue;
+	}break;
+	}
+	//printf("cursor '%s' -> %i\n",clang_getCString(name),kind);
+	return CXChildVisit_Recurse;
+}
+
+int main (int argc, const char** argv) {
+
+
+	CXIndex index = clang_createIndex(0, 1);
+	CXTranslationUnit unit = clang_parseTranslationUnit(
+		index,
+		"../workingdir/stdheader.c", nullptr, 0,
+		nullptr, 0,
+		CXTranslationUnit_None);
+	if (unit == nullptr)
+	{
+		std::cerr << "Unable to parse translation unit. Quitting." << std::endl;
+		exit(-1);
+	}
+	CXCursor rootCursor = clang_getTranslationUnitCursor(unit);
+
+	//unsigned int res = clang_visitChildren(rootCursor, *cursorVisitor, 0);
+
+	//return 0;
 	/*
 	 * Input i = MemAccess(0, unlimited)
 	 *
@@ -164,7 +382,6 @@ int main (int argc, char** argv) {
 	for (SSATransformer* transform : transformers) {
 		transform->arch = &holox86::x86architecture;
 	}
-
 
 	for (Symbol* sym : binary->symbols) {
 		if (sym->symboltype == &SymbolType::symfunc) {

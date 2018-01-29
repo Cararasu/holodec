@@ -102,7 +102,6 @@ namespace holodec {
 		eP = SSA_FLAG_P,
 		eO = SSA_FLAG_O,
 		eU = SSA_FLAG_U,
-		eZ = SSA_FLAG_Z,
 		eS = SSA_FLAG_S,
 	};
 	enum class SSAExprLocation{

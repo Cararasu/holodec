@@ -74,7 +74,6 @@ namespace holodec {
 		HIR_TOKEN_FLAG_A,
 		HIR_TOKEN_FLAG_P,
 		HIR_TOKEN_FLAG_O,
-		HIR_TOKEN_FLAG_Z,
 		HIR_TOKEN_FLAG_S,
 
 		//Arithmetic

@@ -219,9 +219,6 @@ namespace holodec {
 			case SSAFlagType::eU:
 				printf ("Underflow ");
 				break;
-			case SSAFlagType::eZ:
-				printf ("Zero ");
-				break;
 			case SSAFlagType::eS:
 				printf ("Signed ");
 				break;
@@ -233,18 +230,18 @@ namespace holodec {
 			printf ("Reg: %s, ", arch->getRegister (locref.refId)->name.cstr());
 			break;
 		case SSAExprLocation::eStack:
-			printf ("Stack: %s[%d], ", arch->getStack (locref.refId)->name.cstr(), locref.index);
+			printf ("Stack: %s[%" PRId32 "], ", arch->getStack (locref.refId)->name.cstr(), locref.index);
 			break;
 		case SSAExprLocation::eMem:
-			printf ("Mem: %d, ", locref.refId);
+			printf ("Mem: %" PRId32 ", ", locref.refId);
 			break;
 		case SSAExprLocation::eBlock:
-			printf ("Block %d", locref.refId);
+			printf ("Block %" PRId32, locref.refId);
 			break;
 		case SSAExprLocation::eNone:
 			break;
 		}
-		printf ("Ref: %d | %d = ", refcount, id);
+		printf ("Ref: %" PRId64 " | %" PRId32 " = ", refcount, id);
 		for (SSAArgument& arg : subExpressions) {
 			arg.print (arch);
 			printf (", ");
@@ -264,7 +261,7 @@ namespace holodec {
 				printf ("0x%" PRIx64 "", sval);
 			break;
 		case SSAArgType::eUInt:
-			printf ("0x%X", uval);
+			printf ("0x%" PRIx32, uval);
 			break;
 		case SSAArgType::eFloat:
 			printf ("%f", fval);

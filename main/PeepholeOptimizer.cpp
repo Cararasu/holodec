@@ -86,30 +86,6 @@ namespace holodec {
 		RuleBuilder builder (peephole_optimizer->ruleSet);
 
 		builder
-		.ssaType (0, 0, SSAExprType::eFlag, SSAFlagType::eZ)
-		.ssaType (0, 1, SSAExprType::eOp, SSAOpType::eSub)
-		.execute ([] (Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-			SSAExpression& flagExpr = ssaRep->expressions[context->expressionsMatched[0]];
-			SSAExpression& opExpr = ssaRep->expressions[context->expressionsMatched[1]];
-
-			flagExpr.type = SSAExprType::eOp;
-			flagExpr.opType = SSAOpType::eEq;
-			if (opExpr.subExpressions.size() > 2) {
-				SSAExpression addExpr;
-				addExpr.type = SSAExprType::eOp;
-				addExpr.size = opExpr.size;
-				addExpr.returntype = opExpr.returntype;
-				addExpr.opType = SSAOpType::eAdd;
-				addExpr.subExpressions.insert (addExpr.subExpressions.begin(), opExpr.subExpressions.begin() + 1, opExpr.subExpressions.end());
-				addExpr.instrAddr = opExpr.instrAddr;
-
-				flagExpr.subExpressions = {opExpr.subExpressions[0], SSAArgument::create (ssaRep->addBefore (&addExpr, opExpr.id), addExpr.size) };
-
-			} else if (opExpr.subExpressions.size() == 2) {
-				flagExpr.subExpressions = {opExpr.subExpressions[0], opExpr.subExpressions[1]};
-			}
-		});
-		builder
 		.ssaType (0, 0, SSAExprType::eFlag, SSAFlagType::eC)
 		.ssaType (0, 1, SSAExprType::eOp, SSAOpType::eSub)
 		.execute ([] (Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {

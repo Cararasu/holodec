@@ -105,7 +105,7 @@ namespace holodec {
 						isParam = true;
 					}
 					if (!isParam) {
-						expr.subExpressions.erase (it);
+						it = expr.subExpressions.erase (it);
 						continue;
 					}
 					it++;
@@ -180,7 +180,7 @@ namespace holodec {
 					}
 					if (!isParam) {
 						//remove from arg list
-						expr.subExpressions.erase (it);
+						it = expr.subExpressions.erase (it);
 						continue;
 					}
 					it++;

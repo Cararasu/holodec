@@ -54,7 +54,7 @@ Data* Main::loadDataFromFile (HString file) {
 			if (read == 0)
 				break;
 			offset += read;
-			printf("Read %d chars\n", t.gcount());
+			printf("Read %zu chars\n", t.gcount());
 		}
 		return new Data (data, size, file);
 	}

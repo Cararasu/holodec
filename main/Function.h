@@ -14,8 +14,8 @@
 namespace holodec {
 
 	struct Instruction {
-		uint64_t addr;
-		uint32_t size;
+		uint64_t addr = 0;
+		uint32_t size = 0;
 		InstrDefinition* instrdef;
 
 		uint64_t nojumpdest = 0;//fall through dst

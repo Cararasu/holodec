@@ -123,9 +123,6 @@ namespace holodec {
 			case SSAFlagType::eO:
 				printf ("O");
 				break;
-			case SSAFlagType::eZ:
-				printf ("Z");
-				break;
 			case SSAFlagType::eS:
 				printf ("S");
 				break;

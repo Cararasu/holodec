@@ -46,13 +46,13 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < init_array->size; i += 4) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, ".init_array%zd", i);
+					snprintf (buffer, 20, ".init_array%zu", i);
 					binary->addEntrypoint (binary->addSymbol (new Symbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
 				}
 			} else if (binary->bitbase == 64) {
 				for (size_t i = 0; i < init_array->size; i += 8) {
 					size_t fncptr = init_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, ".init_array%zd", i);
+					snprintf (buffer, 20, ".init_array%zu", i);
 					binary->addEntrypoint (binary->addSymbol (new Symbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0})));
 				}
 			}
@@ -61,13 +61,13 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 			if (binary->bitbase == 32) {
 				for (size_t i = 0; i < finit_array->size; i += 4) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, ".finit_array%d", i);
+					snprintf (buffer, 20, ".finit_array%zu", i);
 					binary->addSymbol (new Symbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
 				}
 			} else if (binary->bitbase == 64) {
 				for (size_t i = 0; i < finit_array->size; i += 8) {
 					size_t fncptr = finit_array->getValue<uint32_t> (binary->data, i);
-					snprintf (buffer, 20, ".finit_array%d", i);
+					snprintf (buffer, 20, ".finit_array%zu", i);
 					binary->addSymbol (new Symbol ({0, buffer, &SymbolType::symfunc, 0, fncptr, 0}));
 				}
 			}
