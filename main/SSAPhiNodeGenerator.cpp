@@ -127,7 +127,7 @@ namespace holodec {
 										SSAExpression newExpr;
 										newExpr.type = SSAExprType::eSplit;
 										newExpr.size = static_cast<uint32_t>((def.offset + def.size) - (reg->offset + reg->size));
-										newExpr.returntype = SSAType::eUInt;
+										newExpr.exprtype = SSAType::eUInt;
 										newExpr.instrAddr = expr->instrAddr;
 										newExpr.location = SSAExprLocation::eReg;
 										newExpr.locref = {reg->id, 0};
@@ -233,7 +233,7 @@ namespace holodec {
 
 				SSAExpression phinode;
 				phinode.type = SSAExprType::ePhi;
-				phinode.returntype = SSAType::eUInt;
+				phinode.exprtype = SSAType::eUInt;
 				phinode.location = SSAExprLocation::eReg;
 				phinode.locref = {reg->id, 0};
 				phinode.size = reg->size;
@@ -274,7 +274,7 @@ namespace holodec {
 
 				SSAExpression phinode;
 				phinode.type = SSA_EXPR_PHI;
-				phinode.returntype = SSA_TYPE_MEMACCESS;
+				phinode.exprtype = SSA_TYPE_MEMACCESS;
 				phinode.location = SSA_LOCATION_MEM;
 				phinode.locref = {mem->id, 0};
 				phinode.size = 0;
@@ -323,7 +323,7 @@ namespace holodec {
 			//printf("Found parent Match %d\n", foundParentDef->ssaId);
 			SSAExpression expr;
 			expr.type = SSAExprType::eSplit;
-			expr.returntype = SSAType::eUInt;
+			expr.exprtype = SSAType::eUInt;
 			expr.size = reg->size;
 			expr.location = SSAExprLocation::eReg;
 			expr.locref = {reg->id, 0};

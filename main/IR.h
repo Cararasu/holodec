@@ -59,7 +59,7 @@ namespace holodec {
 		HId id;
 		IRExprType type = IR_EXPR_INVALID;
 		uint32_t size = 0;
-		SSAType returntype = SSAType::eUnknown;
+		SSAType exprtype = SSAType::eUnknown;
 		struct { //196 bit
 			union { //64 bit
 				SSAFlagType flagType;
@@ -81,7 +81,7 @@ namespace holodec {
 		void print(Architecture* arch, int indent = 0, bool recursive = true);
 	};
 	inline bool operator== (IRExpression& lhs, IRExpression& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.returntype == rhs.returntype) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
 				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 					if (lhs.subExpressions[i] != rhs.subExpressions[i])

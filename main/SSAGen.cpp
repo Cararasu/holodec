@@ -42,7 +42,7 @@ namespace holodec {
 	IRArgument SSAGen::parseMemArgToExpr (IRArgument mem) {
 		SSAExpression memexpr;
 		memexpr.type = SSAExprType::eLoadAddr;
-		memexpr.returntype = SSAType::eUInt;
+		memexpr.exprtype = SSAType::eUInt;
 		memexpr.size = arch->bitbase;
 		//segment::[base + index*scale + disp]
 		SSAArgument args[5];
@@ -233,7 +233,7 @@ namespace holodec {
 	void SSAGen::insertLabel (uint64_t address, HId instructionId) {
 		SSAExpression expression;
 		expression.type = SSAExprType::eLabel;
-		expression.returntype = SSAType::ePc;
+		expression.exprtype = SSAType::ePc;
 		expression.size = arch->bitbase;
 		expression.subExpressions.push_back (SSAArgument::createUVal (address, arch->bitbase));
 		addExpression (&expression);
@@ -277,7 +277,7 @@ namespace holodec {
 				continue;
 			SSAExpression expression;
 			expression.type = SSAExprType::eInput;
-			expression.returntype = SSAType::eUInt;
+			expression.exprtype = SSAType::eUInt;
 			expression.instrAddr = 0;
 			expression.location = SSAExprLocation::eReg;
 			expression.locref = {reg.id, 0};
@@ -378,7 +378,7 @@ namespace holodec {
 			reg = arch->getRegister (reg->directParentRef);
 			SSAExpression updateExpression;
 			updateExpression.type = baseReg->clearParentOnWrite ? SSAExprType::eExtend :  SSAExprType::eUpdatePart;
-			updateExpression.returntype = SSAType::eUInt;
+			updateExpression.exprtype = SSAType::eUInt;
 			updateExpression.location = SSAExprLocation::eReg;
 			updateExpression.locref = {reg->id, 0};
 			updateExpression.size = reg->size;
@@ -431,7 +431,7 @@ namespace holodec {
 		case IR_ARGTYPE_MEMOP: {
 			SSAExpression expression;
 			expression.type = SSAExprType::eLoad;
-			expression.returntype = SSAType::eUInt;
+			expression.exprtype = SSAType::eUInt;
 			expression.location = SSAExprLocation::eMem;
 			expression.locref = {arch->getDefaultMemory()->id, 0};
 			expression.size = exprId.size;
@@ -470,7 +470,7 @@ namespace holodec {
 
 					SSAExpression expression;
 					expression.type = SSAExprType::eUndef;
-					expression.returntype = SSAType::eUInt;
+					expression.exprtype = SSAType::eUInt;
 					switch (arg.type) {
 					case IR_ARGTYPE_REG:
 						expression.location = SSAExprLocation::eReg;
@@ -544,15 +544,15 @@ namespace holodec {
 					default:
 						break;
 					}
-					expression.returntype = ssaExpr->returntype;
+					expression.exprtype = ssaExpr->exprtype;
 				} else {
-					expression.returntype = SSAType::eUInt;
+					expression.exprtype = SSAType::eUInt;
 				}
 				expression.size = srcArg.size;
 				SSAArgument srcSSAArg = parseIRArg2SSAArg (srcArg);
 				switch (dstArg.type) {
 				case IR_ARGTYPE_TMP: {
-					expression.returntype = SSAType::eUInt;
+					expression.exprtype = SSAType::eUInt;
 					expression.subExpressions.push_back (srcSSAArg);
 					IRArgument arg = IRArgument::createSSAId (addExpression (&expression), expression.size);
 					for (SSATmpDef& def : tmpdefs) {
@@ -566,7 +566,7 @@ namespace holodec {
 				}
 				case IR_ARGTYPE_MEMOP: {
 					expression.type = SSAExprType::eStore;
-					expression.returntype = SSAType::eMemaccess;
+					expression.exprtype = SSAType::eMemaccess;
 					expression.size = 0;
 					Memory* memory = arch->getDefaultMemory();
 					expression.location = SSAExprLocation::eMem;
@@ -609,7 +609,7 @@ namespace holodec {
 			case IR_EXPR_IF: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eCJmp;
-				expression.returntype = SSAType::ePc;
+				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bitbase;
 
 				SSAArgument exprArgs[2];
@@ -650,7 +650,7 @@ namespace holodec {
 			case IR_EXPR_JMP: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eJmp;
-				expression.returntype = SSAType::ePc;
+				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bitbase;
 
 				assert (subexpressioncount == 1);
@@ -663,7 +663,7 @@ namespace holodec {
 			case IR_EXPR_CJMP: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eCJmp;
-				expression.returntype = SSAType::ePc;
+				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bitbase;
 
 				assert (subexpressioncount == 2);
@@ -677,7 +677,7 @@ namespace holodec {
 				SSAExpression expression;
 				expression.type = SSAExprType::eOp;
 				expression.opType = irExpr->mod.opType;
-				expression.returntype = irExpr->returntype;
+				expression.exprtype = irExpr->exprtype;
 				uint32_t size = 0;
 				for (size_t i = 0; i < subexpressioncount; i++) {
 					SSAArgument arg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i]));
@@ -691,7 +691,7 @@ namespace holodec {
 			case IR_EXPR_CALL:  {
 				SSAExpression expression;
 				expression.type = SSAExprType::eCall;
-				expression.returntype = irExpr->returntype;
+				expression.exprtype = irExpr->exprtype;
 				assert (subexpressioncount == 1);
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
 
@@ -714,7 +714,7 @@ namespace holodec {
 						continue;
 					SSAExpression retExpr;
 					retExpr.type = SSAExprType::eOutput;
-					retExpr.returntype = SSAType::eUInt;
+					retExpr.exprtype = SSAType::eUInt;
 					retExpr.location = SSAExprLocation::eReg;
 					retExpr.locref = {reg.id, 0};
 					retExpr.size = reg.size;
@@ -727,7 +727,7 @@ namespace holodec {
 			case IR_EXPR_RETURN: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eReturn;
-				expression.returntype = SSAType::ePc;
+				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bitbase;
 				assert (subexpressioncount == 1);
 				
@@ -767,7 +767,7 @@ namespace holodec {
 				assert (subexpressioncount == 2);
 				SSAExpression expression;
 				expression.type = SSAExprType::eExtend;
-				expression.returntype = irExpr->returntype;
+				expression.exprtype = irExpr->exprtype;
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
 
 				IRArgument arg = parseConstExpression (irExpr->subExpressions[1], &arguments);
@@ -778,7 +778,7 @@ namespace holodec {
 			case IR_EXPR_SPLIT: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eSplit;
-				expression.returntype = SSAType::eUInt;
+				expression.exprtype = SSAType::eUInt;
 				for (size_t i = 0; i < subexpressioncount; i++) {
 					expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i])));
 				}
@@ -789,7 +789,7 @@ namespace holodec {
 			case IR_EXPR_APPEND: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eAppend;
-				expression.returntype = SSAType::eUInt;
+				expression.exprtype = SSAType::eUInt;
 				expression.size = 0;
 				for (size_t i = 0; i < subexpressioncount; i++) {
 					SSAArgument arg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i]));
@@ -801,7 +801,7 @@ namespace holodec {
 			case IR_EXPR_CAST: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eCast;
-				expression.returntype = irExpr->returntype;
+				expression.exprtype = irExpr->exprtype;
 				assert (subexpressioncount == 2);
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
 				IRArgument sizeArg = replaceArg (irExpr->subExpressions[1]);
@@ -814,7 +814,7 @@ namespace holodec {
 			case IR_EXPR_STORE: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eStore;
-				expression.returntype = SSAType::eMemaccess;
+				expression.exprtype = SSAType::eMemaccess;
 				expression.size = 0;
 				assert (subexpressioncount == 3);
 				SSAArgument memarg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0]));
@@ -830,7 +830,7 @@ namespace holodec {
 			case IR_EXPR_LOAD: {
 				SSAExpression expression;
 				expression.type = SSAExprType::eLoad;
-				expression.returntype = SSAType::eUInt;
+				expression.exprtype = SSAType::eUInt;
 				assert (subexpressioncount == 3);
 				SSAArgument memarg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0]));
 				assert (memarg.location == SSAExprLocation::eMem);
@@ -865,7 +865,7 @@ namespace holodec {
 
 					SSAExpression expression;
 					expression.type = SSAExprType::eStore;
-					expression.returntype = SSAType::eMemaccess;
+					expression.exprtype = SSAType::eMemaccess;
 					expression.size = 0;
 					expression.location = SSAExprLocation::eMem;
 					expression.locref = {mem->id, 0};
@@ -876,7 +876,7 @@ namespace holodec {
 
 					SSAExpression adjustExpr;
 					adjustExpr.type = SSAExprType::eOp;
-					adjustExpr.returntype = SSAType::eUInt;
+					adjustExpr.exprtype = SSAType::eUInt;
 					adjustExpr.opType = stack->policy == StackPolicy::eTop ?  SSAOpType::eAdd : SSAOpType::eSub;
 					adjustExpr.subExpressions = {
 						SSAArgument::createReg (reg),
@@ -913,7 +913,7 @@ namespace holodec {
 
 					SSAExpression expression;
 					expression.type = SSAExprType::eLoad;
-					expression.returntype = SSAType::eUInt;
+					expression.exprtype = SSAType::eUInt;
 					expression.size = stack->wordbitsize * sizeadjust.uval;
 					expression.location = SSAExprLocation::eMem;
 					expression.locref = {mem->id, 0};
@@ -923,7 +923,7 @@ namespace holodec {
 
 					SSAExpression adjustExpr;
 					adjustExpr.type = SSAExprType::eOp;
-					adjustExpr.returntype = SSAType::eUInt;
+					adjustExpr.exprtype = SSAType::eUInt;
 					adjustExpr.opType = stack->policy == StackPolicy::eTop ? SSAOpType::eSub : SSAOpType::eAdd;
 					adjustExpr.subExpressions = {
 						SSAArgument::createReg (reg),
@@ -946,7 +946,7 @@ namespace holodec {
 				assert (subexpressioncount == 1);
 				IRArgument arg = replaceArg (irExpr->subExpressions[0]);
 				assert (arg.type == IR_ARGTYPE_MEMOP);
-				expression.returntype = SSAType::eUInt;
+				expression.exprtype = SSAType::eUInt;
 				expression.size = arch->bitbase;
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseMemArgToExpr (arg)));
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
@@ -992,7 +992,7 @@ namespace holodec {
 				activateBlock (startCondId);
 				SSAExpression expression;
 				expression.type = SSAExprType::eCJmp;
-				expression.returntype = SSAType::ePc;
+				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bitbase;
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
 				expression.subExpressions.push_back (SSAArgument::createBlock (startBodyId));
@@ -1050,7 +1050,7 @@ namespace holodec {
 				SSAExpression expression;
 				expression.type = SSAExprType::eFlag;
 				expression.flagType = irExpr->mod.flagType;
-				expression.returntype = SSAType::eUInt;
+				expression.exprtype = SSAType::eUInt;
 				expression.size = 1;
 
 

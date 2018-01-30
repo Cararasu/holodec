@@ -212,9 +212,6 @@
     <ClInclude Include="HoloIO.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="HoloIR.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="HString.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>

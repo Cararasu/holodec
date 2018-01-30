@@ -8,7 +8,7 @@ namespace holodec {
 	IRParser::IRParser (Architecture* arch) : arch (arch) {
 		IRExpression expression;
 		{
-			expression.returntype = SSAType::eUnknown;
+			expression.exprtype = SSAType::eUnknown;
 			expression.type = IR_EXPR_UNDEF;
 			expressionmap.insert (std::make_pair ("undef", expression));
 			expression.type = IR_EXPR_SEQUENCE;
@@ -36,21 +36,20 @@ namespace holodec {
 		}
 
 		{
-			expression.returntype = SSAType::eUInt;
+			expression.exprtype = SSAType::eUInt;
 			{
 				expression.type = IR_EXPR_FLAG;
 				expression.size = 1;
-				expression.mod.flagType = SSAFlagType::eP;
-				expressionmap.insert (std::make_pair ("p", expression));
 				expression.mod.flagType = SSAFlagType::eO;
-				expressionmap.insert (std::make_pair ("o", expression));
-				expression.mod.flagType = SSAFlagType::eS;
-				expressionmap.insert (std::make_pair ("s", expression));
+				expressionmap.insert(std::make_pair("o", expression));
+				expression.mod.flagType = SSAFlagType::eU;
+				expressionmap.insert(std::make_pair("u", expression));
 				expression.mod.flagType = SSAFlagType::eC;
 				expressionmap.insert (std::make_pair ("c", expression));
 				expression.mod.flagType = SSAFlagType::eA;
 				expressionmap.insert (std::make_pair ("a", expression));
 				expression.type = IR_EXPR_APPEND;
+				expression.mod.flagType = SSAFlagType::eUnknown;
 				expressionmap.insert (std::make_pair ("app", expression));
 			}
 			{
@@ -134,71 +133,16 @@ namespace holodec {
 
 		}
 		{
-			expression.returntype = SSAType::eInt;
-			{
-				expression.type = IR_EXPR_OP;
-				expression.mod.opType = SSAOpType::eAdd;
-				expressionmap.insert (std::make_pair ("sadd", expression));
-				expression.mod.opType = SSAOpType::eSub;
-				expressionmap.insert (std::make_pair ("ssub", expression));
-				expression.mod.opType = SSAOpType::eMul;
-				expressionmap.insert (std::make_pair ("smul", expression));
-				expression.mod.opType = SSAOpType::eDiv;
-				expressionmap.insert (std::make_pair ("sdiv", expression));
-				expression.mod.opType = SSAOpType::eMod;
-				expressionmap.insert (std::make_pair ("smod", expression));
-			}
-			expression.type = IR_EXPR_EXTEND;
-			expressionmap.insert (std::make_pair ("sext", expression));
-
+			expression.exprtype = SSAType::eInt;
 			expression.type = IR_EXPR_CAST;
 			expressionmap.insert (std::make_pair ("f2s", expression));
 
-			expression.type = IR_EXPR_PUSH;
-			expressionmap.insert (std::make_pair ("spush", expression));
-
-			expression.type = IR_EXPR_POP;
-			expressionmap.insert (std::make_pair ("spop", expression));
-
-			expression.type = IR_EXPR_LOAD;
-			expressionmap.insert (std::make_pair ("sld", expression));
-
-			expression.type = IR_EXPR_STORE;
-			expressionmap.insert (std::make_pair ("sst", expression));
-
 		}
 		{
-			expression.returntype = SSAType::eFloat;
-			{
-				expression.type = IR_EXPR_OP;
-				expression.mod.opType = SSAOpType::eAdd;
-				expressionmap.insert (std::make_pair ("fadd", expression));
-				expression.mod.opType = SSAOpType::eSub;
-				expressionmap.insert (std::make_pair ("fsub", expression));
-				expression.mod.opType = SSAOpType::eMul;
-				expressionmap.insert (std::make_pair ("fmul", expression));
-				expression.mod.opType = SSAOpType::eDiv;
-				expressionmap.insert (std::make_pair ("fdiv", expression));
-				expression.mod.opType = SSAOpType::eMod;
-				expressionmap.insert (std::make_pair ("fmod", expression));
-			}
-			expression.type = IR_EXPR_EXTEND;
-			expressionmap.insert (std::make_pair ("fext", expression));
+			expression.exprtype = SSAType::eFloat;
 
 			expression.type = IR_EXPR_CAST;
 			expressionmap.insert (std::make_pair ("i2f", expression));
-
-			expression.type = IR_EXPR_PUSH;
-			expressionmap.insert (std::make_pair ("fpush", expression));
-
-			expression.type = IR_EXPR_POP;
-			expressionmap.insert (std::make_pair ("fpop", expression));
-
-			expression.type = IR_EXPR_LOAD;
-			expressionmap.insert (std::make_pair ("fld", expression));
-
-			expression.type = IR_EXPR_STORE;
-			expressionmap.insert (std::make_pair ("fst", expression));
 
 		}
 	}
@@ -332,6 +276,43 @@ namespace holodec {
 		}
 		return i;
 	}
+	bool IRParser::parseProcFlags(IRExpression* expr) {
+		size_t x = index;
+		if (parseCharacter('[')) {
+			while (true) {
+				switch (peek()) {
+				case 'u':
+					expr->exprtype = SSAType::eUInt;
+					consume(1);
+					continue;
+				case 's':
+					expr->exprtype = SSAType::eInt;
+					consume(1);
+					continue;
+				case 'f':
+					expr->exprtype = SSAType::eFloat;
+					consume(1);
+					continue;
+				case '0':case '1':case '2':case '3':case '4':
+				case '5':case '6':case '7':case '8':case '9':
+					int64_t size;
+					if (parseNumber(&size))
+						expr->size = size;
+					continue;
+				default:
+					break;
+				}
+				break;
+			}
+			if (!parseCharacter(']')) {
+				printParseFailure("']'");
+				return false;
+			}
+			return true;
+		}
+		return true;
+	}
+
 	IRArgument IRParser::parseIRExpression() {
 
 		IRExpression expression;
@@ -377,17 +358,23 @@ namespace holodec {
 					}
 
 					Stack* stack = arch->getStack (str);
-					if (stack) {
+					if (stack->id) {
 						return IRArgument::createStck (stack, parseNumberIndex());
 					}
 
 					Memory* memory = arch->getMemory (str);
-					if (memory) {
+					if (memory->id) {
 						return IRArgument::createMem (memory);
 					}
 
-					printf ("Parsed Custom %s\n", buffer);
-					printParseFailure ("Custom");
+					Builtin* builtin = arch->getBuiltin(str);
+					if (builtin) {
+						expression.type = IRExprType::IR_EXPR_BUILTIN;
+						expression.mod.builtinId = builtin->id;
+						break;
+					}
+
+					printParseFailure ("Register/Stack/Memory/Builtin");
 					assert (false);
 					//printf ("Parsed Custom %s\n", buffer);
 				} else {
@@ -448,6 +435,8 @@ namespace holodec {
 			}
 			}
 			size_t x = index;
+
+			parseProcFlags(&expression);
 			parseArguments (&expression);
 			switch (expression.type) {
 			case IR_EXPR_LOAD:

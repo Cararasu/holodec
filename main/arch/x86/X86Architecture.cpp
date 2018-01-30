@@ -279,6 +279,9 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		}
 	},
 	{
+		{0, "parity"}
+	},
+	{
 		/*
 		//x86
 		{
@@ -405,7 +408,7 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_MOVNTSS, "movntss", {{2, "=(#arg[1],#arg[2])"}}, InstructionType::eMov},
 		{X86_INS_MOVSHDUP, "movshdup", {{2, "=(#arg[1],#app(#arg[2][32,32],#arg[2][32,32],#arg[2][96,32],#arg[2][96,32]))"}}, InstructionType::eMov},
 		{X86_INS_MOVSLDUP, "movsldup", {{2, "=(#arg[1],#app(#arg[2][0,32],#arg[2][0,32],#arg[2][64,32],#arg[2][64,32]))"}}, InstructionType::eMov},
-		{X86_INS_MOVSXD, "movsxd", {{2, "=(#arg[1],#sext(#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov},
+		{X86_INS_MOVSXD, "movsxd", {{2, "=(#arg[1],#ext[s](#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov},
 		{X86_INS_MOVUPD, "movupd", {{2, "=(#arg[1],#arg[2])"}}, InstructionType::eMov},
 		{X86_INS_MOVUPS, "movups", {{2, "=(#arg[1],#arg[2])"}}, InstructionType::eMov},
 
@@ -481,9 +484,9 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{
 			X86_INS_CMPXCHG,
 			"cmpxchg", {
-				{2, "==(#bsize(#arg[1]),8)", "#seq(=($zf,==($al,#arg[1])),=($cf,#c),=($pf,#p),=($af,#a),=($sf,#s),=($of,#o),?($zf,=(#arg[1],#arg[2]),=($al,#arg[1])))"},
-				{2, "==(#bsize(#arg[1]),16)", "#seq(=($zf,==($al,#arg[1])),=($cf,#c),=($pf,#p),=($af,#a),=($sf,#s),=($of,#o),?($zf,=(#arg[1],#arg[2]),=($ax,#arg[1])))"},
-				{2, "==(#bsize(#arg[1]),32)", "#seq(=($zf,==($eax,#arg[1])),=($cf,#c),=($pf,#p),=($af,#a),=($sf,#s),=($of,#o),?($zf,=(#arg[1],#arg[2]),=($eax,#arg[1])))"},
+				{2, "==(#bsize(#arg[1]),8)", "#seq(#rec[cmp]($al,#arg[1]),?($zf,=(#arg[1],#arg[2]),=($al,#arg[1])))"},
+				{2, "==(#bsize(#arg[1]),16)", "#seq(#rec[cmp]($al,#arg[1]),?($zf,=(#arg[1],#arg[2]),=($ax,#arg[1])))"},
+				{2, "==(#bsize(#arg[1]),32)", "#seq(#rec[cmp]($eax,#arg[1]),?($zf,=(#arg[1],#arg[2]),=($eax,#arg[1])))"},
 			}, InstructionType::eXchg, InstructionType::eUnknown
 		},
 		{
@@ -517,25 +520,25 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 
 		{X86_INS_HLT, "hlt", {{0, "#trap"}}},
 
-		{X86_INS_CBW, "cbw", {{0, "=($ax,#sext($al,#bsize($ax)))"}}, InstructionType::eExtend},
+		{X86_INS_CBW, "cbw", {{0, "=($ax,#ext[s]($al,#bsize($ax)))"}}, InstructionType::eExtend},
 		{X86_INS_CWDE, "cwde", {{0, "=($eax,#ext($ax,#bsize($eax)))"}}, InstructionType::eExtend},
-		{X86_INS_CDQE, "cdqe", {{0, "=($rax,#sext($eax,#bsize($rax)))"}}, InstructionType::eExtend},
+		{X86_INS_CDQE, "cdqe", {{0, "=($rax,#ext[s]($eax,#bsize($rax)))"}}, InstructionType::eExtend},
 
-		{X86_INS_CWD, "cwd", {{0, "=($dx,#sext($ax,#bsize($dx)))"}}, InstructionType::eExtend},
-		{X86_INS_CDQ, "cdq", {{0, "=($edx,#sext($eax,#bsize($edx)))"}}, InstructionType::eExtend},
-		{X86_INS_CQO, "cqo", {{0, "=($rdx,#sext($rax,#bsize($rdx)))"}}, InstructionType::eExtend},
+		{X86_INS_CWD, "cwd", {{0, "=($dx,#ext[s]($ax,#bsize($dx)))"}}, InstructionType::eExtend},
+		{X86_INS_CDQ, "cdq", {{0, "=($edx,#ext[s]($eax,#bsize($edx)))"}}, InstructionType::eExtend},
+		{X86_INS_CQO, "cqo", {{0, "=($rdx,#ext[s]($rax,#bsize($rdx)))"}}, InstructionType::eExtend},
 
-		{X86_INS_MOVSX, "movsx", {{2, "=(#arg[1],#sext(#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov, InstructionType::eExtend},
+		{X86_INS_MOVSX, "movsx", {{2, "=(#arg[1],#ext[s](#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov, InstructionType::eExtend},
 		{X86_INS_MOVZX, "movzx", {{2, "=(#arg[1],#ext(#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov, InstructionType::eExtend},
 
-		{X86_INS_ADD, "add", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2])),=($pf,#p),=($sf,#s),=($of,#o),=($cf,#c),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
-		{X86_INS_ADC, "adc", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($pf,#p),=($sf,#s),=($of,#o),=($cf,#c),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADD, "add", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADC, "adc", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
 
-		{X86_INS_SUB, "sub", {{2, "#seq(=(#arg[1],-(#arg[1],#arg[2])),=($pf,#p),=($sf,#s),=($of,#o),=($cf,#c),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
-		{X86_INS_SBB, "sbb", {{2, "#seq(=(#arg[1],-(#arg[1],#arg[2],$cf)),=($pf,#p),=($sf,#s),=($of,#o),=($cf,#c),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
+		{X86_INS_SUB, "sub", {{2, "#seq(=(#arg[1],-(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
+		{X86_INS_SBB, "sbb", {{2, "#seq(=(#arg[1],-(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
 
-		{X86_INS_ADCX, "adcx", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($pf,#p),=($sf,#s),=($of,#o),=($cf,#c),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
-		{X86_INS_ADOX, "adox", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$of)),=($pf,#p),=($sf,#s),=($of,#o),=($cf,#c),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADCX, "adcx", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADOX, "adox", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$of)),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
 
 		{
 			X86_INS_MUL,
@@ -551,8 +554,8 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 				{1, "==(#bsize(#arg[1]),8)", "#seq(=($ax,*($al,#arg[1])),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
 				{1, "==(#bsize(#arg[1]),16)", "#seq(=(#t[1],*($ax,#arg[1])),=($cf,#c),=($of,#o),=($dx,#t[1][0,16]),=($ax,#t[1][16,16]),#undef($zf,$af,$pf))"},
 				{1, "==(#bsize(#arg[1]),32)", "#seq(=(#t[1],*($eax,#arg[1])),=($cf,#c),=($of,#o),=($edx,#t[1][0,32]),=($eax,#t[1][32,32]),#undef($zf,$af,$pf))"},
-				{2, "#seq(=(#arg[1],#smul(#arg[1],#sext(#arg[2],#bsize(#arg[1])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
-				{3, "#seq(=(#arg[1],#smul(#arg[1],#sext(#arg[3],#bsize(#arg[2])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
+				{2, "#seq(=(#arg[1],#mul[s](#arg[1],#ext[s](#arg[2],#bsize(#arg[1])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
+				{3, "#seq(=(#arg[1],#mul[s](#arg[1],#ext[s](#arg[3],#bsize(#arg[2])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
 			}, InstructionType::eMul
 		},
 		{
@@ -566,21 +569,21 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{
 			X86_INS_IDIV,
 			"idiv", {
-				{1, "==(#bsize(#arg[1]),8)", "#seq(=(#t[1],$ax),=($al,#sdiv(#t[1],#arg[1])),=($ah,#smod(#t[1],#arg[1])),#undef($cf,$of,$sf,$zf,$af,$pf))"},
-				{1, "==(#bsize(#arg[1]),16)", "#seq(=(#t[1],#app($dx,$ax)),=($ax,#sdiv(#t[1],#arg[1])),=($dx,#smod(#t[1],#arg[1])),#undef($cf,$of,$sf,$zf,$af,$pf))"},
-				{1, "==(#bsize(#arg[1]),32)", "#seq(=(#t[1],#app($edx,$eax)),=($eax,#sdiv(#t[1],#arg[1])),=($edx,#smod(#t[1],#arg[1])),#undef($cf,$of,$sf,$zf,$af,$pf))"},
+				{1, "==(#bsize(#arg[1]),8)", "#seq(=(#t[1],$ax),=($al,#div[s](#t[1],#arg[1])),=($ah,#mod[s](#t[1],#arg[1])),#undef($cf,$of,$sf,$zf,$af,$pf))"},
+				{1, "==(#bsize(#arg[1]),16)", "#seq(=(#t[1],#app($dx,$ax)),=($ax,#div[s](#t[1],#arg[1])),=($dx,#mod[s](#t[1],#arg[1])),#undef($cf,$of,$sf,$zf,$af,$pf))"},
+				{1, "==(#bsize(#arg[1]),32)", "#seq(=(#t[1],#app($edx,$eax)),=($eax,#div[s](#t[1],#arg[1])),=($edx,#mod[s](#t[1],#arg[1])),#undef($cf,$of,$sf,$zf,$af,$pf))"},
 			}, InstructionType::eDiv
 		},
 		{X86_INS_NOP, "nop", {{0, "#nop"}, {1, "#nop"}}},
 
-		{X86_INS_INC, "inc", {{1, "#seq(=(#arg[1],+(#arg[1],1)),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
-		{X86_INS_DEC, "dec", {{1, "#seq(=(#arg[1],-(#arg[1],1)),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
+		{X86_INS_INC, "inc", {{1, "#seq(=(#arg[1],+(#arg[1],1)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($of,#o),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_DEC, "dec", {{1, "#seq(=(#arg[1],-(#arg[1],1)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($of,#o),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
 
-		{X86_INS_NEG, "neg", {{1, "#seq(=($cf,<>(#arg[1],0)),=(#arg[1],-(0,#arg[1])),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eNeg},
+		{X86_INS_NEG, "neg", {{1, "#seq(=($cf,<>(#arg[1],0)),=(#arg[1],-(0,#arg[1])),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($of,#o),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eNeg},
 
-		{X86_INS_CMP, "cmp", {{2, "#seq(=(#t[1],#arg[1]),#rec[sub](#t[1],#sext(#arg[2],#bsize(#arg[1]))))"}}, InstructionType::eCmp},
+		{X86_INS_CMP, "cmp", {{2, "#seq(=(#t[1],#arg[1]),#rec[sub](#t[1],#ext[s](#arg[2],#bsize(#arg[1]))))"}}, InstructionType::eCmp},
 
-		{X86_INS_AND, "and", {{2, "#seq(=(#arg[1],#band(#arg[1],#arg[2])),=($of,0),=($cf,0),=($sf,#s),=($pf,#p),=($zf,==(#arg[1],0)),#undef($af))"}}, InstructionType::eAnd},
+		{X86_INS_AND, "and", {{2, "#seq(=(#arg[1],#band(#arg[1],#arg[2])),=($of,0),=($cf,0),=($sf,<[s](#arg[1],0)),=($pf,$parity[u](#arg[1])),=($zf,==(#arg[1],0)),#undef($af))"}}, InstructionType::eAnd},
 		{X86_INS_ANDPD, "andpd", {{2, "=(#arg[1],#band(#arg[1],#arg[2]))"}}},
 		{X86_INS_ANDPS, "andps", {{2, "=(#arg[1],#band(#arg[1],#arg[2]))"}}},
 		{X86_INS_PAND, "pand", {{2, "=(#arg[1],#band(#arg[1],#arg[2]))"}}},
@@ -588,14 +591,14 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_ANDN, "andn", {{2, "=(#arg[1],#band(#bnot(#arg[1]),#arg[2]))"}}},
 		{X86_INS_ANDNPD, "andnpd", {{2, "=(#arg[1],#band(#bnot(#arg[1]),#arg[2]))"}}},
 		{X86_INS_ANDNPS, "andnps", {{2, "=(#arg[1],#band(#bnot(#arg[1]),#arg[2]))"}}},
-		{X86_INS_PANDN, "pandn", {{2, "#seq(=(#arg[1],#band(#bnot(#arg[1]),#arg[2])),=($of,0),=($cf,0),=($sf,#s),=($zf,==(#arg[1],0)))"}}},
+		{X86_INS_PANDN, "pandn", {{2, "#seq(=(#arg[1],#band(#bnot(#arg[1]),#arg[2])),=($of,0),=($cf,0),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}},
 
-		{X86_INS_OR, "or", {{2, "#seq(=(#arg[1],#bor(#arg[1],#arg[2])),=($of,0),=($cf,0),=($sf,#s),=($pf,#p),=($zf,==(#arg[1],0)))"}}, InstructionType::eOr},
+		{X86_INS_OR, "or", {{2, "#seq(=(#arg[1],#bor(#arg[1],#arg[2])),=($of,0),=($cf,0),=($sf,<[s](#arg[1],0)),=($pf,$parity[u](#arg[1])),=($zf,==(#arg[1],0)))"}}, InstructionType::eOr},
 		{X86_INS_ORPD, "orpd", {{2, "=(#arg[1],#bor(#arg[1],#arg[2]))"}}},
 		{X86_INS_ORPS, "orps", {{2, "=(#arg[1],#bor(#arg[1],#arg[2]))"}}},
 		{X86_INS_POR, "por", {{2, "=(#arg[1],#bor(#arg[1],#arg[2]))"}}},
 
-		{X86_INS_XOR, "xor", {{2, "#seq(=(#arg[1],#bxor(#arg[1],#arg[2])),=($of,0),=($cf,0),=($sf,#s),=($pf,#p),=($zf,==(#arg[1],0)))"}}, InstructionType::eXor},
+		{X86_INS_XOR, "xor", {{2, "#seq(=(#arg[1],#bxor(#arg[1],#arg[2])),=($of,0),=($cf,0),=($sf,<[s](#arg[1],0)),=($pf,$parity(#arg[1])),=($zf,==(#arg[1],0)))"}}, InstructionType::eXor},
 		{X86_INS_XORPD, "xorpd", {{2, "=(#arg[1],#bxor(#arg[1],#arg[2]))"}}},
 		{X86_INS_XORPS, "xorps", {{2, "=(#arg[1],#bxor(#arg[1],#arg[2]))"}}},
 		{X86_INS_PXOR, "pxor", {{2, "=(#arg[1],#bxor(#arg[1],#arg[2]))"}}},
@@ -605,32 +608,32 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{
 			X86_INS_SAR,
 			"sar", {
-				{1, "#seq(=(#t[1],#sar(#arg[1],1)),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
-				{2, "#seq(=(#t[1],#sar(#arg[1],#arg[2])),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
+				{1, "#seq(=(#t[1],#sar(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
+				{2, "#seq(=(#t[1],#sar(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
 			}, InstructionType::eShr
 		},
 
 		{
 			X86_INS_SHR,
 			"shr", {
-				{1, "#seq(=(#t[1],#shr(#arg[1],1)),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
-				{2, "#seq(=(#t[1],#shr(#arg[1],#arg[2])),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"}
+				{1, "#seq(=(#t[1],#shr(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
+				{2, "#seq(=(#t[1],#shr(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"}
 			}, InstructionType::eShr
 		},
 
 		{
 			X86_INS_SAL,
 			"sal", {
-				{1, "#seq(=(#t[1],#sal(#arg[1],1)),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
-				{2, "#seq(=(#t[1],#sal(#arg[1],#arg[2])),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"}
+				{1, "#seq(=(#t[1],#sal(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
+				{2, "#seq(=(#t[1],#sal(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"}
 			}, InstructionType::eShl
 		},
 
 		{
 			X86_INS_SHL,
 			"shl", {
-				{1, "#seq(=(#t[1],#shl(#arg[1],1)),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
-				{2, "#seq(=(#t[1],#shl(#arg[1],#arg[2])),=($pf,#p),=($sf,#s),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"}
+				{1, "#seq(=(#t[1],#shl(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
+				{2, "#seq(=(#t[1],#shl(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"}
 			}, InstructionType::eShl
 		},
 
@@ -695,8 +698,9 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_SETP, "setp", {{1, "=(#arg[1],$pf)"}}, InstructionType::eMov},
 		{X86_INS_SETNP, "setnp", {{1, "=(#arg[1],#not($pf))"}}, InstructionType::eMov},
 
-		{X86_INS_TEST, "test", {{2, "#seq(=(#t[1],#band(#arg[1],#arg[2])),=($cf,0),=($of,0),=($pf,#p),=($sf,#s),=($zf,==(#t[1],0)))"}}, InstructionType::eAnd},
+		{X86_INS_TEST, "test", {{2, "#seq(=(#t[1],#band(#arg[1],#arg[2])),=($cf,0),=($of,0),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($zf,==(#t[1],0)))"}}, InstructionType::eAnd},
 
+		//TODO
 		{X86_INS_BSF, "bsf", {}},
 		{X86_INS_BSR, "bsr", {}},
 		{X86_INS_CRC32, "crc32", {}},
@@ -731,41 +735,41 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_DAA, "daa", {}},
 		{X86_INS_DAS, "das", {}},
 
-		{X86_INS_FABS, "fabs", {{0, "=($st[0],#fmul($st[0],-1))"}}},
-		{X86_INS_ADDPD, "addpd", {{2, "=(#arg[1],#app(#fadd(#arg[1][0,64],#arg[2][0,64]),#fadd(#arg[1][64,64],#arg[2][64,64])))"}}},
+		{X86_INS_FABS, "fabs", {{0, "=($st[0],#mul[f]($st[0],-1))"}}},
+		{X86_INS_ADDPD, "addpd", {{2, "=(#arg[1],#app(#add[f](#arg[1][0,64],#arg[2][0,64]),#add[f](#arg[1][64,64],#arg[2][64,64])))"}}},
 		{
 			X86_INS_ADDPS,
 			"addps", {
 				{
-					2, "=(#arg[1],#app(#fadd(#arg[1][0,32],#arg[2][0,32]),#fadd(#arg[1][32,32],#arg[2][32,32]),"
-					"#fadd(#arg[1][64,32],#arg[2][64,32]),#fadd(#arg[1][96,32],#arg[2][96,32])))"
+					2, "=(#arg[1],#app(#add[f](#arg[1][0,32],#arg[2][0,32]),#add[f](#arg[1][32,32],#arg[2][32,32]),"
+					"#add[f](#arg[1][64,32],#arg[2][64,32]),#add[f](#arg[1][96,32],#arg[2][96,32])))"
 				}
 			}
 		},
-		{X86_INS_ADDSD, "addsd", {{2, "=(#arg[1],#app(#fadd(#arg[1][0,64],#arg[2][0,64]),#arg[1][64]))"}}},
-		{X86_INS_ADDSS, "addss", {{2, "=(#arg[1],#app(#fadd(#arg[1][0,32],#arg[2][0,32]),#arg[1][32]))"}}},
-		{X86_INS_ADDSUBPD, "addsubpd", {{2, "=(#arg[1],#app(#fsub(#arg[1][0,64],#arg[2][0,64]),#fadd(#arg[1][64,64],#arg[2][64,64])))"}}},
+		{X86_INS_ADDSD, "addsd", {{2, "=(#arg[1],#app(#add[f](#arg[1][0,64],#arg[2][0,64]),#arg[1][64]))"}}},
+		{X86_INS_ADDSS, "addss", {{2, "=(#arg[1],#app(#add[f](#arg[1][0,32],#arg[2][0,32]),#arg[1][32]))"}}},
+		{X86_INS_ADDSUBPD, "addsubpd", {{2, "=(#arg[1],#app(#sub[f](#arg[1][0,64],#arg[2][0,64]),#add[f](#arg[1][64,64],#arg[2][64,64])))"}}},
 		{
 			X86_INS_ADDSUBPS,
 			"addsubps", {
 				{
-					2, "=(#arg[1],#app(#fsub(#arg[1][0,32],#arg[2][0,32]),#fadd(#arg[1][32,32],#arg[2][32,32]),"
-					"#fsub(#arg[1][64,32],#arg[2][64,32]),#fadd(#arg[1][96,32],#arg[2][96,32])))"
+					2, "=(#arg[1],#app(#sub[f](#arg[1][0,32],#arg[2][0,32]),#add[f](#arg[1][32,32],#arg[2][32,32]),"
+					"#sub[f](#arg[1][64,32],#arg[2][64,32]),#add[f](#arg[1][96,32],#arg[2][96,32])))"
 				}
 			}
 		},
 
-		{X86_INS_CVTDQ2PD, "cvtdq2pd", {{2, "=(#arg[1],#app(#fext(#i2f(#arg[2][0,32]),64),#fext(#i2f(#arg[2][32,32]),64)))"}}},
+		{X86_INS_CVTDQ2PD, "cvtdq2pd", {{2, "=(#arg[1],#app(#ext[f](#i2f(#arg[2][0,32]),64),#ext[f](#i2f(#arg[2][32,32]),64)))"}}},
 		{X86_INS_CVTDQ2PS, "cvtdq2ps", {{2, "=(#arg[1],#app(#i2f(#arg[2][0,32]),#i2f(#arg[2][32,32]),#i2f(#arg[2][64,32]),#i2f(#arg[2][96,32])))"}}},
 		{X86_INS_CVTPD2DQ, "cvtpd2dq", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#f2i(#arg[2][32,32]),#ext(0,64)))"}}},
-		{X86_INS_CVTPD2PS, "cvtpd2ps", {{2, "=(#arg[1],#app(#fext(#arg[2][0,64],32),#fext(#arg[2][64,64],32)))"}}},
+		{X86_INS_CVTPD2PS, "cvtpd2ps", {{2, "=(#arg[1],#app(#ext[f](#arg[2][0,64],32),#ext[f](#arg[2][64,64],32)))"}}},
 		{X86_INS_CVTPS2DQ, "cvtps2dq", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#f2i(#arg[2][32,32]),#f2i(#arg[2][64,32]),#f2i(#arg[2][96,32])))"}}},
-		{X86_INS_CVTPS2PD, "cvtps2pd", {{2, "=(#arg[1],#app(#fext(#arg[2][0,32],64),#fext(#arg[2][32,32],64)))"}}},
+		{X86_INS_CVTPS2PD, "cvtps2pd", {{2, "=(#arg[1],#app(#ext[f](#arg[2][0,32],64),#ext[f](#arg[2][32,32],64)))"}}},
 		{X86_INS_CVTSD2SI, "cvtsd2si", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,64],32),#arg[1][32]))"}}},
-		{X86_INS_CVTSD2SS, "cvtsd2ss", {{2, "=(#arg[1],#app(#fext(#arg[2][0,64],32),#arg[1][32]))"}}},
+		{X86_INS_CVTSD2SS, "cvtsd2ss", {{2, "=(#arg[1],#app(#ext[f](#arg[2][0,64],32),#arg[1][32]))"}}},
 		{X86_INS_CVTSI2SD, "cvtsi2sd", {{2, "=(#arg[1],#app(#i2f(#arg[2][0,32],64),#arg[1][64]))"}}},
 		{X86_INS_CVTSI2SS, "cvtsi2ss", {{2, "=(#arg[1],#app(#i2f(#arg[2][0,32]),#arg[1][32]))"}}},
-		{X86_INS_CVTSS2SD, "cvtss2sd", {{2, "=(#arg[1],#app(#fext(#arg[2][0,32],64),#arg[1][64]))"}}},
+		{X86_INS_CVTSS2SD, "cvtss2sd", {{2, "=(#arg[1],#app(#ext[f](#arg[2][0,32],64),#arg[1][64]))"}}},
 		{X86_INS_CVTSS2SI, "cvtss2si", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#arg[1][32]))"}}},
 		{X86_INS_CVTTPD2DQ, "cvttpd2dq", {{2, "=(#arg[1],#app(#ext(#f2i(#arg[2][0,64]),32),#ext(#f2i(#arg[2][64,64]),32),#ext(0,64)))"}}},
 		{X86_INS_CVTTPS2DQ, "cvttps2dq", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#f2i(#arg[2][32,32]),#f2i(#arg[2][64,32]),#f2i(#arg[2][96,32])))"}}},
@@ -858,9 +862,9 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_SCASQ | CUSOM_X86_INSTR_EXTR_REPNE, "repne scasq", {{2, "#seq(=($zf,0),#rep(#and($rcx,#not($zf)),#seq(#rec[scasq](#arg[1],#arg[2]),=($rcx,-($rcx,1)))))"}}, InstructionType::eCmp},
 
 //x87
-		{X86_INS_FADD, "fadd", {{1, "=($st[0],#fadd($st[0],#fext(#arg[1],#bsize($st[0]))))"}, {2, "=(#arg[1],#fadd(#arg[1],#arg[2]))"}}},
-		{X86_INS_FIADD, "fiadd", {{1, "=($st[0],#fadd($st[0],#fext(#arg[1],#bsize($st[0]))))"}}},
-		{X86_INS_FADDP, "faddp", {{0, "#push($st,#fadd(#pop($st),#pop($st)))"}, {2, "#seq(=(#arg[1],#fadd(#arg[1],#arg[2])),#pop($st))"}}}
+		{X86_INS_FADD, "add[f]", {{1, "=($st[0],#add[f]($st[0],#ext[f](#arg[1],#bsize($st[0]))))"}, {2, "=(#arg[1],#add[f](#arg[1],#arg[2]))"}}},
+		{X86_INS_FIADD, "fiadd", {{1, "=($st[0],#add[f]($st[0],#ext[f](#arg[1],#bsize($st[0]))))"}}},
+		{X86_INS_FADDP, "add[f]p", {{0, "#push($st,#add[f](#pop($st),#pop($st)))"}, {2, "#seq(=(#arg[1],#add[f](#arg[1],#arg[2])),#pop($st))"}}}
 
 //TODO add missing instructions
 

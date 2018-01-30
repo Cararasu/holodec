@@ -43,6 +43,7 @@ namespace holodec {
 		IRArgument parseIndex (IRArgument expr);
 		int parseArguments (IRExpression* expr);
 		IRArgument parseIRExpression();
+		bool parseProcFlags(IRExpression* expr);
 
 		bool parseIdentifier (char *buffer, size_t buffersize);
 		IRArgument parseBuiltin();

@@ -84,7 +84,6 @@
     <ClInclude Include="General.h" />
     <ClInclude Include="HIdList.h" />
     <ClInclude Include="HoloIO.h" />
-    <ClInclude Include="HoloIR.h" />
     <ClInclude Include="HString.h" />
     <ClInclude Include="HStringDatabase.h" />
     <ClInclude Include="InstrDefinition.h" />

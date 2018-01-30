@@ -154,7 +154,7 @@ extern "C" {
 		return reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].refcount;
 	}
 	HSSAType ssa_get_expr_rettype (HSSAExpression ssaExpr){
-		return static_cast<HSSAType>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].returntype);
+		return static_cast<HSSAType>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].exprtype);
 	}
 
 	HSSAFlagType ssa_get_expr_flagtype (HSSAExpression ssaExpr){

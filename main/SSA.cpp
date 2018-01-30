@@ -10,7 +10,7 @@ namespace holodec {
 		printIndent (indent);
 		printf ("0x%" PRIx64 ":", instrAddr);
 
-		switch (this->returntype) {
+		switch (this->exprtype) {
 		case SSAType::eUnknown:
 			printf ("Unknown Type");
 			break;
@@ -210,17 +210,11 @@ namespace holodec {
 			case SSAFlagType::eA:
 				printf ("Auxillary ");
 				break;
-			case SSAFlagType::eP:
-				printf ("Parity ");
-				break;
 			case SSAFlagType::eO:
 				printf ("Overflow ");
 				break;
 			case SSAFlagType::eU:
 				printf ("Underflow ");
-				break;
-			case SSAFlagType::eS:
-				printf ("Signed ");
 				break;
 			}
 			break;

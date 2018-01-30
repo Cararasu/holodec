@@ -265,7 +265,7 @@ CXChildVisitResult cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData 
 
 int main (int argc, const char** argv) {
 
-
+	/*
 	CXIndex index = clang_createIndex(0, 1);
 	CXTranslationUnit unit = clang_parseTranslationUnit(
 		index,
@@ -279,9 +279,9 @@ int main (int argc, const char** argv) {
 	}
 	CXCursor rootCursor = clang_getTranslationUnitCursor(unit);
 
-	//unsigned int res = clang_visitChildren(rootCursor, *cursorVisitor, 0);
+	unsigned int res = clang_visitChildren(rootCursor, *cursorVisitor, 0);
 
-	//return 0;
+	//return 0;*/
 	/*
 	 * Input i = MemAccess(0, unlimited)
 	 *

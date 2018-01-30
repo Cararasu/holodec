@@ -99,10 +99,8 @@ namespace holodec {
 		eUnknown = SSA_FLAG_UNKNOWN,
 		eC = SSA_FLAG_C,
 		eA = SSA_FLAG_A,
-		eP = SSA_FLAG_P,
 		eO = SSA_FLAG_O,
 		eU = SSA_FLAG_U,
-		eS = SSA_FLAG_S,
 	};
 	enum class SSAExprLocation{
 		eNone = SSA_LOCATION_NONE,
@@ -249,7 +247,7 @@ namespace holodec {
 		SSAExprType type = SSAExprType::eInvalid;
 		uint64_t refcount = 0;
 		uint32_t size = 0;
-		SSAType returntype = SSAType::eUnknown;
+		SSAType exprtype = SSAType::eUnknown;
 		union { //64 bit
 			SSAFlagType flagType;
 			SSAOpType opType;
@@ -272,7 +270,7 @@ namespace holodec {
 		void print(Architecture* arch, int indent = 0);
 	};
 	inline bool operator== (SSAExpression& lhs, SSAExpression& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.returntype == rhs.returntype && lhs.location == rhs.location && lhs.locref.refId == rhs.locref.refId && lhs.locref.index == rhs.locref.index) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype && lhs.location == rhs.location && lhs.locref.refId == rhs.locref.refId && lhs.locref.index == rhs.locref.index) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
 				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 					if (lhs.subExpressions[i] != rhs.subExpressions[i])

@@ -156,10 +156,8 @@ enum HSSAFlagType {
 	SSA_FLAG_UNKNOWN = 0,
 	SSA_FLAG_C,
 	SSA_FLAG_A,
-	SSA_FLAG_P,
 	SSA_FLAG_O,
 	SSA_FLAG_U,
-	SSA_FLAG_S,
 };
 enum HSSAOpType {
 	SSA_OP_INVALID = 0,

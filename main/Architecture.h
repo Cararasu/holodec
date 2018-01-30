@@ -16,6 +16,11 @@ namespace holodec {
 
 	struct IRExpression;
 
+	struct Builtin {
+		HId id;
+		HString name;
+	};
+
 	struct Architecture {
 		HString name;
 		HString desc;
@@ -26,8 +31,10 @@ namespace holodec {
 		HIdList<Register> registers;
 
 		HIdList<Stack> stacks;
-		
+
 		HIdList<Memory> memories;
+
+		HIdList<Builtin> builtins;
 
 		HIdList<CallingConvention> callingconventions;
 
@@ -81,13 +88,14 @@ namespace holodec {
 			}
 			return &invalidStack;
 		}
-		Memory* getMemory (const StringRef stringRef) {
+		Memory* getMemory(const StringRef stringRef) {
 			if (stringRef.refId) {
 				for (Memory& memory : memories) {
 					if (stringRef.refId == memory.id)
 						return &memory;
 				}
-			}else if (stringRef.name){
+			}
+			else if (stringRef.name) {
 				for (Memory& memory : memories) {
 					if (stringRef.name == memory.name)
 						return &memory;
@@ -95,9 +103,25 @@ namespace holodec {
 			}
 			return &invalidMem;
 		}
-		Memory* getDefaultMemory () {
+		Memory* getDefaultMemory() {
 			return memories.get(1);
 		}
+		Builtin* getBuiltin(const StringRef stringRef) {
+			if (stringRef.refId) {
+				for (Builtin& builtin : builtins) {
+					if (stringRef.refId == builtin.id)
+						return &builtin;
+				}
+			}
+			else if (stringRef.name) {
+				for (Builtin& builtin : builtins) {
+					if (stringRef.name == builtin.name)
+						return &builtin;
+				}
+			}
+			return nullptr;
+		}
+
 		CallingConvention* getCallingConvention(const HString string){
 			if(string){
 				for(CallingConvention& cc : callingconventions){

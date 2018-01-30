@@ -98,7 +98,7 @@ namespace holodec {
 				SSAExpression addExpr;
 				addExpr.type = SSAExprType::eOp;
 				addExpr.size = opExpr.size;
-				addExpr.returntype = opExpr.returntype;
+				addExpr.exprtype = opExpr.exprtype;
 				addExpr.opType = SSAOpType::eAdd;
 				addExpr.subExpressions.insert (addExpr.subExpressions.begin(), opExpr.subExpressions.begin() + 1, opExpr.subExpressions.end());
 				addExpr.instrAddr = opExpr.instrAddr;
