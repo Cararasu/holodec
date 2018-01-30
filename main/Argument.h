@@ -97,21 +97,21 @@ namespace holodec {
 		static inline IRArgument create() {
 			return IRArgument();
 		}
-		static inline IRArgument createVal (int64_t val, uint32_t size) {
+		static inline IRArgument createIVal (int64_t val, uint32_t size) {
 			IRArgument arg;
 			arg.type = IR_ARGTYPE_SINT;
 			arg.sval = val;
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument createVal (uint64_t val, uint32_t size) {
+		static inline IRArgument createUVal (uint64_t val, uint32_t size) {
 			IRArgument arg;
 			arg.type = IR_ARGTYPE_UINT;
 			arg.uval = val;
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument createVal (double val, uint32_t size) {
+		static inline IRArgument createDVal (double val, uint32_t size) {
 			IRArgument arg;
 			arg.type = IR_ARGTYPE_FLOAT;
 			arg.fval = val;

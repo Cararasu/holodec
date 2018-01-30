@@ -24,8 +24,8 @@ namespace holodec {
 	struct Architecture {
 		HString name;
 		HString desc;
-		uint64_t bitbase;
-		uint64_t wordbase;
+		uint32_t bitbase;
+		uint32_t wordbase;
 
 		HList<std::function<FunctionAnalyzer* (Binary*) >> functionanalyzerfactories;
 		HIdList<Register> registers;

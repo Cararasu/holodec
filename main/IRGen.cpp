@@ -191,7 +191,7 @@ namespace holodec {
 					return IRArgument::create();
 				}
 			} else {
-				size = IRArgument::createVal ( (uint64_t) 0, arch->bitbase);
+				size = IRArgument::createUVal( (uint64_t) 0, arch->bitbase);
 			}
 			if (parseCharacter (']')) {
 				IRExpression expression;
@@ -431,7 +431,7 @@ namespace holodec {
 					printParseFailure ("Number");
 					return IRArgument::create();//IR_EXPR_INVALID;
 				}
-				return IRArgument::createVal ( (uint64_t) num, arch->bitbase);
+				return IRArgument::createUVal( (uint64_t) num, arch->bitbase);
 			}
 			}
 			size_t x = index;
@@ -448,12 +448,12 @@ namespace holodec {
 			case IR_EXPR_BSIZE:
 				assert (expression.subExpressions.size() == 1);
 				if (expression.subExpressions[0].size)
-					return IRArgument::createVal ( (uint64_t) (expression.subExpressions[0].size), arch->bitbase);
+					return IRArgument::createUVal( (uint64_t) (expression.subExpressions[0].size), arch->bitbase);
 				break;
 			case IR_EXPR_SIZE:
 				assert (expression.subExpressions.size() == 1);
 				if (expression.subExpressions[0].size)
-					return IRArgument::createVal ( (uint64_t) (expression.subExpressions[0].size / arch->wordbase), arch->bitbase);
+					return IRArgument::createUVal( (uint64_t) (expression.subExpressions[0].size / arch->wordbase), arch->bitbase);
 				break;
 			case IR_EXPR_INVALID:
 				printf ("%s\n", string.cstr());

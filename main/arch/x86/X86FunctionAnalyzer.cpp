@@ -124,7 +124,7 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 			break;
 		}
 		case X86_OP_IMM:
-			arg = IRArgument::createVal ( (uint64_t) x86.operands[i].imm, x86.operands[i].size * 8);
+			arg = IRArgument::createUVal( (uint64_t) x86.operands[i].imm, x86.operands[i].size * 8);
 			break;
 		case X86_OP_MEM: {
 			/*
@@ -151,7 +151,7 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 		}
 		break;
 		case X86_OP_FP:
-			arg = IRArgument::createVal ( (double) x86.operands[i].fp, x86.operands[i].size * 8);
+			arg = IRArgument::createDVal ( (double) x86.operands[i].fp, x86.operands[i].size * 8);
 			break;
 		default:
 			printf ("Invalid ...\n");
