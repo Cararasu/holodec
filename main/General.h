@@ -43,7 +43,7 @@ namespace holodec {
 	struct StringRef {
 		HString name;
 		HId refId;
-		StringRef (const char* name) : name (name), refId (0) {}
+		StringRef (const char* name = nullptr) : name (name), refId (0) {}
 		StringRef (HString name) : name (name), refId (0) {}
 		StringRef (HId refId) : name (""), refId (refId) {}
 

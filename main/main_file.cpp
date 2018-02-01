@@ -360,7 +360,7 @@ int main (int argc, const char** argv) {
 	func_analyzer->init (binary);
 
 	printf ("Binary File: %s\n", binary->data->filename.cstr());
-	printf ("Size: %d Bytes\n", binary->data->size);
+	printf ("Size: %d Bytes\n", binary->data->size());
 
 
 	binary->print();
@@ -426,7 +426,7 @@ int main (int argc, const char** argv) {
 		func->callingconvention = holox86::x86architecture.getCallingConvention ("amd64")->id;
 
 		for (SSATransformer* transform : transformers) {
-			transform->doTransformation (func);
+			transform->doTransformation (binary, func);
 		}
 
 		for (SSAExpression& expr : func->ssaRep.expressions) {
@@ -436,10 +436,10 @@ int main (int argc, const char** argv) {
 
 		func->ssaRep.recalcRefCounts();
 
-		transformers[4]->doTransformation (func);
+		transformers[4]->doTransformation (binary, func);
 
 		holodec::g_logger.log<LogLevel::eInfo> ("Symbol %s", binary->getSymbol (func->symbolref)->name.cstr());
-		func->print (&holox86::x86architecture);
+		//func->print (&holox86::x86architecture);
 	}
 	delete optimizer;
 

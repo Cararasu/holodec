@@ -39,6 +39,9 @@ namespace holodec {
 		uint64_t hash() const {
 			return m_hash;
 		}
+		const std::string& str() const {
+			return m_str;
+		}
 		const char* cstr() const {
 			return m_str.c_str();
 		}

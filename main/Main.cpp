@@ -56,13 +56,13 @@ Data* Main::loadDataFromFile (HString file) {
 			offset += read;
 			printf("Read %zu chars\n", t.gcount());
 		}
-		return new Data (data, size, file);
+		return new PlainData(data, size, file);
 	}
 	return nullptr;
 }
 
 Data* Main::loadData (uint8_t* data, size_t size) {
-	return new Data (data, size, 0);
+	return new PlainData(data, size, 0);
 }
 
 void holodec::Main::initMain() {

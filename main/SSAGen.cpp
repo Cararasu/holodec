@@ -613,8 +613,6 @@ namespace holodec {
 				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bitbase;
 
-				SSAArgument exprArgs[2];
-				exprArgs[0] = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0]));
 
 				assert (subexpressioncount >= 2 && subexpressioncount <= 3);
 
@@ -623,12 +621,14 @@ namespace holodec {
 				HId falseblockId = (subexpressioncount == 3) ? createNewBlock() : 0;//generate early so the blocks are in order
 				HId endBlockId = createNewBlock();
 
-				exprArgs[1] = SSAArgument::createBlock (trueblockId);
+				SSAArgument exprArgs[2];
+				exprArgs[0] = SSAArgument::createBlock (trueblockId);
+				exprArgs[1] = parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1]));
 				expression.subExpressions.assign (exprArgs, exprArgs + 2);
 				addExpression (&expression);
 
 				activateBlock (trueblockId);
-				parseExpression (irExpr->subExpressions[1]);
+				parseExpression (irExpr->subExpressions[0]);
 				getActiveBlock()->fallthroughId = endBlockId;
 
 				if (falseblockId) {
@@ -669,7 +669,7 @@ namespace holodec {
 
 				assert (subexpressioncount == 2);
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
-				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[1])));
+				expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1])));
 
 				endOfBlock = true;
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
@@ -995,8 +995,8 @@ namespace holodec {
 				expression.type = SSAExprType::eCJmp;
 				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bitbase;
-				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
-				expression.subExpressions.push_back (SSAArgument::createBlock (startBodyId));
+				expression.subExpressions.push_back(SSAArgument::createBlock(startBodyId));
+				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[1])));
 				addExpression (&expression);
 				endCondId = activeBlockId;
 				this->endOfBlock = false;

@@ -7,21 +7,36 @@
 namespace holodec {
 
 	struct Data {
-		uint8_t* const data;
-		const size_t size;
 		HString filename;
 
-		Data (uint8_t* data, size_t size, const HString filename);
-		Data (Data& file);
-		Data (Data && file);
-		virtual ~Data ();
+		Data(const HString filename) : filename(filename) {}
+		virtual ~Data() {};
 
-		inline uint8_t operator[] (size_t index) {
-			return data[index];
-		}
+		virtual uint8_t& operator[] (size_t index) = 0;
+		virtual size_t size() = 0;
+
 		template<typename T>
-		inline T get (size_t index) {
-			return * (T*) (data + index);
+		inline T* get(size_t index) {
+			return (T*)(&(*this)[index]);
+		}
+
+
+	};
+	struct PlainData : public Data {
+		const size_t m_size;
+		uint8_t* const m_data;
+
+		PlainData(uint8_t* data, size_t size, const HString filename);
+		PlainData(PlainData& file);
+		PlainData(PlainData && file);
+		virtual ~PlainData();
+
+		virtual size_t size() {
+			return m_size;
+		}
+
+		inline uint8_t& operator[] (size_t index) {
+			return m_data[index];
 		}
 	};
 }

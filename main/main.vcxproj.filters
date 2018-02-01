@@ -16,14 +16,11 @@
     <Filter Include="Quelldateien\arch">
       <UniqueIdentifier>{8f7ac0c9-3945-4ecb-aa6c-6d1ef7824be5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Quelldateien\arch\x86">
-      <UniqueIdentifier>{a2a01336-6c9e-43aa-83b5-d8be91d5789e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Headerdateien\arch">
       <UniqueIdentifier>{08b3106f-4815-4dfd-9b8f-c3f6264151d9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Headerdateien\arch\x86">
-      <UniqueIdentifier>{c647ee9b-686f-4d40-9506-ab508285c29a}</UniqueIdentifier>
+    <Filter Include="Headerdateien\binary">
+      <UniqueIdentifier>{ded9ecbd-d994-4953-a712-e3fdab7d9ba2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -147,14 +144,14 @@
     <ClCompile Include="Architecture.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="arch\x86\X86Architecture.cpp">
-      <Filter>Quelldateien\arch\x86</Filter>
-    </ClCompile>
-    <ClCompile Include="arch\x86\X86FunctionAnalyzer.cpp">
-      <Filter>Quelldateien\arch\x86</Filter>
-    </ClCompile>
     <ClCompile Include="Main.cpp">
       <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="arch\x86\X86FunctionAnalyzer.cpp">
+      <Filter>Quelldateien\arch</Filter>
+    </ClCompile>
+    <ClCompile Include="arch\x86\X86Architecture.cpp">
+      <Filter>Quelldateien\arch</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -281,11 +278,11 @@
     <ClInclude Include="Stack.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="binary\elf\ElfBinaryAnalyzer.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="arch\x86\X86FunctionAnalyzer.h">
-      <Filter>Headerdateien\arch\x86</Filter>
+      <Filter>Headerdateien\arch</Filter>
+    </ClInclude>
+    <ClInclude Include="binary\elf\ElfBinaryAnalyzer.h">
+      <Filter>Headerdateien\binary</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -180,10 +180,11 @@ namespace holodec {
 
 	}
 
-	void SSAPhiNodeGenerator::doTransformation (Function* function) {
+	void SSAPhiNodeGenerator::doTransformation (Binary* binary, Function* function) {
 
 
 		printf ("Generating Phi-Nodes for Function at Address 0x%" PRIx64 "\n", function->baseaddr);
+		this->binary = binary;
 		this->function = function;
 		
 		for (SSABB& bb : function->ssaRep.bbs) {

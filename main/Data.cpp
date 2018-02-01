@@ -5,14 +5,16 @@
 #include "HString.h"
 
 
-holodec::Data::Data (uint8_t* data, size_t size, HString filename) : data (data), size (size), filename (filename) {
+holodec::PlainData::PlainData(uint8_t* data, size_t size, HString filename) 
+	: Data(filename), m_size(size), m_data (data) {
 
 }
-holodec::Data::Data (Data& file) : data ( (uint8_t*) malloc (file.size)), size (file.size), filename (file.filename) {
-	memcpy (data, file.data, size);
+holodec::PlainData::PlainData(PlainData& file) 
+	: Data(file.filename), m_size(file.m_size), m_data ( (uint8_t*) malloc (file.m_size)) {
+	memcpy (m_data, file.m_data, m_size);
 }
 
 
-holodec::Data::~Data() {
-	free (data);
+holodec::PlainData::~PlainData() {
+	free (m_data);
 }

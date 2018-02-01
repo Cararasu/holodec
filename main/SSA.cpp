@@ -255,7 +255,7 @@ namespace holodec {
 				printf ("0x%" PRIx64 "", sval);
 			break;
 		case SSAArgType::eUInt:
-			printf ("0x%" PRIx32, uval);
+			printf ("0x%" PRIx64, uval);
 			break;
 		case SSAArgType::eFloat:
 			printf ("%f", fval);
@@ -564,7 +564,7 @@ namespace holodec {
 		printIndent (indent);
 		printf ("Printing SSA-Gen Data\n");
 		printIndent (indent);
-		printf ("Number Of Expressions: %d\n", expressions.size());
+		printf ("Number Of Expressions: %" PRId64 "\n", expressions.size());
 
 		for (SSABB& bb : bbs) {
 			printIndent (indent + 1);
@@ -583,7 +583,7 @@ namespace holodec {
 			printIndent (indent + 1);
 			printf ("Fallthrough: %d\n", bb.fallthroughId);
 			printIndent (indent + 1);
-			printf ("Number Of Ids: %d\n", bb.exprIds.size());
+			printf ("Number Of Ids: %" PRId64 "\n", bb.exprIds.size());
 			for (HId id : bb.exprIds) {
 				expressions[id].print (arch, indent + 2);
 			}

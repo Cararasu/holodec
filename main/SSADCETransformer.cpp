@@ -8,7 +8,7 @@
 
 namespace holodec {
 
-	void SSADCETransformer::doTransformation (Function* function) {
+	void SSADCETransformer::doTransformation (Binary* binary, Function* function) {
 
 		printf ("DCE for Function at Address 0x%llx\n", function->baseaddr);
 		function->ssaRep.recalcRefCounts();

@@ -450,27 +450,27 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 
 		{X86_INS_JMP, "jmp", {{1, "#jmp(#arg[1])"}}, InstructionType::eJmp, InstructionType::eUnknown},
 
-		{X86_INS_JE, "je", {{1, "#cjmp($zf,#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JNE, "jne", {{1, "#cjmp(#not($zf),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JA, "ja", {{1, "#cjmp(#not(#or($cf,$zf)),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JAE, "jae", {{1, "#cjmp(#not($cf),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JB, "jb", {{1, "#cjmp(#not($cf),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JBE, "jbe", {{1, "#cjmp(#or($cf,$zf),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JG, "jg", {{1, "#cjmp(#and(#not($zf),==($sf,$of)),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JGE, "jge", {{1, "#cjmp(==($sf,$of),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JL, "jl", {{1, "#cjmp(<>($sf,$of),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JLE, "jle", {{1, "#cjmp(#or($zf,<>($sf,$of)),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JO, "jo", {{1, "#cjmp($of,#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JNO, "jno", {{1, "#cjmp(#not($of),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JS, "js", {{1, "#cjmp($sf,#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JNS, "jns", {{1, "#cjmp(#not($sf),#arg[1])"}}, InstructionType::eCJmp},
+		{X86_INS_JE, "je", {{1, "#cjmp(#arg[1],$zf)"}}, InstructionType::eCJmp},
+		{X86_INS_JNE, "jne", {{1, "#cjmp(#arg[1],#not($zf))"}}, InstructionType::eCJmp},
+		{X86_INS_JA, "ja", {{1, "#cjmp(#arg[1],#not(#or($cf,$zf)))"}}, InstructionType::eCJmp},
+		{X86_INS_JAE, "jae", {{1, "#cjmp(#arg[1],#not($cf))"}}, InstructionType::eCJmp},
+		{X86_INS_JB, "jb", {{1, "#cjmp(#arg[1],#not($cf))"}}, InstructionType::eCJmp},
+		{X86_INS_JBE, "jbe", {{1, "#cjmp(#arg[1],#or($cf,$zf))"}}, InstructionType::eCJmp},
+		{X86_INS_JG, "jg", {{1, "#cjmp(#arg[1],#and(#not($zf),==($sf,$of)))"}}, InstructionType::eCJmp},
+		{X86_INS_JGE, "jge", {{1, "#cjmp(#arg[1],==($sf,$of))"}}, InstructionType::eCJmp},
+		{X86_INS_JL, "jl", {{1, "#cjmp(#arg[1],<>($sf,$of))"}}, InstructionType::eCJmp},
+		{X86_INS_JLE, "jle", {{1, "#cjmp(#arg[1],#or($zf,<>($sf,$of)))"}}, InstructionType::eCJmp},
+		{X86_INS_JO, "jo", {{1, "#cjmp(#arg[1],$of)"}}, InstructionType::eCJmp},
+		{X86_INS_JNO, "jno", {{1, "#cjmp(#arg[1],#not($of))"}}, InstructionType::eCJmp},
+		{X86_INS_JS, "js", {{1, "#cjmp(#arg[1],$sf)"}}, InstructionType::eCJmp},
+		{X86_INS_JNS, "jns", {{1, "#cjmp(#arg[1],#not($sf))"}}, InstructionType::eCJmp},
 
-		{X86_INS_JP, "jp", {{1, "#cjmp($pf,#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JNP, "jnp", {{1, "#cjmp(#not($pf),#arg[1])"}}, InstructionType::eCJmp},
+		{X86_INS_JP, "jp", {{1, "#cjmp(#arg[1],$pf)"}}, InstructionType::eCJmp},
+		{X86_INS_JNP, "jnp", {{1, "#cjmp(#arg[1],#not($pf))"}}, InstructionType::eCJmp},
 
-		{X86_INS_JCXZ, "jcxz", {{1, "#cjmp(#not($cx),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JECXZ, "jecxz", {{1, "#cjmp(#not($ecx),#arg[1])"}}, InstructionType::eCJmp},
-		{X86_INS_JRCXZ, "jrcxz", {{1, "#cjmp(#not($rcx),#arg[1])"}}, InstructionType::eCJmp},
+		{X86_INS_JCXZ, "jcxz", {{1, "#cjmp(#arg[1],#not($cx))"}}, InstructionType::eCJmp},
+		{X86_INS_JECXZ, "jecxz", {{1, "#cjmp(#arg[1],#not($ecx))"}}, InstructionType::eCJmp},
+		{X86_INS_JRCXZ, "jrcxz", {{1, "#cjmp(#arg[1],#not($rcx))"}}, InstructionType::eCJmp},
 
 
 		{X86_INS_XCHG, "xchg", {{2, "#seq(=(#t[1],#arg[1]),=(#arg[1],#arg[2]),=(#arg[2],#t[1]))"}}, InstructionType::eXchg},
@@ -554,8 +554,8 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 				{1, "==(#bsize(#arg[1]),8)", "#seq(=($ax,*($al,#arg[1])),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
 				{1, "==(#bsize(#arg[1]),16)", "#seq(=(#t[1],*($ax,#arg[1])),=($cf,#c),=($of,#o),=($dx,#t[1][0,16]),=($ax,#t[1][16,16]),#undef($zf,$af,$pf))"},
 				{1, "==(#bsize(#arg[1]),32)", "#seq(=(#t[1],*($eax,#arg[1])),=($cf,#c),=($of,#o),=($edx,#t[1][0,32]),=($eax,#t[1][32,32]),#undef($zf,$af,$pf))"},
-				{2, "#seq(=(#arg[1],#mul[s](#arg[1],#ext[s](#arg[2],#bsize(#arg[1])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
-				{3, "#seq(=(#arg[1],#mul[s](#arg[1],#ext[s](#arg[3],#bsize(#arg[2])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
+				{2, "#seq(=(#arg[1],*[s](#arg[1],#ext[s](#arg[2],#bsize(#arg[1])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
+				{3, "#seq(=(#arg[1],*[s](#arg[1],#ext[s](#arg[3],#bsize(#arg[2])))),=($cf,#c),=($of,#o),#undef($zf,$af,$pf))"},
 			}, InstructionType::eMul
 		},
 		{
@@ -662,12 +662,12 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_BTR, "btr", {{2, "#seq(=($cf,#arg[1][#arg[2]]),=(#arg[1][#arg[2]],0))"}}, InstructionType::eBitTest, InstructionType::eBitReset},
 		{X86_INS_BTC, "btc", {{2, "#seq(=($cf,#arg[1][#arg[2]]),=(#arg[1][#arg[2]],#not(#arg[1][#arg[2]])))"}}, InstructionType::eBitTest, InstructionType::eCpl},
 
-		{X86_INS_LOOP, "loop", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#not($ecx),#arg[1]))"}}, InstructionType::eCJmp},
+		{X86_INS_LOOP, "loop", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#not($ecx)))"}}, InstructionType::eCJmp},
 
 
-		{X86_INS_LOOPE, "loope", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#not(#and($ecx,$zf)),#arg[1]))"}}, InstructionType::eCJmp},
+		{X86_INS_LOOPE, "loope", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#not(#and($ecx,$zf))))"}}, InstructionType::eCJmp},
 
-		{X86_INS_LOOPNE, "loopne", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#not(#and($ecx,#not($zf))),#arg[1]))"}}, InstructionType::eCJmp},
+		{X86_INS_LOOPNE, "loopne", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#not(#and($ecx,#not($zf)))))"}}, InstructionType::eCJmp},
 
 		{X86_INS_CALL, "call", {{1, "#seq(#push($stack,#ip),#call(#arg[1]))"}},InstructionType::eCall},
 
@@ -735,8 +735,8 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_DAA, "daa", {}},
 		{X86_INS_DAS, "das", {}},
 
-		{X86_INS_FABS, "fabs", {{0, "=($st[0],#mul[f]($st[0],-1))"}}},
-		{X86_INS_ADDPD, "addpd", {{2, "=(#arg[1],#app(#add[f](#arg[1][0,64],#arg[2][0,64]),#add[f](#arg[1][64,64],#arg[2][64,64])))"}}},
+		{X86_INS_FABS, "fabs", {{0, "=($st[0],*[f]($st[0],-1))"}}},
+		{X86_INS_ADDPD, "addpd", {{2, "=(#arg[1],#app(+[f](#arg[1][0,64],#arg[2][0,64]),+[f](#arg[1][64,64],#arg[2][64,64])))"}}},
 		{
 			X86_INS_ADDPS,
 			"addps", {
@@ -744,24 +744,24 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 					2, 
 					"=("
 						"#arg[1],#app("
-							"#add[f](#arg[1][0,32],#arg[2][0,32]),"
-							"#add[f](#arg[1][32,32],#arg[2][32,32]),"
-							"#add[f](#arg[1][64,32],#arg[2][64,32]),"
-							"#add[f](#arg[1][96,32],#arg[2][96,32])"
+							"+[f](#arg[1][0,32],#arg[2][0,32]),"
+							"+[f](#arg[1][32,32],#arg[2][32,32]),"
+							"+[f](#arg[1][64,32],#arg[2][64,32]),"
+							"+[f](#arg[1][96,32],#arg[2][96,32])"
 						")"
 					")"
 				}
 			}
 		},
-		{X86_INS_ADDSD, "addsd", {{2, "=(#arg[1],#app(#add[f](#arg[1][0,64],#arg[2][0,64]),#arg[1][64]))"}}},
-		{X86_INS_ADDSS, "addss", {{2, "=(#arg[1],#app(#add[f](#arg[1][0,32],#arg[2][0,32]),#arg[1][32]))"}}},
-		{X86_INS_ADDSUBPD, "addsubpd", {{2, "=(#arg[1],#app(#sub[f](#arg[1][0,64],#arg[2][0,64]),#add[f](#arg[1][64,64],#arg[2][64,64])))"}}},
+		{X86_INS_ADDSD, "addsd", {{2, "=(#arg[1],#app(+[f](#arg[1][0,64],#arg[2][0,64]),#arg[1][64]))"}}},
+		{X86_INS_ADDSS, "addss", {{2, "=(#arg[1],#app(+[f](#arg[1][0,32],#arg[2][0,32]),#arg[1][32]))"}}},
+		{X86_INS_ADDSUBPD, "addsubpd", {{2, "=(#arg[1],#app(-[f](#arg[1][0,64],#arg[2][0,64]),+[f](#arg[1][64,64],#arg[2][64,64])))"}}},
 		{
 			X86_INS_ADDSUBPS,
 			"addsubps", {
 				{
-					2, "=(#arg[1],#app(#sub[f](#arg[1][0,32],#arg[2][0,32]),#add[f](#arg[1][32,32],#arg[2][32,32]),"
-					"#sub[f](#arg[1][64,32],#arg[2][64,32]),#add[f](#arg[1][96,32],#arg[2][96,32])))"
+					2, "=(#arg[1],#app(-[f](#arg[1][0,32],#arg[2][0,32]),+[f](#arg[1][32,32],#arg[2][32,32]),"
+					"-[f](#arg[1][64,32],#arg[2][64,32]),+[f](#arg[1][96,32],#arg[2][96,32])))"
 				}
 			}
 		},
@@ -869,9 +869,9 @@ holox86::Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_SCASQ | CUSOM_X86_INSTR_EXTR_REPNE, "repne scasq", {{2, "#seq(=($zf,0),#rep(#and($rcx,#not($zf)),#seq(#rec[scasq](#arg[1],#arg[2]),=($rcx,-($rcx,1)))))"}}, InstructionType::eCmp},
 
 //x87
-		{X86_INS_FADD, "add[f]", {{1, "=($st[0],#add[f]($st[0],#ext[f](#arg[1],#bsize($st[0]))))"}, {2, "=(#arg[1],#add[f](#arg[1],#arg[2]))"}}},
-		{X86_INS_FIADD, "fiadd", {{1, "=($st[0],#add[f]($st[0],#ext[f](#arg[1],#bsize($st[0]))))"}}},
-		{X86_INS_FADDP, "add[f]p", {{0, "#push($st,#add[f](#pop($st),#pop($st)))"}, {2, "#seq(=(#arg[1],#add[f](#arg[1],#arg[2])),#pop($st))"}}}
+		{X86_INS_FADD, "add[f]", {{1, "=($st[0],+[f]($st[0],#ext[f](#arg[1],#bsize($st[0]))))"}, {2, "=(#arg[1],+[f](#arg[1],#arg[2]))"}}},
+		{X86_INS_FIADD, "fiadd", {{1, "=($st[0],+[f]($st[0],#ext[f](#arg[1],#bsize($st[0]))))"}}},
+		{X86_INS_FADDP, "add[f]p", {{0, "#push($st,+[f](#pop($st),#pop($st)))"}, {2, "#seq(=(#arg[1],+[f](#arg[1],#arg[2])),#pop($st))"}}}
 
 //TODO add missing instructions
 

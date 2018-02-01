@@ -3,7 +3,7 @@
 
 namespace holodec{
 	
-	void SSATransformToC::doTransformation (Function* function){
+	void SSATransformToC::doTransformation (Binary* binary, Function* function){
 		printf("Transform To C\n");
 	}
 }

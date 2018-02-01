@@ -5,7 +5,8 @@
 
 namespace holodec {
 
-	void SSATransformParser::doTransformation (Function* function) {
+	void SSATransformParser::doTransformation (Binary* binary, Function* function) {
+		this->binary = binary;
 		this->function = function;
 
 		for (SSABB& bb : function->ssaRep.bbs) {

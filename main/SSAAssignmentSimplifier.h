@@ -6,7 +6,7 @@ namespace holodec {
 
 	class SSAAssignmentSimplifier : public SSATransformer {
 
-		virtual void doTransformation (Function* function);
+		virtual void doTransformation (Binary* binary, Function* function);
 	};
 
 }

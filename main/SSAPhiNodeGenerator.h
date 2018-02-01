@@ -30,12 +30,12 @@ namespace holodec {
 	};
 	
 	struct SSAPhiNodeGenerator : public SSATransformer {
-		
+		Binary* binary;
 		Function* function;
 		
 		HList<BasicBlockWrapper> bbwrappers;
 		
-		virtual void doTransformation (Function* function);
+		virtual void doTransformation (Binary* binary, Function* function);
 		
 		void resolveRegs();
 		

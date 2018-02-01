@@ -69,12 +69,12 @@ namespace holodec {
 		}
 		template<typename T>
 		T* getPtr (Data* data, size_t offset) {
-			return (T*)(data->data + this->offset + offset);
+			return data->get<T>(this->offset + offset);
 		}
 		
 		template<typename T>
-		inline T getValue (Data* data, size_t offset = 0) {
-			return ( (T*) (data->data + this->offset + offset)) [0];
+		inline T& getValue (Data* data, size_t offset = 0) {
+			return *data->get<T>(this->offset + offset);
 		}
 		
 		void print (int indent = 0) {

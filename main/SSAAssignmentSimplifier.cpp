@@ -4,11 +4,12 @@
 #include "General.h"
 #include "SSA.h"
 #include "Function.h"
+#include "Binary.h"
 
 
 namespace holodec{
 	
-	void SSAAssignmentSimplifier::doTransformation (Function* function){
+	void SSAAssignmentSimplifier::doTransformation (Binary* binary, Function* function){
 		
 		printf ("Simplifying Assignments for Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 		

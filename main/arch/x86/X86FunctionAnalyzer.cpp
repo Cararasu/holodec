@@ -32,7 +32,7 @@ holox86::X86FunctionAnalyzer::~X86FunctionAnalyzer() {}
 
 
 bool holox86::X86FunctionAnalyzer::canAnalyze (Binary* binary) {
-	return holodec::caseCmpHString ("x86", binary->arch);
+	return holodec::caseCmpHString ("x86", binary->arch.name);
 }
 bool holox86::X86FunctionAnalyzer::init (Binary* binary) {
 	this->binary = binary;
@@ -136,7 +136,7 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.segment)),//segment
 						arch->getRegister ((HId)0),
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),
-						x86.operands[i].mem.scale, x86.operands[i].mem.disp + instruction->addr,
+						x86.operands[i].mem.scale, x86.operands[i].mem.disp + instruction->addr + instruction->size,
 						x86.operands[i].size * 8
 					);
 			} else {

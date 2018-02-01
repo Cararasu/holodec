@@ -7,7 +7,7 @@ namespace holodec {
 	Binary::Binary (HString filename) : data (Main::loadDataFromFile (filename)) {
 	}
 
-	Binary::Binary (Data* data) : data (data) {
+	Binary::Binary (Data* data) : data (data){
 
 	}
 
@@ -53,9 +53,9 @@ namespace holodec {
 		}
 		return nullptr;
 	}
-	Symbol* Binary::findSymbol (size_t addr, const SymbolType* type) {
+	Symbol* Binary::findSymbol (size_t addr, const SymbolType* type = nullptr) {
 		for (Symbol* symbol : symbols) {
-			if (symbol->vaddr == addr && (symbol->symboltype == type || symbol->symboltype->name == type->name))
+			if (symbol->vaddr == addr && (type == nullptr || (symbol->symboltype == type || symbol->symboltype->name == type->name)))
 				return symbol;
 		}
 		return nullptr;

@@ -25,7 +25,7 @@ namespace holodec {
 		//which architecture
 		//global string
 		size_t bitbase;
-		HString arch;
+		StringRef arch;
 
 		HStringDatabase stringDB;
 
@@ -51,8 +51,8 @@ namespace holodec {
 			return data;
 		}
 		template<typename T>
-		inline T getValue (size_t offset = 0) {
-			return ( (T*) (data->data + offset)) [0];
+		inline T& getValue (size_t offset = 0) {
+			return *data->get<T>(offset);
 		}
 
 		HId addSection (Section* section);
