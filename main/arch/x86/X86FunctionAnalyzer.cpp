@@ -163,7 +163,7 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 void holox86::X86FunctionAnalyzer::setJumpDest (Instruction* instruction) {
 	if (instruction->instrdef && instruction->instrdef->type == InstructionType::eRet)
 		return;
-/*
+	/*
 	instruction->nojumpdest = instruction->addr + instruction->size;
 	if (instruction->instrdef){
 		switch(instruction->instrdef->type){

@@ -439,6 +439,39 @@ namespace holodec {
 			propagateRefCount (&expr, 1);
 		}
 	}
+	bool SSARepresentation::calcConstValue(SSAArgument argument, uint64_t* result) {
+		if (argument.isConst()) {
+			switch (argument.type) {
+			case SSAArgType::eSInt:
+				*result = static_cast<uint64_t>(argument.sval);
+				return true;
+			case SSAArgType::eUInt:
+				*result = argument.uval;
+				return true;
+			case SSAArgType::eFloat:
+				*result = static_cast<uint64_t>(argument.fval);
+				return true;
+			default:
+				return false;
+			}
+		}
+		else {
+			if (argument.type != SSAArgType::eId)
+				return false;
+			SSAExpression& expr = expressions[argument.ssaId];
+			switch (expr.type) {
+			case SSAExprType::eLoadAddr:
+				uint64_t base, index, disp, offset;
+				if (calcConstValue(expr.subExpressions[1], &base) &&
+					calcConstValue(expr.subExpressions[2], &index) &&
+					calcConstValue(expr.subExpressions[3], &disp) &&
+					calcConstValue(expr.subExpressions[4], &offset)) {
+					*result = base + (index * disp) + offset;
+					return true;
+				}
+			}
+		}
+	}
 	HId SSARepresentation::addExpr (SSAExpression* expr) {
 		expressions.push_back (*expr);
 		HId newId = expressions.back().id;

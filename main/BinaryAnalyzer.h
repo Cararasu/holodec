@@ -11,6 +11,7 @@ namespace holodec {
 	struct BinaryAnalyzer {
 		HString name;
 		HString desc;
+		holodec::Binary* binary;
 
 		BinaryAnalyzer (HString name, HString desc) : name (name), desc (desc) {}
 		virtual ~BinaryAnalyzer() {}
@@ -20,17 +21,9 @@ namespace holodec {
 		virtual bool init (Data* data) = 0;
 		virtual bool terminate() = 0;
 
-		virtual Binary* getBinary () = 0;
-
-		virtual void doSectionAnalysis() = 0;
-
-		virtual void analyzeStrings() = 0;
-		virtual void analyzeValues() = 0;
-		virtual void analyzeFunctions() = 0;
-
-		virtual void analyzeEntryPoint() = 0;
-
-		virtual void analyzeAllSymbols() = 0;
+		holodec::Binary* getBinary() {
+			return binary;
+		}
 
 	};
 

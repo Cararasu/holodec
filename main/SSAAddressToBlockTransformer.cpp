@@ -40,33 +40,15 @@ namespace holodec {
 				if (expression->subExpressions[0].type == SSAArgType::eId) {
 					SSAExpression& loadExpr = function->ssaRep.expressions[expression->subExpressions[0].ssaId];
 					if (loadExpr.type == SSAExprType::eLoad) {
-						if (loadExpr.subExpressions[0].type == SSAArgType::eId) {
-							SSAExpression& memExpr = function->ssaRep.expressions[loadExpr.subExpressions[0].ssaId];
-							if (memExpr.type == SSAExprType::eLoadAddr) {
-								uint64_t baseaddr = 0;
-								if (memExpr.subExpressions[1].type == SSAArgType::eUInt)
-									baseaddr += memExpr.subExpressions[1].uval;
+						uint64_t baseaddr;
+						if (function->ssaRep.calcConstValue(loadExpr.subExpressions[0], &baseaddr)) {
+							if (arch->bitbase < sizeof(uint64_t) * 8)
+								baseaddr %= (1 << arch->bitbase);
 
-								if (memExpr.subExpressions[2].type == SSAArgType::eUInt && memExpr.subExpressions[3].type == SSAArgType::eUInt)
-									baseaddr += memExpr.subExpressions[2].uval * memExpr.subExpressions[3].uval;
-
-								if (memExpr.subExpressions[4].type == SSAArgType::eUInt)
-									baseaddr += memExpr.subExpressions[4].uval;
-								if(arch->bitbase < sizeof(uint64_t)*8)
-									baseaddr %= (1 << arch->bitbase);
-								
-
-								memExpr.print(arch);
-								printf("---------- 0x%" PRIx64 "\n", baseaddr);
-
-								Symbol* sym = binary->findSymbol(baseaddr, &SymbolType::symdynfunc);
-								if (sym)
-									sym->print();
+							Symbol* sym = binary->findSymbol(baseaddr, &SymbolType::symdynfunc);
+							if (sym) {
+								sym->print();
 							}
-							else {
-
-							}
-
 						}
 					}
 				}

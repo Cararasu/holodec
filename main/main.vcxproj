@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Architecture.cpp" />
+    <ClCompile Include="arch\AvrArchitecture.cpp" />
+    <ClCompile Include="arch\AvrFunctionAnalyzer.cpp" />
     <ClCompile Include="arch\x86\X86Architecture.cpp" />
     <ClCompile Include="arch\x86\X86FunctionAnalyzer.cpp" />
     <ClCompile Include="Argument.cpp" />
@@ -27,6 +29,7 @@
     <ClCompile Include="BinaryAnalyzer.cpp" />
     <ClCompile Include="binary\elf\ElfBinaryAnalyzer.cpp" />
     <ClCompile Include="binary\elf\ElfDataFile.cpp" />
+    <ClCompile Include="binary\ihex\IHexBinaryAnalyzer.cpp" />
     <ClCompile Include="CallingConvention.cpp" />
     <ClCompile Include="CHolodec.cpp" />
     <ClCompile Include="CHolodecStruct.cpp" />
@@ -65,11 +68,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Architecture.h" />
+    <ClInclude Include="arch\AvrFunctionAnalyzer.h" />
     <ClInclude Include="arch\x86\X86FunctionAnalyzer.h" />
     <ClInclude Include="Argument.h" />
     <ClInclude Include="Binary.h" />
     <ClInclude Include="BinaryAnalyzer.h" />
     <ClInclude Include="binary\elf\ElfBinaryAnalyzer.h" />
+    <ClInclude Include="binary\ihex\IHexBinaryAnalyzer.h" />
     <ClInclude Include="CallingConvention.h" />
     <ClInclude Include="CHolodec.h" />
     <ClInclude Include="CHolodecHeader.h" />

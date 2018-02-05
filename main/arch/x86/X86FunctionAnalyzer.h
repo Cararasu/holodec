@@ -22,7 +22,7 @@ namespace holox86 {
 		void setOperands (Instruction* instruction, cs_detail* csdetail);
 	public:
 		X86FunctionAnalyzer (Architecture* arch);
-		~X86FunctionAnalyzer();
+		virtual ~X86FunctionAnalyzer();
 
 		virtual bool canAnalyze (Binary* binary);
 

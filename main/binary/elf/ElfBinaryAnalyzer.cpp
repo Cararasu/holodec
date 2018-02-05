@@ -10,7 +10,6 @@ bool holoelf::ElfBinaryAnalyzer::canAnalyze (holodec::Data* pdata) {
 	holodec::Data* data = pdata;
 	//Magic number
 	if (data->get<char>(0)[0] != 0x7F || data->get<char>(0)[1] != 'E' || data->get<char>(0)[2] != 'L' || data->get<char>(0)[3] != 'F') {
-		printf ("Wrong Header %s\n", data->get<char>(0));
 		return false;
 	}
 	return true;
@@ -240,24 +239,6 @@ bool holoelf::ElfBinaryAnalyzer::init (holodec::Data* file) {
 }
 bool holoelf::ElfBinaryAnalyzer::terminate() {
 	return true;
-}
-
-void holoelf::ElfBinaryAnalyzer::analyzeAllSymbols() {
-}
-
-void holoelf::ElfBinaryAnalyzer::analyzeEntryPoint() {
-}
-
-void holoelf::ElfBinaryAnalyzer::analyzeFunctions() {
-}
-
-void holoelf::ElfBinaryAnalyzer::analyzeStrings() {
-}
-
-void holoelf::ElfBinaryAnalyzer::analyzeValues() {
-}
-
-void holoelf::ElfBinaryAnalyzer::doSectionAnalysis() {
 }
 
 

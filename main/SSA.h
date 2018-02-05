@@ -331,6 +331,8 @@ namespace holodec {
 		void changeRefCount(HId id, std::vector<bool>& visited, int64_t count = 1);
 		
 		void recalcRefCounts();
+
+		bool calcConstValue(SSAArgument argument, uint64_t* result);
 		
 		HId addExpr(SSAExpression* expr);
 		

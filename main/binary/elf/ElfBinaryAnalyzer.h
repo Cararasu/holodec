@@ -44,12 +44,6 @@ namespace holoelf {
 		virtual holodec::Binary* getBinary () {
 			return binary;
 		}
-		virtual void analyzeAllSymbols();
-		virtual void analyzeEntryPoint();
-		virtual void analyzeFunctions();
-		virtual void analyzeStrings();
-		virtual void analyzeValues();
-		virtual void doSectionAnalysis();
 
 		bool parseFileHeader();
 		bool parseProgramHeaderTable();

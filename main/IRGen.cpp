@@ -227,7 +227,9 @@ namespace holodec {
 			if (!parseIdentifier (buffer, 100))
 				return false;
 			HString s = buffer;
-			expression->mod.instrId = arch->getInstrDef (s)->id;
+			InstrDefinition* instrDef = arch->getInstrDef(s);
+			assert(instrDef);
+			expression->mod.instrId = instrDef->id;
 			if (parseCharacter (']')) {
 				return true;
 			}

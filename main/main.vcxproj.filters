@@ -22,6 +22,9 @@
     <Filter Include="Headerdateien\binary">
       <UniqueIdentifier>{ded9ecbd-d994-4953-a712-e3fdab7d9ba2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Quelldateien\binary">
+      <UniqueIdentifier>{b78cb5a1-057a-4c99-b129-c1a01d69381d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Argument.cpp">
@@ -135,9 +138,6 @@
     <ClCompile Include="Stack.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="binary\elf\ElfBinaryAnalyzer.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="binary\elf\ElfDataFile.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -151,6 +151,18 @@
       <Filter>Quelldateien\arch</Filter>
     </ClCompile>
     <ClCompile Include="arch\x86\X86Architecture.cpp">
+      <Filter>Quelldateien\arch</Filter>
+    </ClCompile>
+    <ClCompile Include="binary\elf\ElfBinaryAnalyzer.cpp">
+      <Filter>Quelldateien\binary</Filter>
+    </ClCompile>
+    <ClCompile Include="binary\ihex\IHexBinaryAnalyzer.cpp">
+      <Filter>Quelldateien\binary</Filter>
+    </ClCompile>
+    <ClCompile Include="arch\AvrArchitecture.cpp">
+      <Filter>Quelldateien\arch</Filter>
+    </ClCompile>
+    <ClCompile Include="arch\AvrFunctionAnalyzer.cpp">
       <Filter>Quelldateien\arch</Filter>
     </ClCompile>
   </ItemGroup>
@@ -283,6 +295,12 @@
     </ClInclude>
     <ClInclude Include="binary\elf\ElfBinaryAnalyzer.h">
       <Filter>Headerdateien\binary</Filter>
+    </ClInclude>
+    <ClInclude Include="binary\ihex\IHexBinaryAnalyzer.h">
+      <Filter>Headerdateien\binary</Filter>
+    </ClInclude>
+    <ClInclude Include="arch\AvrFunctionAnalyzer.h">
+      <Filter>Headerdateien\arch</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

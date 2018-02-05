@@ -2,7 +2,9 @@
 #include <assert.h>
 #include "Binary.h"
 #include "binary/elf/ElfBinaryAnalyzer.h"
+#include "binary/ihex/IHexBinaryAnalyzer.h"
 #include "arch/x86/X86FunctionAnalyzer.h"
+#include "arch/AvrFunctionAnalyzer.h"
 
 #include "Main.h"
 #include "FileFormat.h"
@@ -27,6 +29,7 @@
 
 #include "HoloIO.h"
 
+
 //Binary -> Symbol, Section, Function, Data, Architecture*
 //Binary -> Architecture*
 //Symbol -> Symbol, Binary*
@@ -36,21 +39,37 @@
 
 using namespace holodec;
 
-FileFormat elffileformat = {"elf", "elf", {
-		[] (Data * data, HString name) {
-			static holoelf::ElfBinaryAnalyzer* analyzer = nullptr;
-			if (analyzer == nullptr) {
-				printf ("Create New Object\n");
-				analyzer = new holoelf::ElfBinaryAnalyzer();
-			}
-			if (analyzer->canAnalyze (data)) {
-				holoelf::ElfBinaryAnalyzer* temp = analyzer;
-				analyzer = nullptr;
-				return (BinaryAnalyzer*) temp;
-			}
-			return (BinaryAnalyzer*) nullptr;
-		}
+FileFormat elffileformat = { "elf", "elf",{
+	[](Data * data, HString name) {
+	static holoelf::ElfBinaryAnalyzer* analyzer = nullptr;
+	if (analyzer == nullptr) {
+		printf("Create New Object\n");
+		analyzer = new holoelf::ElfBinaryAnalyzer();
 	}
+	if (analyzer->canAnalyze(data)) {
+		holoelf::ElfBinaryAnalyzer* temp = analyzer;
+		analyzer = nullptr;
+		return (BinaryAnalyzer*)temp;
+	}
+	return (BinaryAnalyzer*) nullptr;
+}
+}
+};
+FileFormat ihexfileformat = { "ihex", "ihex",{
+	[](Data * data, HString name) {
+	static holoihex::IHexBinaryAnalyzer* analyzer = nullptr;
+	if (analyzer == nullptr) {
+		printf("Create New Object\n");
+		analyzer = new holoihex::IHexBinaryAnalyzer();
+	}
+	if (analyzer->canAnalyze(data)) {
+		holoihex::IHexBinaryAnalyzer* temp = analyzer;
+		analyzer = nullptr;
+		return (BinaryAnalyzer*)temp;
+	}
+	return (BinaryAnalyzer*) nullptr;
+}
+}
 };
 extern Architecture holox86::x86architecture;
 
@@ -65,7 +84,7 @@ void job_thread (uint32_t id) {
 #include <clang-c/Index.h>  // This is libclang.
 
 void parseCXType(CXType type) {
-	printf("Size: %d ", clang_Type_getSizeOf(type));
+	printf("Size: %" PRId64 " ", clang_Type_getSizeOf(type));
 	switch (type.kind) {
 
 	case CXType_Invalid:
@@ -144,7 +163,7 @@ void parseCXType(CXType type) {
 	case CXType_FunctionProto:
 		break;
 	case CXType_ConstantArray:
-		printf("Array(%d) of ", clang_getArraySize(type));
+		printf("Array(%" PRId64 ") of ", clang_getArraySize(type));
 		parseCXType(clang_getArrayElementType(type));
 		break;
 	case CXType_Vector:
@@ -237,8 +256,8 @@ CXChildVisitResult cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData 
 		printf("Ret: ");
 		parseCXType(clang_getResultType(type));
 		printf("\n");
-		for (unsigned i = 0; i < clang_getNumArgTypes(type); i++) {
-			printf("Arg %llu: (%s) ", i, clang_getCString(clang_getTypeSpelling(clang_getArgType(type, i))));
+		for (signed i = 0; i < clang_getNumArgTypes(type); i++) {
+			printf("Arg %d: (%s) ", i, clang_getCString(clang_getTypeSpelling(clang_getArgType(type, i))));
 			parseCXType(clang_getArgType(type, i));
 			printf("\n");
 		}
@@ -330,8 +349,12 @@ int main (int argc, const char** argv) {
 	Main::g_main->registerFileFormat (&elffileformat);
 	Main::g_main->registerArchitecture (&holox86::x86architecture);
 
+	Main::g_main->registerFileFormat(&ihexfileformat);
+	Main::g_main->registerArchitecture(&holoavr::avrarchitecture);
+
 	g_logger.log<LogLevel::eInfo> ("Init X86\n");
 	holox86::x86architecture.init();
+	holoavr::avrarchitecture.init();
 
 	//ScriptingInterface script;
 	//script.testModule(&holox86::x86architecture);
@@ -360,12 +383,10 @@ int main (int argc, const char** argv) {
 	func_analyzer->init (binary);
 
 	printf ("Binary File: %s\n", binary->data->filename.cstr());
-	printf ("Size: %d Bytes\n", binary->data->size());
+	printf ("Size: %" PRId64 " Bytes\n", binary->data->size());
 
 
 	binary->print();
-
-	holox86::x86architecture.print();
 
 	//return 0;
 
@@ -380,7 +401,7 @@ int main (int argc, const char** argv) {
 	};
 
 	for (SSATransformer* transform : transformers) {
-		transform->arch = &holox86::x86architecture;
+		transform->arch = Main::g_main->getArchitecture(binary->arch.name);
 	}
 
 	for (Symbol* sym : binary->symbols) {
