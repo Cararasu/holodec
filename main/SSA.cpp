@@ -595,7 +595,7 @@ namespace holodec {
 		printIndent (indent);
 		printf ("------------------\n");
 		printIndent (indent);
-		printf ("Printing SSA-Gen Data\n");
+		printf ("Printing SSA-Gen DataSegment\n");
 		printIndent (indent);
 		printf ("Number Of Expressions: %" PRId64 "\n", expressions.size());
 

@@ -23,8 +23,7 @@ namespace holodec {
 		FileFormat* getFileFormat (HString fileformat);
 
 
-		static Data* loadDataFromFile (HString);
-		static Data* loadData (uint8_t* data, size_t size);
+		static File* loadDataFromFile (HString);
 
 		static Main* g_main;
 		static void initMain();

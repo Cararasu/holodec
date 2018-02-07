@@ -30,7 +30,13 @@
 #include "HoloIO.h"
 
 
-//Binary -> Symbol, Section, Function, Data, Architecture*
+//FileFormat		-> proposes BinaryAnalyzer
+//BinaryAnalyzer	-> configuration
+//					-> proposes Architecture
+//					-> maps data into vmemory
+//Architecture		-> proposes FunctionAnalyzer
+
+//Binary -> Symbol, Section, Function, DataSegment, Architecture*
 //Binary -> Architecture*
 //Symbol -> Symbol, Binary*
 //Section -> Symbol, Binary*, CC*
@@ -40,35 +46,35 @@
 using namespace holodec;
 
 FileFormat elffileformat = { "elf", "elf",{
-	[](Data * data, HString name) {
-	static holoelf::ElfBinaryAnalyzer* analyzer = nullptr;
-	if (analyzer == nullptr) {
-		printf("Create New Object\n");
-		analyzer = new holoelf::ElfBinaryAnalyzer();
+	[](File* file, HString name) {
+		static holoelf::ElfBinaryAnalyzer* analyzer = nullptr;
+		if (analyzer == nullptr) {
+			printf("Create New Object\n");
+			analyzer = new holoelf::ElfBinaryAnalyzer();
+		}
+		if (analyzer->canAnalyze(file)) {
+			holoelf::ElfBinaryAnalyzer* temp = analyzer;
+			analyzer = nullptr;
+			return (BinaryAnalyzer*)temp;
+		}
+		return (BinaryAnalyzer*) nullptr;
 	}
-	if (analyzer->canAnalyze(data)) {
-		holoelf::ElfBinaryAnalyzer* temp = analyzer;
-		analyzer = nullptr;
-		return (BinaryAnalyzer*)temp;
-	}
-	return (BinaryAnalyzer*) nullptr;
-}
 }
 };
 FileFormat ihexfileformat = { "ihex", "ihex",{
-	[](Data * data, HString name) {
-	static holoihex::IHexBinaryAnalyzer* analyzer = nullptr;
-	if (analyzer == nullptr) {
-		printf("Create New Object\n");
-		analyzer = new holoihex::IHexBinaryAnalyzer();
+	[](File* file, HString name) {
+		static holoihex::IHexBinaryAnalyzer* analyzer = nullptr;
+		if (analyzer == nullptr) {
+			printf("Create New Object\n");
+			analyzer = new holoihex::IHexBinaryAnalyzer();
+		}
+		if (analyzer->canAnalyze(file)) {
+			holoihex::IHexBinaryAnalyzer* temp = analyzer;
+			analyzer = nullptr;
+			return (BinaryAnalyzer*)temp;
+		}
+		return (BinaryAnalyzer*) nullptr;
 	}
-	if (analyzer->canAnalyze(data)) {
-		holoihex::IHexBinaryAnalyzer* temp = analyzer;
-		analyzer = nullptr;
-		return (BinaryAnalyzer*)temp;
-	}
-	return (BinaryAnalyzer*) nullptr;
-}
 }
 };
 extern Architecture holox86::x86architecture;
@@ -340,8 +346,8 @@ int main (int argc, const char** argv) {
 	g_logger.log<LogLevel::eInfo>("Analysing file %s\n", argv[1]);
 	HString filename = argv[1];
 	Main::initMain();
-	Data* data = Main::loadDataFromFile (filename);
-	if (!data) {
+	File* file = Main::loadDataFromFile (filename);
+	if (!file) {
 		g_logger.log<LogLevel::eWarn> ("Could not Load File %s\n", filename.cstr());
 		return -1;
 	}
@@ -362,12 +368,12 @@ int main (int argc, const char** argv) {
 
 	BinaryAnalyzer* analyzer = nullptr;
 	for (FileFormat * fileformat : Main::g_main->fileformats) {
-		analyzer = fileformat->createBinaryAnalyzer (data, "binary");
+		analyzer = fileformat->createBinaryAnalyzer (file, "binary");
 		if (analyzer)
 			break;
 	}
-	analyzer->init (data);
-	Binary* binary = analyzer->getBinary();
+	analyzer->init (file);
+	Binary* binary = analyzer->binary;
 
 	for(Section* section : binary->sections){
 		section->print();
@@ -382,8 +388,7 @@ int main (int argc, const char** argv) {
 	assert(func_analyzer);
 	func_analyzer->init (binary);
 
-	printf ("Binary File: %s\n", binary->data->filename.cstr());
-	printf ("Size: %" PRId64 " Bytes\n", binary->data->size());
+	printf ("DataSegment: %s\n", binary->defaultArea->name.name.cstr());
 
 
 	binary->print();
@@ -401,7 +406,7 @@ int main (int argc, const char** argv) {
 	};
 
 	for (SSATransformer* transform : transformers) {
-		transform->arch = Main::g_main->getArchitecture(binary->arch.name);
+		transform->arch = binary->arch;
 	}
 
 	for (Symbol* sym : binary->symbols) {
@@ -440,6 +445,7 @@ int main (int argc, const char** argv) {
 		}
 	} while (funcAnalyzed);
 
+	binary->print();
 
 	PeepholeOptimizer* optimizer = parsePhOptimizer ();
 	for (Function* func : binary->functions) {

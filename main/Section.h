@@ -67,14 +67,10 @@ namespace holodec {
 		size_t pointsToSection (size_t addr) {
 			return vaddr <= addr && addr < vaddr + size;
 		}
-		template<typename T>
-		T* getPtr (Data* data, size_t offset) {
-			return data->get<T>(this->offset + offset);
-		}
 		
 		template<typename T>
-		inline T& getValue (Data* data, size_t offset = 0) {
-			return *data->get<T>(this->offset + offset);
+		inline T getValue (DataSegment* data, size_t offset = 0) {
+			return reinterpret_cast<T>(data->get(this->offset + offset));
 		}
 		
 		void print (int indent = 0) {

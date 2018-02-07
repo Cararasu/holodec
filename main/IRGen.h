@@ -28,10 +28,10 @@ namespace holodec {
 		IRParser (Architecture* arch);
 
 		char peek() {
-			return string[index];
+			return string[static_cast<int>(index)];
 		}
 		char pop() {
-			return string[index++];
+			return string[static_cast<int>(index++)];
 		}
 		void consume (size_t count = 1) {
 			index += count;

@@ -7,12 +7,11 @@
 
 namespace holodec {
 
+
 	struct Memory {
 		HId id;
 		HString name;
-		uint32_t size;
-		
-		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer = nullptr);
+		uint64_t wordsize;
 	};
 
 	extern Memory invalidMem;

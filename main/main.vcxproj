@@ -26,7 +26,6 @@
     <ClCompile Include="arch\x86\X86FunctionAnalyzer.cpp" />
     <ClCompile Include="Argument.cpp" />
     <ClCompile Include="Binary.cpp" />
-    <ClCompile Include="BinaryAnalyzer.cpp" />
     <ClCompile Include="binary\elf\ElfBinaryAnalyzer.cpp" />
     <ClCompile Include="binary\elf\ElfDataFile.cpp" />
     <ClCompile Include="binary\ihex\IHexBinaryAnalyzer.cpp" />
@@ -207,7 +206,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\llvm\build-vc17\Debug\lib;..\capstone\msvc\x64\Debug;..\cpython\PCbuild\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\llvm\build-vc17\Release\lib;..\capstone\msvc\x64\Debug;..\cpython\PCbuild\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>capstone.lib;libclang.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

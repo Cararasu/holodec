@@ -17,7 +17,7 @@ namespace holodec {
 
 		InstrDefinition* instrdef = instr->instrdef;
 		for (size_t i = 0; i < instrdef->irs.size(); i++) {
-			if (instr->operands.size() == instrdef->irs[i].argcount) {
+			if (instrdef->irs[i].argcount == -1 || instr->operands.size() == instrdef->irs[i].argcount) {
 				IRArgument constArg = parseConstExpression (instrdef->irs[i].condExpr, &instr->operands);
 				if (constArg && constArg.type == IR_ARGTYPE_UINT && constArg.uval) {
 					if (instrdef->irs[i].condstring) {

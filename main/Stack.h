@@ -1,8 +1,8 @@
 #ifndef HSTACK_H
 #define HSTACK_H
 
-#include "HString.h"
 #include <stdint.h>
+
 #include "General.h"
 #include "Register.h"
 #include "CHolodecHeader.h"

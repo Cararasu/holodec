@@ -33,9 +33,6 @@
     <ClCompile Include="Binary.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="BinaryAnalyzer.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="CallingConvention.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>

@@ -204,21 +204,22 @@ namespace holodec {
 
 		resolveRegs();
 
+#if defined(__GNUC__) || defined(__MINGW32__)
+		HId gatheredIds[bbwrappers.size()];
+		HId visitedBlocks[bbwrappers.size()];
+#else
+		HId* gatheredIds = new HId[bbwrappers.size()];
+		HId* visitedBlocks = new HId[bbwrappers.size()];
+#endif
 		for (BasicBlockWrapper& wrap : bbwrappers) {
 			for (SSARegDef& regDef : wrap.inputs) {
 
-#if defined(__GNUC__) || defined(__MINGW32__)
-				HId gatheredIds[bbwrappers.size()] = {0};
-				HId visitedBlocks[bbwrappers.size()] = {wrap.ssaBB->id};
-#else
-				HId* gatheredIds = new HId[bbwrappers.size()];
-				memset(gatheredIds, 0, sizeof(HId));
-				HId* visitedBlocks = new HId[bbwrappers.size()];
-				memset(visitedBlocks, 0, sizeof(HId));
-				visitedBlocks[0] = wrap.ssaBB->id;
-#endif
 				uint64_t gatheredIdCount = 0;
 				uint64_t visitedBlockCount = 1;
+
+				memset(gatheredIds, 0, sizeof(HId));
+				memset(visitedBlocks, 0, sizeof(HId));
+				visitedBlocks[0] = wrap.ssaBB->id;
 
 				Register* reg = arch->getRegister (regDef.regId);
 
@@ -254,10 +255,6 @@ namespace holodec {
 				if (needInOutput) {
 					addRegDef (exprId, reg, &wrap.outputs, true);
 				}
-#if !defined(__GNUC__) || !defined(__MINGW32__)
-				delete gatheredIds;
-				delete visitedBlocks;
-#endif
 			}
 			/*
 			for (SSAMemDef& memDef : wrap.inputMems) {
@@ -298,6 +295,10 @@ namespace holodec {
 			//wrap.print(arch);
 		}
 
+#if !defined(__GNUC__) || !defined(__MINGW32__)
+		delete gatheredIds;
+		delete visitedBlocks;
+#endif
 		resolveRegs();
 		function->ssaRep.compress();
 	}
