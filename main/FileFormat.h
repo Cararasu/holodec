@@ -12,11 +12,11 @@ namespace holodec {
 		HString name;
 		HString desc;
 
-		HList<std::function<BinaryAnalyzer*(Data*, HString)>> binaryanalyzerfactory;
+		HList<std::function<BinaryAnalyzer*(File*, HString)>> binaryanalyzerfactory;
 
-		BinaryAnalyzer* createBinaryAnalyzer (Data* data,HString name) {
-			for (std::function<BinaryAnalyzer*(Data*, HString)>& fac : binaryanalyzerfactory){
-				BinaryAnalyzer* analyzer = fac(data,name);
+		BinaryAnalyzer* createBinaryAnalyzer (File* file, HString name) {
+			for (std::function<BinaryAnalyzer*(File*, HString)>& fac : binaryanalyzerfactory){
+				BinaryAnalyzer* analyzer = fac(file,name);
 				if(analyzer)
 					return analyzer;
 					

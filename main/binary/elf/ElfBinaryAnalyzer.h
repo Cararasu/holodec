@@ -17,6 +17,7 @@ namespace holoelf {
 	class ElfBinaryAnalyzer : public holodec::BinaryAnalyzer {
 
 		holodec::Binary* binary;
+		holodec::File* file;
 
 		struct {
 			size_t offset;
@@ -36,14 +37,17 @@ namespace holoelf {
 	public:
 		ElfBinaryAnalyzer () : holodec::BinaryAnalyzer ("elf", "elf") {}
 
-		virtual bool canAnalyze(holodec::Data* data);
+		virtual bool canAnalyze(holodec::File* file);
 		
-		virtual bool init (holodec::Data* data);
+		virtual bool init (holodec::File* file);
 		virtual bool terminate();
 
 		virtual holodec::Binary* getBinary () {
 			return binary;
 		}
+
+		template<typename T>
+		T* getPtr(uint64_t addr);
 
 		bool parseFileHeader();
 		bool parseProgramHeaderTable();

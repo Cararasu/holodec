@@ -4,60 +4,160 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <vector>
+#include <assert.h>
 #include "Data.h"
 #include "General.h"
 #include "Section.h"
 #include "Function.h"
+#include "Architecture.h"
 
 #include "HStringDatabase.h"
 #include "DynamicLibrary.h"
 
 namespace holodec {
 
+	struct MemoryArea {
+		StringRef name;
+		HList<DataSegment*> dataSegments;
+		uint64_t wordsize = 1;
+		Endianess endianess = Endianess::eBig;
+
+		bool isMapped(uint64_t addr) {
+			for (DataSegment* dataSegment : dataSegments) {
+				if (dataSegment->isInSegment(addr, wordsize)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		uint64_t mappedSize(uint64_t addr) {
+			for (DataSegment* dataSegment : dataSegments) {
+				if (dataSegment->isInSegment(addr, wordsize)) {
+					return addr - dataSegment->offset;
+				}
+			}
+			return 0;
+		}
+		void copyData(uint8_t* buffer, uint64_t addr, uint64_t size) {
+			for (DataSegment* dataSegment : dataSegments) {
+				if (dataSegment->isInSegment(addr, wordsize)) {
+					return dataSegment->copyData(buffer, addr, size, wordsize);
+				}
+			}
+		}
+		const uint8_t* getVDataPtr(size_t addr) {
+			for (DataSegment* dataSegment : dataSegments) {
+				if (dataSegment->isInSegment(addr, wordsize)) {
+					return dataSegment->getPtr(addr, wordsize);
+				}
+			}
+			return nullptr;
+		}
+		const uint64_t getVData(size_t addr) {
+			for (DataSegment* dataSegment : dataSegments) {
+				if (dataSegment->isInSegment(addr, wordsize)) {
+					return dataSegment->get(addr, wordsize, endianess);
+				}
+			}
+			return 0;
+		}
+		DataSegment* getDataSegment(size_t addr) {
+			for (DataSegment* dataSegment : dataSegments) {
+				if (dataSegment->isInSegment(addr, wordsize)) {
+					return dataSegment;
+				}
+			}
+			return 0;
+		}
+	};
 	struct Binary {
-		Data* data;
+		HString name;
+		MemoryArea* defaultArea;
 
 		HList<HId> entrypoints;
-		HIdPtrList<Symbol*> symbols;
-		HIdPtrList<Section*> sections;
 		HIdPtrList<Function*> functions;
 		HIdPtrList<DynamicLibrary*> dynamic_libraries;
-		//which architecture
-		//global string
+
+		HIdPtrList<Symbol*> symbols;
+		HIdPtrList<Section*> sections;
+
+		HMap<HId, MemoryArea*> memoryAreas;
+
 		size_t bitbase;
-		StringRef arch;
+		Endianess endianess;
+		Architecture* arch;
 
-		HStringDatabase stringDB;
-
-		Binary (HString fileName);
-		Binary (Data* data);
+		Binary(HString name);
 		virtual ~Binary();
 
-		uint8_t* getVDataPtr (size_t addr) {
-			for (Section* section : sections) {
-				if (section->pointsToSection (addr))
-					return section->getPtr<uint8_t> (data, addr - section->vaddr);
+		const uint8_t* getVDataPtr(size_t addr) {
+			return defaultArea->getVDataPtr(addr);
+		}
+		const uint8_t* getVDataPtr(HId memorySegmentId, size_t addr) {
+			for (std::pair<HId, MemoryArea*> entry : memoryAreas) {
+				if (entry.first == memorySegmentId) {
+					return entry.second->getVDataPtr(addr);
+				}
+			}
+			return nullptr;
+		}
+		const uint64_t getVData(size_t addr, size_t bytesize = 1) {
+			assert(bytesize > 0 && bytesize <= sizeof(uint64_t));
+			return defaultArea->getVData(addr);
+		}
+		const uint64_t getVData(HId memorySegmentId, size_t addr) {
+			memoryAreas.at(memorySegmentId);
+			for (std::pair<HId, MemoryArea*> entry : memoryAreas) {
+				if (entry.first == memorySegmentId) {
+					return entry.second->getVData(addr);
+				}
 			}
 			return 0;
 		}
-		size_t getVDataSize (size_t addr) {
-			for (Section* section : sections) {
-				if (section->pointsToSection (addr))
-					return section->size - (addr - section->vaddr);
+		DataSegment* getDataSegment(size_t addr) {
+			return defaultArea->getDataSegment(addr);
+		}
+		DataSegment* getDataSegment(HId memorySegmentId, size_t addr) {
+			for (std::pair<HId, MemoryArea*> entry : memoryAreas) {
+				if (entry.first == memorySegmentId) {
+					return entry.second->getDataSegment(addr);
+				}
 			}
 			return 0;
-		}
-		Data* getData () {
-			return data;
+		}/*
+		template<typename T>
+		inline const uint64_t getValue(size_t offset = 0) {
+			return *reinterpret_cast<const T*>(defaultArea->get(offset));
 		}
 		template<typename T>
-		inline T& getValue (size_t offset = 0) {
-			return *data->get<T>(offset);
+		inline const T* getPtr(size_t offset = 0) {
+			return reinterpret_cast<const T*>(defaultArea->get(offset));
 		}
+		template<typename T>
+		inline const T& getValue(HString& memorySpace, size_t offset = 0) {
+			this->arch->get
+			return *reinterpret_cast<const T*>(defaultArea->get(offset));
+		}
+		template<typename T>
+		inline const T* getPtr(HString& memorySpace, size_t offset = 0) {
+			return reinterpret_cast<const T*>(defaultArea->get(offset));
+		}
+		template<typename T>
+		inline const T& getValue(HId memorySpaceId, size_t offset = 0) {
+			//this->arch->
+			return *reinterpret_cast<const T*>(defaultArea->get(offset));
+		}
+		template<typename T>
+		inline const T* getPtr(HId memorySpaceId, size_t offset = 0) {
+			return reinterpret_cast<const T*>(defaultArea->get(offset));
+		}*/
 
-		HId addSection (Section* section);
-		Section* getSection (HString string);
-		Section* getSection (HId id);
+		Memory* getMemory(HString string);
+		Memory* getMemory(HId id);
+
+		HId addSection(Section* section);
+		Section* getSection(HString string);
+		Section* getSection(HId id);
 
 		HId addSymbol (Symbol* symbol);
 		Symbol* getSymbol (HString string);
@@ -76,9 +176,21 @@ namespace holodec {
 
 		void print (int indent = 0) {
 			printIndent (indent);
-			printf ("Printing Binary %s\n", data->filename.cstr());
-			printIndent (indent);
-			printf ("Printing Sections\n");
+			printf ("Printing Binary %s\n", name.cstr());
+			printIndent(indent);
+			printf("Printing Mapped Memories\n");
+			for (std::pair<HId, MemoryArea*> area : memoryAreas) {
+				printIndent(indent + 1);
+				printf("Memory-Area %s\n", arch->getMemory(area.first)->name.cstr());
+				for (DataSegment* segment : area.second->dataSegments) {
+					printIndent(indent + 2);
+					printf("Block: 0x%x - 0x%x\n", segment->offset, segment->offset + (segment->data.size() / area.second->wordsize));
+					printIndent(indent + 2);
+					printf("Size: 0x%x\n", segment->data.size());
+				}
+			}
+			printIndent(indent);
+			printf("Printing Sections\n");
 			for (Section* section : sections) {
 				section->print (indent + 1);
 			}
@@ -98,12 +210,6 @@ namespace holodec {
 						printf ("Is EntryPoint\n");
 					}
 				}
-			}
-			printIndent (indent);
-			printf ("Printing StringDB %s\n", data->filename.cstr());
-			for (auto & entry : stringDB) {
-				printIndent (indent + 1);
-				printf ("%s: %s\n", entry.first.cstr(), entry.second.cstr());
 			}
 		}
 	};

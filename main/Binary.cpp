@@ -3,14 +3,8 @@
 
 namespace holodec {
 
-
-	Binary::Binary (HString filename) : data (Main::loadDataFromFile (filename)) {
+	Binary::Binary (HString name) : name (name) {
 	}
-
-	Binary::Binary (Data* data) : data (data){
-
-	}
-
 
 	Binary::~Binary() {
 	}

@@ -77,6 +77,7 @@ namespace holoavr {
 		AVR_INSTR_LAS,
 		AVR_INSTR_LAC,
 		AVR_INSTR_LD,
+		AVR_INSTR_LDD,
 		AVR_INSTR_LDI,
 		AVR_INSTR_LDS,
 		AVR_INSTR_LPM,
@@ -105,7 +106,6 @@ namespace holoavr {
 		AVR_INSTR_SBI,
 		AVR_INSTR_SBIC,
 		AVR_INSTR_SBIS,
-		AVR_INSTR_SBIW,
 		AVR_INSTR_SBR,
 		AVR_INSTR_SBRC,
 		AVR_INSTR_SBRS,
@@ -121,6 +121,7 @@ namespace holoavr {
 		AVR_INSTR_SLEEP,
 		AVR_INSTR_SPM,
 		AVR_INSTR_ST,
+		AVR_INSTR_STD,
 		AVR_INSTR_STS,
 		AVR_INSTR_SUB,
 		AVR_INSTR_SUBI,
@@ -130,8 +131,8 @@ namespace holoavr {
 		AVR_INSTR_XCH,
 
 
-			AVR_INSTR_INC_PTR = 0x1000,
-			AVR_INSTR_DEC_PTR = 0x2000,
+		AVR_INSTR_INC_PTR = 0x1000,
+		AVR_INSTR_DEC_PTR = 0x2000,
 	};
 
 	extern Architecture avrarchitecture;

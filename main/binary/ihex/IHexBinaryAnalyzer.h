@@ -12,9 +12,9 @@ namespace holoihex {
 	public:
 		IHexBinaryAnalyzer() : holodec::BinaryAnalyzer("ihex", "ihex") {}
 
-		virtual bool canAnalyze(holodec::Data* data);
+		virtual bool canAnalyze(holodec::File* file);
 
-		virtual bool init(holodec::Data* data);
+		virtual bool init(holodec::File* file);
 		virtual bool terminate();
 
 	};

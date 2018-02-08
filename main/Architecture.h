@@ -183,7 +183,14 @@ namespace holodec {
 				rr.print (indent + 1);
 			}
 			printIndent (indent);
-			/*printf ("IR-Expressions\n");
+			printf("Memories\n");
+			for (Memory& memory : memories) {
+				printIndent(indent + 1);
+				printf("%s\n", memory.name.cstr());
+			}
+			/*
+			printIndent (indent);
+			printf ("IR-Expressions\n");
 			for (IRExpression& expr : irExpressions.list) {
 				expr.print (this, indent + 1);
 			}

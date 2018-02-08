@@ -21,14 +21,11 @@ namespace holodec {
 		bool analyzeWithIR = true;
 
 		struct {
-			uint8_t dataBuffer[H_FUNC_ANAL_BUFFERSIZE];
-			size_t bufferSize;
 			size_t maxInstr;
 			HList<Instruction> instructions;
 			Function* function;
 
 			void reset() {
-				bufferSize = 0;
 				maxInstr = 0;
 				instructions.clear();
 				function = nullptr;
@@ -46,7 +43,6 @@ namespace holodec {
 		virtual HList<Function*> analyzeFunctions (HList<Symbol*>* functionsymbols);
 
 
-		void prepareBuffer (uint64_t addr);
 		bool postInstruction (Instruction* instruction);
 		bool postBasicBlock (DisAsmBasicBlock* basicblock);
 		bool changedBasicBlock (DisAsmBasicBlock* basicblock);

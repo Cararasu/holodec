@@ -622,8 +622,8 @@ namespace holodec {
 				HId endBlockId = createNewBlock();
 
 				SSAArgument exprArgs[2];
-				exprArgs[0] = SSAArgument::createBlock (trueblockId);
-				exprArgs[1] = parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1]));
+				exprArgs[0] = parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1]));
+				exprArgs[1] = SSAArgument::createBlock(trueblockId);
 				expression.subExpressions.assign (exprArgs, exprArgs + 2);
 				addExpression (&expression);
 
@@ -761,9 +761,14 @@ namespace holodec {
 				}
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
 			}
-			case IR_EXPR_BUILTIN:
-				printf ("Builtin\n");
-				break;
+			case IR_EXPR_BUILTIN: {
+				SSAExpression expression;
+				expression.type = SSAExprType::eBuiltin;
+				for (size_t i = 0; i < subexpressioncount; i++) {
+					expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[i])));
+				}
+				return IRArgument::createSSAId(addExpression(&expression), expression.size);
+			}
 			case IR_EXPR_EXTEND: {
 				assert (subexpressioncount == 2);
 				SSAExpression expression;

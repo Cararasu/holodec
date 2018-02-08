@@ -8,16 +8,6 @@ holodec::FunctionAnalyzer::FunctionAnalyzer (Architecture* arch) : arch (arch), 
 holodec::FunctionAnalyzer::~FunctionAnalyzer() {
 }
 
-void holodec::FunctionAnalyzer::prepareBuffer (uint64_t addr) {
-	uint8_t* ptr = binary->getVDataPtr (addr);
-	uint32_t size = binary->getVDataSize (addr);
-	if (ptr) {
-		state.bufferSize = std::min<uint64_t> (size, (uint64_t) H_FUNC_ANAL_BUFFERSIZE);
-		memcpy (state.dataBuffer, ptr, state.bufferSize);
-	} else {
-		state.bufferSize = 0;
-	}
-}
 bool holodec::FunctionAnalyzer::postInstruction (Instruction* instruction) {
 	/*if (state.function->findBasicBlockDeep (instruction->addr + instruction->size))
 		return false;*/

@@ -32,7 +32,7 @@ holox86::X86FunctionAnalyzer::~X86FunctionAnalyzer() {}
 
 
 bool holox86::X86FunctionAnalyzer::canAnalyze (Binary* binary) {
-	return holodec::caseCmpHString ("x86", binary->arch.name);
+	return holodec::caseCmpHString ("x86", binary->arch->name.cstr());
 }
 bool holox86::X86FunctionAnalyzer::init (Binary* binary) {
 	this->binary = binary;
@@ -55,15 +55,25 @@ bool holox86::X86FunctionAnalyzer::analyzeInsts (size_t addr) {
 	cs_insn *insn;
 	size_t count;
 
-	size_t size = binary->getVDataSize (addr);
-	size = size > 100 ? 100 : size;
-
 	bool running = true;
 
 	Instruction instruction;
 	do {
-		prepareBuffer (addr);
-		count = cs_disasm (handle, state.dataBuffer, state.bufferSize, addr, state.maxInstr, &insn);
+		uint8_t dataBuffer[H_FUNC_ANAL_BUFFERSIZE];
+		size_t bufferSize;
+		MemoryArea* memArea = binary->defaultArea;
+		if (memArea->isMapped(addr)) {
+			uint64_t size = memArea->mappedSize(addr);
+			bufferSize = std::min<uint64_t>(size, (uint64_t)H_FUNC_ANAL_BUFFERSIZE);
+			if (bufferSize)
+				memArea->copyData(dataBuffer, addr, bufferSize);
+		}
+		else {
+			bufferSize = 0;
+		}
+
+		count = cs_disasm (handle, dataBuffer, bufferSize, addr, state.maxInstr, &insn);
+
 		if (count > 0) {
 			for (size_t i = 0; i < count; i++) {
 				memset (&instruction, 0, sizeof (Instruction));
