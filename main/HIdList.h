@@ -192,8 +192,11 @@ namespace holodec {
 		auto size() -> decltype(list.size()){
 			return list.size();
 		}
-		auto back() -> decltype(list.back()){
+		auto back() -> decltype(list.back()) {
 			return list.back();
+		}
+		auto empty() -> decltype(list.empty()) {
+			return list.empty();
 		}
 		iterator erase(iterator it) {
 			return list.erase(it);

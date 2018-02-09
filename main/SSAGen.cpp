@@ -622,19 +622,19 @@ namespace holodec {
 				HId endBlockId = createNewBlock();
 
 				SSAArgument exprArgs[2];
-				exprArgs[0] = parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1]));
-				exprArgs[1] = SSAArgument::createBlock(trueblockId);
+				exprArgs[0] = SSAArgument::createBlock(trueblockId);//target
+				exprArgs[1] = parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[0]));//condition
 				expression.subExpressions.assign (exprArgs, exprArgs + 2);
 				addExpression (&expression);
 
 				activateBlock (trueblockId);
-				parseExpression (irExpr->subExpressions[0]);
+				parseExpression (irExpr->subExpressions[1]);//trueblock
 				getActiveBlock()->fallthroughId = endBlockId;
 
 				if (falseblockId) {
 					getBlock (oldBlock)->fallthroughId = falseblockId;
 					activateBlock (falseblockId);
-					parseExpression (irExpr->subExpressions[2]);
+					parseExpression (irExpr->subExpressions[2]);//falseblock
 					SSABB* activeblock = getActiveBlock();
 					activeblock->fallthroughId = endBlockId;
 					activeblock->outBlocks.insert (endBlockId);
@@ -668,8 +668,8 @@ namespace holodec {
 				expression.size = arch->bitbase;
 
 				assert (subexpressioncount == 2);
-				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
-				expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1])));
+				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));//
+				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[1])));//
 
 				endOfBlock = true;
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
@@ -697,7 +697,7 @@ namespace holodec {
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
 
 				if (expression.subExpressions[0].type == SSAArgType::eUInt) {
-					function->funcsCalled.push_back (expression.subExpressions[0].uval);
+					function->funcsCalled.insert (expression.subExpressions[0].uval);
 				}
 
 				for (Register& reg : arch->registers) {

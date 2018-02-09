@@ -84,7 +84,7 @@ namespace holodec {
 		uint64_t baseaddr;
 		
 		HList<RegisterState> regStates;
-		HList<uint64_t> funcsCalled;
+		HUniqueList<uint64_t> funcsCalled;
 		HList<uint64_t> funcsCall;
 		
 		HIdList<DisAsmBasicBlock> basicblocks;

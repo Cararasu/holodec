@@ -450,9 +450,10 @@ int main (int argc, const char** argv) {
 	PeepholeOptimizer* optimizer = parsePhOptimizer ();
 	for (Function* func : binary->functions) {
 
-		func->callingconvention = holox86::x86architecture.getCallingConvention ("amd64")->id;
+		//func->callingconvention = holox86::x86architecture.getCallingConvention ("amd64")->id;
 
 		for (SSATransformer* transform : transformers) {
+			func->print(&holoavr::avrarchitecture);
 			transform->doTransformation (binary, func);
 		}
 

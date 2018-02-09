@@ -130,9 +130,12 @@ namespace holoavr {
 			{ 1, "==(6,#arg[1])", "=($tf,0)" },
 			{ 1, "==(7,#arg[1])", "=($if,0)" },
 		}, InstructionType::eBitSet },
-		{ AVR_INSTR_BLD, "bld",{
-			{ 1, "=(#arg[1],#or(#arg[1],#shl($tf,#arg[2])))" }
-		}, InstructionType::eShr },
+			{ AVR_INSTR_BLD, "bld",{
+				{ 2, "=(#arg[1],#or(#arg[1],#shl($tf,#arg[2])))" }
+			}, InstructionType::eShr },
+			{ AVR_INSTR_BST, "bst",{
+				{ 2, "=($tf,==(#or(#arg[1],#shl(1,#arg[2])),1))" }
+			}, InstructionType::eShr },
 		{ AVR_INSTR_BRBC, "brbc",{
 			{ 2, "==(0,#arg[1])", "?(#not($cf),#jmp(#arg[2]))" },
 		{ 2, "==(1,#arg[1])", "?(#not($zf),#jmp(#arg[2]))" },
@@ -163,52 +166,52 @@ namespace holoavr {
 			{ 1, "#trap" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BREQ, "breq",{
-			{ 1, "?($zf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],$zf)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRGE, "brge",{
-			{ 1, "?(#not($sf),#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],#not($sf))" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRHC, "brhc",{
-			{ 1, "?(#not($hf),#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],#not($hf))" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRHS, "brhs",{
-			{ 1, "?($hf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],$hf)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRID, "brid",{
-			{ 1, "?(#not($hf),#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],#not($hf))" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRIE, "brie",{
-			{ 1, "?($hf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],$hf)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRLO, "brlo",{
-			{ 1, "?($cf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],$cf)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRLT, "brlt",{
-			{ 1, "?($sf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],$sf)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRMI, "brmi",{
-			{ 1, "?($nf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],$nf)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRNE, "brne",{
-			{ 1, "?(#not($zf),#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],#not($zf))" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRPL, "brpl",{
-			{ 1, "?($nf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],$nf)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRSH, "brsh",{
-			{ 1, "?(#not($cf),#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],#not($cf))" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRTC, "brtc",{
-			{ 1, "?(#not($tf),#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],#not($tf))" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRTS, "brts",{
-			{ 1, "?($tf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],$tf)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRVC, "bvc",{
-			{ 1, "?($vf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],#not($vf))" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRVS, "brvs",{
-			{ 1, "?($vf,#jmp(#arg[1]))" },
+			{ 1, "#cjmp(#arg[1],$vf)" },
 		}, InstructionType::eShr },
 
 		{ AVR_INSTR_BSET, "bset",{
@@ -261,7 +264,7 @@ namespace holoavr {
 			{ 0, "=($zf,0)" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_COM, "com",{
-			{ 1, "#rec[sub](255,#arg[1])" }
+			{ 1, "#seq(=(#t[1],255),#rec[sub](#t[1],#arg[1]),=(#arg[1],#t[1]))" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_CP, "cp",{
 			{ 2, "#seq(=(#t[1],#arg[1]),#rec[sub](#t[1],#arg[2]))" }
@@ -273,13 +276,13 @@ namespace holoavr {
 			{ 2, "#rec[cp](#arg[1],#arg[2])" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_DEC, "dec",{
-			{ 2, "#seq(=(#t[1],$cf),#rec[sub](#arg[1],1),=($cf,#t[1]))" }
+			{ 1, "#seq(=(#t[1],$cf),#rec[sub](#arg[1],1),=($cf,#t[1]))" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_EICALL, "eicall",{
-			{ 2, "#seq(#push($stack,#ip),#call(#app($z,$eind)))" }
+			{ 0, "#seq(#push($stack,#ip),#call(#app($z,$eind)))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_EIJMP, "eijmp",{
-			{ 2, "#jmp(#app($z,$eind))" }
+			{ 0, "#jmp(#app($z,$eind))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_ELPM, "elpm",{
 			{ 1, "=(#arg[1],#ld($pmem,#app($z,$rampz),#bsize(#arg[1])))" }
@@ -291,13 +294,13 @@ namespace holoavr {
 			{ 2, "#seq(=(#arg[1],#xor(#arg[1],#arg[2])),=($vf,0),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eXor },
 		{ AVR_INSTR_FMUL, "fmul",{
-			{ 2, "#seq(=(#t[1],#shl(#mul(#arg[1],#arg[2]),1)),=($r0,#t[1][0,8]),=($r0,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,#c))" }
+			{ 2, "#seq(=(#t[1],#shl(#mul(#arg[1],#arg[2]),1)),=($r0,#t[1][0,8]),=($r1,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,#c))" }
 		}, InstructionType::eMul },
 		{ AVR_INSTR_FMULS, "fmuls",{
-			{ 2, "#seq(=(#t[1],#shl(#mul[s](#arg[1],#arg[2]),1)),=($r0,#t[1][0,8]),=($r0,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,#c))" }
+			{ 2, "#seq(=(#t[1],#shl(#mul[s](#arg[1],#arg[2]),1)),=($r0,#t[1][0,8]),=($r1,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,#c))" }
 		}, InstructionType::eMul },
 		{ AVR_INSTR_FMULSU, "fmulsu",{//TODO check if that is correct as I think something needs to be done here, but for now it should work
-			{ 2, "#seq(=(#t[1],#shl(#mul[s](#arg[1],#arg[2]),1)),=($r0,#t[1][0,8]),=($r0,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,#c))" }
+			{ 2, "#seq(=(#t[1],#shl(#mul[s](#arg[1],#arg[2]),1)),=($r0,#t[1][0,8]),=($r1,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,#c))" }
 		}, InstructionType::eMul },
 		{ AVR_INSTR_ICALL, "icall",{
 			{ 2, "#seq(#push($stack,#ip),#call($z))" }
@@ -352,128 +355,125 @@ namespace holoavr {
 
 		{ AVR_INSTR_LSL, "lsl",{
 			{ 1, "#seq(=(#arg[1],#shl(#arg[1],1)),=($cf,#c),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
-		}, InstructionType::eLoad },
+		}, InstructionType::eShl },
 		{ AVR_INSTR_LSR, "lsr",{
 			{ 1, "#seq(=(#arg[1],#shl(#arg[1],1)),=($cf,#c),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,0),=($vf,$cf),=($sf,$vf))" }
-		}, InstructionType::eLoad },
+		}, InstructionType::eShr },
 		{ AVR_INSTR_MOV, "mov",{
 			{ 2, "=(#arg[1],#arg[2])" }
-		}, InstructionType::eLoad },
+		}, InstructionType::eMov },
 		{ AVR_INSTR_MOVW, "movw",{
-			{ 4, "#seq(=(#t[1],#app(#arg[3],#arg[4]),=(#arg[1],#t[1][0,8]),=(#arg[2],#t[1][8,8])))" }
-		}, InstructionType::eLoad },
+			{ 4, "#seq(=(#t[1],#app(#arg[3],#arg[4])),=(#arg[1],#t[1][0,8]),=(#arg[2],#t[1][8,8]))" }
+		}, InstructionType::eMov },
 
 		{ AVR_INSTR_MUL, "mul",{
-			{ 2, "#seq(=(#t[1],#mul(#arg[1],#arg[2])),=($r0,#t[1][0,8]),=($r0,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,<[s](#t[1],0)))" }
+			{ 2, "#seq(=(#t[1],#mul(#arg[1],#arg[2])),=($r0,#t[1][0,8]),=($r1,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,<[s](#t[1],0)))" }
 		}, InstructionType::eMul },
 		{ AVR_INSTR_MULS, "muls",{
-			{ 2, "#seq(=(#t[1],#mul[s](#arg[1],#arg[2])),=($r0,#t[1][0,8]),=($r0,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,<[s](#t[1],0)))" }
+			{ 2, "#seq(=(#t[1],#mul[s](#arg[1],#arg[2])),=($r0,#t[1][0,8]),=($r1,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,<[s](#t[1],0)))" }
 		}, InstructionType::eMul },
 		{ AVR_INSTR_MULSU, "mulsu",{//TODO check if that is correct as I think something needs to be done here, but for now it should work
-			{ 2, "#seq(=(#t[1],#mul[s](#arg[1],#arg[2])),=($r0,#t[1][0,8]),=($r0,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,<[s](#t[1],0)))" }
+			{ 2, "#seq(=(#t[1],#mul[s](#arg[1],#arg[2])),=($r0,#t[1][0,8]),=($r1,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,<[s](#t[1],0)))" }
 		}, InstructionType::eMul },
 
 		{ AVR_INSTR_NEG, "neg",{
-			{ 2, "#seq(=(#arg[1],0),#rec[sub](#arg[1],#arg[2]))" }
+			{ 1, "#seq(=(#t[1],0),#rec[sub](#t[1],#arg[1]),=(#arg[1],#t[1]))" }
 		}, InstructionType::eMul },
 
 		{ AVR_INSTR_NOP, "nop",{ { "#nop" } }, InstructionType::eNop },
 
 		{ AVR_INSTR_OR, "or",{
 			{ 2, "#seq(=(#arg[1],#or(#arg[1],#arg[2])),=($cf,#c),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,0),=($sf,#xor($nf,$vf)))" }
-		}, InstructionType::eMul },
+		}, InstructionType::eOr },
 
 
 		{ AVR_INSTR_OUT, "out",{
 			{ 2, "$out(#arg[1],#arg[2])" }
-		}, InstructionType::eCall },
+		}, InstructionType::eIO },
 
 		{ AVR_INSTR_POP, "pop",{
 			{ 1, "=(#arg[1],#pop($stack,8))" }
-		}, InstructionType::eCall },
+		}, InstructionType::ePop },
 		{ AVR_INSTR_PUSH, "push",{
 			{ 1, "#push($stack,#arg[1])" }
-		}, InstructionType::eCall },
+		}, InstructionType::ePush },
 
 		{ AVR_INSTR_RCALL, "rcall",{
 			{ 1, "#seq(#push($stack,#ip),#call(#arg[1]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_RET, "ret",{
 			{ 0, "#seq(#pop($stack,#ip),#ret(#pop($stack,#bsize(#ip))))" }
-		}, InstructionType::eCall },
+		}, InstructionType::eRet },
 		{ AVR_INSTR_RETI, "reti",{
 			{ 0, "#seq(#pop($stack,#ip),=($if,1),#ret(#pop($stack,#bsize(#ip))))" }
-		}, InstructionType::eCall },
+		}, InstructionType::eRet },
 		{ AVR_INSTR_RJMP, "rjmp",{
 			{ 1, "#jmp(#arg[1])" }
-		}, InstructionType::eCall },
+		}, InstructionType::eJmp },
 
 		{ AVR_INSTR_ROL, "rol",{
-			{ 2, "#seq(=(#t[1],#rol(#app($cf,#arg[1]))),=($cf,#t[1][8]),=(#arg[1],#t[1][0,8]),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
-		}, InstructionType::eCall },
+			{ 1, "#seq(=(#t[1],#rol(#app($cf,#arg[1]))),=($cf,#t[1][8]),=(#arg[1],#t[1][0,8]),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
+		}, InstructionType::eShr },
 		{ AVR_INSTR_ROR, "ror",{
-			{ 2, "#seq(=(#t[1],#ror(#app($cf,#arg[1]))),=($cf,#t[1][8]),=(#arg[1],#t[1][0,8]),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
-		}, InstructionType::eCall },
+			{ 1, "#seq(=(#t[1],#ror(#app($cf,#arg[1]))),=($cf,#t[1][8]),=(#arg[1],#t[1][0,8]),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
+		}, InstructionType::eShr },
 
 		{ AVR_INSTR_SBC, "sbc",{
 			{ 2, "#seq(=(#arg[1],-(#arg[1],#arg[2],$cf)),=($cf,#c),=($vf,#o),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
-		}, InstructionType::eCall },
+		}, InstructionType::eSub },
 
 		{ AVR_INSTR_SBI, "sbi",{
 			{ 2, "#seq(#rec[in](#t[1],#arg[1]),$out(#arg[1],#or(#t[1]),#shl(1,#arg[2])))" }
-		}, InstructionType::eCall },
-		{ AVR_INSTR_SBI, "sbi",{
-			{ 2, "#seq(#rec[in](#t[1],#arg[1]),$out(#arg[1],#or(#t[1],#shl(1,#arg[2]))))" }
-		}, InstructionType::eCall },
+		}, InstructionType::eSub },
 		{ AVR_INSTR_SBIC, "sbic",{
 			{ 3, "#seq(#rec[in](#t[1],#arg[1]),?(==(#or(#t[1],#shl(1,#arg[2])),0),#jmp(#arg[3])))" }
-		}, InstructionType::eCall },
+		}, InstructionType::eSub },
 		{ AVR_INSTR_SBIS, "sbis",{
 			{ 3, "#seq(#rec[in](#t[1],#arg[1]),?(<>(#or(#t[1],#shl(1,#arg[2])),0),#jmp(#arg[3])))" }
-		}, InstructionType::eCall },
+		}, InstructionType::eSub },
 
 		{ AVR_INSTR_SBR, "sbr",{
-			{ 3, "#rec[or](#arg[1],#arg[2])" }
+			{ 3, "#rec[or](#arg[1],#shl(1,#arg[2])))" }
 		}, InstructionType::eOr },
-		{ AVR_INSTR_SBIC, "sbic",{
+		{ AVR_INSTR_SBRC, "sbrc",{
 			{ 3, "?(==(#or(#arg[1],#shl(1,#arg[2])),0),#jmp(#arg[3]))" }
-		}, InstructionType::eCall },
-		{ AVR_INSTR_SBIS, "sbis",{
+		}, InstructionType::eJmp },
+		{ AVR_INSTR_SBRS, "sbrs",{
 			{ 3, "?(<>(#or(#arg[1],#shl(1,#arg[2])),0),#jmp(#arg[3]))" }
-		}, InstructionType::eCall },
+		}, InstructionType::eJmp },
 
 		{ AVR_INSTR_SEC, "sec",{
-			{ 3, "=($sf,1)" }
+			{ 0, "=($sf,1)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SEH, "seh",{
-			{ 3, "=($hf,1)" }
+			{ 0, "=($hf,1)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SEI, "sei",{
-			{ 3, "=($if,1)" }
+			{ 0, "=($if,1)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SER, "ser",{
-			{ 3, "=(#arg[1],255)" }
+			{ 0, "=(#arg[1],255)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SES, "ses",{
-			{ 3, "=($sf,1)" }
+			{ 0, "=($sf,1)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SET, "set",{
-			{ 3, "=($tf,1)" }
+			{ 0, "=($tf,1)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SEV, "sev",{
-			{ 3, "=($vf,1)" }
+			{ 0, "=($vf,1)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SEZ, "sez",{
-			{ 3, "=($zf,1)" }
+			{ 0, "=($zf,1)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SLEEP, "sleep",{
-			{ 3, "#trap" }
+			{ 0, "#trap" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SPM, "spm",{
-			{ 3, "#st($pmem,#app($z,$rampz),#arg[1])" }
+			{ 1, "#st($pmem,#app($z,$rampz),#arg[1])" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SPM, "spm",{
-			{ 3, "#st($pmem,#app($z,$rampz),#arg[1])" }
+			{ 1, "#st($pmem,#app($z,$rampz),#arg[1])" }
 		}, InstructionType::eCall },
 
 		{ AVR_INSTR_ST, "st",{
