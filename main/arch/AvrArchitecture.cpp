@@ -24,55 +24,55 @@ namespace holoavr {
 	}
 	},
 		{
-			{ 0, "r0", RegType::eGPR, nullptr, nullptr, 8, 0, false },//0x00
-			{ 0, "r1", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r2", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r3", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r4", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r5", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r6", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r7", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r8", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r9", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r10", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r11", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r12", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r13", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r14", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r15", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r16", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r17", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r18", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r19", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r20", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r21", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r22", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r23", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r24", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r25", RegType::eGPR, nullptr, nullptr, 8, 0, false },
+			{ 0, "r0", RegType::eGPR, nullptr, "r0", 8, 0, false },//0x00
+			{ 0, "r1", RegType::eGPR, nullptr, "r1", 8, 0, false },
+			{ 0, "r2", RegType::eGPR, nullptr, "r2", 8, 0, false },
+			{ 0, "r3", RegType::eGPR, nullptr, "r3", 8, 0, false },
+			{ 0, "r4", RegType::eGPR, nullptr, "r4", 8, 0, false },
+			{ 0, "r5", RegType::eGPR, nullptr, "r5", 8, 0, false },
+			{ 0, "r6", RegType::eGPR, nullptr, "r6", 8, 0, false },
+			{ 0, "r7", RegType::eGPR, nullptr, "r7", 8, 0, false },
+			{ 0, "r8", RegType::eGPR, nullptr, "r8", 8, 0, false },
+			{ 0, "r9", RegType::eGPR, nullptr, "r9", 8, 0, false },
+			{ 0, "r10", RegType::eGPR, nullptr, "r10", 8, 0, false },
+			{ 0, "r11", RegType::eGPR, nullptr, "r11", 8, 0, false },
+			{ 0, "r12", RegType::eGPR, nullptr, "r12", 8, 0, false },
+			{ 0, "r13", RegType::eGPR, nullptr, "r13", 8, 0, false },
+			{ 0, "r14", RegType::eGPR, nullptr, "r14", 8, 0, false },
+			{ 0, "r15", RegType::eGPR, nullptr, "r15", 8, 0, false },
+			{ 0, "r16", RegType::eGPR, nullptr, "r16", 8, 0, false },
+			{ 0, "r17", RegType::eGPR, nullptr, "r17", 8, 0, false },
+			{ 0, "r18", RegType::eGPR, nullptr, "r18", 8, 0, false },
+			{ 0, "r19", RegType::eGPR, nullptr, "r19", 8, 0, false },
+			{ 0, "r20", RegType::eGPR, nullptr, "r20", 8, 0, false },
+			{ 0, "r21", RegType::eGPR, nullptr, "r21", 8, 0, false },
+			{ 0, "r22", RegType::eGPR, nullptr, "r22", 8, 0, false },
+			{ 0, "r23", RegType::eGPR, nullptr, "r23", 8, 0, false },
+			{ 0, "r24", RegType::eGPR, nullptr, "r24", 8, 0, false },
+			{ 0, "r25", RegType::eGPR, nullptr, "r25", 8, 0, false },
 
-			{ 0, "x", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r26", RegType::eGPR, "z", "z", 8, 8, false },
-			{ 0, "r27", RegType::eGPR, "z", "z", 8, 0, false },
+			{ 0, "x", RegType::eGPR, nullptr, "x", 8, 0, false },
+			{ 0, "r26", RegType::eGPR, "x", "x", 8, 8, false },
+			{ 0, "r27", RegType::eGPR, "x", "x", 8, 0, false },
 
-			{ 0, "y", RegType::eGPR, nullptr, nullptr, 8, 0, false },
-			{ 0, "r28", RegType::eGPR, "z", "z", 8, 8, false },
-			{ 0, "r29", RegType::eGPR, "z", "z", 8, 0, false },
+			{ 0, "y", RegType::eGPR, nullptr, "y", 8, 0, false },
+			{ 0, "r28", RegType::eGPR, "y", "y", 8, 8, false },
+			{ 0, "r29", RegType::eGPR, "y", "y", 8, 0, false },
 
-			{ 0, "z", RegType::eGPR, nullptr, nullptr, 8, 0, false },
+			{ 0, "z", RegType::eGPR, nullptr, "z", 8, 0, false },
 			{ 0, "r30", RegType::eGPR, "z", "z", 8, 8, false },
 			{ 0, "r31", RegType::eGPR, "z", "z", 8, 0, false },//0x1f
 
-			{ 0, "ccp", RegType::eSegment, nullptr, nullptr, 8, 0, false },//0x34
-			{ 0, "rampd", RegType::eSegment, nullptr, nullptr, 8, 0, false },//0x38
-			{ 0, "rampx", RegType::eSegment, nullptr, nullptr, 8, 0, false },//0x39
-			{ 0, "rampy", RegType::eSegment, nullptr, nullptr, 8, 0, false },//0x3A
-			{ 0, "rampz", RegType::eSegment, nullptr, nullptr, 8, 0, false },//0x3B
-			{ 0, "eind", RegType::eSegment, nullptr, nullptr, 8, 0, false },//0x3C
-			{ 0, "sp", RegType::eStackPtr, nullptr, nullptr, 16, 0, false },//0x3e-0x3d
+			{ 0, "ccp", RegType::eSegment, nullptr, "ccp", 8, 0, false },//0x34
+			{ 0, "rampd", RegType::eSegment, nullptr, "rampd", 8, 0, false },//0x38
+			{ 0, "rampx", RegType::eSegment, nullptr, "rampx", 8, 0, false },//0x39
+			{ 0, "rampy", RegType::eSegment, nullptr, "rampy", 8, 0, false },//0x3A
+			{ 0, "rampz", RegType::eSegment, nullptr, "rampz", 8, 0, false },//0x3B
+			{ 0, "eind", RegType::eSegment, nullptr, "eind", 8, 0, false },//0x3C
+			{ 0, "sp", RegType::eStackPtr, nullptr, "sp", 16, 0, false },//0x3e-0x3d
 			{ 0, "sph", RegType::eStackPtr, "sp", "sp", 8, 0, false },//0x3e
 			{ 0, "spl", RegType::eStackPtr, "sp", "sp", 8, 8, false },//0x3d
-			{ 0, "sreg", RegType::eFlag, nullptr, nullptr, 8, 0, false },//0x3f
+			{ 0, "sreg", RegType::eFlag, nullptr, "sreg", 8, 0, false },//0x3f
 
 			{ 0, "cf", RegType::eFlag, "sreg", "sreg", 1, 0, false },
 			{ 0, "zf", RegType::eFlag, "sreg", "sreg", 1, 1, false },

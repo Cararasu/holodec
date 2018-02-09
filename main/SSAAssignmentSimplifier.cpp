@@ -79,7 +79,7 @@ namespace holodec{
 					for(auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();){
 						SSAArgument& arg = *it;
 						SSAExprType type = function->ssaRep.expressions[arg.ssaId].type;
-						while(arg.type == SSAArgType::eId && arg.ssaId && EXPR_IS_TRANSIENT(type)){
+						while(arg.type == SSAArgType::eId && arg.ssaId && EXPR_IS_TRANSPARENT(type)){
 							arg = function->ssaRep.expressions[arg.ssaId].subExpressions[0];
 							type = function->ssaRep.expressions[arg.ssaId].type;
 						}

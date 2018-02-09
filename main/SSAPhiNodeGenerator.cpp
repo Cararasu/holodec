@@ -167,7 +167,7 @@ namespace holodec {
 				}
 				switch (expr->location) {
 				case SSAExprLocation::eReg:
-					addRegDef (expr->id, arch->getRegister (expr->locref.refId), &bbwrapper.outputs, ! EXPR_IS_TRANSIENT (expr->type));
+					addRegDef (expr->id, arch->getRegister (expr->locref.refId), &bbwrapper.outputs, ! EXPR_IS_TRANSPARENT (expr->type));
 					break;
 				case SSAExprLocation::eMem:
 					addMemDef (expr->id, arch->getMemory (expr->locref.refId), &bbwrapper.outputMems);
@@ -186,7 +186,7 @@ namespace holodec {
 		printf ("Generating Phi-Nodes for Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 		this->binary = binary;
 		this->function = function;
-		
+
 		for (SSABB& bb : function->ssaRep.bbs) {
 			for (HId id : bb.exprIds) {
 				SSAExpression* expr = function->ssaRep.expressions.get (id);
@@ -195,7 +195,7 @@ namespace holodec {
 				for (size_t i = 0; i < expr->subExpressions.size(); i++) {
 					SSAArgument& arg = expr->subExpressions[i];
 					//reset id of register/memory/stack so that we can redo them to find non defined reg-arguments
-					if (arg.location != SSAExprLocation::eNone) {
+					if (arg.location == SSAExprLocation::eReg) {
 						setSSAID (&function->ssaRep, expr, static_cast<HId>(i), 0);
 					}
 				}
@@ -217,8 +217,8 @@ namespace holodec {
 				uint64_t gatheredIdCount = 0;
 				uint64_t visitedBlockCount = 1;
 
-				memset(gatheredIds, 0, sizeof(HId));
-				memset(visitedBlocks, 0, sizeof(HId));
+				memset(gatheredIds, 0, sizeof(HId)*bbwrappers.size());
+				memset(visitedBlocks, 0, sizeof(HId)*bbwrappers.size());
 				visitedBlocks[0] = wrap.ssaBB->id;
 
 				Register* reg = arch->getRegister (regDef.regId);
@@ -256,43 +256,6 @@ namespace holodec {
 					addRegDef (exprId, reg, &wrap.outputs, true);
 				}
 			}
-			/*
-			for (SSAMemDef& memDef : wrap.inputMems) {
-				HId gatheredIds[bbwrappers.size()] = {0};
-				uint64_t gatheredIdCount = 0;
-				HId visitedBlocks[bbwrappers.size()] = {wrap.ssaBB->id};
-				uint64_t visitedBlockCount = 1;
-
-				Memory* mem = arch->getMemory (memDef.memId);
-
-				for (HId inBlockId : wrap.ssaBB->inBlocks) {
-					handleBBs (getWrapper (inBlockId), mem, gatheredIds, &gatheredIdCount, visitedBlocks, &visitedBlockCount);
-				}
-				assert (gatheredIdCount);
-
-				SSAExpression phinode;
-				phinode.type = SSA_EXPR_PHI;
-				phinode.exprtype = SSA_TYPE_MEMACCESS;
-				phinode.location = SSA_LOCATION_MEM;
-				phinode.locref = {mem->id, 0};
-				phinode.size = 0;
-				phinode.instrAddr = wrap.ssaBB->startaddr;
-				for (int i = 0; i < gatheredIdCount; i++) {
-					phinode.subExpressions.push_back (SSAArgument::createMem (mem->id, gatheredIds[i]));
-				}
-				HId exprId = function->ssaRep.addAtStart(&phinode, wrap.ssaBB);
-				bool needInOutput = true;
-				for (SSAMemDef& def : wrap.outputMems) {
-					if (def.memId == mem->id) {
-						needInOutput = false;
-						break;
-					}
-				}
-				if (needInOutput) {
-					addMemDef (exprId, mem, &wrap.outputMems);
-				}
-			}*/
-			//wrap.print(arch);
 		}
 
 #if !defined(__GNUC__) || !defined(__MINGW32__)
@@ -305,8 +268,6 @@ namespace holodec {
 
 	void SSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, Register* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount) {
 		//printf ("\nHandling Block %d\n", wrapper->ssaBB->id);
-
-		//printf ("Found no match on BB %d\n", wrapper->ssaBB->id);
 
 		SSARegDef* foundParentDef = nullptr;
 		for (SSARegDef& regDef : wrapper->outputs) {
@@ -348,6 +309,7 @@ namespace holodec {
 			}
 			assert (found);
 		} else {
+			//printf("Found no match on BB %d\n", wrapper->ssaBB->id);
 			for (uint64_t i = 0; i < *visitedBlockCount; i++) {
 				if (visitedBlocks[i] == wrapper->ssaBB->id) {
 					//printf("Already Visited BB %d\n", wrapper->ssaBB->id);

@@ -453,13 +453,14 @@ int main (int argc, const char** argv) {
 		//func->callingconvention = holox86::x86architecture.getCallingConvention ("amd64")->id;
 
 		for (SSATransformer* transform : transformers) {
-			func->print(&holoavr::avrarchitecture);
 			transform->doTransformation (binary, func);
 		}
 
 		for (SSAExpression& expr : func->ssaRep.expressions) {
 			MatchContext context;
-			optimizer->ruleSet.baserule.matchRule (&holox86::x86architecture, &func->ssaRep, &expr, &context);
+			if (optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
+				break;//TODO needs to redo stuff, but iterator might break here
+			}
 		}
 
 		func->ssaRep.recalcRefCounts();

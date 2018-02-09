@@ -338,7 +338,7 @@ namespace holodec {
 				if (arg.type == SSAArgType::eId) {
 					auto it = replacements->find (arg.ssaId);
 					if (it != replacements->end()) {
-						if (EXPR_IS_TRANSIENT (expr.type)) {
+						if (EXPR_IS_TRANSPARENT (expr.type)) {
 							arg = it->second;
 							if (it->second.type == SSAArgType::eId)
 								changeRefCount (it->second.ssaId, expr.refcount);
@@ -396,7 +396,7 @@ namespace holodec {
 	}
 
 	void SSARepresentation::propagateRefCount (SSAExpression* expr, int64_t modifier) {
-		if (!EXPR_IS_TRANSIENT (expr->type)) {
+		if (!EXPR_IS_TRANSPARENT (expr->type)) {
 			for (SSAArgument& arg : expr->subExpressions) {
 				if (arg.type == SSAArgType::eId)
 					changeRefCount (arg.ssaId, modifier);
@@ -411,7 +411,7 @@ namespace holodec {
 	void SSARepresentation::changeRefCount (HId id, int64_t count) {
 		if (!id)
 			return;
-		if (EXPR_IS_TRANSIENT (expressions[id].type)) {
+		if (EXPR_IS_TRANSPARENT (expressions[id].type)) {
 			std::vector<bool> visited;
 			visited.resize (expressions.size(), false);
 			changeRefCount (id, visited, count);
@@ -424,7 +424,7 @@ namespace holodec {
 			return;
 		visited[id - 1] = true;
 		expressions[id].refcount += count;
-		if (EXPR_IS_TRANSIENT (expressions[id].type)) {
+		if (EXPR_IS_TRANSPARENT (expressions[id].type)) {
 			for (SSAArgument& arg : expressions[id].subExpressions) {
 				if (arg.type == SSAArgType::eId)
 					changeRefCount (arg.ssaId, visited, count);
@@ -475,7 +475,7 @@ namespace holodec {
 	HId SSARepresentation::addExpr (SSAExpression* expr) {
 		expressions.push_back (*expr);
 		HId newId = expressions.back().id;
-		if (!EXPR_IS_TRANSIENT (expr->type))
+		if (!EXPR_IS_TRANSPARENT (expr->type))
 			propagateRefCount (newId, 1);
 		return newId;
 	}
