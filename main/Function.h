@@ -80,7 +80,6 @@ namespace holodec {
 	struct Function {
 		HId id;
 		HId symbolref;
-		HId callingconvention;
 		uint64_t baseaddr;
 		
 		HList<RegisterState> regStates;

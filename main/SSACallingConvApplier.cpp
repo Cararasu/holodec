@@ -8,7 +8,7 @@ namespace holodec {
 	void SSACallingConvApplier::doTransformation (Function* function) {
 
 		printf ("Apply Calling Convention in Function at Address 0x%" PRIx64 "\n", function->baseaddr);
-
+		/*
 		CallingConvention* cc = arch->getCallingConvention (function->callingconvention);
 
 		Stack* stack = cc->stack ? arch->getStack (cc->stack) : nullptr;
@@ -158,7 +158,8 @@ namespace holodec {
 				//TODO get the calling convention of the target
 				//currently HACK to use own calling convention
 
-				for (auto it = expr.subExpressions.begin() + 1/* skip first parameter*/; it != expr.subExpressions.end();) {
+				//skip first parameter
+				for (auto it = expr.subExpressions.begin() + 1; it != expr.subExpressions.end();) {
 					SSAArgument& arg = *it;
 					bool isParam = false;
 
@@ -186,7 +187,7 @@ namespace holodec {
 					it++;
 				}
 			}
-		}
+		}*/
 		function->ssaRep.compress();
 	}
 }

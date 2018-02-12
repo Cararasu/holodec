@@ -393,8 +393,6 @@ int main (int argc, const char** argv) {
 
 	binary->print();
 
-	//return 0;
-
 	std::vector<SSATransformer*> transformers = {
 		new SSAAddressToBlockTransformer(),
 		//new SSACallingConvApplier(),
@@ -450,8 +448,6 @@ int main (int argc, const char** argv) {
 	PeepholeOptimizer* optimizer = parsePhOptimizer ();
 	for (Function* func : binary->functions) {
 
-		//func->callingconvention = holox86::x86architecture.getCallingConvention ("amd64")->id;
-
 		for (SSATransformer* transform : transformers) {
 			transform->doTransformation (binary, func);
 		}
@@ -459,7 +455,7 @@ int main (int argc, const char** argv) {
 		for (SSAExpression& expr : func->ssaRep.expressions) {
 			MatchContext context;
 			if (optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
-				break;//TODO needs to redo stuff, but iterator might break here
+				break;//TODO needs to redo stuff, because iterator might break here
 			}
 		}
 

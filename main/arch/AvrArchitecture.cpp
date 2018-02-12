@@ -392,7 +392,7 @@ namespace holoavr {
 		}, InstructionType::eIO },
 
 		{ AVR_INSTR_POP, "pop",{
-			{ 1, "=(#arg[1],#pop($stack,8))" }
+			{ 1, "=(#arg[1],#pop($stack,#size(#arg[1])))" }
 		}, InstructionType::ePop },
 		{ AVR_INSTR_PUSH, "push",{
 			{ 1, "#push($stack,#arg[1])" }
@@ -433,7 +433,7 @@ namespace holoavr {
 		}, InstructionType::eSub },
 
 		{ AVR_INSTR_SBR, "sbr",{
-			{ 3, "#rec[or](#arg[1],#shl(1,#arg[2])))" }
+			{ 3, "#rec[or](#arg[1],#shl(1,#arg[2]))" }
 		}, InstructionType::eOr },
 		{ AVR_INSTR_SBRC, "sbrc",{
 			{ 3, "?(==(#or(#arg[1],#shl(1,#arg[2])),0),#jmp(#arg[3]))" }

@@ -37,7 +37,7 @@ namespace holodec {
 					}
 				}
 			}else{
-				if (expression->subExpressions[0].type == SSAArgType::eId) {
+				if (expression->subExpressions[0].type == SSAArgType::eId && expression->subExpressions[0].location != SSAExprLocation::eBlock) {
 					SSAExpression& loadExpr = function->ssaRep.expressions[expression->subExpressions[0].ssaId];
 					if (loadExpr.type == SSAExprType::eLoad) {
 						uint64_t baseaddr;

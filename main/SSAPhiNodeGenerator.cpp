@@ -187,6 +187,8 @@ namespace holodec {
 		this->binary = binary;
 		this->function = function;
 
+		resolveRegs();
+
 		for (SSABB& bb : function->ssaRep.bbs) {
 			for (HId id : bb.exprIds) {
 				SSAExpression* expr = function->ssaRep.expressions.get (id);
@@ -202,7 +204,6 @@ namespace holodec {
 			}
 		}
 
-		resolveRegs();
 
 #if defined(__GNUC__) || defined(__MINGW32__)
 		HId gatheredIds[bbwrappers.size()];

@@ -870,12 +870,13 @@ namespace holodec {
 					assert (mem);
 
 					SSAExpression expression;
-					expression.type = SSAExprType::eStore;
+					expression.type = SSAExprType::ePush;
 					expression.exprtype = SSAType::eMemaccess;
 					expression.size = 0;
 					expression.location = SSAExprLocation::eMem;
 					expression.locref = {mem->id, 0};
 					expression.subExpressions = {
+						SSAArgument::createMem(mem->id),
 						SSAArgument::createReg (reg),
 						value
 					};
@@ -918,14 +919,16 @@ namespace holodec {
 					assert (mem);
 
 					SSAExpression expression;
-					expression.type = SSAExprType::eLoad;
+					expression.type = SSAExprType::ePop;
 					expression.exprtype = SSAType::eUInt;
 					expression.size = stack->wordbitsize * sizeadjust.uval;
 					expression.location = SSAExprLocation::eMem;
 					expression.locref = {mem->id, 0};
-					expression.subExpressions.push_back (SSAArgument::createMem (mem->id));
-					expression.subExpressions.push_back (SSAArgument::createReg (reg));
-					expression.subExpressions.push_back (sizeadjust);
+					expression.subExpressions = {
+						SSAArgument::createMem(mem->id),
+						SSAArgument::createReg(reg),
+						sizeadjust 
+					};
 
 					SSAExpression adjustExpr;
 					adjustExpr.type = SSAExprType::eOp;
