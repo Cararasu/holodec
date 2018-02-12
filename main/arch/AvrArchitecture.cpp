@@ -51,15 +51,15 @@ namespace holoavr {
 			{ 0, "r24", RegType::eGPR, nullptr, "r24", 8, 0, false },
 			{ 0, "r25", RegType::eGPR, nullptr, "r25", 8, 0, false },
 
-			{ 0, "x", RegType::eGPR, nullptr, "x", 8, 0, false },
+			{ 0, "x", RegType::eGPR, nullptr, "x", 16, 0, false },
 			{ 0, "r26", RegType::eGPR, "x", "x", 8, 8, false },
 			{ 0, "r27", RegType::eGPR, "x", "x", 8, 0, false },
 
-			{ 0, "y", RegType::eGPR, nullptr, "y", 8, 0, false },
+			{ 0, "y", RegType::eGPR, nullptr, "y", 16, 0, false },
 			{ 0, "r28", RegType::eGPR, "y", "y", 8, 8, false },
 			{ 0, "r29", RegType::eGPR, "y", "y", 8, 0, false },
 
-			{ 0, "z", RegType::eGPR, nullptr, "z", 8, 0, false },
+			{ 0, "z", RegType::eGPR, nullptr, "z", 16, 0, false },
 			{ 0, "r30", RegType::eGPR, "z", "z", 8, 8, false },
 			{ 0, "r31", RegType::eGPR, "z", "z", 8, 0, false },//0x1f
 
@@ -309,6 +309,15 @@ namespace holoavr {
 			{ 2, "#call($z)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_IN, "in",{
+			{ 2, "==(#arg[2],52)", "=(#arg[1],$ccp)" },
+			{ 2, "==(#arg[2],56)", "=(#arg[1],$rampd)" },
+			{ 2, "==(#arg[2],57)", "=(#arg[1],$rampx)" },
+			{ 2, "==(#arg[2],58)", "=(#arg[1],$rampy)" },
+			{ 2, "==(#arg[2],59)", "=(#arg[1],$rampz)" },
+			{ 2, "==(#arg[2],60)", "=(#arg[1],$eind)" },
+			{ 2, "==(#arg[2],61)", "=(#arg[1],$spl)" },
+			{ 2, "==(#arg[2],62)", "=(#arg[1],$sph)" },
+			{ 2, "==(#arg[2],63)", "=(#arg[1],$sreg)" },
 			{ 2, "=(#arg[1],$in(#arg[2]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_INC, "inc",{
@@ -386,8 +395,16 @@ namespace holoavr {
 			{ 2, "#seq(=(#arg[1],#or(#arg[1],#arg[2])),=($cf,#c),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,0),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eOr },
 
-
 		{ AVR_INSTR_OUT, "out",{
+			{ 2, "==(#arg[2],52)", "=($ccp,#arg[1])" },
+			{ 2, "==(#arg[2],56)", "=($rampd,#arg[1])" },
+			{ 2, "==(#arg[2],57)", "=($rampx,#arg[1])" },
+			{ 2, "==(#arg[2],58)", "=($rampy,#arg[1])" },
+			{ 2, "==(#arg[2],59)", "=($rampz,#arg[1])" },
+			{ 2, "==(#arg[2],60)", "=($eind,#arg[1])" },
+			{ 2, "==(#arg[2],61)", "=($spl,#arg[1)" },
+			{ 2, "==(#arg[2],62)", "=($sph,#arg[1])" },
+			{ 2, "==(#arg[2],63)", "=($sreg,#arg[1])" },
 			{ 2, "$out(#arg[1],#arg[2])" }
 		}, InstructionType::eIO },
 

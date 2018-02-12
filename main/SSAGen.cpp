@@ -75,7 +75,7 @@ namespace holodec {
 		default:
 			return IRArgument::createUVal( (uint64_t) 1, arch->bitbase);
 		case IR_ARGTYPE_ARG: {
-			return (*arglist) [argExpr.ref.refId];
+			return (*arglist) [argExpr.ref.refId - 1];
 		}
 		case IR_ARGTYPE_ID: {
 			IRExpression* irExpr = arch->getIrExpr (argExpr.ref.refId);
@@ -976,19 +976,33 @@ namespace holodec {
 				size_t i;
 				for (i = 0; i < instrdef->irs.size(); i++) {
 					if (arguments.size() == instrdef->irs[i].argcount) {
-						IRArgument constArg = parseConstExpression (instrdef->irs[i].condExpr, &arguments);
-						if (constArg && constArg.type == IR_ARGTYPE_UINT && constArg.uval) {
-							parseExpression (instrdef->irs[i].rootExpr);
-							break;
+						if (instrdef->irs[i].condExpr) {
+							IRArgument constArg = parseConstExpression(instrdef->irs[i].condExpr, &arguments);
+							if (!(constArg && constArg.type == IR_ARGTYPE_UINT && constArg.uval)) {
+								continue;
+							}
 						}
+						parseExpression (instrdef->irs[i].rootExpr);
+						break;
 					}
 				}
-				if (i ==  instrdef->irs.size()) {
+				if (i == instrdef->irs.size()) {
 					printf ("Found No Recursive Match %s in parsing instruction: ", instrdef->mnemonics.cstr());
 					instruction->print (arch);
 				}
-				this->arguments = cachedArgs;
 				this->tmpdefs = cachedTemps;
+				for (size_t i = 0; i < subexpressioncount; i++) {
+					IRArgument& arg = irExpr->subExpressions[i];
+					if (arguments[i].type == IRArgTypes::IR_ARGTYPE_SSAID && arg.type == IRArgTypes::IR_ARGTYPE_TMP) {
+						for (SSATmpDef& tmpDef : tmpdefs) {
+							if (tmpDef.id == arg.ref.refId) {
+								tmpDef.arg = arguments[i];
+							}
+						}
+					}
+				}
+
+				this->arguments = cachedArgs;
 			}
 			return IRArgument::create ();
 			case IR_EXPR_REP: {

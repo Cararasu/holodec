@@ -86,10 +86,10 @@ namespace holodec {
 		uint32_t size = 0;
 
 		bool operator!() {
-			return !type;
+			return type == IR_ARGTYPE_UNKN;
 		}
 		operator bool() {
-			return !!type;
+			return type != IR_ARGTYPE_UNKN;
 		}
 		bool isConst() {
 			return type == IR_ARGTYPE_SINT || type == IR_ARGTYPE_UINT || type == IR_ARGTYPE_FLOAT;

@@ -184,9 +184,9 @@ namespace holodec {
 				printf("Memory-Area %s\n", arch->getMemory(area.first)->name.cstr());
 				for (DataSegment* segment : area.second->dataSegments) {
 					printIndent(indent + 2);
-					printf("Block: 0x%x - 0x%x\n", segment->offset, segment->offset + (segment->data.size() / area.second->wordsize));
+					printf("Block: 0x%" PRIx64 " - 0x%" PRIx64 "\n", segment->offset, segment->offset + (segment->data.size() / area.second->wordsize));
 					printIndent(indent + 2);
-					printf("Size: 0x%x\n", segment->data.size());
+					printf("Size: 0x%zx\n", segment->data.size());
 				}
 			}
 			printIndent(indent);

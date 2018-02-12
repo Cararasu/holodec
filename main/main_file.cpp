@@ -390,7 +390,6 @@ int main (int argc, const char** argv) {
 
 	printf ("DataSegment: %s\n", binary->defaultArea->name.name.cstr());
 
-
 	binary->print();
 
 	std::vector<SSATransformer*> transformers = {

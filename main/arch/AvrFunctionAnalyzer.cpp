@@ -340,7 +340,7 @@ namespace holoavr{
 			if (!(reg1 && reg1->id)) {
 				return false;
 			}
-			uint16_t value = (firstbytes & 0xF) | ((firstbytes & 0x300) >> 8);
+			uint16_t value = (firstbytes & 0xF) | ((firstbytes & 0x600) >> 5);
 			if (firstbytes & 0x0800) {//out
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_OUT);
 				instr->operands.push_back(IRArgument::createUVal(value, arch->bitbase));

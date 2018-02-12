@@ -126,7 +126,7 @@ namespace holodec {
 
 										SSAExpression newExpr;
 										newExpr.type = SSAExprType::eSplit;
-										newExpr.size = static_cast<uint32_t>((def.offset + def.size) - (reg->offset + reg->size));
+										newExpr.size = static_cast<uint32_t>((def.offset + def.size) - reg->offset);
 										newExpr.exprtype = SSAType::eUInt;
 										newExpr.instrAddr = expr->instrAddr;
 										newExpr.location = SSAExprLocation::eReg;
@@ -187,8 +187,6 @@ namespace holodec {
 		this->binary = binary;
 		this->function = function;
 
-		resolveRegs();
-
 		for (SSABB& bb : function->ssaRep.bbs) {
 			for (HId id : bb.exprIds) {
 				SSAExpression* expr = function->ssaRep.expressions.get (id);
@@ -203,6 +201,8 @@ namespace holodec {
 				}
 			}
 		}
+
+		resolveRegs();
 
 
 #if defined(__GNUC__) || defined(__MINGW32__)
