@@ -445,7 +445,7 @@ int main (int argc, const char** argv) {
 	binary->print();
 
 	PeepholeOptimizer* optimizer = parsePhOptimizer ();
-	for (Function* func : binary->functions) {
+	/*for (Function* func : binary->functions) {
 
 		for (SSATransformer* transform : transformers) {
 			transform->doTransformation (binary, func);
@@ -464,6 +464,29 @@ int main (int argc, const char** argv) {
 
 		holodec::g_logger.log<LogLevel::eInfo> ("Symbol %s", binary->getSymbol (func->symbolref)->name.cstr());
 		//func->print (&holox86::x86architecture);
+	}*/
+
+	Function* func = binary->getFunction("func_0x2516");
+	if (func) {
+		func->print(binary->arch);
+		for (SSATransformer* transform : transformers) {
+			transform->doTransformation(binary, func);
+			func->print(binary->arch);
+		}
+
+		for (SSAExpression& expr : func->ssaRep.expressions) {
+			MatchContext context;
+			if (optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
+				break;//TODO needs to redo stuff, because iterator might break here
+			}
+		}
+
+		func->ssaRep.recalcRefCounts();
+
+		transformers[4]->doTransformation(binary, func);
+
+		holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
+		func->print(binary->arch);
 	}
 	delete optimizer;
 

@@ -72,16 +72,16 @@ namespace holoavr {
 			{ 0, "sp", RegType::eStackPtr, nullptr, "sp", 16, 0, false },//0x3e-0x3d
 			{ 0, "sph", RegType::eStackPtr, "sp", "sp", 8, 0, false },//0x3e
 			{ 0, "spl", RegType::eStackPtr, "sp", "sp", 8, 8, false },//0x3d
-			{ 0, "sreg", RegType::eFlag, nullptr, "sreg", 8, 0, false },//0x3f
 
-			{ 0, "cf", RegType::eFlag, "sreg", "sreg", 1, 0, false },
-			{ 0, "zf", RegType::eFlag, "sreg", "sreg", 1, 1, false },
-			{ 0, "nf", RegType::eFlag, "sreg", "sreg", 1, 2, false },
-			{ 0, "vf", RegType::eFlag, "sreg", "sreg", 1, 3, false },
-			{ 0, "sf", RegType::eFlag, "sreg", "sreg", 1, 4, false },
-			{ 0, "hf", RegType::eFlag, "sreg", "sreg", 1, 5, false },
-			{ 0, "tf", RegType::eFlag, "sreg", "sreg", 1, 6, false },
-			{ 0, "if", RegType::eFlag, "sreg", "sreg", 1, 7, false }
+			//{ 0, nullptr, RegType::eFlag, nullptr, nullptr, 8, 0, false },//0x3f
+			{ 0, "cf", RegType::eFlag, nullptr, "cf", 1, 0, false },
+			{ 0, "zf", RegType::eFlag, nullptr, "zf", 1, 0, false },
+			{ 0, "nf", RegType::eFlag, nullptr, "nf", 1, 0, false },
+			{ 0, "vf", RegType::eFlag, nullptr, "vf", 1, 0, false },
+			{ 0, "sf", RegType::eFlag, nullptr, "sf", 1, 0, false },
+			{ 0, "hf", RegType::eFlag, nullptr, "hf", 1, 0, false },
+			{ 0, "tf", RegType::eFlag, nullptr, "tf", 1, 0, false },
+			{ 0, "if", RegType::eFlag, nullptr, "if", 1, 0, false }
 		},
 		{
 			{
@@ -317,7 +317,7 @@ namespace holoavr {
 			{ 2, "==(#arg[2],60)", "=(#arg[1],$eind)" },
 			{ 2, "==(#arg[2],61)", "=(#arg[1],$spl)" },
 			{ 2, "==(#arg[2],62)", "=(#arg[1],$sph)" },
-			{ 2, "==(#arg[2],63)", "=(#arg[1],$sreg)" },
+			{ 2, "==(#arg[2],63)", "=(#arg[1],#app($cf,$zf,$nf,$vf,$sf,$hf,$tf,$if))" },
 			{ 2, "=(#arg[1],$in(#arg[2]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_INC, "inc",{
@@ -404,7 +404,7 @@ namespace holoavr {
 			{ 2, "==(#arg[2],60)", "=($eind,#arg[1])" },
 			{ 2, "==(#arg[2],61)", "=($spl,#arg[1])" },
 			{ 2, "==(#arg[2],62)", "=($sph,#arg[1])" },
-			{ 2, "==(#arg[2],63)", "=($sreg,#arg[1])" },
+			{ 2, "==(#arg[2],63)", "#seq(=($cf,#arg[1][0]),=($zf,#arg[1][1]),=($nf,#arg[1][2]),=($vf,#arg[1][3]),=($sf,#arg[1][4]),=($hf,#arg[1][5]),=($tf,#arg[1][6]),=($if,#arg[1][7]))" },
 			{ 2, "$out(#arg[1],#arg[2])" }
 		}, InstructionType::eIO },
 

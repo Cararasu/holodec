@@ -314,6 +314,30 @@ namespace holodec {
 		}
 		return true;
 	}
+	bool IRParser::parseArgFlags(IRArgument* arg) {
+		size_t x = index;
+		if (parseCharacter('[')) {
+			while (true) {
+				switch (peek()) {
+				case '0':case '1':case '2':case '3':case '4':
+				case '5':case '6':case '7':case '8':case '9':
+					int64_t size;
+					if (parseNumber(&size))
+						arg->size = size;
+					continue;
+				default:
+					break;
+				}
+				break;
+			}
+			if (!parseCharacter(']')) {
+				printParseFailure("']'");
+				return false;
+			}
+			return true;
+		}
+		return true;
+	}
 
 	IRArgument IRParser::parseIRExpression() {
 
@@ -433,7 +457,9 @@ namespace holodec {
 					printParseFailure ("Number");
 					return IRArgument::create();//IR_EXPR_INVALID;
 				}
-				return IRArgument::createUVal( (uint64_t) num, arch->bitbase);
+				IRArgument arg = IRArgument::createUVal((uint64_t)num, arch->bitbase);
+				parseArgFlags(&arg);
+				return arg;
 			}
 			}
 			size_t x = index;

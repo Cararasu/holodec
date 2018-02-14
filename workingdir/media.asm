@@ -3906,6 +3906,8 @@ Disassembly of section .sec1:
     221a:	df 91       	pop	r29
     221c:	cf 91       	pop	r28
     221e:	08 95       	ret
+	
+	
     2220:	0f 93       	push	r16
     2222:	1f 93       	push	r17
     2224:	cf 93       	push	r28
@@ -3973,6 +3975,8 @@ Disassembly of section .sec1:
     22a2:	1f 91       	pop	r17
     22a4:	0f 91       	pop	r16
     22a6:	08 95       	ret
+	
+	
     22a8:	cf 93       	push	r28
     22aa:	df 93       	push	r29
     22ac:	cd b7       	in	r28, 0x3d	; 61
@@ -8718,6 +8722,7 @@ Disassembly of section .sec1:
     4a26:	e0 2d       	mov	r30, r0
     4a28:	1b be       	out	0x3b, r1	; 59
     4a2a:	19 94       	eijmp
+	
     4a2c:	a2 9f       	mul	r26, r18
     4a2e:	b0 01       	movw	r22, r0
     4a30:	b3 9f       	mul	r27, r19
@@ -8733,6 +8738,7 @@ Disassembly of section .sec1:
     4a44:	11 24       	eor	r1, r1
     4a46:	91 1d       	adc	r25, r1
     4a48:	08 95       	ret
+	
     4a4a:	0e 94 16 25 	call	0x4a2c	;  0x4a2c
     4a4e:	a5 9f       	mul	r26, r21
     4a50:	90 0d       	add	r25, r0
