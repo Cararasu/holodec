@@ -41,7 +41,7 @@ namespace holodec {
 		HId splitBasicBlock (uint64_t addr);
 
 		IRArgument parseMemArgToExpr(IRArgument mem);
-		IRArgument replaceArg (IRArgument arg);
+		void replaceArg (IRArgument& arg);
 		SSAArgument parseIRArg2SSAArg(IRArgument arg);
 		void insertLabel (uint64_t address, HId instructionId = 0);
 		HId addExpression (SSAExpression* expression);

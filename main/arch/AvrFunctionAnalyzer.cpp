@@ -654,8 +654,8 @@ namespace holoavr{
 		}
 		else if ((firstbytes & 0xF800) == 0xF000) {
 			uint16_t value = (firstbytes & 0x03f8) >> 3;
-			if (value & 0x400) {
-				instr->jumpdest = instr->addr + instr->size + value - 0x7FF;
+			if (value & 0x40) {
+				instr->jumpdest = instr->addr + instr->size + value - 0x80;
 			}
 			else {
 				instr->jumpdest = instr->addr + instr->size + value;
@@ -743,6 +743,8 @@ namespace holoavr{
 				return false;
 			}
 
+			if(instruction.addr == 0x549)
+				instruction.print(arch);
 			instruction.print(arch);
 			addr += instruction.size;
 			if (!postInstruction(&instruction))

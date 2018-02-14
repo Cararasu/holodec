@@ -364,12 +364,12 @@ namespace holodec {
 		}
 		return SSAArgument::create();
 	}
-	IRArgument SSAGen::replaceArg (IRArgument arg) {
+	void SSAGen::replaceArg (IRArgument& arg) {
 		while (arg.type == IR_ARGTYPE_ARG) {
 			assert (arg.ref.refId && arg.ref.refId <= arguments.size());
-			arg = arguments[arg.ref.refId - 1];
+			IRArgument& aarg = arguments[arg.ref.refId - 1];
+			arg = aarg;
 		}
-		return arg;
 	}
 	void SSAGen::addUpdateRegExpressions (HId regId, HId ssaId) {
 
@@ -421,7 +421,7 @@ namespace holodec {
 	}
 	IRArgument SSAGen::parseExpression (IRArgument exprId) {
 
-		exprId = replaceArg (exprId);
+		replaceArg (exprId);
 
 		switch (exprId.type) {
 		default:
@@ -467,7 +467,8 @@ namespace holodec {
 					        irExpr->subExpressions[i].type == IR_ARGTYPE_REG ||
 					        irExpr->subExpressions[i].type == IR_ARGTYPE_STACK ||
 					        irExpr->subExpressions[i].type == IR_ARGTYPE_TMP);
-					IRArgument arg = replaceArg (irExpr->subExpressions[i]);
+					IRArgument arg = irExpr->subExpressions[i];
+					replaceArg (arg);
 
 					SSAExpression expression;
 					expression.type = SSAExprType::eUndef;
@@ -503,7 +504,8 @@ namespace holodec {
 				SSAExpression expression;
 				expression.type = SSAExprType::eAssign;
 				assert (subexpressioncount == 2);
-				IRArgument dstArg = replaceArg (irExpr->subExpressions[0]);
+				IRArgument dstArg = irExpr->subExpressions[0];
+				replaceArg (dstArg);
 
 				IRArgument srcArg = parseExpression (irExpr->subExpressions[1]);
 
@@ -575,25 +577,38 @@ namespace holodec {
 					expression.subExpressions = {parseIRArg2SSAArg (parseMemArgToExpr (dstArg)) };
 				}
 				break;
-				case IR_ARGTYPE_REG:
+				case IR_ARGTYPE_REG:{
 					expression.location = SSAExprLocation::eReg;
 					expression.locref = dstArg.ref;
 					expression.size = dstArg.size;
 
 					expression.subExpressions = {srcSSAArg};
-					{
-						HId ssaId = addExpression (&expression);
-						addUpdateRegExpressions (dstArg.ref.refId, ssaId);
-						return IRArgument::createSSAId (ssaId, expression.size);
-					}
-					break;
-				case IR_ARGTYPE_STACK:
+
+					HId ssaId = addExpression (&expression);
+					addUpdateRegExpressions (dstArg.ref.refId, ssaId);
+					return IRArgument::createSSAId (ssaId, expression.size);
+				}
+				case IR_ARGTYPE_STACK: {
 					expression.location = SSAExprLocation::eStack;
 					expression.locref = dstArg.ref;
 					expression.size = dstArg.size;
-					break;
-				case IR_ARGTYPE_SSAID://assign to no particular thing, needed for recursive with write-parameter as tmp
-					break;
+				}break;
+				case IR_ARGTYPE_SSAID: {//assign to no particular thing, needed for recursive with write-parameter as tmp
+					IRArgument* arg = &irExpr->subExpressions[0];
+					assert(arg->type == IR_ARGTYPE_ARG);
+
+					while (true) {//get argument index
+						assert(arg->ref.refId && arg->ref.refId <= arguments.size());
+						if (arguments[arg->ref.refId - 1].type != IR_ARGTYPE_ARG)
+							break;
+						arg = &arguments[arg->ref.refId - 1];
+					}
+					//write the new ssaId
+					expression.subExpressions.push_back(srcSSAArg);
+					IRArgument retarg = IRArgument::createSSAId(addExpression(&expression), expression.size);
+					arguments[arg->ref.refId - 1] = retarg;
+					return retarg;
+				}break;
 				default:
 					dstArg.print (arch);
 					printf ("Invalid Type for Assignment 0x%" PRIx64 "\n", dstArg.type);
@@ -607,7 +622,7 @@ namespace holodec {
 			case IR_EXPR_NOP:
 				return IRArgument::create();
 
-			case IR_EXPR_IF: {
+			case IR_EXPR_IF: {//TODO there seems to be an error where a block input/output is not set correctly
 				SSAExpression expression;
 				expression.type = SSAExprType::eCJmp;
 				expression.exprtype = SSAType::ePc;
@@ -810,7 +825,8 @@ namespace holodec {
 				expression.exprtype = irExpr->exprtype;
 				assert (subexpressioncount == 2);
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
-				IRArgument sizeArg = replaceArg (irExpr->subExpressions[1]);
+				IRArgument sizeArg = irExpr->subExpressions[1];
+				replaceArg (sizeArg);
 				assert (sizeArg.type = IR_ARGTYPE_UINT);
 				expression.size = sizeArg;
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
@@ -953,7 +969,8 @@ namespace holodec {
 				SSAExpression expression;
 				expression.type = SSAExprType::eAssign;
 				assert (subexpressioncount == 1);
-				IRArgument arg = replaceArg (irExpr->subExpressions[0]);
+				IRArgument arg = irExpr->subExpressions[0];
+				replaceArg(arg);
 				assert (arg.type == IR_ARGTYPE_MEMOP);
 				expression.exprtype = SSAType::eUInt;
 				expression.size = arch->bitbase;
@@ -990,18 +1007,21 @@ namespace holodec {
 					printf ("Found No Recursive Match %s in parsing instruction: ", instrdef->mnemonics.cstr());
 					instruction->print (arch);
 				}
-				this->tmpdefs = cachedTemps;
 				for (size_t i = 0; i < subexpressioncount; i++) {
 					IRArgument& arg = irExpr->subExpressions[i];
 					if (arguments[i].type == IRArgTypes::IR_ARGTYPE_SSAID && arg.type == IRArgTypes::IR_ARGTYPE_TMP) {
-						for (SSATmpDef& tmpDef : tmpdefs) {
+						bool found = false;
+						for (SSATmpDef& tmpDef : cachedTemps) {
 							if (tmpDef.id == arg.ref.refId) {
 								tmpDef.arg = arguments[i];
+								found = true;
 							}
 						}
+						if (!found)
+							cachedTemps.push_back({arg.ref.refId, arguments[i]});
 					}
 				}
-
+				this->tmpdefs = cachedTemps;
 				this->arguments = cachedArgs;
 			}
 			return IRArgument::create ();

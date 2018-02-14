@@ -232,6 +232,15 @@ namespace holodec {
 					handleBBs (getWrapper (inBlockId), reg, gatheredIds, &gatheredIdCount, visitedBlocks, &visitedBlockCount);
 				}
 				//printf ("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
+
+				if (!gatheredIdCount) {
+					for (BasicBlockWrapper& wrappers : bbwrappers) {
+						wrappers.print(arch);
+					}
+					printf("Searched Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
+					printf("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
+				}
+
 				assert (gatheredIdCount);
 
 				SSAExpression phinode;

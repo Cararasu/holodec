@@ -295,29 +295,18 @@ namespace holodec {
 		do {
 			replaced = false;
 			for (auto it = replacements->begin(); it != replacements->end(); ++it) {
-				if (it->second.type != SSAArgType::eId || it->first == it->second.ssaId)  //
+				if (it->second.type != SSAArgType::eId || it->first == it->second.ssaId)
 					continue;
-				auto innerIt = it;
-				for (++innerIt; innerIt != replacements->end(); ++innerIt) {
-					if (innerIt->second.type != SSAArgType::eId)  //
-						continue;
-					if (it->first == innerIt->second.ssaId) {
-						SSAArgument arg = it->second;
-						if(innerIt->second.location != SSAExprLocation::eNone){
-							arg.location = innerIt->second.location;
-							arg.locref = innerIt->second.locref;
-						}
-						innerIt->second = arg;
-						replaced = true;
-					} else if (innerIt->first == it->second.ssaId) {
-						SSAArgument arg = innerIt->second;
-						if(it->second.location != SSAExprLocation::eNone){
-							arg.location = it->second.location;
-							arg.locref = it->second.locref;
-						}
-						it->second = arg;
-						replaced = true;
+				auto innerIt = replacements->find(it->second.ssaId);
+				while (innerIt != replacements->end()) {//TODO infinite loop alarm!!!!!!
+					SSAArgument arg = innerIt->second;
+					if (it->second.location != SSAExprLocation::eNone) {//save the original location
+						arg.location = it->second.location;
+						arg.locref = it->second.locref;
 					}
+					it->second = arg;
+					innerIt = replacements->find(it->second.ssaId);
+					replaced = true;
 				}
 			}
 		} while (replaced);
@@ -336,22 +325,14 @@ namespace holodec {
 		for (SSAExpression& expr : expressions) {
 			for (SSAArgument& arg : expr.subExpressions) {
 				if (arg.type == SSAArgType::eId) {
-					auto it = replacements->find (arg.ssaId);
+					auto it = replacements->find(arg.ssaId);
 					if (it != replacements->end()) {
-						if (EXPR_IS_TRANSPARENT (expr.type)) {
-							arg = it->second;
-							if (it->second.type == SSAArgType::eId)
-								changeRefCount (it->second.ssaId, expr.refcount);
-						} else {
-							//References are already removed in the previous loop at removeExpr
-							arg = it->second;
-							if (it->second.type == SSAArgType::eId)
-								changeRefCount (it->second.ssaId, 1);
-						}
+						arg = it->second;
 					}
 				}
 			}
 		}
+		recalcRefCounts();
 	}
 	void SSARepresentation::removeNodes (HSet<HId>* ids) {
 		for (SSABB& bb : bbs) {
@@ -455,9 +436,7 @@ namespace holodec {
 				return false;
 			}
 		}
-		else {
-			if (argument.type != SSAArgType::eId)
-				return false;
+		else if (argument.type == SSAArgType::eId) {
 			SSAExpression& expr = expressions[argument.ssaId];
 			switch (expr.type) {
 			case SSAExprType::eLoadAddr:
@@ -471,6 +450,7 @@ namespace holodec {
 				}
 			}
 		}
+		return false;
 	}
 	HId SSARepresentation::addExpr (SSAExpression* expr) {
 		expressions.push_back (*expr);

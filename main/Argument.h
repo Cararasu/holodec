@@ -139,8 +139,8 @@ namespace holodec {
 		static inline IRArgument createIRId (HId id, uint32_t size) {
 			return create(IR_ARGTYPE_ID, {id, 0}, size);
 		}
-		static inline IRArgument createSSAId (HId ssaId, uint32_t size) {
-			return create(IR_ARGTYPE_SSAID, {ssaId, 0}, size);
+		static inline IRArgument createSSAId(HId ssaId, uint32_t size) {
+			return create(IR_ARGTYPE_SSAID, { ssaId, 0 }, size);
 		}
 		static inline IRArgument createTmp (HId id, uint32_t size = 0) {
 			return create(IR_ARGTYPE_TMP, {id, 0}, size);

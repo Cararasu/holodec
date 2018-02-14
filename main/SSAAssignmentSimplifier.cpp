@@ -78,14 +78,16 @@ namespace holodec{
 				}else if(expr.type == SSAExprType::eReturn){
 					for(auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();){
 						SSAArgument& arg = *it;
-						SSAExprType type = function->ssaRep.expressions[arg.ssaId].type;
-						while(arg.type == SSAArgType::eId && arg.ssaId && EXPR_IS_TRANSPARENT(type)){
-							arg = function->ssaRep.expressions[arg.ssaId].subExpressions[0];
-							type = function->ssaRep.expressions[arg.ssaId].type;
-						}
-						if(arg.type == SSAArgType::eId && arg.ssaId && type == SSAExprType::eInput){
-							it = expr.subExpressions.erase(it);
-							continue;
+						if (arg.type == SSAArgType::eId) {
+							SSAExprType type = function->ssaRep.expressions[arg.ssaId].type;
+							while (arg.type == SSAArgType::eId && EXPR_IS_TRANSPARENT(type)) {
+								arg = function->ssaRep.expressions[arg.ssaId].subExpressions[0];
+								type = function->ssaRep.expressions[arg.ssaId].type;
+							}
+							if (arg.type == SSAArgType::eId && type == SSAExprType::eInput) {
+								it = expr.subExpressions.erase(it);
+								continue;
+							}
 						}
 						++it;
 					}

@@ -115,7 +115,8 @@ namespace holodec {
 		eSInt = SSA_ARGTYPE_SINT,
 		eUInt = SSA_ARGTYPE_UINT,
 		eFloat = SSA_ARGTYPE_FLOAT,
-		eId = SSA_ARGTYPE_ID
+		eId = SSA_ARGTYPE_ID,
+		eOther = SSA_ARGTYPE_OTHER,
 	};
 	
 	struct SSAArgument {
@@ -174,10 +175,18 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument create (HId ssaId, uint32_t size = 0, SSAExprLocation location = SSAExprLocation::eNone, Reference locref = {0, 0}) {
+		static inline SSAArgument create(HId ssaId, uint32_t size = 0, SSAExprLocation location = SSAExprLocation::eNone, Reference locref = { 0, 0 }) {
 			SSAArgument arg;
 			arg.type = SSAArgType::eId;
 			arg.ssaId = ssaId;
+			arg.location = location;
+			arg.locref = locref;
+			arg.size = size;
+			return arg;
+		}
+		static inline SSAArgument createOther(SSAArgType argType, uint32_t size = 0, SSAExprLocation location = SSAExprLocation::eNone, Reference locref = { 0, 0 }) {
+			SSAArgument arg;
+			arg.type = argType;
 			arg.location = location;
 			arg.locref = locref;
 			arg.size = size;
@@ -200,20 +209,20 @@ namespace holodec {
 		static inline SSAArgument createReg (Reference ref, uint32_t size, HId ssaId = 0) {
 			return create(ssaId, size, SSAExprLocation::eReg, ref);
 		}
-		static inline SSAArgument createMem (Memory* mem, HId ssaId = 0) {
-			return create(ssaId, 0, SSAExprLocation::eMem, {mem->id, 0});
+		static inline SSAArgument createMem (Memory* mem) {
+			return  createOther(SSAArgType::eOther, 0, SSAExprLocation::eMem, {mem->id, 0});
 		}
-		static inline SSAArgument createMem (HId memId, HId ssaId = 0) {
-			return create(ssaId, 0, SSAExprLocation::eMem, {memId, 0});
+		static inline SSAArgument createMem (HId memId) {
+			return  createOther(SSAArgType::eOther, 0, SSAExprLocation::eMem, {memId, 0});
 		}
 		static inline SSAArgument createStck (Stack* stack, HId index) {
-			return create(0, stack->wordbitsize, SSAExprLocation::eStack, {stack->id, index});
+			return  createOther(SSAArgType::eOther, stack->wordbitsize, SSAExprLocation::eStack, {stack->id, index});
 		}
-		static inline SSAArgument createStck (Reference ref, uint32_t size, HId ssaId = 0) {
-			return create(ssaId, size, SSAExprLocation::eStack, ref);
+		static inline SSAArgument createStck (Reference ref, uint32_t size) {
+			return createOther(SSAArgType::eOther, size, SSAExprLocation::eStack, ref);
 		}
 		static inline SSAArgument createBlock (HId blockId) {
-			return create(0, 0, SSAExprLocation::eBlock, {blockId, 0});
+			return createOther(SSAArgType::eOther, 0, SSAExprLocation::eBlock, {blockId, 0});
 		}
 
 		void print (Architecture* arch);
@@ -231,6 +240,8 @@ namespace holodec {
 				return lhs.fval == rhs.fval;
 			case SSAArgType::eId:
 				return lhs.ssaId == rhs.ssaId;
+			case SSAArgType::eOther:
+				return true;
 			default:
 				return false;
 			}
