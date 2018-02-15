@@ -14,8 +14,8 @@ namespace holodec {
 	typedef std::function<void (Architecture*, SSARepresentation*, MatchContext*) > PhExecutor;
 
 	struct PhRule {
-		HId matchedIndex;
-		HId argIndex;
+		HId matchedIndex;//select the ith matched expression
+		HId argIndex;//select the ith indexed expression
 		SSAExprType type;
 		SSAOpType opType;
 		SSAFlagType flagType;

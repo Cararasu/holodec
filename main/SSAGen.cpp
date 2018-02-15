@@ -697,7 +697,10 @@ namespace holodec {
 				uint32_t size = 0;
 				for (size_t i = 0; i < subexpressioncount; i++) {
 					SSAArgument arg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i]));
-					size = size > arg.size ? size : arg.size;
+					if (expression.opType == SSAOpType::eMul)
+						size += arg.size;
+					else
+						size = size > arg.size ? size : arg.size;
 					expression.subExpressions.push_back (arg);
 				}
 				expression.size = size;
@@ -938,8 +941,6 @@ namespace holodec {
 					expression.type = SSAExprType::ePop;
 					expression.exprtype = SSAType::eUInt;
 					expression.size = stack->wordbitsize * sizeadjust.uval;
-					expression.location = SSAExprLocation::eMem;
-					expression.locref = {mem->id, 0};
 					expression.subExpressions = {
 						SSAArgument::createMem(mem->id),
 						SSAArgument::createReg(reg),
@@ -954,6 +955,7 @@ namespace holodec {
 						SSAArgument::createReg (reg),
 						sizeadjust
 					};
+
 					adjustExpr.location = SSAExprLocation::eReg;
 					adjustExpr.locref = {reg->id, 0};
 					adjustExpr.size = reg->size;

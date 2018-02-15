@@ -526,14 +526,14 @@ Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{X86_INS_MOVSX, "movsx", {{2, "=(#arg[1],#ext[s](#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov, InstructionType::eExtend},
 		{X86_INS_MOVZX, "movzx", {{2, "=(#arg[1],#ext(#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov, InstructionType::eExtend},
 
-		{X86_INS_ADD, "add", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
-		{X86_INS_ADC, "adc", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADD, "add", {{2, "#seq(+(#arg[1][0,4],#arg[2][0,4]),=($af,#c),=(#arg[1],+(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADC, "adc", {{2, "#seq(+(#arg[1][0,4],#arg[2][0,4],$cf),=($af,#c),=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
 
-		{X86_INS_SUB, "sub", {{2, "#seq(=(#arg[1],-(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
-		{X86_INS_SBB, "sbb", {{2, "#seq(=(#arg[1],-(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
+		{X86_INS_SUB, "sub", {{2, "#seq(-(#arg[1][0,4],#arg[2][0,4]),=($af,#c),=(#arg[1],-(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
+		{X86_INS_SBB, "sbb", {{2, "#seq(-(#arg[1][0,4],#arg[2][0,4],$cf),=($af,#c),=(#arg[1],-(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
 
-		{X86_INS_ADCX, "adcx", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
-		{X86_INS_ADOX, "adox", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$of)),=($of,#o),=($cf,#c),=($af,#a),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADCX, "adcx", {{2, "#seq(+(#arg[1][0,4],#arg[2][0,4],$cf),=($af,#c),=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADOX, "adox", {{2, "#seq(+(#arg[1][0,4],#arg[2][0,4],$of),=($af,#c),=(#arg[1],+(#arg[1],#arg[2],$of)),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
 
 		{
 			X86_INS_MUL,
@@ -571,10 +571,10 @@ Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		},
 		{X86_INS_NOP, "nop", {{0, "#nop"}, {1, "#nop"}}},
 
-		{X86_INS_INC, "inc", {{1, "#seq(=(#arg[1],+(#arg[1],1)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($of,#o),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
-		{X86_INS_DEC, "dec", {{1, "#seq(=(#arg[1],-(#arg[1],1)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($of,#o),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
+		{X86_INS_INC, "inc", {{1, "#seq(+(#arg[1][0,4],1),=($af,#c),=(#arg[1],+(#arg[1],1)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($of,#o),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_DEC, "dec", {{1, "#seq(-(#arg[1][0,4],1),=($af,#c),=(#arg[1],-(#arg[1],1)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($of,#o),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
 
-		{X86_INS_NEG, "neg", {{1, "#seq(=($cf,<>(#arg[1],0)),=(#arg[1],-(0,#arg[1])),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($of,#o),=($af,#a),=($zf,==(#arg[1],0)))"}}, InstructionType::eNeg},
+		{X86_INS_NEG, "neg", {{1, "#seq(=(#t[1],0),=(#t[2],#not(==(#arg[1],0))),#rec[sub](#t[1],#arg[1]),=(#arg[1],#t[1]),=($cf,#t[2]))"}}, InstructionType::eNeg},
 
 		{X86_INS_CMP, "cmp", {{2, "#seq(=(#t[1],#arg[1]),#rec[sub](#t[1],#ext[s](#arg[2],#bsize(#arg[1]))))"}}, InstructionType::eCmp},
 
@@ -603,32 +603,32 @@ Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
 		{
 			X86_INS_SAR,
 			"sar", {
-				{1, "#seq(=(#t[1],#sar(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
-				{2, "#seq(=(#t[1],#sar(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
+				{1, "#seq(=(#t[1],#sar(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
+		{2, "#seq(=(#t[1],#sar(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
 			}, InstructionType::eShr
 		},
 
 		{
 			X86_INS_SHR,
 			"shr", {
-				{1, "#seq(=(#t[1],#shr(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
-				{2, "#seq(=(#t[1],#shr(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"}
+				{1, "#seq(=(#t[1],#shr(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
+				{2, "#seq(=(#t[1],#shr(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"}
 			}, InstructionType::eShr
 		},
 
 		{
 			X86_INS_SAL,
 			"sal", {
-				{1, "#seq(=(#t[1],#sal(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
-				{2, "#seq(=(#t[1],#sal(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"}
+				{1, "#seq(=(#t[1],#sal(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
+				{2, "#seq(=(#t[1],#sal(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"}
 			}, InstructionType::eShl
 		},
 
 		{
 			X86_INS_SHL,
 			"shl", {
-				{1, "#seq(=(#t[1],#shl(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"},
-				{2, "#seq(=(#t[1],#shl(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=($af,#a),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)))"}
+				{1, "#seq(=(#t[1],#shl(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
+				{2, "#seq(=(#t[1],#shl(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"}
 			}, InstructionType::eShl
 		},
 

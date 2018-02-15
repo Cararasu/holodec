@@ -12,25 +12,25 @@ namespace holodec {
 
 		switch (this->exprtype) {
 		case SSAType::eUnknown:
-			printf ("Unknown Type");
+			printf (" unkn");
 			break;
 		case SSAType::eInt:
-			printf ("int");
+			printf ("  int");
 			break;
 		case SSAType::eUInt:
-			printf ("uint");
+			printf (" uint");
 			break;
 		case SSAType::eFloat:
 			printf ("float");
 			break;
 		case SSAType::ePc:
-			printf ("pc");
+			printf ("   pc");
 			break;
 		case SSAType::eMemaccess:
-			printf ("memaccess");
+			printf ("  mem");
 			break;
 		}
-		printf ("%d ", size);
+		printf ("%03d ", size);
 
 		switch (type) {
 		case SSAExprType::eInvalid:
@@ -38,120 +38,120 @@ namespace holodec {
 			printf ("Invalid%d ", type);
 			break;
 		case SSAExprType::eLabel:
-			printf ("Label ");
+			printf ("Label  ");
 			break;
 		case SSAExprType::eInput:
-			printf ("Input ");
+			printf ("Input  ");
 			break;
 		case SSAExprType::eUndef:
-			printf ("Undef ");
+			printf ("Undef  ");
 			break;
 		case SSAExprType::eNop:
-			printf ("Nop ");
+			printf ("Nop    ");
 			break;
 		case SSAExprType::ePhi:
-			printf ("Phi ");
+			printf ("Phi    ");
 			break;
 		case SSAExprType::eAssign:
 			printf ("Assign ");
 			break;
 		case SSAExprType::eJmp:
-			printf ("Jmp ");
+			printf ("Jmp    ");
 			break;
 		case SSAExprType::eCJmp:
-			printf ("Cjmp ");
+			printf ("Cjmp   ");
 			break;
 		case SSAExprType::eMultiBranch:
-			printf ("Multi-Branch ");
+			printf ("Mlt-Br ");
 			break;
 		case SSAExprType::eOp:
-			printf ("Op ");
+			printf ("Op");
 			switch (opType) {
 			case SSAOpType::eInvalid:
-				printf ("Invalid ");
+				printf (" Inv ");
 				break;
 			case SSAOpType::eAdd:
-				printf ("+ ");
+				printf (" +   ");
 				break;
 			case SSAOpType::eSub:
-				printf ("- ");
+				printf (" -   ");
 				break;
 			case SSAOpType::eMul:
-				printf ("* ");
+				printf (" *   ");
 				break;
 			case SSAOpType::eDiv:
-				printf ("/ ");
+				printf (" /   ");
 				break;
 			case SSAOpType::eMod:
-				printf ("% ");
+				printf (" %   ");
 				break;
 			case SSAOpType::eAnd:
-				printf ("&& ");
+				printf (" &&  ");
 				break;
 			case SSAOpType::eOr:
-				printf ("|| ");
+				printf (" ||  ");
 				break;
 			case SSAOpType::eXor:
-				printf ("xor ");
+				printf (" xor ");
 				break;
 			case SSAOpType::eNot:
-				printf ("! ");
+				printf (" !   ");
 				break;
 			case SSAOpType::eEq:
-				printf ("== ");
+				printf (" ==  ");
 				break;
 			case SSAOpType::eNe:
-				printf ("!= ");
+				printf (" !=  ");
 				break;
 			case SSAOpType::eLower:
-				printf ("< ");
+				printf (" <   ");
 				break;
 			case SSAOpType::eLe:
-				printf ("<= ");
+				printf (" <=  ");
 				break;
 			case SSAOpType::eGreater:
-				printf ("> ");
+				printf (" >   ");
 				break;
 			case SSAOpType::eGe:
-				printf (">= ");
+				printf (" >=  ");
 				break;
 			case SSAOpType::eBAnd:
-				printf ("& ");
+				printf (" &   ");
 				break;
 			case SSAOpType::eBOr:
-				printf ("| ");
+				printf (" |   ");
 				break;
 			case SSAOpType::eBXor:
-				printf ("^ ");
+				printf (" ^   ");
 				break;
 			case SSAOpType::eBNot:
-				printf ("~ ");
+				printf (" ~   ");
 				break;
 			case SSAOpType::eShr:
-				printf (">> ");
+				printf (" >>  ");
 				break;
 			case SSAOpType::eShl:
-				printf ("<< ");
+				printf (" <<  ");
 				break;
 			case SSAOpType::eSar:
-				printf ("pow ");
+				printf (" pow ");
 				break;
 			case SSAOpType::eSal:
-				printf ("sqrt2 ");
+				printf (" sqt2");
 				break;
 			case SSAOpType::eRor:
-				printf (">>> ");
+				printf (" >>> ");
 				break;
 			case SSAOpType::eRol:
-				printf ("<<< ");
+				printf (" <<< ");
 				break;
 			}
 			break;
 		case SSAExprType::eLoadAddr:
-			printf ("Load Effective Addr ");
+			printf ("Lea    ");
 			break;
 		case SSAExprType::eCall:
-			printf ("Call ");
+			printf ("Call   ");
 			break;
 		case SSAExprType::eOutput:
 			printf ("Output ");
@@ -160,61 +160,58 @@ namespace holodec {
 			printf ("Return ");
 			break;
 		case SSAExprType::eSyscall:
-			printf ("Syscall ");
+			printf ("Syscall");
 			break;
 		case SSAExprType::eTrap:
-			printf ("Trap ");
+			printf ("Trap   ");
 			break;
 		case SSAExprType::eBuiltin:
-			printf ("Builtin ");
+			printf ("Builtin");
 			break;
 		case SSAExprType::eUpdatePart:
-			printf ("Update Part ");
+			printf ("UpdPart");
 			break;
 		case SSAExprType::eExtend:
 			printf ("Extend ");
 			break;
 		case SSAExprType::eSplit:
-			printf ("Split ");
+			printf ("Split  ");
 			break;
 		case SSAExprType::eAppend:
 			printf ("Append ");
 			break;
 		case SSAExprType::eCast:
-			printf ("Cast ");
+			printf ("Cast   ");
 			break;
 		case SSAExprType::eMemAccess:
-			printf ("MemAccess ");
+			printf ("MemAcc ");
 			break;
 		case SSAExprType::eStore:
-			printf ("Store ");
+			printf ("Store  ");
 			break;
 		case SSAExprType::eLoad:
-			printf ("Load ");
+			printf ("Load   ");
 			break;
 		case SSAExprType::ePop:
-			printf ("Pop ");
+			printf ("Pop    ");
 			break;
 		case SSAExprType::ePush:
-			printf ("Push ");
+			printf ("Push   ");
 			break;
 		case SSAExprType::eFlag:
-			printf ("Flag ");
+			printf ("Flag");
 			switch (flagType) {
 			case SSAFlagType::eUnknown:
-				printf ("Unknown ");
+				printf ("Unk");
 				break;
 			case SSAFlagType::eC:
-				printf ("Carry ");
-				break;
-			case SSAFlagType::eA:
-				printf ("Auxillary ");
+				printf ("Cry");
 				break;
 			case SSAFlagType::eO:
-				printf ("Overflow ");
+				printf ("Ovf");
 				break;
 			case SSAFlagType::eU:
-				printf ("Underflow ");
+				printf ("Udf");
 				break;
 			}
 			break;
@@ -235,10 +232,15 @@ namespace holodec {
 		case SSAExprLocation::eNone:
 			break;
 		}
-		printf ("Ref: %" PRId64 " | %" PRId32 " = ", refcount, id);
+		printf ("Ref: %02" PRId64 " | %04" PRId32 " = ", refs.size(), id);
 		for (SSAArgument& arg : subExpressions) {
-			arg.print (arch);
-			printf (", ");
+			arg.print(arch);
+			printf(", ");
+		}
+
+		printf(" | Refs: ");
+		for (HId refId : refs) {
+			printf("%d, ", refId);
 		}
 		printf ("\n");
 	}
@@ -261,7 +263,10 @@ namespace holodec {
 			printf ("%f", fval);
 			break;
 		case SSAArgType::eId:
-			printf ("SSA: %d", ssaId);
+			printf("SSA: %d", ssaId);
+			break;
+		case SSAArgType::eOther:
+			printf("Other ");
 			break;
 		default:
 			printf ("Unknown Argtype %x ", type);
@@ -331,6 +336,20 @@ namespace holodec {
 					}
 				}
 			}
+			for (auto it = expr.refs.begin(); it != expr.refs.end(); ) {
+				HId refId = *it;
+				auto repIt = replacements->find(refId);
+				if (repIt != replacements->end()) {
+					if (repIt->second.type == SSAArgType::eId){
+						refId = repIt->second.ssaId;
+					}
+					else {
+						expr.refs.erase(it);
+						continue;
+					}
+				}
+				++it;
+			}
 		}
 		recalcRefCounts();
 	}
@@ -338,6 +357,7 @@ namespace holodec {
 		for (SSABB& bb : bbs) {
 			for (auto it = bb.exprIds.begin(); it != bb.exprIds.end();) {
 				if (ids->find (*it) != ids->end()) {
+					printf("%d -----\n", *it);
 					it = removeExpr (bb.exprIds, it);
 					continue;
 				}
@@ -376,48 +396,50 @@ namespace holodec {
 		}
 	}
 
-	void SSARepresentation::propagateRefCount (SSAExpression* expr, int64_t modifier) {
+	void SSARepresentation::propagateRefCount (SSAExpression* expr, HId refId) {
 		if (!EXPR_IS_TRANSPARENT (expr->type)) {
 			for (SSAArgument& arg : expr->subExpressions) {
 				if (arg.type == SSAArgType::eId)
-					changeRefCount (arg.ssaId, modifier);
+					changeRefCount (arg.ssaId, refId);
 			}
 		}
 	}
-	void SSARepresentation::propagateRefCount (HId id, int64_t modifier) {
+	void SSARepresentation::propagateRefCount (HId id, HId refId) {
 		if (!id)
 			return;
-		propagateRefCount (&expressions[id], modifier);
+		propagateRefCount (&expressions[id], refId);
 	}
-	void SSARepresentation::changeRefCount (HId id, int64_t count) {
+	void SSARepresentation::changeRefCount (HId id, HId refId) {
 		if (!id)
 			return;
 		if (EXPR_IS_TRANSPARENT (expressions[id].type)) {
 			std::vector<bool> visited;
 			visited.resize (expressions.size(), false);
-			changeRefCount (id, visited, count);
+			changeRefCount (id, visited, refId);
 		} else {
-			expressions[id].refcount += count;
+			expressions[id].refs.push_back(refId);
 		}
 	}
-	void SSARepresentation::changeRefCount (HId id, std::vector<bool>& visited, int64_t count) {
+	void SSARepresentation::changeRefCount (HId id, std::vector<bool>& visited, HId refId) {
 		if (!id || visited[id - 1])
 			return;
 		visited[id - 1] = true;
-		expressions[id].refcount += count;
+		expressions[id].refs.push_back(refId);
 		if (EXPR_IS_TRANSPARENT (expressions[id].type)) {
 			for (SSAArgument& arg : expressions[id].subExpressions) {
 				if (arg.type == SSAArgType::eId)
-					changeRefCount (arg.ssaId, visited, count);
+					changeRefCount (arg.ssaId, visited, refId);
 			}
 		}
 	}
 	void SSARepresentation::recalcRefCounts() {
 		for (SSAExpression& expr : expressions) {
-			expr.refcount = 0;
+			expr.refs.clear();
 		}
 		for (SSAExpression& expr : expressions) {
-			propagateRefCount (&expr, 1);
+			if (expr.id) {
+				propagateRefCount(&expr, expr.id);
+			}
 		}
 	}
 	bool SSARepresentation::calcConstValue(SSAArgument argument, uint64_t* result) {
@@ -456,7 +478,7 @@ namespace holodec {
 		expressions.push_back (*expr);
 		HId newId = expressions.back().id;
 		if (!EXPR_IS_TRANSPARENT (expr->type))
-			propagateRefCount (newId, 1);
+			propagateRefCount (newId, newId);
 		return newId;
 	}
 
@@ -522,13 +544,16 @@ namespace holodec {
 				}
 			}
 		}
-		for (SSABB& basicblock : bbs) {
-			for (auto it = basicblock.exprIds.begin(); it != basicblock.exprIds.end(); ++it) {
-				if (*it == ssaId) {
-					return *addAfter (expr, bb->exprIds, it);
+		else {
+			for (SSABB& basicblock : bbs) {
+				for (auto it = basicblock.exprIds.begin(); it != basicblock.exprIds.end(); ++it) {
+					if (*it == ssaId) {
+						return *addAfter(expr, basicblock.exprIds, it);
+					}
 				}
 			}
 		}
+		assert(false);
 		return 0;
 	}
 	HList<HId>::iterator SSARepresentation::addAfter (SSAExpression* expr, HList<HId>& ids, HList<HId>::iterator it) {
@@ -537,9 +562,6 @@ namespace holodec {
 
 	HList<HId>::iterator SSARepresentation::removeExpr (HList<HId>& ids, HList<HId>::iterator it) {
 		SSAExpression& expr = expressions[*it];
-		if(expr.instrAddr >= 0x401607 && expr.instrAddr < 0x401620)
-			printf("Removing Output %d\n", expr.id);
-		propagateRefCount (&expr, -1);
 		expr.id = 0;
 		return ids.erase (it);
 	}

@@ -46,8 +46,6 @@ namespace holodec {
 				expressionmap.insert(std::make_pair("u", expression));
 				expression.mod.flagType = SSAFlagType::eC;
 				expressionmap.insert (std::make_pair ("c", expression));
-				expression.mod.flagType = SSAFlagType::eA;
-				expressionmap.insert (std::make_pair ("a", expression));
 				expression.type = IR_EXPR_APPEND;
 				expression.mod.flagType = SSAFlagType::eUnknown;
 				expressionmap.insert (std::make_pair ("app", expression));

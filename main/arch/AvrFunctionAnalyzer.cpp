@@ -38,7 +38,7 @@ namespace holoavr{
 		return value & 0x000F;
 	}
 	inline uint32_t parseRegType1Big(uint16_t value) {
-		return (value & 0x000F) & ((value & 0x0200)>>5);
+		return (value & 0x000F) | ((value & 0x0200)>>5);
 	}
 	inline uint32_t parseRegType2Small(uint16_t value) {
 		return (value >> 4) & 0x0F;
@@ -745,7 +745,7 @@ namespace holoavr{
 
 			if(instruction.addr == 0x549)
 				instruction.print(arch);
-			instruction.print(arch);
+			//instruction.print(arch);
 			addr += instruction.size;
 			if (!postInstruction(&instruction))
 				break;

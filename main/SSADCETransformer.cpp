@@ -16,13 +16,14 @@ namespace holodec {
 		do {
 			HSet<HId> toRemove;
 			for (auto it = function->ssaRep.expressions.begin(); it != function->ssaRep.expressions.end();++it){
-				if(!it->id || EXPR_HAS_SIDEEFFECT(it->type) || it->refcount)
+				if(!it->id || EXPR_HAS_SIDEEFFECT(it->type) || !it->refs.empty())
 					continue;
 				toRemove.insert(it->id);
 			}
 			if(toRemove.empty())
 				break;
 			function->ssaRep.removeNodes(&toRemove);
+			function->ssaRep.recalcRefCounts();
 		}while(true);
 		function->ssaRep.compress();
 	}

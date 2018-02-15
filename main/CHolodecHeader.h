@@ -155,7 +155,6 @@ enum HSSAExprLocation {
 enum HSSAFlagType {
 	SSA_FLAG_UNKNOWN = 0,
 	SSA_FLAG_C,
-	SSA_FLAG_A,
 	SSA_FLAG_O,
 	SSA_FLAG_U,
 };

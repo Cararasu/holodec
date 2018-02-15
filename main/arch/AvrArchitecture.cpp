@@ -90,7 +90,7 @@ namespace holoavr {
 				StackType::eMemory,//what backs the memory
 				StackPolicy::eBottom,//where to add new elements
 				0, 8, //maxcount(0 = infinite), wordbitsize
-				"mem",
+				"dmem",
 				"sp",//stackptr
 				{}
 			},
@@ -109,13 +109,15 @@ namespace holoavr {
 		},
 	{},
 	{
-		{ AVR_INSTR_ADC, "adc",{ { 2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($vf,#o),=($cf,#c),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" } }, InstructionType::eAdd },
+		{ AVR_INSTR_ADC, "adc",{ 
+			{ 2, "#seq(+(#arg[1][0,4],#arg[2][0,4],$cf),=($hf,#c),=(#arg[1],+(#arg[1],#arg[2],$cf)),=($vf,#o),=($cf,#c),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" } 
+		}, InstructionType::eAdd },
 		{ AVR_INSTR_ADD, "add",{
-			{ 2, "#seq(=(#arg[1],+(#arg[1],#arg[2])),=($vf,#o),=($cf,#c),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" },
-			{ 3, "#seq(=(#t[1],+(#app(#arg[1],#arg[2]),#arg[3])),=(#arg[1],#t[1][0,8]),=(#arg[2],#t[1][8,8]),=($vf,#o),=($cf,#c),=($hf,#a),=($zf,==(#t[1],0)),=($nf,<[s](#t[1],0)),=($sf,#xor($nf,$vf)))" }
+			{ 2, "#seq(+(#arg[1][0,4],#arg[2][0,4]),=($hf,#c),=(#arg[1],+(#arg[1],#arg[2])),=($vf,#o),=($cf,#c),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" },
+			{ 3, "#seq(+(#arg[1][0,4],#arg[2][0,4]),=($hf,#c),=(#t[1],+(#app(#arg[1],#arg[2]),#arg[3])),=(#arg[1],#t[1][0,8]),=(#arg[2],#t[1][8,8]),=($vf,#o),=($cf,#c),=($zf,==(#t[1],0)),=($nf,<[s](#t[1],0)),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eAdd },
 		{ AVR_INSTR_AND, "and",{
-			{ 2, "#seq(=(#arg[1],+(#arg[1],#arg[2])),=($vf,0),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
+			{ 2, "#seq(+(#arg[1][0,4],#arg[2][0,4],$cf),=($hf,#c),=(#arg[1],+(#arg[1],#arg[2])),=($vf,0),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eAnd },
 		{ AVR_INSTR_ASR, "asr",{
 			{ 1, "#seq(=($cf,#arg[1][0]),#div[s](#arg[1],2),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
@@ -291,7 +293,7 @@ namespace holoavr {
 			{ 1, "#seq(=(#arg[1],#ld($pmem,#app($z,$rampz),#bsize(#arg[1]))),=(#t[1],+(#app($z,$rampz),1)),=($z,#t[1][0,16]),=($rampz,#t[1][16,8]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_EOR, "eor",{
-			{ 2, "#seq(=(#arg[1],#xor(#arg[1],#arg[2])),=($vf,0),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
+			{ 2, "#seq(=(#arg[1],#xor(#arg[1],#arg[2])),=($vf,0),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eXor },
 		{ AVR_INSTR_FMUL, "fmul",{
 			{ 2, "#seq(=(#t[1],#shl(#mul(#arg[1],#arg[2]),1)),=($r0,#t[1][0,8]),=($r1,#t[1][8,8]),=($zf,==(#t[1],0)),=($cf,#c))" }
@@ -363,10 +365,10 @@ namespace holoavr {
 		}, InstructionType::eLoad },
 
 		{ AVR_INSTR_LSL, "lsl",{
-			{ 1, "#seq(=(#arg[1],#shl(#arg[1],1)),=($cf,#c),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
+			{ 1, "#seq(=($hf,#arg[1][3]),=(#arg[1],#shl(#arg[1],1)),=($cf,#c),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eShl },
 		{ AVR_INSTR_LSR, "lsr",{
-			{ 1, "#seq(=(#arg[1],#shl(#arg[1],1)),=($cf,#c),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,0),=($vf,$cf),=($sf,$vf))" }
+			{ 1, "#seq(=(#arg[1],#shl(#arg[1],1)),=($cf,#c),=($hf,0),=($zf,==(#arg[1],0)),=($nf,0),=($vf,$cf),=($sf,$vf))" }
 		}, InstructionType::eShr },
 		{ AVR_INSTR_MOV, "mov",{
 			{ 2, "=(#arg[1],#arg[2])" }
@@ -392,7 +394,7 @@ namespace holoavr {
 		{ AVR_INSTR_NOP, "nop",{ { "#nop" } }, InstructionType::eNop },
 
 		{ AVR_INSTR_OR, "or",{
-			{ 2, "#seq(=(#arg[1],#or(#arg[1],#arg[2])),=($cf,#c),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,0),=($sf,#xor($nf,$vf)))" }
+			{ 2, "#seq(=(#arg[1],#or(#arg[1],#arg[2])),=($cf,#c),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,0),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eOr },
 
 		{ AVR_INSTR_OUT, "out",{
@@ -419,7 +421,7 @@ namespace holoavr {
 			{ 1, "#seq(#push($stack,#ip),#call(#arg[1]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_RET, "ret",{
-			{ 0, "#seq(#pop($stack,#ip),#ret(#pop($stack,#bsize(#ip))))" }
+			{ 0, "#seq(#ret(#pop($stack,#bsize(#ip))))" }
 		}, InstructionType::eRet },
 		{ AVR_INSTR_RETI, "reti",{
 			{ 0, "#seq(#pop($stack,#ip),=($if,1),#ret(#pop($stack,#bsize(#ip))))" }
@@ -429,14 +431,14 @@ namespace holoavr {
 		}, InstructionType::eJmp },
 
 		{ AVR_INSTR_ROL, "rol",{
-			{ 1, "#seq(=(#t[1],#rol(#app($cf,#arg[1]))),=($cf,#t[1][8]),=(#arg[1],#t[1][0,8]),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
+			{ 1, "#seq(=($hf,#arg[1][3]),=(#t[1],#rol(#app($cf,#arg[1]))),=($cf,#t[1][8]),=(#arg[1],#t[1][0,8]),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eShr },
 		{ AVR_INSTR_ROR, "ror",{
-			{ 1, "#seq(=(#t[1],#ror(#app($cf,#arg[1]))),=($cf,#t[1][8]),=(#arg[1],#t[1][0,8]),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
+			{ 1, "#seq(=(#t[1],#ror(#app($cf,#arg[1]))),=($cf,#t[1][8]),=(#arg[1],#t[1][0,8]),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,#xor($nf,$cf)),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eShr },
 
 		{ AVR_INSTR_SBC, "sbc",{
-			{ 2, "#seq(=(#arg[1],-(#arg[1],#arg[2],$cf)),=($cf,#c),=($vf,#o),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
+			{ 2, "#seq(-(#arg[1][0,4],#arg[2][0,4],$cf),=($hf,#c),=(#arg[1],-(#arg[1],#arg[2],$cf)),=($cf,#c),=($vf,#o),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eSub },
 
 		{ AVR_INSTR_SBI, "sbi",{
@@ -507,8 +509,8 @@ namespace holoavr {
 		}, InstructionType::eLoad },
 
 		{ AVR_INSTR_SUB, "sub",{
-			{ 2, "#seq(=(#arg[1],-(#arg[1],#arg[2])),=($cf,#c),=($vf,#o),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" },
-			{ 3, "#seq(=(#t[1],-(#app(#arg[1],#arg[2]),#arg[3])),=(#arg[1],#t[1][0,8]),=(#arg[1],#t[1][8,8]),=($cf,#c),=($vf,#o),=($hf,#a),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
+			{ 2, "#seq(-(#arg[1][0,4],#arg[2][0,4]),=($hf,#c),=(#arg[1],-(#arg[1],#arg[2])),=($cf,#c),=($vf,#o),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" },
+			{ 3, "#seq(-(#arg[2][0,4],#arg[3][0,4]),=($hf,#c),=(#t[1],-(#app(#arg[1],#arg[2]),#arg[3])),=(#arg[1],#t[1][0,8]),=(#arg[1],#t[1][8,8]),=($cf,#c),=($vf,#o),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,#xor($nf,$vf)))" }
 		}, InstructionType::eCall },
 
 

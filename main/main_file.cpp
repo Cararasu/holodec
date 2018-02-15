@@ -474,18 +474,21 @@ int main (int argc, const char** argv) {
 			func->print(binary->arch);
 		}
 
-		for (SSAExpression& expr : func->ssaRep.expressions) {
+		func->ssaRep.recalcRefCounts();
+		for (size_t i = 1; i <= func->ssaRep.expressions.size(); i++) {
+			SSAExpression& expr = func->ssaRep.expressions[i];
 			MatchContext context;
 			if (optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
-				break;//TODO needs to redo stuff, because iterator might break here
+				//break;//TODO needs to redo stuff, because iterator might break here
 			}
 		}
 
-		func->ssaRep.recalcRefCounts();
-
+		transformers[3]->doTransformation(binary, func);
+		transformers[2]->doTransformation(binary, func);
 		transformers[4]->doTransformation(binary, func);
 
 		holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
+		func->ssaRep.recalcRefCounts();
 		func->print(binary->arch);
 	}
 	delete optimizer;

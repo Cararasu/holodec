@@ -98,7 +98,6 @@ namespace holodec {
 	enum class SSAFlagType {
 		eUnknown = SSA_FLAG_UNKNOWN,
 		eC = SSA_FLAG_C,
-		eA = SSA_FLAG_A,
 		eO = SSA_FLAG_O,
 		eU = SSA_FLAG_U,
 	};
@@ -256,7 +255,6 @@ namespace holodec {
 	struct SSAExpression {
 		HId id = 0;
 		SSAExprType type = SSAExprType::eInvalid;
-		uint64_t refcount = 0;
 		uint32_t size = 0;
 		SSAType exprtype = SSAType::eUnknown;
 		union { //64 bit
@@ -270,6 +268,7 @@ namespace holodec {
 		uint64_t instrAddr = 0;
 		
 		//HLocalBackedList<SSAArgument, SSA_LOCAL_USEID_MAX> subExpressions;
+		HList<HId> refs;
 		HList<SSAArgument> subExpressions;
 
 		bool operator!() {
@@ -335,11 +334,11 @@ namespace holodec {
 		
 		void compress();
 		
-		void propagateRefCount(SSAExpression* expr, int64_t modifier);
-		void propagateRefCount(HId id, int64_t modifier = 1);
+		void propagateRefCount(SSAExpression* expr, HId refId);
+		void propagateRefCount(HId id, HId refId);
 		
-		void changeRefCount(HId id, int64_t count = 1);
-		void changeRefCount(HId id, std::vector<bool>& visited, int64_t count = 1);
+		void changeRefCount(HId id, HId refId);
+		void changeRefCount(HId id, std::vector<bool>& visited, HId refId);
 		
 		void recalcRefCounts();
 
