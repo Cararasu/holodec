@@ -10,6 +10,8 @@
 #include "HIdList.h"
 #include "CHolodecHeader.h"
 
+#include <assert.h>
+
 #define SSA_LOCAL_USEID_MAX (4)
 
 namespace holodec {
@@ -121,7 +123,7 @@ namespace holodec {
 	struct SSAArgument {
 		//HId id = 0;
 		SSAArgType type = SSAArgType::eUndef;
-		uint32_t size = 0;
+		uint32_t offset = 0, size = 0;
 		union {
 			HId ssaId;
 			ArgSInt sval;
@@ -174,7 +176,7 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument create(HId ssaId, uint32_t size = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
+		static inline SSAArgument create(HId ssaId, uint32_t size = 0, uint32_t offset = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
 			SSAArgument arg;
 			arg.type = SSAArgType::eId;
 			arg.ssaId = ssaId;
@@ -188,6 +190,7 @@ namespace holodec {
 			arg.type = argType;
 			arg.location = location;
 			arg.locref = locref;
+			arg.offset = 0;
 			arg.size = size;
 			return arg;
 		}
@@ -199,14 +202,15 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument createId (HId ssaId, uint32_t size) {
-			return create(ssaId, size, SSALocation::eNone, {0, 0});
+		static inline SSAArgument createId(HId ssaId, uint32_t size, uint32_t offset = 0) {
+			assert(ssaId);
+			return create(ssaId, size, offset, SSALocation::eNone, { 0, 0 });
 		}
 		static inline SSAArgument createReg (Register* reg, HId ssaId = 0) {
-			return create(ssaId, reg->size, SSALocation::eReg, {reg->id, 0});
+			return create(ssaId, reg->size, 0, SSALocation::eReg, {reg->id, 0});
 		}
 		static inline SSAArgument createReg (Reference ref, uint32_t size, HId ssaId = 0) {
-			return create(ssaId, size, SSALocation::eReg, ref);
+			return create(ssaId, size, 0, SSALocation::eReg, ref);
 		}
 		static inline SSAArgument createMem (Memory* mem) {
 			return  createOther(SSAArgType::eOther, 0, SSALocation::eMem, {mem->id, 0});

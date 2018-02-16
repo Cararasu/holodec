@@ -197,7 +197,9 @@ namespace holodec {
 				expression.subExpressions.push_back (arg);
 				expression.subExpressions.push_back (offset);
 				expression.subExpressions.push_back (size);
-				return IRArgument::createIRId (arch->addIrExpr (expression), expression.size);
+				IRArgument arg = IRArgument::createIRId (arch->addIrExpr (expression), expression.size);
+				arg.offset = offset;
+				return arg;
 			}
 			printParseFailure ("']'");
 			return IRArgument::create();

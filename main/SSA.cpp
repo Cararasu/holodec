@@ -290,7 +290,7 @@ namespace holodec {
 		case SSALocation::eNone:
 			break;
 		}
-		if (size) printf (" S%d", size);
+		if (offset || size) printf (" S[%d,%d]", offset, size);
 	}
 
 

@@ -76,6 +76,6 @@ namespace holodec {
 		default:
 			printf ("Unknown Argtype %x ", type);
 		}
-		if (size) printf (" S%d", size);
+		if (offset || size) printf (" S[%d,%d]", offset, size);
 	}
 }

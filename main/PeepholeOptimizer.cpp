@@ -101,14 +101,23 @@ namespace holodec {
 				++it;
 				continue;
 			}
-			for (SSAArgument& arg : expr.subExpressions) {
-				if (arg.type != SSAArgType::eId || arg.ssaId != origExpr.id)
-					continue;
-				arg = replaceArg;
-				if (replaceArg.type == SSAArgType::eId)
-					ssaRep->expressions[replaceArg.ssaId].refs.push_back(*it);
+			if (replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id)
+						arg = replaceArg;
+				}
+				++it;
 			}
-			it = origExpr.refs.erase(it);
+			else {
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
+						arg = replaceArg;
+						if (replaceArg.type == SSAArgType::eId)
+							ssaRep->expressions[replaceArg.ssaId].refs.push_back(*it);
+					}
+				}
+				it = origExpr.refs.erase(it);
+			}
 		}
 	}
 
@@ -136,7 +145,7 @@ namespace holodec {
 				addExpr.subExpressions.insert (addExpr.subExpressions.begin(), opExpr.subExpressions.begin() + 1, opExpr.subExpressions.end());
 				addExpr.instrAddr = opExpr.instrAddr;
 
-				flagExpr.subExpressions = {opExpr.subExpressions[0], SSAArgument::create (ssaRep->addBefore (&addExpr, opExpr.id), addExpr.size) };
+				flagExpr.subExpressions = {opExpr.subExpressions[0], SSAArgument::createId(ssaRep->addBefore (&addExpr, opExpr.id), addExpr.size) };
 
 			} else if (opExpr.subExpressions.size() == 2) {
 				flagExpr.subExpressions = {opExpr.subExpressions[0], opExpr.subExpressions[1]};

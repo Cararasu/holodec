@@ -3,6 +3,7 @@
 #define H_ARGUMENT_H
 
 #include <stdint.h>
+#include <assert.h>
 #include "General.h"
 
 #include "Register.h"
@@ -83,7 +84,7 @@ namespace holodec {
 			ArgMem mem;
 			Reference ref;
 		};
-		uint32_t size = 0;
+		uint32_t offset = 0, size = 0;
 
 		bool operator!() {
 			return type == IR_ARGTYPE_UNKN;
@@ -160,7 +161,7 @@ namespace holodec {
 
 
 	inline bool operator== (IRArgument& lhs, IRArgument& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset) {
 			switch (lhs.type) {
 			case IR_ARGTYPE_IP:
 				return true;
