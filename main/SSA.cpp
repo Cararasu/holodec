@@ -217,19 +217,19 @@ namespace holodec {
 			break;
 		}
 		switch (location) {
-		case SSAExprLocation::eReg:
+		case SSALocation::eReg:
 			printf ("Reg: %s, ", arch->getRegister (locref.refId)->name.cstr());
 			break;
-		case SSAExprLocation::eStack:
+		case SSALocation::eStack:
 			printf ("Stack: %s[%" PRId32 "], ", arch->getStack (locref.refId)->name.cstr(), locref.index);
 			break;
-		case SSAExprLocation::eMem:
+		case SSALocation::eMem:
 			printf ("Mem: %" PRId32 ", ", locref.refId);
 			break;
-		case SSAExprLocation::eBlock:
+		case SSALocation::eBlock:
 			printf ("Block %" PRId32, locref.refId);
 			break;
-		case SSAExprLocation::eNone:
+		case SSALocation::eNone:
 			break;
 		}
 		printf ("Ref: %02" PRId64 " | %04" PRId32 " = ", refs.size(), id);
@@ -272,22 +272,22 @@ namespace holodec {
 			printf ("Unknown Argtype %x ", type);
 		}
 		switch (location) {
-		case SSAExprLocation::eReg:
+		case SSALocation::eReg:
 			if (locref.refId)
 				printf (" Reg: %s", arch->getRegister (locref.refId)->name.cstr());
 			else
 				printf ("No Reg Def");
 			break;
-		case SSAExprLocation::eStack:
+		case SSALocation::eStack:
 			printf ("Stack-%s[%d]", arch->getStack (locref.refId)->name.cstr(), locref.index);
 			break;
-		case SSAExprLocation::eMem:
+		case SSALocation::eMem:
 			printf ("Memory %d", locref.refId);
 			break;
-		case SSAExprLocation::eBlock:
+		case SSALocation::eBlock:
 			printf ("Block %d", locref.refId);
 			break;
-		case SSAExprLocation::eNone:
+		case SSALocation::eNone:
 			break;
 		}
 		if (size) printf (" S%d", size);
@@ -305,7 +305,7 @@ namespace holodec {
 				auto innerIt = replacements->find(it->second.ssaId);
 				while (innerIt != replacements->end()) {//TODO infinite loop alarm!!!!!!
 					SSAArgument arg = innerIt->second;
-					if (it->second.location != SSAExprLocation::eNone) {//save the original location
+					if (it->second.location != SSALocation::eNone) {//save the original location
 						arg.location = it->second.location;
 						arg.locref = it->second.locref;
 					}
@@ -356,12 +356,10 @@ namespace holodec {
 	void SSARepresentation::removeNodes (HSet<HId>* ids) {
 		for (SSABB& bb : bbs) {
 			for (auto it = bb.exprIds.begin(); it != bb.exprIds.end();) {
-				if (ids->find (*it) != ids->end()) {
-					printf("%d -----\n", *it);
+				if (ids->find (*it) != ids->end())
 					it = removeExpr (bb.exprIds, it);
-					continue;
-				}
-				++it;
+				else
+					++it;
 			}
 		}
 	}

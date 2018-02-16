@@ -101,7 +101,7 @@ namespace holodec {
 		eO = SSA_FLAG_O,
 		eU = SSA_FLAG_U,
 	};
-	enum class SSAExprLocation{
+	enum class SSALocation{
 		eNone = SSA_LOCATION_NONE,
 		eReg = SSA_LOCATION_REG,
 		eStack = SSA_LOCATION_STACK,
@@ -128,7 +128,7 @@ namespace holodec {
 			ArgUInt uval;
 			ArgFloat fval;
 		};
-		SSAExprLocation location = SSAExprLocation::eNone;
+		SSALocation location = SSALocation::eNone;
 		Reference locref = {0, 0};
 
 		bool operator!() {
@@ -174,7 +174,7 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument create(HId ssaId, uint32_t size = 0, SSAExprLocation location = SSAExprLocation::eNone, Reference locref = { 0, 0 }) {
+		static inline SSAArgument create(HId ssaId, uint32_t size = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
 			SSAArgument arg;
 			arg.type = SSAArgType::eId;
 			arg.ssaId = ssaId;
@@ -183,7 +183,7 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument createOther(SSAArgType argType, uint32_t size = 0, SSAExprLocation location = SSAExprLocation::eNone, Reference locref = { 0, 0 }) {
+		static inline SSAArgument createOther(SSAArgType argType, uint32_t size = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
 			SSAArgument arg;
 			arg.type = argType;
 			arg.location = location;
@@ -191,7 +191,7 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument createUndef (SSAExprLocation location, Reference locref, uint32_t size = 0) {
+		static inline SSAArgument createUndef (SSALocation location, Reference locref, uint32_t size = 0) {
 			SSAArgument arg;
 			arg.type = SSAArgType::eUndef;
 			arg.location = location;
@@ -200,28 +200,28 @@ namespace holodec {
 			return arg;
 		}
 		static inline SSAArgument createId (HId ssaId, uint32_t size) {
-			return create(ssaId, size, SSAExprLocation::eNone, {0, 0});
+			return create(ssaId, size, SSALocation::eNone, {0, 0});
 		}
 		static inline SSAArgument createReg (Register* reg, HId ssaId = 0) {
-			return create(ssaId, reg->size, SSAExprLocation::eReg, {reg->id, 0});
+			return create(ssaId, reg->size, SSALocation::eReg, {reg->id, 0});
 		}
 		static inline SSAArgument createReg (Reference ref, uint32_t size, HId ssaId = 0) {
-			return create(ssaId, size, SSAExprLocation::eReg, ref);
+			return create(ssaId, size, SSALocation::eReg, ref);
 		}
 		static inline SSAArgument createMem (Memory* mem) {
-			return  createOther(SSAArgType::eOther, 0, SSAExprLocation::eMem, {mem->id, 0});
+			return  createOther(SSAArgType::eOther, 0, SSALocation::eMem, {mem->id, 0});
 		}
 		static inline SSAArgument createMem (HId memId) {
-			return  createOther(SSAArgType::eOther, 0, SSAExprLocation::eMem, {memId, 0});
+			return  createOther(SSAArgType::eOther, 0, SSALocation::eMem, {memId, 0});
 		}
 		static inline SSAArgument createStck (Stack* stack, HId index) {
-			return  createOther(SSAArgType::eOther, stack->wordbitsize, SSAExprLocation::eStack, {stack->id, index});
+			return  createOther(SSAArgType::eOther, stack->wordbitsize, SSALocation::eStack, {stack->id, index});
 		}
 		static inline SSAArgument createStck (Reference ref, uint32_t size) {
-			return createOther(SSAArgType::eOther, size, SSAExprLocation::eStack, ref);
+			return createOther(SSAArgType::eOther, size, SSALocation::eStack, ref);
 		}
 		static inline SSAArgument createBlock (HId blockId) {
-			return createOther(SSAArgType::eOther, 0, SSAExprLocation::eBlock, {blockId, 0});
+			return createOther(SSAArgType::eOther, 0, SSALocation::eBlock, {blockId, 0});
 		}
 
 		void print (Architecture* arch);
@@ -263,7 +263,7 @@ namespace holodec {
 			HId builtinId;
 			//HId instrId;
 		};
-		SSAExprLocation location = SSAExprLocation::eNone;
+		SSALocation location = SSALocation::eNone;
 		Reference locref = {0,0};
 		uint64_t instrAddr = 0;
 		

@@ -94,6 +94,24 @@ namespace holodec {
 		}
 	};
 
+	void replaceValue(SSARepresentation* ssaRep, SSAExpression& origExpr, SSAArgument replaceArg) {
+		for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {//iterate refs
+			SSAExpression& expr = ssaRep->expressions[*it];
+			if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific
+				++it;
+				continue;
+			}
+			for (SSAArgument& arg : expr.subExpressions) {
+				if (arg.type != SSAArgType::eId || arg.ssaId != origExpr.id)
+					continue;
+				arg = replaceArg;
+				if (replaceArg.type == SSAArgType::eId)
+					ssaRep->expressions[replaceArg.ssaId].refs.push_back(*it);
+			}
+			it = origExpr.refs.erase(it);
+		}
+	}
+
 	PeepholeOptimizer* parsePhOptimizer () {
 
 		PeepholeOptimizer* peephole_optimizer = new PeepholeOptimizer();
@@ -132,19 +150,27 @@ namespace holodec {
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			uint64_t offset = 0;
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
-			SSAExpression* baseExpr = nullptr;
 			if (expr.type != SSAExprType::eAppend)
 				return false;
-			for (SSAArgument& arg : expr.subExpressions) {
+
+			SSAArgument baseArg;
+			{
+				SSAArgument arg = expr.subExpressions[0];
 				if (arg.type != SSAArgType::eId) {
 					return false;
 				}
 				SSAExpression& splitExpr = ssaRep->expressions[arg.ssaId];
 				if (splitExpr.type != SSAExprType::eSplit)
 					return false;
-				if (!baseExpr)
-					baseExpr = &ssaRep->expressions[splitExpr.subExpressions[0].ssaId];
-				else if (baseExpr->id != splitExpr.subExpressions[0].ssaId)
+				baseArg = splitExpr.subExpressions[0];
+			}
+
+			for (SSAArgument& arg : expr.subExpressions) {
+				if (arg.type != SSAArgType::eId) {
+					return false;
+				}
+				SSAExpression& splitExpr = ssaRep->expressions[arg.ssaId];
+				if (splitExpr.type != SSAExprType::eSplit || baseArg != splitExpr.subExpressions[0])
 					return false;
 
 				if (splitExpr.subExpressions[1].uval == offset) {
@@ -152,10 +178,10 @@ namespace holodec {
 				}
 			}
 			if (offset == expr.size) {
-				assert(offset == baseExpr->size);//TODO needs an additional split
+				assert(offset == baseArg.size);//TODO needs an additional split
 
 				expr.type = SSAExprType::eAssign;
-				expr.subExpressions = { SSAArgument::createId(baseExpr->id, baseExpr->size) };
+				expr.subExpressions = { baseArg };
 			}
 		});
 		builder = peephole_optimizer->ruleSet;
@@ -182,7 +208,6 @@ namespace holodec {
 			if (!nonflag)
 				return;
 
-			printf("MultiByteAdd ---------------------------\n");
 			SSAExpression combine1;
 			combine1.type = SSAExprType::eAppend;
 			combine1.exprtype = firstAdd.exprtype;
@@ -207,15 +232,16 @@ namespace holodec {
 
 			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
 
-			SSAExpression addExpr;
-			addExpr.type = SSAExprType::eOp;
-			addExpr.opType = SSAOpType::eAdd;
-			addExpr.exprtype = secondAdd.exprtype;
-			addExpr.instrAddr = secondAdd.instrAddr;
-			addExpr.subExpressions = { combine1Arg, combine2Arg };
-			addExpr.size = firstAdd.size + secondAdd.size;
+			//SSAExpression addExpr;
+			//addExpr.type = SSAExprType::eOp;
+			//addExpr.opType = SSAOpType::eAdd;
+			uint64_t secsize = secondAdd.size;
+			secondAdd.exprtype = secondAdd.exprtype;
+			secondAdd.instrAddr = secondAdd.instrAddr;
+			secondAdd.subExpressions = { combine1Arg, combine2Arg };
+			secondAdd.size += firstAdd.size;
 
-			SSAArgument addArg = SSAArgument::createId(ssaRep->addAfter(&addExpr, combine2Arg.ssaId), addExpr.size);
+			SSAArgument addArg = SSAArgument::createId(secondAdd.id, secsize);
 
 			SSAExpression split1;
 			split1.type = SSAExprType::eSplit;
@@ -228,21 +254,7 @@ namespace holodec {
 			};
 			split1.size = firstAdd.size;
 			SSAArgument split1Arg = SSAArgument::createId(ssaRep->addAfter(&split1, addArg.ssaId), split1.size);
-
-			for (auto it = firstAdd.refs.begin(); it != firstAdd.refs.end();) {
-				SSAExpression& expr = ssaRep->expressions[*it];
-				if (expr.type != SSAExprType::eFlag) {
-					for (SSAArgument& arg : expr.subExpressions) {
-						if (arg.type == SSAArgType::eId && arg.ssaId == firstAdd.id) {
-							arg = split1Arg;
-							ssaRep->expressions[split1Arg.ssaId].refs.push_back(*it);
-						}
-					}
-					it = firstAdd.refs.erase(it);
-					continue;
-				}
-				++it;
-			}
+			replaceValue(ssaRep, firstAdd, split1Arg);
 
 			SSAExpression split2;
 			split2.type = SSAExprType::eSplit;
@@ -253,23 +265,33 @@ namespace holodec {
 				SSAArgument::createUVal(firstAdd.size, arch->bitbase),
 				SSAArgument::createUVal(secondAdd.size, arch->bitbase)
 			};
-			split2.size = secondAdd.size;
+			split2.size = secsize;
 			SSAArgument split2Arg = SSAArgument::createId(ssaRep->addAfter(&split2, split1Arg.ssaId), split2.size);
+			replaceValue(ssaRep, secondAdd, split2Arg);
+			return;
+		});
+		builder = peephole_optimizer->ruleSet;
+		builder
+			.ssaType(0, 0, SSAExprType::eOp)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
+			if ((expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eXor) && expr.subExpressions.size() == 2 && expr.subExpressions[0] == expr.subExpressions[0])
+				replaceValue(ssaRep, expr, SSAArgument::createUVal(0, expr.size));
 
-			for (auto it = secondAdd.refs.begin(); it != secondAdd.refs.end();) {//iterate refs
-				SSAExpression& expr = ssaRep->expressions[*it];
-				if (expr.type != SSAExprType::eFlag) {//ignore flags because they are operation specific
-					for (SSAArgument& arg : expr.subExpressions) {
-						if (arg.type == SSAArgType::eId && arg.ssaId == secondAdd.id) {
-							arg = split2Arg;
-							ssaRep->expressions[split2Arg.ssaId].refs.push_back(*it);
-						}
-					}
-					it = secondAdd.refs.erase(it);
-					continue;
-				}
-				++it;
+			return;
+		});
+		builder = peephole_optimizer->ruleSet;
+		builder
+			.ssaType(0, 0, SSAExprType::eSplit)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
+			if (expr.subExpressions[0].isConst()) {
+				if (expr.subExpressions[0].type == SSAArgType::eUInt)
+					replaceValue(ssaRep, expr, SSAArgument::createUVal(expr.subExpressions[0].uval >> expr.subExpressions[1].uval, expr.subExpressions[2].uval));
+				else if (expr.subExpressions[0].type == SSAArgType::eSInt)
+					replaceValue(ssaRep, expr, SSAArgument::createUVal(expr.subExpressions[0].sval >> expr.subExpressions[1].uval, expr.subExpressions[2].uval));
 			}
+
 			return;
 		});
 		return peephole_optimizer;

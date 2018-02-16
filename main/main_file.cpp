@@ -478,9 +478,8 @@ int main (int argc, const char** argv) {
 		for (size_t i = 1; i <= func->ssaRep.expressions.size(); i++) {
 			SSAExpression& expr = func->ssaRep.expressions[i];
 			MatchContext context;
-			if (optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
-				//break;//TODO needs to redo stuff, because iterator might break here
-			}
+
+			optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context);
 		}
 
 		transformers[3]->doTransformation(binary, func);

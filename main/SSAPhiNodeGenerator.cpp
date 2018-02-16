@@ -109,7 +109,7 @@ namespace holodec {
 				SSAExpression* expr = function->ssaRep.expressions.get (id);
 				for (size_t i = 0; i < expr->subExpressions.size(); i++) {
 					if (expr->subExpressions[i].type == SSAArgType::eId && !expr->subExpressions[i].ssaId) {
-						if (expr->subExpressions[i].location == SSAExprLocation::eReg) {
+						if (expr->subExpressions[i].location == SSALocation::eReg) {
 							Register* reg = arch->getRegister (expr->subExpressions[i].locref.refId);
 							assert (reg->id);
 							bool found = false;
@@ -129,7 +129,7 @@ namespace holodec {
 										newExpr.size = static_cast<uint32_t>((def.offset + def.size) - reg->offset);
 										newExpr.exprtype = SSAType::eUInt;
 										newExpr.instrAddr = expr->instrAddr;
-										newExpr.location = SSAExprLocation::eReg;
+										newExpr.location = SSALocation::eReg;
 										newExpr.locref = {reg->id, 0};
 										newExpr.subExpressions = {
 											SSAArgument::createReg (reg, def.ssaId),
@@ -150,7 +150,7 @@ namespace holodec {
 							if (!found) {
 								addRegDef (0, reg, &bbwrapper.inputs, false);
 							}
-						} else if (expr->subExpressions[i].location == SSAExprLocation::eMem) {
+						} else if (expr->subExpressions[i].location == SSALocation::eMem) {
 							Memory* mem = arch->getMemory (expr->subExpressions[i].locref.refId);
 							bool found = false;
 							for (SSAMemDef& def : bbwrapper.outputMems) {
@@ -166,10 +166,10 @@ namespace holodec {
 					}
 				}
 				switch (expr->location) {
-				case SSAExprLocation::eReg:
+				case SSALocation::eReg:
 					addRegDef (expr->id, arch->getRegister (expr->locref.refId), &bbwrapper.outputs, ! EXPR_IS_TRANSPARENT (expr->type));
 					break;
-				case SSAExprLocation::eMem:
+				case SSALocation::eMem:
 					addMemDef (expr->id, arch->getMemory (expr->locref.refId), &bbwrapper.outputMems);
 					break;
 				default:
@@ -195,7 +195,7 @@ namespace holodec {
 				for (size_t i = 0; i < expr->subExpressions.size(); i++) {
 					SSAArgument& arg = expr->subExpressions[i];
 					//reset id of register/memory/stack so that we can redo them to find non defined reg-arguments
-					if (arg.location == SSAExprLocation::eReg) {
+					if (arg.location == SSALocation::eReg) {
 						setSSAID (&function->ssaRep, expr, static_cast<HId>(i), 0);
 					}
 				}
@@ -246,7 +246,7 @@ namespace holodec {
 				SSAExpression phinode;
 				phinode.type = SSAExprType::ePhi;
 				phinode.exprtype = SSAType::eUInt;
-				phinode.location = SSAExprLocation::eReg;
+				phinode.location = SSALocation::eReg;
 				phinode.locref = {reg->id, 0};
 				phinode.size = reg->size;
 				phinode.instrAddr = wrap.ssaBB->startaddr;
@@ -298,7 +298,7 @@ namespace holodec {
 			expr.type = SSAExprType::eSplit;
 			expr.exprtype = SSAType::eUInt;
 			expr.size = reg->size;
-			expr.location = SSAExprLocation::eReg;
+			expr.location = SSALocation::eReg;
 			expr.locref = {reg->id, 0};
 			expr.subExpressions = {
 				SSAArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId),

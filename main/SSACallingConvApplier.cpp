@@ -29,7 +29,7 @@ namespace holodec {
 
 				bool isParam = false;
 				switch (expr.location) {
-				case SSAExprLocation::eReg: {
+				case SSALocation::eReg: {
 					for (StringRef& regStr : cc->nonVolatileReg) {
 						Register* reg = arch->getRegister (regStr);
 						if (expr.locref.refId == reg->id) {
@@ -37,7 +37,7 @@ namespace holodec {
 
 							expr.type = SSAExprType::eAssign;
 							for (SSAArgument& arg : callExpr->subExpressions) {
-								if (arg.location == SSAExprLocation::eReg && arg.locref == expr.locref) {
+								if (arg.location == SSALocation::eReg && arg.locref == expr.locref) {
 									expr.subExpressions[0] = arg;
 								}
 							}
@@ -48,7 +48,7 @@ namespace holodec {
 					if (!isParam && localStackReg && expr.locref.refId == localStackReg->id && cc->callerstackadjust == CCStackAdjust::eCallee) {
 						expr.type = SSAExprType::eAssign;
 						for (SSAArgument& arg : callExpr->subExpressions) {
-							if (arg.location == SSAExprLocation::eReg && arg.locref == expr.locref) {
+							if (arg.location == SSALocation::eReg && arg.locref == expr.locref) {
 								expr.subExpressions[0] = arg;
 							}
 						}
@@ -67,7 +67,7 @@ namespace holodec {
 					}
 				}
 				break;
-				case SSAExprLocation::eMem: {
+				case SSALocation::eMem: {
 					for (Memory& mem : arch->memories) {
 						if (expr.locref.refId == mem.id) {
 							expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase));
@@ -90,7 +90,7 @@ namespace holodec {
 					SSAArgument& arg = *it;
 					bool isParam = false;
 
-					if (arg.location == SSAExprLocation::eReg) {
+					if (arg.location == SSALocation::eReg) {
 						if (!isParam) {
 							for (CCParameter& para : cc->returns) {
 								Register* reg = arch->getRegister (para.regref);
@@ -101,7 +101,7 @@ namespace holodec {
 								}
 							}
 						}
-					} else if (arg.location == SSAExprLocation::eMem) {
+					} else if (arg.location == SSALocation::eMem) {
 						isParam = true;
 					}
 					if (!isParam) {
@@ -115,7 +115,7 @@ namespace holodec {
 
 				bool isParam = false;
 				switch (expr.location) {
-				case SSAExprLocation::eReg: {
+				case SSALocation::eReg: {
 					for (CCParameter& para : cc->parameters) {
 						Register* reg = arch->getRegister (para.regref);
 						if (expr.locref.refId == reg->id) {
@@ -130,7 +130,7 @@ namespace holodec {
 					}
 				}
 				break;
-				case SSAExprLocation::eMem: {
+				case SSALocation::eMem: {
 					for (Memory& mem : arch->memories) {
 						if (expr.locref.refId == mem.id) {
 							expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase));
@@ -163,7 +163,7 @@ namespace holodec {
 					SSAArgument& arg = *it;
 					bool isParam = false;
 
-					if (arg.location == SSAExprLocation::eMem)
+					if (arg.location == SSALocation::eMem)
 						isParam = true;
 					if (!isParam) {
 						for (CCParameter& para : cc->parameters) {

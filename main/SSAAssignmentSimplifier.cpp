@@ -23,8 +23,8 @@ namespace holodec{
 				if(expr.type == SSAExprType::eAssign/* && !expr.subExpressions[0].isConst()*/) {
 					
 					SSAArgument arg = expr.subExpressions[0];
-					if(arg.location == SSAExprLocation::eNone){
-						if(expr.location != SSAExprLocation::eNone){
+					if(arg.location == SSALocation::eNone){
+						if(expr.location != SSALocation::eNone){
 							arg.location = expr.location;
 							arg.locref = expr.locref;
 						}

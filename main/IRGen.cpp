@@ -378,7 +378,9 @@ namespace holodec {
 					HString str = buffer;
 					Register* reg = arch->getRegister (str);
 					if (reg->id) {
-						return IRArgument::createReg (reg);
+						IRArgument arg = IRArgument::createReg(reg);
+						parseArgFlags(&arg);
+						return arg;
 					}
 
 					Stack* stack = arch->getStack (str);
