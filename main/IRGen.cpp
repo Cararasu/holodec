@@ -189,7 +189,7 @@ namespace holodec {
 					return IRArgument::create();
 				}
 			} else {
-				size = IRArgument::createUVal( (uint64_t) 0, arch->bitbase);
+				size = IRArgument::createUVal( (uint64_t) 1, arch->bitbase);
 			}
 			if (parseCharacter (']')) {
 				IRExpression expression;
@@ -197,8 +197,8 @@ namespace holodec {
 				expression.subExpressions.push_back (arg);
 				expression.subExpressions.push_back (offset);
 				expression.subExpressions.push_back (size);
+				expression.size = size.uval;
 				IRArgument arg = IRArgument::createIRId (arch->addIrExpr (expression), expression.size);
-				arg.offset = offset;
 				return arg;
 			}
 			printParseFailure ("']'");

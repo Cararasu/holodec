@@ -471,18 +471,24 @@ int main (int argc, const char** argv) {
 		func->print(binary->arch);
 		for (SSATransformer* transform : transformers) {
 			transform->doTransformation(binary, func);
+			func->ssaRep.recalcRefCounts();
 			func->print(binary->arch);
 		}
 
 		func->ssaRep.recalcRefCounts();
-		for (size_t i = 1; i <= func->ssaRep.expressions.size(); i++) {
+
+		for (size_t i = 1; i <= func->ssaRep.expressions.size();) {
 			SSAExpression& expr = func->ssaRep.expressions[i];
 			MatchContext context;
 
-			optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context);
+			if (!optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
+				i++;
+			}
 		}
+		func->print(binary->arch);
 
 		transformers[3]->doTransformation(binary, func);
+		func->print(binary->arch);
 		transformers[2]->doTransformation(binary, func);
 		transformers[4]->doTransformation(binary, func);
 

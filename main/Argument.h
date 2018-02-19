@@ -130,11 +130,12 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument create (IRArgTypes type, Reference ref = {0,0}, uint32_t size = 0) {
+		static inline IRArgument create (IRArgTypes type, Reference ref = {0,0}, uint32_t size = 0, uint32_t offset = 0) {
 			IRArgument arg;
 			arg.type = type;
 			arg.ref = ref;
 			arg.size = size;
+			arg.offset = offset;
 			return arg;
 		}
 		static inline IRArgument createIRId (HId id, uint32_t size) {

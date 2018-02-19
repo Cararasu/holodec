@@ -50,11 +50,13 @@ namespace holodec {
 		if (matched)
 			context->expressionsMatched.push_back (expr->id);
 		for (PhRule* rule : subRules) {
-			rule->matchRule (arch, ssaRep, expr, context);
+			if (rule->matchRule(arch, ssaRep, expr, context))
+				return true;
 		}
-		if (executor)
-			executor (arch, ssaRep, context);
-		return true;
+		if (executor && executor(arch, ssaRep, context)) {
+			return true;
+		}
+		return false;
 	}
 
 	struct RuleBuilder {
@@ -93,25 +95,58 @@ namespace holodec {
 			return *this;
 		}
 	};
+	bool usedOnlyInFlags(SSARepresentation* ssaRep, SSAExpression& expr) {
+		for (auto it = expr.refs.begin(); it != expr.refs.end();++it) {//iterate refs
+			if (ssaRep->expressions[*it].type != SSAExprType::eFlag)
+				return false;
+		}
+		return true;
+	}
 
 	void replaceValue(SSARepresentation* ssaRep, SSAExpression& origExpr, SSAArgument replaceArg) {
 		for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {//iterate refs
 			SSAExpression& expr = ssaRep->expressions[*it];
+			if (replaceArg.ssaId == *it)
+				printf("-------------\n");
 			if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific
 				++it;
 				continue;
 			}
-			if (replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
+			if (replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
 				for (SSAArgument& arg : expr.subExpressions) {
-					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id)
-						arg = replaceArg;
+					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
+						arg.replace(replaceArg);
+					}
 				}
 				++it;
 			}
 			else {
 				for (SSAArgument& arg : expr.subExpressions) {
 					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
-						arg = replaceArg;
+						arg.replace(replaceArg);
+						if (replaceArg.type == SSAArgType::eId)
+							ssaRep->expressions[replaceArg.ssaId].refs.push_back(*it);
+					}
+				}
+				it = origExpr.refs.erase(it);
+			}
+		}
+	}
+	void replaceAllValues(SSARepresentation* ssaRep, SSAExpression& origExpr, SSAArgument replaceArg) {
+		for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {//iterate refs
+			SSAExpression& expr = ssaRep->expressions[*it];
+			if (replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
+						arg.replace(replaceArg);
+					}
+				}
+				++it;
+			}
+			else {
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
+						arg.replace(replaceArg);
 						if (replaceArg.type == SSAArgType::eId)
 							ssaRep->expressions[replaceArg.ssaId].refs.push_back(*it);
 					}
@@ -150,48 +185,35 @@ namespace holodec {
 			} else if (opExpr.subExpressions.size() == 2) {
 				flagExpr.subExpressions = {opExpr.subExpressions[0], opExpr.subExpressions[1]};
 			}
+			return true;
 		});
 		builder = peephole_optimizer->ruleSet;
 		builder
 		.ssaType(0, 0, SSAExprType::eAppend)
-		.ssaType(1, 1, SSAExprType::eSplit)
-		.ssaType(1, 2, SSAExprType::eSplit)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-			uint64_t offset = 0;
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
 			if (expr.type != SSAExprType::eAppend)
 				return false;
 
-			SSAArgument baseArg;
-			{
-				SSAArgument arg = expr.subExpressions[0];
-				if (arg.type != SSAArgType::eId) {
-					return false;
-				}
-				SSAExpression& splitExpr = ssaRep->expressions[arg.ssaId];
-				if (splitExpr.type != SSAExprType::eSplit)
-					return false;
-				baseArg = splitExpr.subExpressions[0];
-			}
+			SSAArgument baseArg = expr.subExpressions[0];
+			uint64_t offset = baseArg.offset;
 
 			for (SSAArgument& arg : expr.subExpressions) {
-				if (arg.type != SSAArgType::eId) {
+				if (arg.type != SSAArgType::eId && arg.ssaId == baseArg.ssaId) {
 					return false;
 				}
-				SSAExpression& splitExpr = ssaRep->expressions[arg.ssaId];
-				if (splitExpr.type != SSAExprType::eSplit || baseArg != splitExpr.subExpressions[0])
-					return false;
 
-				if (splitExpr.subExpressions[1].uval == offset) {
-					offset += splitExpr.subExpressions[2].uval;
+				if (arg.offset == offset) {
+					offset += arg.size;
 				}
 			}
 			if (offset == expr.size) {
-				assert(offset == baseArg.size);//TODO needs an additional split
-
 				expr.type = SSAExprType::eAssign;
+				baseArg.size = offset - baseArg.offset;
 				expr.subExpressions = { baseArg };
+				return true;
 			}
+			return false;
 		});
 		builder = peephole_optimizer->ruleSet;
 		builder
@@ -201,21 +223,10 @@ namespace holodec {
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 
 			SSAExpression& firstAdd = ssaRep->expressions[context->expressionsMatched[2]];
+			SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
-			if (firstAdd.subExpressions.size() != 2)
-				return;
-			if (secondAdd.subExpressions.size() != 3)
-				return;
-			bool nonflag = false;
-			for (auto it = secondAdd.refs.begin(); it != secondAdd.refs.end();++it) {
-				SSAExpression& expr = ssaRep->expressions[*it];
-				if (expr.type != SSAExprType::eFlag) {
-					nonflag = true;
-					break;
-				}
-			}
-			if (!nonflag)
-				return;
+			if (firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || usedOnlyInFlags(ssaRep, secondAdd) || carryExpr.subExpressions[0].size != firstAdd.size)
+				return false;
 
 			SSAExpression combine1;
 			combine1.type = SSAExprType::eAppend;
@@ -225,9 +236,9 @@ namespace holodec {
 				firstAdd.subExpressions[0],
 				secondAdd.subExpressions[0]
 			};
-			combine1.size = firstAdd.subExpressions[0].size + firstAdd.subExpressions[0].size;
+			combine1.size = firstAdd.subExpressions[0].size + secondAdd.subExpressions[0].size;
 
-			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addAfter(&combine1, secondAdd.id), combine1.size);
+			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondAdd.id), combine1.size);
 
 			SSAExpression combine2;
 			combine2.type = SSAExprType::eAppend;
@@ -237,7 +248,7 @@ namespace holodec {
 				firstAdd.subExpressions[1],
 				secondAdd.subExpressions[1]
 			};
-			combine2.size = firstAdd.subExpressions[1].size + firstAdd.subExpressions[1].size;
+			combine2.size = firstAdd.subExpressions[1].size + secondAdd.subExpressions[1].size;
 
 			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
 
@@ -252,57 +263,71 @@ namespace holodec {
 
 			SSAArgument addArg = SSAArgument::createId(secondAdd.id, secsize);
 
-			SSAExpression split1;
-			split1.type = SSAExprType::eSplit;
-			split1.exprtype = firstAdd.exprtype;
-			split1.instrAddr = firstAdd.instrAddr;
-			split1.subExpressions = {
-				SSAArgument::createId(addArg.ssaId, addArg.size),
-				SSAArgument::createUVal(0, arch->bitbase),
-				SSAArgument::createUVal(firstAdd.size, arch->bitbase)
-			};
-			split1.size = firstAdd.size;
-			SSAArgument split1Arg = SSAArgument::createId(ssaRep->addAfter(&split1, addArg.ssaId), split1.size);
-			replaceValue(ssaRep, firstAdd, split1Arg);
+			SSAArgument splitArg2 = addArg;
+			splitArg2.size = secsize;
+			splitArg2.offset = firstAdd.size;
+			if (splitArg2.ssaId == 0x06 && splitArg2.size == 0x08 && splitArg2.offset == 0x10)
+				printf("");
+			replaceAllValues(ssaRep, secondAdd, splitArg2);
 
-			SSAExpression split2;
-			split2.type = SSAExprType::eSplit;
-			split2.exprtype = secondAdd.exprtype;
-			split2.instrAddr = secondAdd.instrAddr;
-			split2.subExpressions = {
-				SSAArgument::createId(addArg.ssaId, addArg.size),
-				SSAArgument::createUVal(firstAdd.size, arch->bitbase),
-				SSAArgument::createUVal(secondAdd.size, arch->bitbase)
-			};
-			split2.size = secsize;
-			SSAArgument split2Arg = SSAArgument::createId(ssaRep->addAfter(&split2, split1Arg.ssaId), split2.size);
-			replaceValue(ssaRep, secondAdd, split2Arg);
-			return;
+			SSAArgument splitArg1 = addArg;
+			splitArg1.size = firstAdd.size;
+			splitArg1.offset = 0;
+			//assert(!(splitArg1.ssaId == 0x06 && splitArg1.size == 0x08 && splitArg1.offset == 0x10));
+			replaceValue(ssaRep, firstAdd, splitArg1);
+
+			return true;
 		});
 		builder = peephole_optimizer->ruleSet;
 		builder
 			.ssaType(0, 0, SSAExprType::eOp)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
-			if ((expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eXor) && expr.subExpressions.size() == 2 && expr.subExpressions[0] == expr.subExpressions[0])
+			if ((expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eXor) && expr.subExpressions.size() == 2 && expr.subExpressions[0] == expr.subExpressions[1] && !usedOnlyInFlags(ssaRep, expr)) {
 				replaceValue(ssaRep, expr, SSAArgument::createUVal(0, expr.size));
-
-			return;
+				return true;
+			}
+			return false;
 		});
 		builder = peephole_optimizer->ruleSet;
 		builder
-			.ssaType(0, 0, SSAExprType::eSplit)
+			.ssaType(0, 0, SSAExprType::eAssign)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
-			if (expr.subExpressions[0].isConst()) {
-				if (expr.subExpressions[0].type == SSAArgType::eUInt)
-					replaceValue(ssaRep, expr, SSAArgument::createUVal(expr.subExpressions[0].uval >> expr.subExpressions[1].uval, expr.subExpressions[2].uval));
-				else if (expr.subExpressions[0].type == SSAArgType::eSInt)
-					replaceValue(ssaRep, expr, SSAArgument::createUVal(expr.subExpressions[0].sval >> expr.subExpressions[1].uval, expr.subExpressions[2].uval));
+			SSAArgument& arg = expr.subExpressions[0];
+			if (arg.isConst()) {
+				if (arg.type == SSAArgType::eUInt) {
+					replaceValue(ssaRep, expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
+					return true;
+				}
+				else if (arg.type == SSAArgType::eSInt) {
+					replaceValue(ssaRep, expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size));
+					return true;
+				}
 			}
-
-			return;
-		});
+			return false;
+		});/*
+		builder = peephole_optimizer->ruleSet;
+		builder
+			.ssaType(0, 0, SSAOpType::eAdd)
+			.ssaType(0, 0, SSAOpType::eAdd)
+			.ssaType(0, 0, SSAExprType::eAssign)
+			.ssaType(0, 0, SSAExprType::eAssign)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAArgument& arg = expr.subExpressions[0];
+			if (arg.isConst()) {
+				if (arg.type == SSAArgType::eUInt) {
+					replaceValue(ssaRep, expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
+					return true;
+				}
+				else if (arg.type == SSAArgType::eSInt) {
+					replaceValue(ssaRep, expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size));
+					return true;
+				}
+			}
+			return false;
+		});*/
 		return peephole_optimizer;
 	}
 }

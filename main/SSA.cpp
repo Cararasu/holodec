@@ -174,9 +174,6 @@ namespace holodec {
 		case SSAExprType::eExtend:
 			printf ("Extend ");
 			break;
-		case SSAExprType::eSplit:
-			printf ("Split  ");
-			break;
 		case SSAExprType::eAppend:
 			printf ("Append ");
 			break;
@@ -309,6 +306,11 @@ namespace holodec {
 						arg.location = it->second.location;
 						arg.locref = it->second.locref;
 					}
+					arg.offset += it->second.offset;
+					if(it->second.size)
+						arg.size = arg.size < it->second.size ? arg.size : it->second.size;
+					if (it->first == arg.ssaId)
+						break;
 					it->second = arg;
 					innerIt = replacements->find(it->second.ssaId);
 					replaced = true;
@@ -592,8 +594,6 @@ namespace holodec {
 
 
 	void SSARepresentation::print (Architecture* arch, int indent) {
-		printIndent (indent);
-		printf ("------------------\n");
 		printIndent (indent);
 		printf ("Printing SSA-Gen DataSegment\n");
 		printIndent (indent);

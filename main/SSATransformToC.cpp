@@ -61,7 +61,6 @@ namespace holodec{
 				case SSAExprType::eFlag:
 				case SSAExprType::eBuiltin:
 				case SSAExprType::eExtend:
-				case SSAExprType::eSplit:
 				case SSAExprType::eUpdatePart:
 				case SSAExprType::eAppend:
 				case SSAExprType::eCast:

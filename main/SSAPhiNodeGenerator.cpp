@@ -125,16 +125,14 @@ namespace holodec {
 									if ( (def.parentId == (HId) reg->parentRef) && ( (def.offset <= reg->offset) && ( (reg->offset + reg->size) <= (def.offset + def.size)))) {
 
 										SSAExpression newExpr;
-										newExpr.type = SSAExprType::eSplit;
+										newExpr.type = SSAExprType::eAssign;
 										newExpr.size = static_cast<uint32_t>((def.offset + def.size) - reg->offset);
 										newExpr.exprtype = SSAType::eUInt;
 										newExpr.instrAddr = expr->instrAddr;
 										newExpr.location = SSALocation::eReg;
 										newExpr.locref = {reg->id, 0};
 										newExpr.subExpressions = {
-											SSAArgument::createReg (reg, def.ssaId),
-											SSAArgument::createUVal (reg->offset - def.offset, arch->bitbase),
-											SSAArgument::createUVal (newExpr.size, arch->bitbase)
+											SSAArgument::createReg (reg, def.ssaId, reg->offset - def.offset)
 										};
 
 										it = function->ssaRep.addBefore (&newExpr, bbwrapper.ssaBB->exprIds, it);
@@ -295,15 +293,13 @@ namespace holodec {
 		if (foundParentDef) {
 			//printf("Found parent Match %d\n", foundParentDef->ssaId);
 			SSAExpression expr;
-			expr.type = SSAExprType::eSplit;
+			expr.type = SSAExprType::eAssign;
 			expr.exprtype = SSAType::eUInt;
 			expr.size = reg->size;
 			expr.location = SSALocation::eReg;
 			expr.locref = {reg->id, 0};
 			expr.subExpressions = {
-				SSAArgument::createReg (arch->getRegister (foundParentDef->regId), foundParentDef->ssaId),
-				SSAArgument::createUVal (reg->offset, arch->bitbase),
-				SSAArgument::createUVal (reg->size, arch->bitbase)
+				SSAArgument::createReg({foundParentDef->regId, 0}, reg->size, reg->offset, foundParentDef->ssaId)
 			};
 			bool found = false;
 			for (auto it = wrapper->ssaBB->exprIds.begin(); it != wrapper->ssaBB->exprIds.end(); ++it) {

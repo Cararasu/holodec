@@ -52,7 +52,7 @@ namespace holodec{
 					}else if(alwaysTheSame){
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, firstArg));
 					}
-				}else if(expr.type == SSAExprType::eSplit || expr.type == SSAExprType::eUpdatePart){
+				}else if(expr.type == SSAExprType::eAssign || expr.type == SSAExprType::eUpdatePart){
 					if(expr.subExpressions[0].type == SSAArgType::eUndef){
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::createUndef(expr.location, expr.locref, expr.size)));
 					}

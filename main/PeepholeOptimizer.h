@@ -11,7 +11,7 @@ namespace holodec {
 		std::vector<HId> expressionsMatched;
 	};
 
-	typedef std::function<void (Architecture*, SSARepresentation*, MatchContext*) > PhExecutor;
+	typedef std::function<bool (Architecture*, SSARepresentation*, MatchContext*) > PhExecutor;
 
 	struct PhRule {
 		HId matchedIndex;//select the ith matched expression
