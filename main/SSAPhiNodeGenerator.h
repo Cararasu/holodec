@@ -39,8 +39,8 @@ namespace holodec {
 		
 		void resolveRegs();
 		
-		void handleBBs(BasicBlockWrapper* wrapper, Register* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount);
-		void handleBBs(BasicBlockWrapper* wrapper, Memory* mem,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount);
+		bool handleBBs(BasicBlockWrapper* wrapper, Register* reg, std::vector<std::pair<HId, HId>>& gatheredIds, std::vector<HId>& visitedBlocks);
+		bool handleBBs(BasicBlockWrapper* wrapper, Memory* mem, std::vector<std::pair<HId, HId>>& gatheredIds, std::vector<HId>& visitedBlocks);
 		
 		BasicBlockWrapper* getWrapper(HId id){
 			for(BasicBlockWrapper& wrapper : bbwrappers){

@@ -5,7 +5,7 @@
 using namespace holodec;
 
 
-Architecture holox86::x86architecture {"x86", "x86", 64, 8, {
+Architecture holox86::x86architecture {"x86", "x86", 64, 8, 8, {
 		[] (Binary * binary) {
 			static FunctionAnalyzer* analyzer = nullptr;
 			if (analyzer == nullptr) {

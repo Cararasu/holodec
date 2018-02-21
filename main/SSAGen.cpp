@@ -221,7 +221,7 @@ namespace holodec {
 		case IR_ARGTYPE_FLOAT:
 			return argExpr;
 		case IR_ARGTYPE_IP:
-			return IRArgument::createUVal(instruction->addr + instruction->size, arch->bitbase);
+			return IRArgument::createUVal(instruction->addr + instruction->size, arch->wordbase * arch->instrptrsize);
 		case IR_ARGTYPE_REG:
 		case IR_ARGTYPE_STACK:
 		case IR_ARGTYPE_TMP:
@@ -453,7 +453,7 @@ namespace holodec {
 			assert (false);
 		}
 		case IR_ARGTYPE_IP:
-			return IRArgument::createUVal (instruction->addr + instruction->size, arch->bitbase);
+			return IRArgument::createUVal (instruction->addr + instruction->size, arch->wordbase * arch->instrptrsize);
 		case IR_ARGTYPE_ID: {
 			IRExpression* irExpr = arch->getIrExpr (exprId.ref.refId);
 
@@ -963,13 +963,14 @@ namespace holodec {
 					SSAExpression expression;
 					expression.type = SSAExprType::ePop;
 					expression.exprtype = SSAType::eUInt;
-					expression.size = stack->wordbitsize * sizeadjust.uval;
+					expression.size = sizeadjust.uval;
 					expression.subExpressions = {
 						SSAArgument::createMem(mem->id),
 						SSAArgument::createReg(reg),
 						sizeadjust 
 					};
 
+					sizeadjust.uval /= stack->wordbitsize;
 					SSAExpression adjustExpr;
 					adjustExpr.type = SSAExprType::eOp;
 					adjustExpr.exprtype = SSAType::eUInt;

@@ -485,6 +485,14 @@ int main (int argc, const char** argv) {
 				i++;
 			}
 		}
+		for (size_t i = 1; i <= func->ssaRep.expressions.size();) {
+			SSAExpression& expr = func->ssaRep.expressions[i];
+			MatchContext context;
+
+			if (!optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
+				i++;
+			}
+		}
 		func->print(binary->arch);
 
 		transformers[3]->doTransformation(binary, func);

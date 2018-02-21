@@ -11,10 +11,10 @@ namespace holodec{
 		//function->print(binary->arch);
 		Symbol *sym = binary->getSymbol(function->symbolref);
 
-		printf("function %s\n", sym->name.cstr());
+		printf("Function: %s\n", sym->name.cstr());
 		{
 			printIndent(1);
-			puts("Input (");
+			printf("Input (");
 			SSABB& bb = function->ssaRep.bbs[1];
 			for (HId id : bb.exprIds) {
 				SSAExpression& expr = function->ssaRep.expressions[id];
@@ -25,6 +25,20 @@ namespace holodec{
 				}
 			}
 			puts(")\n");
+			HSet<HId> resolveIds;
+			for (HId id = 2; id < function->ssaRep.bbs.size(); ++id) {
+				SSABB& bb = function->ssaRep.bbs[id];
+				for (HId id : bb.exprIds) {
+					SSAExpression& expr = function->ssaRep.expressions[id];
+					if (expr.type == SSAExprType::ePhi) {
+						for (SSAArgument& arg : expr.subExpressions) {
+							if (arg.type == SSAArgType::eId)
+								resolveIds.insert(arg.ssaId);
+						}
+					}
+				}
+			}
+
 		}
 		for (HId id = 2; id < function->ssaRep.bbs.size(); ++id) {
 			SSABB& bb = function->ssaRep.bbs[id];

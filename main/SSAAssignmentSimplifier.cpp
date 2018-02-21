@@ -36,10 +36,12 @@ namespace holodec{
 					replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::create()));
 				}else if(expr.type == SSAExprType::ePhi) {
 					bool undef = true;
-					SSAArgument& firstArg = expr.subExpressions[0];
+					SSAArgument& firstArg = expr.subExpressions[1];
 					bool alwaysTheSame = true;
 					
-					for(SSAArgument& arg : expr.subExpressions){
+					for (size_t i = 0; i < expr.subExpressions.size(); i += 2) {
+						//SSAArgument& blockArg = expr.subExpressions[i];
+						SSAArgument& arg = expr.subExpressions[i + 1];
 						if(arg.type != SSAArgType::eUndef){
 							undef = false;
 						}
@@ -80,10 +82,6 @@ namespace holodec{
 						SSAArgument& arg = *it;
 						if (arg.type == SSAArgType::eId) {
 							SSAExprType type = function->ssaRep.expressions[arg.ssaId].type;
-							while (arg.type == SSAArgType::eId && EXPR_IS_TRANSPARENT(type)) {
-								arg = function->ssaRep.expressions[arg.ssaId].subExpressions[0];
-								type = function->ssaRep.expressions[arg.ssaId].type;
-							}
 							if (arg.type == SSAArgType::eId && type == SSAExprType::eInput) {
 								it = expr.subExpressions.erase(it);
 								continue;

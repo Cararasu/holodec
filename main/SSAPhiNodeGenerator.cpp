@@ -203,22 +203,20 @@ namespace holodec {
 		resolveRegs();
 
 
-#if defined(__GNUC__) || defined(__MINGW32__)
-		HId gatheredIds[bbwrappers.size()];
-		HId visitedBlocks[bbwrappers.size()];
-#else
-		HId* gatheredIds = new HId[bbwrappers.size()];
-		HId* visitedBlocks = new HId[bbwrappers.size()];
-#endif
+		std::vector<std::pair<HId, HId>> gatheredIds;
+		std::vector<HId> visitedBlocks;
+
+		gatheredIds.reserve(bbwrappers.size());
+		visitedBlocks.reserve(bbwrappers.size());
+
 		for (BasicBlockWrapper& wrap : bbwrappers) {
 			for (SSARegDef& regDef : wrap.inputs) {
 
-				uint64_t gatheredIdCount = 0;
-				uint64_t visitedBlockCount = 1;
 
-				memset(gatheredIds, 0, sizeof(HId)*bbwrappers.size());
-				memset(visitedBlocks, 0, sizeof(HId)*bbwrappers.size());
-				visitedBlocks[0] = wrap.ssaBB->id;
+				gatheredIds.clear();
+				visitedBlocks.clear();
+
+				visitedBlocks.push_back(wrap.ssaBB->id);
 
 				Register* reg = arch->getRegister (regDef.regId);
 
@@ -227,19 +225,16 @@ namespace holodec {
 
 				//printf ("Searching Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
 				for (HId inBlockId : wrap.ssaBB->inBlocks) {
-					handleBBs (getWrapper (inBlockId), reg, gatheredIds, &gatheredIdCount, visitedBlocks, &visitedBlockCount);
+					assert(handleBBs (getWrapper (inBlockId), reg, gatheredIds, visitedBlocks));
 				}
 				//printf ("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
 
-				if (!gatheredIdCount) {
-					for (BasicBlockWrapper& wrappers : bbwrappers) {
-						wrappers.print(arch);
-					}
+				if (gatheredIds.size() != 0) {
 					printf("Searched Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
-					printf("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
+					printf("Reg: %s Count %d\n", reg->name.cstr(), gatheredIds.size());
 				}
 
-				assert (gatheredIdCount);
+				assert (gatheredIds.size() != 0);
 
 				SSAExpression phinode;
 				phinode.type = SSAExprType::ePhi;
@@ -248,9 +243,11 @@ namespace holodec {
 				phinode.locref = {reg->id, 0};
 				phinode.size = reg->size;
 				phinode.instrAddr = wrap.ssaBB->startaddr;
-				phinode.subExpressions.resize (gatheredIdCount);
-				for (uint64_t i = 0; i < gatheredIdCount; i++) {
-					phinode.subExpressions[i] = SSAArgument::createReg (reg, gatheredIds[i]);
+				phinode.subExpressions.resize (gatheredIds.size() * 2);
+				for (uint64_t i = 0; i < gatheredIds.size(); i++) {
+					assert(gatheredIds[i].second);
+					phinode.subExpressions[2*i] = SSAArgument::createBlock(gatheredIds[i].first);
+					phinode.subExpressions[2*i + 1] = SSAArgument::createReg(reg, gatheredIds[i].second);
 				}
 				HId exprId = function->ssaRep.addAtStart (&phinode, wrap.ssaBB);
 				bool needInOutput = true;
@@ -266,24 +263,20 @@ namespace holodec {
 			}
 		}
 
-#if !defined(__GNUC__) || !defined(__MINGW32__)
-		delete gatheredIds;
-		delete visitedBlocks;
-#endif
 		resolveRegs();
 		function->ssaRep.compress();
 	}
 
-	void SSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, Register* reg,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount) {
+	bool SSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, Register* reg,  std::vector<std::pair<HId, HId>>& gatheredIds, std::vector<HId>& visitedBlocks) {
 		//printf ("\nHandling Block %d\n", wrapper->ssaBB->id);
 
 		SSARegDef* foundParentDef = nullptr;
 		for (SSARegDef& regDef : wrapper->outputs) {
 			if (regDef.parentId == reg->parentRef.refId) {
 				if (regDef.regId == reg->id) {
-					gatheredIds[ (*gatheredIdCount)++] = regDef.ssaId;
+					gatheredIds.push_back(std::make_pair(wrapper->ssaBB->id,regDef.ssaId));
 					//printf ("\Found perfect Match %d\n", regDef.ssaId);
-					return;
+					return true;
 				} else if (regDef.regId == reg->parentRef.refId) {
 					//printf ("\Found parent Match %d\n", regDef.ssaId);
 					foundParentDef = &regDef;
@@ -308,25 +301,29 @@ namespace holodec {
 
 					HId exprId = *function->ssaRep.addAfter (&expr, wrapper->ssaBB->exprIds, it);
 					addRegDef (exprId, reg, &wrapper->outputs, false);
-					gatheredIds[ (*gatheredIdCount)++] = exprId;
+					gatheredIds.push_back(std::make_pair(wrapper->ssaBB->id, exprId));
 					found = true;
 					break;
 				}
 			}
-			assert (found);
+			return found;
 		} else {
 			//printf("Found no match on BB %d\n", wrapper->ssaBB->id);
-			for (uint64_t i = 0; i < *visitedBlockCount; i++) {
-				if (visitedBlocks[i] == wrapper->ssaBB->id) {
+			for (HId visited : visitedBlocks) {
+				if (visited == wrapper->ssaBB->id) {
 					//printf("Already Visited BB %d\n", wrapper->ssaBB->id);
-					return;
+					return true;
 				}
 			}
-			visitedBlocks[ (*visitedBlockCount)++] = wrapper->ssaBB->id;
+			visitedBlocks.push_back(wrapper->ssaBB->id);
 
+			bool handled = true;
 			for (HId inBlockId : wrapper->ssaBB->inBlocks) {
-				handleBBs (getWrapper (inBlockId), reg, gatheredIds, gatheredIdCount, visitedBlocks, visitedBlockCount);
+				if (!handleBBs(getWrapper(inBlockId), reg, gatheredIds, visitedBlocks)) {
+					handled = false;
+				}
 			}
+			return handled;
 		}
 	}
 	/*

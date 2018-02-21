@@ -7,7 +7,7 @@ using namespace holodec;
 namespace holoavr {
 
 	Architecture holoavr::avrarchitecture{
-		"avr", "", 8, 8,
+		"avr", "", 8, 3, 8,
 	{
 		[](Binary * binary) {
 		static FunctionAnalyzer* analyzer = nullptr;
@@ -374,7 +374,7 @@ namespace holoavr {
 			{ 2, "=(#arg[1],#arg[2])" }
 		}, InstructionType::eMov },
 		{ AVR_INSTR_MOVW, "movw",{
-			{ 4, "#seq(=(#t[1],#app(#arg[3],#arg[4])),=(#arg[1],#t[1][0,8]),=(#arg[2],#t[1][8,8]))" }
+			{ 4, "#seq(=(#arg[1],#arg[3]),=(#arg[2],#arg[4]))" }
 		}, InstructionType::eMov },
 
 		{ AVR_INSTR_MUL, "mul",{
