@@ -66,7 +66,6 @@ namespace holodec {
 
 		eAnd = SSA_OP_AND,
 		eOr = SSA_OP_OR,
-		eXor = SSA_OP_XOR,
 		eNot = SSA_OP_NOT,
 
 		eEq = SSA_OP_EQ,
@@ -132,6 +131,7 @@ namespace holodec {
 		SSALocation location = SSALocation::eNone;
 		Reference locref = {0, 0};
 
+
 		bool operator!() {
 			return type != SSAArgType::eUndef;
 		}
@@ -152,10 +152,15 @@ namespace holodec {
 			return false;
 		}
 		void replace(SSAArgument arg) {
+			if (location != SSALocation::eNone) {
+				arg.location = location;
+				arg.locref = locref;
+			}
 			arg.size = size;
 			arg.offset += offset;
-			if (arg.offset == 24)
-				printf("");
+			*this = arg;
+		}
+		void set(SSAArgument arg) {
 			*this = arg;
 		}
 		static inline SSAArgument create() {
@@ -268,6 +273,7 @@ namespace holodec {
 	
 	struct SSAExpression {
 		HId id = 0;
+		HId uniqueId = 0;
 		SSAExprType type = SSAExprType::eInvalid;
 		uint32_t size = 0;
 		SSAType exprtype = SSAType::eUnknown;
@@ -283,6 +289,7 @@ namespace holodec {
 		
 		//HLocalBackedList<SSAArgument, SSA_LOCAL_USEID_MAX> subExpressions;
 		HList<HId> refs;
+		HList<HId> directRefs;
 		HList<SSAArgument> subExpressions;
 
 		bool operator!() {
@@ -338,12 +345,16 @@ namespace holodec {
 		HIdList<SSABB> bbs;
 		HSparseIdList<SSAExpression> expressions;
 
+		HIdGenerator exprIdGen;
+
 		void clear(){
 			bbs.clear();
 			expressions.clear();
 		}
 
 		void replaceNodes(HMap<HId,SSAArgument>* replacements);
+		uint64_t replaceAllArgs(SSAExpression& origExpr, SSAArgument replaceArg);
+		uint64_t replaceArg(SSAExpression& origExpr, SSAArgument replaceArg);
 		void removeNodes(HSet<HId>* ids);
 		
 		void compress();

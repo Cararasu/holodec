@@ -35,12 +35,16 @@ namespace holodec {
 		eBig
 	};
 
+	extern const HString emptyString;
+
 	struct StringRef {
 		HString name;
 		HId refId;
-		StringRef (const char* name = nullptr) : name (name), refId (0) {}
+		StringRef() : name(emptyString), refId(0) {}
+		StringRef(const char* name) : name(name), refId(0) {}
 		StringRef (HString name) : name (name), refId (0) {}
-		StringRef (HId refId) : name (""), refId (refId) {}
+		StringRef(HId refId) : name(emptyString), refId(refId) {}
+		StringRef(HString name, HId refId) : name(name), refId(refId) {}
 
 		explicit operator bool() {
 			return name;

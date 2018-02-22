@@ -167,7 +167,6 @@ enum HSSAOpType {
 
 	SSA_OP_AND,
 	SSA_OP_OR,
-	SSA_OP_XOR,
 	SSA_OP_NOT,
 
 	SSA_OP_EQ,

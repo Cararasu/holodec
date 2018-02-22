@@ -3,6 +3,7 @@
 
 #include "HString.h"
 #include "Architecture.h"
+#include "HoloIO.h"
 
 
 namespace holodec {
@@ -10,6 +11,8 @@ namespace holodec {
 	struct MatchContext{
 		std::vector<HId> expressionsMatched;
 	};
+
+	extern Logger g_peephole_logger;
 
 	typedef std::function<bool (Architecture*, SSARepresentation*, MatchContext*) > PhExecutor;
 

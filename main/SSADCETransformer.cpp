@@ -23,8 +23,9 @@ namespace holodec {
 			if(toRemove.empty())
 				break;
 			function->ssaRep.removeNodes(&toRemove);
-			function->ssaRep.recalcRefCounts();
+			printf("Removed %d\n", toRemove.size());
 		}while(true);
 		function->ssaRep.compress();
+
 	}
 }

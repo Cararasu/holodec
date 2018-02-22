@@ -7,6 +7,9 @@
 
 namespace holodec {
 
+	Logger g_peephole_logger = Logger("Peephole");
+
+
 	bool PhRule::matchRule (Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr, MatchContext* context) {
 		bool matched = false;
 		if (matchedIndex) {
@@ -50,8 +53,9 @@ namespace holodec {
 		if (matched)
 			context->expressionsMatched.push_back (expr->id);
 		for (PhRule* rule : subRules) {
-			if (rule->matchRule(arch, ssaRep, expr, context))
+			if (rule->matchRule(arch, ssaRep, expr, context)) {
 				return true;
+			}
 		}
 		if (executor) {
 			if (executor(arch, ssaRep, context)) {
@@ -100,64 +104,11 @@ namespace holodec {
 		}
 	};
 	bool usedOnlyInFlags(SSARepresentation* ssaRep, SSAExpression& expr) {
-		for (auto it = expr.refs.begin(); it != expr.refs.end();++it) {//iterate refs
-			if (ssaRep->expressions[*it].type != SSAExprType::eFlag)
+		for (HId id : expr.directRefs) {//iterate refs
+			if (ssaRep->expressions[id].type != SSAExprType::eFlag)
 				return false;
 		}
 		return true;
-	}
-
-	void replaceValue(SSARepresentation* ssaRep, SSAExpression& origExpr, SSAArgument replaceArg) {
-		for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {//iterate refs
-			SSAExpression& expr = ssaRep->expressions[*it];
-			if (replaceArg.ssaId == *it)
-				printf("-------------\n");
-			if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific
-				++it;
-				continue;
-			}
-			if (replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
-				for (SSAArgument& arg : expr.subExpressions) {
-					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
-						arg.replace(replaceArg);
-					}
-				}
-				++it;
-			}
-			else {
-				for (SSAArgument& arg : expr.subExpressions) {
-					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
-						arg.replace(replaceArg);
-						if (replaceArg.type == SSAArgType::eId)
-							ssaRep->expressions[replaceArg.ssaId].refs.push_back(*it);
-					}
-				}
-				it = origExpr.refs.erase(it);
-			}
-		}
-	}
-	void replaceAllValues(SSARepresentation* ssaRep, SSAExpression& origExpr, SSAArgument replaceArg) {
-		for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {//iterate refs
-			SSAExpression& expr = ssaRep->expressions[*it];
-			if (replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
-				for (SSAArgument& arg : expr.subExpressions) {
-					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
-						arg.replace(replaceArg);
-					}
-				}
-				++it;
-			}
-			else {
-				for (SSAArgument& arg : expr.subExpressions) {
-					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
-						arg.replace(replaceArg);
-						if (replaceArg.type == SSAArgType::eId)
-							ssaRep->expressions[replaceArg.ssaId].refs.push_back(*it);
-					}
-				}
-				it = origExpr.refs.erase(it);
-			}
-		}
 	}
 
 	PeepholeOptimizer* parsePhOptimizer () {
@@ -174,7 +125,7 @@ namespace holodec {
 			SSAExpression& opExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			flagExpr.type = SSAExprType::eOp;
 			flagExpr.opType = SSAOpType::eLower;
-			printf("Replace Sub - Carry\n");
+			g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry");
 
 			if (opExpr.subExpressions.size() > 2) {
 				SSAExpression addExpr;
@@ -199,12 +150,12 @@ namespace holodec {
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
 			if (expr.type != SSAExprType::eAppend)
 				return false;
-			printf("Replace Appends of same Expr\n");
 
 			if (expr.subExpressions.size() == 2 && expr.subExpressions[1].type == SSAArgType::eUInt && expr.subExpressions[1].uval == 0) {
 				expr.type = SSAExprType::eExtend;
 				expr.exprtype = SSAType::eUInt;
 				expr.subExpressions.pop_back();
+				g_peephole_logger.log<LogLevel::eDebug>("Replace Appends with Extend");
 				return true;
 			}
 			auto baseit = expr.subExpressions.begin();
@@ -238,7 +189,11 @@ namespace holodec {
 				if (expr.subExpressions.size() == 1) {
 					expr.type = SSAExprType::eAssign;
 				}
+				g_peephole_logger.log<LogLevel::eDebug>("Replace Appends of same Expr at end");
 				return true;
+			}
+			if (replaced) {
+				g_peephole_logger.log<LogLevel::eDebug>("Replace Some Appends of same Expr");
 			}
 			return replaced;
 		});
@@ -253,7 +208,7 @@ namespace holodec {
 			SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
 			if (firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || carryExpr.subExpressions[0].offset + carryExpr.subExpressions[0].size != firstAdd.size)
 				return false;
-			printf("Replace Add - Carry Add\n");
+			g_peephole_logger.log<LogLevel::eDebug>("Replace Add - Carry Add");
 
 			SSAExpression combine1;
 			combine1.type = SSAExprType::eAppend;
@@ -296,9 +251,10 @@ namespace holodec {
 			splitArg1.size = firstAdd.size;
 			splitArg1.offset = 0;
 
-			replaceAllValues(ssaRep, secondAdd, splitArg2);
-
-			replaceAllValues(ssaRep, firstAdd, splitArg1);
+			splitArg2.print(arch);
+			splitArg1.print(arch);
+			ssaRep->replaceAllArgs(firstAdd, splitArg1);
+			ssaRep->replaceAllArgs(secondAdd, splitArg2);
 
 			return true;
 		});
@@ -307,22 +263,22 @@ namespace holodec {
 			.ssaType(0, 0, SSAExprType::eOp)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
-			if ((expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eXor) && expr.subExpressions.size() == 2 && expr.subExpressions[0] == expr.subExpressions[1] && !usedOnlyInFlags(ssaRep, expr)) {
-				printf("Zero-Op\n");
-				replaceValue(ssaRep, expr, SSAArgument::createUVal(0, expr.size));
+			if ((expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eBXor) && expr.subExpressions.size() == 2 && expr.subExpressions[0] == expr.subExpressions[1] && !usedOnlyInFlags(ssaRep, expr)) {
+				g_peephole_logger.log<LogLevel::eDebug>("Zero-Op");
+				ssaRep->replaceArg(expr, SSAArgument::createUVal(0, expr.size));
 				return true;
 			}
 			return false;
 		});
 		builder = peephole_optimizer->ruleSet;
 		builder
-			.ssaType(0, 0, SSAExprType::eAppend)
-			.ssaType(1, 1, SSAExprType::eAppend)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+		.ssaType(0, 0, SSAExprType::eAppend)
+		.ssaType(1, 1, SSAExprType::eAppend)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr1 = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAExpression& expr2 = ssaRep->expressions[context->expressionsMatched[0]];
 			if (expr2.subExpressions[0].offset == 0 && expr2.subExpressions[0].size == expr1.size) {
-				printf("Append %d - Append %d \n", context->expressionsMatched[0], context->expressionsMatched[1]);
+				g_peephole_logger.log<LogLevel::eDebug>("Append %d - Append %d ", context->expressionsMatched[0], context->expressionsMatched[1]);
 				HList<SSAArgument> args(expr2.subExpressions.begin() + 1, expr2.subExpressions.end());
 				expr2.subExpressions = expr1.subExpressions;
 				expr2.subExpressions.insert(expr2.subExpressions.end(), args.begin(), args.end());
@@ -332,23 +288,133 @@ namespace holodec {
 		});
 		builder = peephole_optimizer->ruleSet;
 		builder
-			.ssaType(0, 0, SSAExprType::eAssign)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-			printf("Replace Const Assigns\n");
+		.ssaType(0, 0, SSAExprType::eAssign)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
 			SSAArgument& arg = expr.subExpressions[0];
-			if (arg.isConst()) {
-				if (arg.type == SSAArgType::eUInt) {
-					replaceValue(ssaRep, expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
-					return true;
+			if (expr.directRefs.size()) {
+				if (arg.isConst()) {
+					if (arg.type == SSAArgType::eUInt) {
+						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
+						ssaRep->replaceAllArgs(expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
+						return true;
+					}
+					else if (arg.type == SSAArgType::eSInt) {
+						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
+						ssaRep->replaceAllArgs(expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size));
+						return true;
+					}
 				}
-				else if (arg.type == SSAArgType::eSInt) {
-					replaceValue(ssaRep, expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size));
-					return true;
+				ssaRep->replaceAllArgs(expr, arg);
+				return true;
+			}
+			return false;
+		});
+		builder = peephole_optimizer->ruleSet;
+		builder
+		.ssaType(0, 0, SSAExprType::eFlag)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAArgument& arg = expr.subExpressions[0];
+			if (arg.offset) {
+				g_peephole_logger.log<LogLevel::eDebug>("Set Flag-offset to 0");
+				arg.size += arg.offset;
+				arg.offset = 0;
+				return true;
+			}
+			return false;
+		});
+		builder = peephole_optimizer->ruleSet;
+		builder
+			.ssaType(0, 0, SSAExprType::eReturn)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
+			bool replaced = false;
+			for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();) {
+				SSAArgument& arg = *it;
+				if (arg.type == SSAArgType::eId) {
+					SSAExprType type = ssaRep->expressions[arg.ssaId].type;
+					if (arg.type == SSAArgType::eId && type == SSAExprType::eInput) {
+						it = expr.subExpressions.erase(it);
+						replaced = true;
+						continue;
+					}
+				}
+				++it;
+			}
+			if(replaced)
+				g_peephole_logger.log<LogLevel::eDebug>("Removed non used Return-args");
+			return replaced;
+		});
+		builder = peephole_optimizer->ruleSet;
+		builder
+			.ssaType(0, 0, SSAExprType::eLoadAddr)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
+			if (expr.subExpressions.size() == 5) {
+				SSAArgument &arg0 = expr.subExpressions[0], &arg1 = expr.subExpressions[1], &arg2 = expr.subExpressions[2], &arg3 = expr.subExpressions[3], &arg4 = expr.subExpressions[4];
+				if (arg0.isValue(0)) {
+					if (arg1.isValue(0)) {
+						if (arg2.isValue(0) || arg3.isValue(0)) {
+							ssaRep->replaceAllArgs(expr, arg4);
+							g_peephole_logger.log<LogLevel::eDebug>("Const LoadAddr");
+							return true;
+						}
+					}
+					else if (arg4.isValue(0)) {
+						if (arg2.isValue(0) || arg3.isValue(0)) {
+							ssaRep->replaceAllArgs(expr, arg1);
+							g_peephole_logger.log<LogLevel::eDebug>("Const LoadAddr");
+							return true;
+						}
+					}
 				}
 			}
 			return false;
-		});/*
+		});
+		/*builder = peephole_optimizer->ruleSet;
+		builder
+			.ssaType(0, 0, SSAExprType::ePhi)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
+			if (expr.directRefs.size() == 0)
+				return false;
+
+			bool undef = true;
+			SSAArgument& firstArg = expr.subExpressions[1];
+			bool alwaysTheSame = true;
+
+			for (size_t i = 0; i < expr.subExpressions.size(); i += 2) {
+				//SSAArgument& blockArg = expr.subExpressions[i];
+				SSAArgument& arg = expr.subExpressions[i + 1];
+				if (arg.type != SSAArgType::eUndef) {
+					undef = false;
+				}
+				if (arg != firstArg) {
+					alwaysTheSame = false;
+				}
+			}
+			if (undef) {
+				g_peephole_logger.log<LogLevel::eDebug>("undef Phi");
+				ssaRep->replaceAllArgs(expr, SSAArgument::createUndef(expr.location, expr.locref, expr.size));
+				return true;
+			}
+			else if (alwaysTheSame) {
+				g_peephole_logger.log<LogLevel::eDebug>("Same Phi Args at %d, UId 0x%x Refs: %d", expr.id, expr.uniqueId, expr.directRefs.size());
+				ssaRep->replaceAllArgs(expr, firstArg);
+				return true;
+			}
+			return false;
+		});*/
+		builder = peephole_optimizer->ruleSet;
+		builder
+		.ssaType(0, 0, SSAExprType::eUndef)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
+			ssaRep->replaceAllArgs(expr, SSAArgument::createUndef(expr.location, expr.locref, expr.size));
+			g_peephole_logger.log<LogLevel::eDebug>("Replace Undefs");
+			return true;
+		});
 		builder = peephole_optimizer->ruleSet;
 		builder
 			.ssaType(0, 0, SSAOpType::eAdd)
@@ -360,16 +426,16 @@ namespace holodec {
 			SSAArgument& arg = expr.subExpressions[0];
 			if (arg.isConst()) {
 				if (arg.type == SSAArgType::eUInt) {
-					replaceValue(ssaRep, expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
+					ssaRep->replaceArg(expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
 					return true;
 				}
 				else if (arg.type == SSAArgType::eSInt) {
-					replaceValue(ssaRep, expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size));
+					ssaRep->replaceArg(expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size));
 					return true;
 				}
 			}
 			return false;
-		});*/
+		});
 		return peephole_optimizer;
 	}
 }

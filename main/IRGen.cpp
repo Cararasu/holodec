@@ -78,8 +78,6 @@ namespace holodec {
 				expressionmap.insert (std::make_pair ("and", expression));
 				expression.mod.opType = SSAOpType::eOr;
 				expressionmap.insert (std::make_pair ("or", expression));
-				expression.mod.opType = SSAOpType::eXor;
-				expressionmap.insert (std::make_pair ("xor", expression));
 				expression.mod.opType = SSAOpType::eNot;
 				expressionmap.insert (std::make_pair ("not", expression));
 				expression.mod.opType = SSAOpType::eBAnd;

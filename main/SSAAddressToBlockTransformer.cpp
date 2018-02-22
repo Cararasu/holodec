@@ -63,7 +63,7 @@ namespace holodec {
 				if(it->type == SSAArgType::eUInt){
 					for(SSABB& bb : function->ssaRep.bbs){
 						if(bb.startaddr == it->uval){
-							*it = SSAArgument::createBlock(bb.id);
+							it->set(SSAArgument::createBlock(bb.id));
 							basicBlock->outBlocks.insert(bb.id);
 							bb.inBlocks.insert(basicBlock->id);
 							break;

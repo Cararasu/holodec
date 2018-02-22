@@ -445,63 +445,65 @@ int main (int argc, const char** argv) {
 	binary->print();
 
 	PeepholeOptimizer* optimizer = parsePhOptimizer ();
-	/*for (Function* func : binary->functions) {
 
-		for (SSATransformer* transform : transformers) {
-			transform->doTransformation (binary, func);
-		}
+	g_peephole_logger.level = LogLevel::eDebug;
+	for (Function* func : binary->functions) {
 
-		for (SSAExpression& expr : func->ssaRep.expressions) {
-			MatchContext context;
-			if (optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
-				break;//TODO needs to redo stuff, because iterator might break here
-			}
-		}
-
-		func->ssaRep.recalcRefCounts();
-
-		transformers[4]->doTransformation (binary, func);
+		transformers[0]->doTransformation(binary, func);
+		transformers[1]->doTransformation(binary, func);
 
 		holodec::g_logger.log<LogLevel::eInfo> ("Symbol %s", binary->getSymbol (func->symbolref)->name.cstr());
 		//func->print (&holox86::x86architecture);
-	}*/
+		/*bool applied = false;
+		do {
+			transformers[2]->doTransformation(binary, func);
+			func->ssaRep.recalcRefCounts();
+			applied = false;
+			for (size_t i = 1; i <= func->ssaRep.expressions.size();) {
+				SSAExpression& expr = func->ssaRep.expressions[i];
+				MatchContext context;
+
+				if (!optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
+					i++;
+				}
+				else {
+					applied = true;
+				}
+			}
+			transformers[3]->doTransformation(binary, func);
+		} while (applied);
+		func->print(binary->arch);*/
+	}
+	g_peephole_logger.level = LogLevel::eDebug;
 
 	Function* func = binary->getFunction("func_0x2516");
 	if (func) {
 		func->print(binary->arch);
-		for (SSATransformer* transform : transformers) {
-			transform->doTransformation(binary, func);
-			func->ssaRep.recalcRefCounts();
-			func->print(binary->arch);
-		}
 
-		func->ssaRep.recalcRefCounts();
-
-		for (size_t i = 1; i <= func->ssaRep.expressions.size();) {
-			SSAExpression& expr = func->ssaRep.expressions[i];
-			MatchContext context;
-
-			if (!optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
-				i++;
-			}
-		}
-		for (size_t i = 1; i <= func->ssaRep.expressions.size();) {
-			SSAExpression& expr = func->ssaRep.expressions[i];
-			MatchContext context;
-
-			if (!optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
-				i++;
-			}
-		}
-		func->print(binary->arch);
-
-		transformers[3]->doTransformation(binary, func);
-		func->print(binary->arch);
 		transformers[2]->doTransformation(binary, func);
+		bool applied = false;
+		do {
+			applied = false;
+			func->ssaRep.recalcRefCounts();
+			for (size_t i = 0; i < func->ssaRep.expressions.size();) {
+				SSAExpression& expr = func->ssaRep.expressions[i + 1];
+				MatchContext context;
+
+				if (!optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
+					i++;
+				}
+				else {
+					applied = true;
+				}
+			}
+			func->print(binary->arch);
+			transformers[3]->doTransformation(binary, func);
+			printf("%d\n", applied);
+		} while (applied);
+		func->ssaRep.recalcRefCounts();
 		transformers[4]->doTransformation(binary, func);
 
 		holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-		func->ssaRep.recalcRefCounts();
 		func->print(binary->arch);
 	}
 	delete optimizer;

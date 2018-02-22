@@ -20,21 +20,13 @@ namespace holodec{
 			for(SSAExpression& expr : function->ssaRep.expressions){
 				if(!expr.id)
 					continue;
-				if(expr.type == SSAExprType::eAssign/* && !expr.subExpressions[0].isConst()*/) {
-					
-					SSAArgument arg = expr.subExpressions[0];
-					if(arg.location == SSALocation::eNone){
-						if(expr.location != SSALocation::eNone){
-							arg.location = expr.location;
-							arg.locref = expr.locref;
-						}
-					}
-					replacements.insert(std::pair<HId, SSAArgument>(expr.id, arg));
+				/*if(expr.type == SSAExprType::eAssign) {
+					replacements.insert(std::pair<HId, SSAArgument>(expr.id, expr.subExpressions[0]));
 				}else if(expr.type == SSAExprType::eUndef){
 					replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::createUndef (expr.location, expr.locref, expr.size)));
 				}else if(expr.type == SSAExprType::eLabel){
 					replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::create()));
-				}else if(expr.type == SSAExprType::ePhi) {
+				}else*/ if(expr.type == SSAExprType::ePhi) {
 					bool undef = true;
 					SSAArgument& firstArg = expr.subExpressions[1];
 					bool alwaysTheSame = true;
@@ -54,7 +46,7 @@ namespace holodec{
 					}else if(alwaysTheSame){
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, firstArg));
 					}
-				}else if(expr.type == SSAExprType::eAssign || expr.type == SSAExprType::eUpdatePart){
+				}/*else if(expr.type == SSAExprType::eAssign || expr.type == SSAExprType::eUpdatePart){
 					if(expr.subExpressions[0].type == SSAArgType::eUndef){
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::createUndef(expr.location, expr.locref, expr.size)));
 					}
@@ -89,7 +81,7 @@ namespace holodec{
 						}
 						++it;
 					}
-				}
+				}*/
 			}
 			if(replacements.empty())
 				break;

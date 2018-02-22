@@ -229,10 +229,11 @@ namespace holodec {
 				}
 				//printf ("Reg: %s Count %d\n", reg->name.cstr(), gatheredIdCount);
 
+				/*
 				if (gatheredIds.size() != 0) {
 					printf("Searched Defs for Reg %s in Block %d\n", reg->name.cstr(), wrap.ssaBB->id);
 					printf("Reg: %s Count %d\n", reg->name.cstr(), gatheredIds.size());
-				}
+				}*/
 
 				assert (gatheredIds.size() != 0);
 
@@ -246,8 +247,8 @@ namespace holodec {
 				phinode.subExpressions.resize (gatheredIds.size() * 2);
 				for (uint64_t i = 0; i < gatheredIds.size(); i++) {
 					assert(gatheredIds[i].second);
-					phinode.subExpressions[2*i] = SSAArgument::createBlock(gatheredIds[i].first);
-					phinode.subExpressions[2*i + 1] = SSAArgument::createReg(reg, gatheredIds[i].second);
+					phinode.subExpressions[2*i].set(SSAArgument::createBlock(gatheredIds[i].first));
+					phinode.subExpressions[2*i + 1].set(SSAArgument::createReg(reg, gatheredIds[i].second));
 				}
 				HId exprId = function->ssaRep.addAtStart (&phinode, wrap.ssaBB);
 				bool needInOutput = true;

@@ -47,23 +47,23 @@ namespace holodec {
 		//segment::[base + index*scale + disp]
 		SSAArgument args[5];
 		if (mem.mem.segment)
-			args[0] = SSAArgument::createReg (arch->getRegister (mem.mem.segment));
+			args[0].set(SSAArgument::createReg (arch->getRegister (mem.mem.segment)));
 		else
-			args[0] = SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase);
+			args[0].set(SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase));
 
 		if (mem.mem.base)
-			args[1] = SSAArgument::createReg (arch->getRegister (mem.mem.base));
+			args[1].set(SSAArgument::createReg (arch->getRegister (mem.mem.base)));
 		else
-			args[1] = SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase);
+			args[1].set(SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase));
 
 		if (mem.mem.index)
-			args[2] = SSAArgument::createReg (arch->getRegister (mem.mem.index));
+			args[2].set(SSAArgument::createReg (arch->getRegister (mem.mem.index)));
 		else
-			args[2] = SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase);
+			args[2].set(SSAArgument::createUVal ( (uint64_t) 0, arch->bitbase));
 
-		args[3] = SSAArgument::createUVal (mem.mem.scale, arch->bitbase);
+		args[3].set(SSAArgument::createUVal (mem.mem.scale, arch->bitbase));
 
-		args[4] = SSAArgument::createUVal (mem.mem.disp, arch->bitbase);
+		args[4].set(SSAArgument::createUVal (mem.mem.disp, arch->bitbase));
 
 		memexpr.subExpressions.assign (args, args + 5);
 		return IRArgument::createSSAId (addExpression (&memexpr), arch->bitbase);
@@ -100,17 +100,6 @@ namespace holodec {
 						IRArgument arg = parseConstExpression (irExpr->subExpressions[i], arglist);
 						if (arg && arg.type == IR_ARGTYPE_UINT)
 							val = val || arg.uval;
-						else
-							return IRArgument::create();
-					}
-					return IRArgument::createUVal(val, arch->bitbase);
-				}
-				case SSAOpType::eXor: {
-					uint64_t val = 0;
-					for (size_t i = 0; i < irExpr->subExpressions.size(); i++) {
-						IRArgument arg = parseConstExpression (irExpr->subExpressions[i], arglist);
-						if (arg && arg.type == IR_ARGTYPE_UINT)
-							val = !!val ^ !!arg.uval;
 						else
 							return IRArgument::create();
 					}
@@ -639,9 +628,10 @@ namespace holodec {
 				HId falseblockId = (subexpressioncount == 3) ? createNewBlock() : 0;//generate early so the blocks are in order
 				HId endBlockId = createNewBlock();
 
-				SSAArgument exprArgs[2];
-				exprArgs[0] = SSAArgument::createBlock(trueblockId);//target
-				exprArgs[1] = parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[0]));//condition
+				SSAArgument exprArgs[2] = {
+					SSAArgument::createBlock(trueblockId),
+					parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[0]))
+				};
 				expression.subExpressions.assign (exprArgs, exprArgs + 2);
 				addExpression (&expression);
 
