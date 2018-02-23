@@ -457,7 +457,7 @@ namespace holodec {
 					printParseFailure ("Number");
 					return IRArgument::create();//IR_EXPR_INVALID;
 				}
-				IRArgument arg = IRArgument::createUVal((uint64_t)num, arch->bitbase);
+				IRArgument arg = IRArgument::createUVal((uint64_t)num, 0);
 				parseArgFlags(&arg);
 				return arg;
 			}

@@ -347,9 +347,11 @@ namespace holodec{
 				for (HId id : bb.exprIds) {
 					SSAExpression& expr = function->ssaRep.expressions[id];
 					if (expr.type == SSAExprType::ePhi) {
+						resolveIds.insert(expr.id);
 						for (SSAArgument& arg : expr.subExpressions) {
-							if (arg.type == SSAArgType::eId)
+							if (arg.type == SSAArgType::eId) {
 								resolveIds.insert(arg.ssaId);
+							}
 						}
 					}
 				}

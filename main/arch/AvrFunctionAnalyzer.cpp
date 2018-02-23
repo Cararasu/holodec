@@ -456,7 +456,7 @@ namespace holoavr{
 				instr->operands.push_back(IRArgument::createReg(arch->getRegister("z")));
 				break;
 			}
-			instr->operands.push_back(IRArgument::createUVal((firstbytes & 0xF) | ((firstbytes & 0xC0) >> 2), 8));
+			instr->operands.push_back(IRArgument::createUVal((firstbytes & 0xF) | ((firstbytes & 0xC0) >> 2), 16));
 			if (firstbytes & 0x0100) {//sbiw
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_SUB);
 			}
@@ -474,24 +474,24 @@ namespace holoavr{
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_LDD);
 				instr->operands.push_back(IRArgument::createReg(reg));
 				instr->operands.push_back(IRArgument::createReg(arch->getRegister("z")));
-				instr->operands.push_back(IRArgument::createUVal(value, 8));
+				instr->operands.push_back(IRArgument::createUVal(value, 16));
 			}
 			else if ((firstbytes & 0x0208) == 0x0008) {//ldd Rd, Y+q
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_LDD);
 				instr->operands.push_back(IRArgument::createReg(reg));
 				instr->operands.push_back(IRArgument::createReg(arch->getRegister("y")));
-				instr->operands.push_back(IRArgument::createUVal(value, 8));
+				instr->operands.push_back(IRArgument::createUVal(value, 16));
 			}
 			else if ((firstbytes & 0x0208) == 0x0200) {//std Z+q, Rr
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_STD);
 				instr->operands.push_back(IRArgument::createReg(arch->getRegister("z")));
-				instr->operands.push_back(IRArgument::createUVal(value, 8));
+				instr->operands.push_back(IRArgument::createUVal(value, 16));
 				instr->operands.push_back(IRArgument::createReg(reg));
 			}
 			else if ((firstbytes & 0x0208) == 0x0208) {//std Y+q, Rr
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_STD);
 				instr->operands.push_back(IRArgument::createReg(arch->getRegister("y")));
-				instr->operands.push_back(IRArgument::createUVal(value, 8));
+				instr->operands.push_back(IRArgument::createUVal(value, 16));
 				instr->operands.push_back(IRArgument::createReg(reg));
 			}
 			return true;
@@ -743,8 +743,6 @@ namespace holoavr{
 				return false;
 			}
 
-			if(instruction.addr == 0x549)
-				instruction.print(arch);
 			//instruction.print(arch);
 			addr += instruction.size;
 			if (!postInstruction(&instruction))

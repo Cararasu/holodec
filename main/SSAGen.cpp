@@ -18,16 +18,23 @@ namespace holodec {
 		InstrDefinition* instrdef = instr->instrdef;
 		for (size_t i = 0; i < instrdef->irs.size(); i++) {
 			if (instrdef->irs[i].argcount == -1 || instr->operands.size() == instrdef->irs[i].argcount) {
-				IRArgument constArg = parseConstExpression (instrdef->irs[i].condExpr, &instr->operands);
-				if (constArg && constArg.type == IR_ARGTYPE_UINT && constArg.uval) {
-					if (instrdef->irs[i].condstring) {
-						printf ("Successfully parsed Condition for Instruction\n");
-						instrdef->irs[i].print (arch);
-						instr->print (arch);
-						printf ("\n");
+				if (instrdef->irs[i].condstring) {
+					IRArgument constArg = parseConstExpression(instrdef->irs[i].condExpr, &instr->operands);
+					if (constArg && constArg.type == IR_ARGTYPE_UINT && constArg.uval) {
+						printf("Successfully parsed Condition for Instruction\n");
+						instrdef->irs[i].print(arch);
+						instr->print(arch);
+						printf("\n");
 					}
-					return &instrdef->irs[i];
+					else {
+						/*printf("Failed to parse Condition for Instruction\n");
+						instrdef->irs[i].print(arch);
+						instr->print(arch);
+						printf("\n");*/
+						continue;
+					}
 				}
+				return &instrdef->irs[i];
 			}
 		}
 		for (size_t i = 0; i < instr->operands.size(); i++) {
@@ -83,10 +90,21 @@ namespace holodec {
 			switch (irExpr->type) {
 			case IR_EXPR_OP: {
 				switch (irExpr->mod.opType) {
-				case SSAOpType::eAnd: {
+				case SSAOpType::eAdd: {
 					uint64_t val = 0;
 					for (size_t i = 0; i < irExpr->subExpressions.size(); i++) {
-						IRArgument arg = parseConstExpression (irExpr->subExpressions[i], arglist);
+						IRArgument arg = parseConstExpression(irExpr->subExpressions[i], arglist);
+						if (arg.type == IR_ARGTYPE_UINT)
+							val += arg.uval;
+						else
+							return IRArgument::create();
+					}
+					return IRArgument::createUVal(val, arch->bitbase);
+				}
+				case SSAOpType::eAnd: {
+					uint64_t val = 1;
+					for (size_t i = 0; i < irExpr->subExpressions.size(); i++) {
+						IRArgument arg = parseConstExpression(irExpr->subExpressions[i], arglist);
 						if (arg.type == IR_ARGTYPE_UINT)
 							val = val && arg.uval;
 						else
@@ -692,10 +710,16 @@ namespace holodec {
 					SSAArgument arg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i]));
 					if (expression.opType == SSAOpType::eMul)
 						size += arg.size;
-					else
-						size = size > arg.size ? size : arg.size;
-					assert(!(arg.type != SSAArgType::eOther && arg.size == 0));
+					else if (!size)
+						size = arg.size;
+					if (arg.size) {
+						assert(size >= arg.size);
+					}
+					assert(!(!arg.isConst() && arg.type != SSAArgType::eOther && arg.size == 0));
 					expression.subExpressions.push_back (arg);
+				}
+				for (SSAArgument& arg : expression.subExpressions) {
+					arg.size = size;
 				}
 				switch (expression.opType) {
 				case SSAOpType::eEq:
@@ -791,6 +815,7 @@ namespace holodec {
 				for (size_t i = 0; i < subexpressioncount; i++) {
 					expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[i])));
 				}
+				expression.builtinId = irExpr->mod.builtinId;
 				expression.size = arch->bitbase;
 				return IRArgument::createSSAId(addExpression(&expression), expression.size);
 			}

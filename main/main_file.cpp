@@ -392,20 +392,6 @@ int main (int argc, const char** argv) {
 
 	binary->print();
 
-	std::vector<SSATransformer*> transformers = {
-		new SSAAddressToBlockTransformer(),
-		//new SSACallingConvApplier(),
-		new SSAPhiNodeGenerator(),
-		new SSAAssignmentSimplifier(),
-		new SSADCETransformer(),
-		//new SSAPeepholeOptimizer(),
-		new SSATransformToC()
-	};
-
-	for (SSATransformer* transform : transformers) {
-		transform->arch = binary->arch;
-	}
-
 	for (Symbol* sym : binary->symbols) {
 		if (sym->symboltype == &SymbolType::symfunc) {
 			Function* newfunction = new Function();
@@ -444,6 +430,20 @@ int main (int argc, const char** argv) {
 
 	binary->print();
 
+	std::vector<SSATransformer*> transformers = {
+		new SSAAddressToBlockTransformer(),
+		//new SSACallingConvApplier(),
+		new SSAPhiNodeGenerator(),
+		new SSAAssignmentSimplifier(),
+		new SSADCETransformer(),
+		//new SSAPeepholeOptimizer(),
+		new SSATransformToC()
+	};
+
+	for (SSATransformer* transform : transformers) {
+		transform->arch = binary->arch;
+	}
+
 	PeepholeOptimizer* optimizer = parsePhOptimizer ();
 
 	g_peephole_logger.level = LogLevel::eDebug;
@@ -454,25 +454,35 @@ int main (int argc, const char** argv) {
 
 		holodec::g_logger.log<LogLevel::eInfo> ("Symbol %s", binary->getSymbol (func->symbolref)->name.cstr());
 		//func->print (&holox86::x86architecture);
-		/*bool applied = false;
+		assert(func->ssaRep.checkIntegrity());
+		bool applied = false;
 		do {
 			transformers[2]->doTransformation(binary, func);
-			func->ssaRep.recalcRefCounts();
-			applied = false;
-			for (size_t i = 1; i <= func->ssaRep.expressions.size();) {
-				SSAExpression& expr = func->ssaRep.expressions[i];
-				MatchContext context;
+			assert(func->ssaRep.checkIntegrity());
+			bool applied = false;
+			do {
+				applied = false;
+				assert(func->ssaRep.checkIntegrity());
+				func->ssaRep.recalcRefCounts();
+				for (size_t i = 0; i < func->ssaRep.expressions.size();) {
+					SSAExpression& expr = func->ssaRep.expressions[i + 1];
+					MatchContext context;
 
-				if (!optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
-					i++;
+					if (optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
+						assert(func->ssaRep.checkIntegrity());
+						applied = true;
+					}
+					else {
+						i++;
+					}
 				}
-				else {
-					applied = true;
-				}
-			}
-			transformers[3]->doTransformation(binary, func);
+				transformers[3]->doTransformation(binary, func);
+				assert(func->ssaRep.checkIntegrity());
+			} while (applied);
+
+			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
 		} while (applied);
-		func->print(binary->arch);*/
+		func->print(binary->arch);
 	}
 	g_peephole_logger.level = LogLevel::eDebug;
 

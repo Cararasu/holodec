@@ -359,8 +359,10 @@ namespace holodec {
 		
 		void compress();
 		
-		void propagateRefCount(SSAExpression* expr, HId refId);
-		void propagateRefCount(HId id, HId refId);
+		bool checkIntegrity();
+
+		void propagateRefCount(SSAExpression* expr);
+		void propagateRefCount(HId id);
 		
 		void changeRefCount(HId id, HId refId);
 		void changeRefCount(HId id, std::vector<bool>& visited, HId refId);

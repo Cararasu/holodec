@@ -212,18 +212,19 @@ namespace holodec {
 		}
 		switch (location) {
 		case SSALocation::eReg:
-			printf ("Reg: %s, ", arch->getRegister (locref.refId)->name.cstr());
+			printf ("Reg:   %4.4s     ", arch->getRegister (locref.refId)->name.cstr());
 			break;
 		case SSALocation::eStack:
-			printf ("Stack: %s[%" PRId32 "], ", arch->getStack (locref.refId)->name.cstr(), locref.index);
+			printf ("Stack: %4.4s[%02" PRId32 "] ", arch->getStack (locref.refId)->name.cstr(), locref.index);
 			break;
 		case SSALocation::eMem:
-			printf ("Mem: %" PRId32 ", ", locref.refId);
+			printf ("Mem:   %04" PRId32 "     ", locref.refId);
 			break;
 		case SSALocation::eBlock:
-			printf ("Block %" PRId32, locref.refId);
+			printf ("Block: %04" PRId32 "     ", locref.refId);
 			break;
 		case SSALocation::eNone:
+			printf("                 ");
 			break;
 		}
 		printf ("Ref: %02" PRId64 " UId: %04" PRIx64 " | %04" PRId32 " = ", refs.size(), uniqueId, id);
@@ -456,41 +457,54 @@ namespace holodec {
 		}
 	}
 
-	void SSARepresentation::propagateRefCount (SSAExpression* expr, HId refId) {
+	bool SSARepresentation::checkIntegrity() {
+		for (SSAExpression& expr : expressions) {
+			if (expr.id)
+				for (SSAArgument& arg : expr.subExpressions)
+					if (!(arg.type != SSAArgType::eId || (arg.ssaId && arg.ssaId <= expressions.size() && expressions[arg.ssaId].id)))
+						return false;
+		}
+		return true;
+	}
+
+	void SSARepresentation::propagateRefCount (SSAExpression* expr) {
 		for (SSAArgument& arg : expr->subExpressions) {
 			if (arg.type == SSAArgType::eId && arg.ssaId) {
-				expressions[arg.ssaId].directRefs.push_back(refId);
-				changeRefCount(arg.ssaId, refId);
+				expressions[arg.ssaId].directRefs.push_back(expr->id);
+				changeRefCount(arg.ssaId, expr->id);
 			}
 		}
 	}
-	void SSARepresentation::propagateRefCount (HId id, HId refId) {
+	void SSARepresentation::propagateRefCount (HId id) {
 		if (!id)
 			return;
-		propagateRefCount (&expressions[id], refId);
+		propagateRefCount (&expressions[id]);
 	}
 	void SSARepresentation::changeRefCount (HId id, HId refId) {
 		if (!id)
 			return;
-		if (EXPR_IS_TRANSPARENT (expressions[id].type)) {
+		SSAExpression& expr = expressions[id];
+		expr.refs.push_back(refId);
+		if (EXPR_IS_TRANSPARENT (expr.type)) {
 			std::vector<bool> visited;
 			visited.resize (expressions.size(), false);
 			changeRefCount (id, visited, refId);
-		}
-		else {
-			expressions[id].refs.push_back(refId);
 		}
 	}
 	void SSARepresentation::changeRefCount (HId id, std::vector<bool>& visited, HId refId) {
 		if (!id || visited[id - 1])
 			return;
 		visited[id - 1] = true;
-		expressions[id].refs.push_back(refId);
-		if (EXPR_IS_TRANSPARENT (expressions[id].type)) {
-			for (SSAArgument& arg : expressions[id].subExpressions) {
+		SSAExpression& expr = expressions[id];
+		expr.refs.push_back(refId);
+		if (EXPR_IS_TRANSPARENT (expr.type)) {
+			for (SSAArgument& arg : expr.subExpressions) {
 				if (arg.type == SSAArgType::eId)
 					changeRefCount (arg.ssaId, visited, refId);
 			}
+		}
+		else {
+			expr.refs.push_back(refId);
 		}
 	}
 	void SSARepresentation::recalcRefCounts() {
@@ -500,7 +514,7 @@ namespace holodec {
 		}
 		for (SSAExpression& expr : expressions) {
 			if (expr.id) {
-				propagateRefCount(&expr, expr.id);
+				propagateRefCount(&expr);
 			}
 		}
 	}
@@ -541,7 +555,7 @@ namespace holodec {
 		expressions.push_back (*expr);
 		HId newId = expressions.back().id;
 		if (!EXPR_IS_TRANSPARENT (expr->type))
-			propagateRefCount (newId, newId);
+			propagateRefCount (newId);
 		return newId;
 	}
 

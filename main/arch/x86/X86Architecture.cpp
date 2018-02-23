@@ -705,8 +705,8 @@ Architecture holox86::x86architecture {"x86", "x86", 64, 8, 8, {
 		{X86_INS_CLC, "clc", {{0, "=($cf,0)"}}, InstructionType::eBitReset},
 		{X86_INS_CMC, "cmc", {{0, "=($cf,#not($cf))"}}, InstructionType::eCpl},
 
-		{X86_INS_STD, "std", {{0, "=($df,1)"}}, InstructionType::eBitSet},
-		{X86_INS_CLD, "cld", {{0, "=($df,0)"}}, InstructionType::eBitReset},
+		{X86_INS_STD, "std", {{0, "=($df,1[1])"}}, InstructionType::eBitSet},
+		{X86_INS_CLD, "cld", {{0, "=($df,0[1])"}}, InstructionType::eBitReset},
 
 		{X86_INS_LAHF, "lahf", {{0, "=($ah,#app($cf,1[1],$pf,0[1],$af,0[1],$zf,$sf))"}}, InstructionType::eMov},
 		{X86_INS_SAHF, "sahf", {{0, "#seq(=($cf,$ah[0]),=($pf,$ah[2]),=($af,$ah[4]),=($zf,$ah[6]),=($sf,$ah[7]))"}}, InstructionType::eMov},
