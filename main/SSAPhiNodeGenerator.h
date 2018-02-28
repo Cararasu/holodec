@@ -37,6 +37,8 @@ namespace holodec {
 
 		void resolveRegs();
 
+		void addRegDef(HId id, Register* reg, HList<SSARegDef>* list, bool replace);
+
 		SSAArgument getSSAId(BasicBlockWrapper* wrapper, Register* reg);
 		SSAArgument getSSAId(BasicBlockWrapper* wrapper, HList<SSARegDef>& defs, Register* reg);
 		

@@ -206,13 +206,9 @@ namespace holodec {
 
 			assert(combine1.size == combine2.size);
 
-			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondAdd.id), combine1.size);
-			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
-
 			uint64_t secsize = secondAdd.size;
 			secondAdd.exprtype = secondAdd.exprtype;
 			secondAdd.instrAddr = secondAdd.instrAddr;
-			secondAdd.subExpressions = { combine1Arg, combine2Arg };
 			secondAdd.size += firstAdd.size;
 
 			SSAArgument addArg = SSAArgument::createId(secondAdd.id, secsize);
@@ -225,8 +221,13 @@ namespace holodec {
 			splitArg1.size = firstAdd.size;
 			splitArg1.offset = 0;
 
-			splitArg2.print(arch);
-			splitArg1.print(arch);
+			//Expression references invalidated
+			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondAdd.id), combine1.size);
+			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
+
+			//set arguments of second arg
+			ssaRep->expressions[context->expressionsMatched[0]].subExpressions = { combine1Arg, combine2Arg };
+
 			ssaRep->replaceAllArgs(firstAdd, splitArg1);
 			ssaRep->replaceAllArgs(secondAdd, splitArg2);
 

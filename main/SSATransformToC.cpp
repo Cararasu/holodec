@@ -65,8 +65,6 @@ namespace holodec{
 					printf("(uint%d_t) ", arg.size);
 				else if (subExpr.exprtype == SSAType::eInt)
 					printf("(int%d_t) ", arg.size);
-				else 
-					assert(false);
 			}
 			if (nonZeroOffset)
 				printf("(");

@@ -6,14 +6,10 @@
 namespace holodec {
 
 
-	void setSSAID(SSARepresentation* ssaRep, SSAExpression* expr, HId argIndex, HId id) {
-		SSAArgument arg = expr->subExpressions[argIndex];
-		arg.type = SSAArgType::eId;
-		arg.ssaId = id;
-		expr->subExpressions[argIndex] = arg;
-	}
 	void setSSAArg(SSARepresentation* ssaRep, SSAExpression* expr, HId argIndex, SSAArgument arg) {
-		expr->subExpressions[argIndex] = arg;
+		if (arg.ssaId == 338)
+			printf("");
+		expr->subExpressions[argIndex].replace(arg);
 	}
 
 	void BasicBlockWrapper::print (Architecture* arch) {
@@ -40,19 +36,18 @@ namespace holodec {
 	}
 
 
-	void addRegDef(HId id, Register* reg, HList<SSARegDef>* list, bool replace) {
+	void SSAPhiNodeGenerator::addRegDef(HId id, Register* reg, HList<SSARegDef>* list, bool replace) {
 		bool rep = false;
 		int i = 0;
 		for (auto it = list->begin(); it != list->end();) {
 			if(id == 0xa4)
 				i++;
-			SSARegDef& def = *it;
-			if (def.regId == reg->id || (replace && def.parentId == reg->parentRef.refId && (reg->offset <= def.offset && (def.offset + def.size) <= (reg->offset + reg->size)))) {
+			if (it->regId == reg->id || (replace && it->parentId == reg->parentRef.refId && (reg->offset <= it->offset && (it->offset + it->size) <= (reg->offset + reg->size)))) {
 				if (rep) {
 					it = list->erase (it);
 					continue;
 				} else {
-					def = {id, reg->id, reg->parentRef.refId, reg->offset, reg->size};
+					*it = {id, reg->id, reg->parentRef.refId, reg->offset, reg->size};
 					rep = true;
 				}
 			}
@@ -60,6 +55,7 @@ namespace holodec {
 		}
 		if (!rep)
 			list->push_back ({id, reg->id, reg->parentRef.refId, reg->offset, reg->size});
+
 	}
 
 	SSAArgument SSAPhiNodeGenerator::getSSAId(BasicBlockWrapper* wrapper, Register* reg) {
@@ -133,8 +129,9 @@ namespace holodec {
 				break;
 			}
 		}
-		if(!contains)
+		if (!contains) {
 			addRegDef(id, reg, &wrapper->outputs, false);
+		}
 		for (HId bbId : wrapper->ssaBB->inBlocks) {
 			//expressions need to reloaded after each call to getSSAId as they may insert an expression
 			function->ssaRep.expressions[id].subExpressions.push_back(SSAArgument::createBlock(bbId));
@@ -149,7 +146,7 @@ namespace holodec {
 		this->binary = binary;
 		this->function = function;
 
-
+		bbwrappers.clear();
 		bbwrappers.resize(function->ssaRep.bbs.size());
 		for (size_t i = 0; i < function->ssaRep.bbs.list.size(); i++) {
 			bbwrappers[i].ssaBB = &function->ssaRep.bbs.list[i];
@@ -169,6 +166,7 @@ namespace holodec {
 		}
 
 		for (BasicBlockWrapper& bbwrapper : bbwrappers) {//iterate Blocks
+
 			HList<SSARegDef> defs;
 			for (size_t j = 0; j < bbwrapper.ssaBB->exprIds.size(); j++) {//iterate Expressions
 				HId id = bbwrapper.ssaBB->exprIds[j];
@@ -184,7 +182,7 @@ namespace holodec {
 					SSAArgument anArg = getSSAId(&bbwrapper, defs, reg);
 					assert(anArg.ssaId);
 					expr = function->ssaRep.expressions.get(id);//reload Expression
-					expr->subExpressions[i] = anArg;
+					expr->subExpressions[i].replace(anArg);
 					continue;
 				}
 				switch (expr->location) {

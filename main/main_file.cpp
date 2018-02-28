@@ -452,6 +452,7 @@ int main (int argc, const char** argv) {
 		transformers[0]->doTransformation(binary, func);
 		func->print(binary->arch);
 		transformers[1]->doTransformation(binary, func);
+		assert(func->ssaRep.checkIntegrity());
 		func->ssaRep.recalcRefCounts();
 		func->print(binary->arch);
 

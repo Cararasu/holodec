@@ -300,7 +300,7 @@ namespace holodec {
 				while (innerIt != replacements->end()) {//TODO infinite loop alarm!!!!!!
 					if (it->first == innerIt->second.ssaId)
 						break;
-					it->second.replace(innerIt->second);// = arg;
+					it->second.replace(innerIt->second);
 					innerIt = replacements->find(it->second.ssaId);
 					replaced = true;
 				}
