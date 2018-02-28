@@ -20,7 +20,7 @@ bool holodec::FunctionAnalyzer::postInstruction (Instruction* instruction) {
 				addAddressToAnalyze (instruction->nojumpdest);
 			return false;
 		}
-		return instruction->nojumpdest ? !trySplitBasicBlock(instruction->nojumpdest) : true;
+		return !trySplitBasicBlock(instruction->addr + instruction->size);
 	}
 
 	if (instruction->instrdef->type == InstructionType::eJmp || instruction->instrdef->type2 == InstructionType::eJmp) {
@@ -71,6 +71,8 @@ bool holodec::FunctionAnalyzer::splitBasicBlock (DisAsmBasicBlock* basicblock, u
 	return false;
 }
 bool holodec::FunctionAnalyzer::trySplitBasicBlock (uint64_t splitaddr) {
+	if (state.function->addrToAnalyze.find(splitaddr) != state.function->addrToAnalyze.end())
+		return true;
 	for (DisAsmBasicBlock& basicblock : state.function->basicblocks) {
 		if (basicblock.addr == splitaddr)
 			return true;
@@ -85,7 +87,7 @@ bool holodec::FunctionAnalyzer::trySplitBasicBlock (uint64_t splitaddr) {
 void holodec::FunctionAnalyzer::addAddressToAnalyze (uint64_t addr) {
 	if (std::find (state.function->addrToAnalyze.begin(), state.function->addrToAnalyze.end(), addr) == state.function->addrToAnalyze.end()) {
 		printf ("Add Address for Analyze 0x%" PRIx64 "\n", addr);
-		state.function->addrToAnalyze.push_back (addr);
+		state.function->addrToAnalyze.insert (addr);
 	}
 }
 
@@ -107,8 +109,9 @@ bool holodec::FunctionAnalyzer::analyzeFunction (Function* function) {
 
 	ssaGen.setup (state.function, function->baseaddr);
 	while (!state.function->addrToAnalyze.empty()) {
-		uint64_t addr = state.function->addrToAnalyze.back();
-		state.function->addrToAnalyze.pop_back();
+		auto it = state.function->addrToAnalyze.begin();
+		uint64_t addr = *it;
+		state.function->addrToAnalyze.erase(it);
 
 		if (trySplitBasicBlock (addr))
 			continue;

@@ -7,8 +7,8 @@ void holodec::Instruction::print (Architecture* arch, int indent) {
 		printIndent (indent);
 		printf ("0x%" PRIx64 ": %s ", addr, instrdef->mnemonics.cstr());
 		for (size_t i = 0; i < operands.size(); i++) {
-			printf (" Args%" PRIx64 ": ", i + 1);
 			operands[i].print (arch);
+			printf(", ");
 		}
 		printf("\n");
 	} else {

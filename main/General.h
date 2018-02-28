@@ -49,9 +49,6 @@ namespace holodec {
 		explicit operator bool() {
 			return name;
 		}
-		explicit operator int() {
-			return refId;
-		}
 		explicit operator HString() {
 			return name;
 		}

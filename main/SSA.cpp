@@ -30,7 +30,7 @@ namespace holodec {
 			printf ("  mem");
 			break;
 		}
-		printf ("%03d ", size);
+		printf ("%.3d ", size);
 
 		switch (type) {
 		case SSAExprType::eInvalid:
@@ -212,22 +212,22 @@ namespace holodec {
 		}
 		switch (location) {
 		case SSALocation::eReg:
-			printf ("Reg:   %4.4s     ", arch->getRegister (locref.refId)->name.cstr());
+			printf ("Reg: %6.6s     ", arch->getRegister (locref.refId)->name.cstr());
 			break;
 		case SSALocation::eStack:
-			printf ("Stack: %4.4s[%02" PRId32 "] ", arch->getStack (locref.refId)->name.cstr(), locref.index);
+			printf ("Stack: %4.4s[%.2" PRId32 "] ", arch->getStack (locref.refId)->name.cstr(), locref.index);
 			break;
 		case SSALocation::eMem:
-			printf ("Mem:   %04" PRId32 "     ", locref.refId);
+			printf ("Mem: %6.6" PRId32 "     ", locref.refId);
 			break;
 		case SSALocation::eBlock:
-			printf ("Block: %04" PRId32 "     ", locref.refId);
+			printf ("Block: %4.4" PRId32 "     ", locref.refId);
 			break;
 		case SSALocation::eNone:
 			printf("                 ");
 			break;
 		}
-		printf ("Ref: %02" PRId64 " UId: %04" PRIx64 " | %04" PRId32 " = ", refs.size(), uniqueId, id);
+		printf ("Ref: %2.2" PRId64 " UId: %4.4" PRIx64 " | %4.4" PRId32 " = ", refs.size(), uniqueId, id);
 		for (SSAArgument& arg : subExpressions) {
 			arg.print(arch);
 			printf(", ");
@@ -261,7 +261,6 @@ namespace holodec {
 			printf("SSA: %d", ssaId);
 			break;
 		case SSAArgType::eOther:
-			printf("Other ");
 			break;
 		default:
 			printf ("Unknown Argtype %x ", type);
@@ -463,6 +462,12 @@ namespace holodec {
 				for (SSAArgument& arg : expr.subExpressions)
 					if (!(arg.type != SSAArgType::eId || (arg.ssaId && arg.ssaId <= expressions.size() && expressions[arg.ssaId].id)))
 						return false;
+			for (HId& id : expr.refs)
+				if (!(id && id <= expressions.size() && expressions[id].id))
+					return false;
+			for (HId& id : expr.directRefs)
+				if (!(id && id <= expressions.size() && expressions[id].id))
+					return false;
 		}
 		return true;
 	}

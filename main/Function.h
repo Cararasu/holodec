@@ -90,7 +90,7 @@ namespace holodec {
 		HIdList<JumpTable> jumptables;
 		SSARepresentation ssaRep;
 
-		HList<uint64_t> addrToAnalyze;
+		HSet<uint64_t> addrToAnalyze;
 		
 		DisAsmBasicBlock* findBasicBlock (size_t addr) {
 			if (addr) {

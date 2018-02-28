@@ -97,6 +97,8 @@ namespace holodec {
 				return lhs.mod.opType == rhs.mod.opType;
 			case IR_EXPR_BUILTIN:
 				return lhs.mod.builtinId == rhs.mod.builtinId;
+			case IR_EXPR_REC:
+				return lhs.mod.instrId == rhs.mod.instrId;
 			default:
 				return true;
 			}

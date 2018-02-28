@@ -135,7 +135,7 @@ namespace holodec {
 		bool operator!() {
 			return type != SSAArgType::eUndef;
 		}
-		operator bool() {
+		explicit operator bool() {
 			return type == SSAArgType::eUndef;
 		}
 		bool isConst() {

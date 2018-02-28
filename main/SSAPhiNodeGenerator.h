@@ -20,11 +20,7 @@ namespace holodec {
 	struct BasicBlockWrapper{
 		SSABB* ssaBB;
 		
-		HList<SSARegDef> inputs;
 		HList<SSARegDef> outputs;
-		
-		HList<SSAMemDef> inputMems;
-		HList<SSAMemDef> outputMems;
 		
 		void print(Architecture* arch);
 	};
@@ -37,7 +33,12 @@ namespace holodec {
 		
 		virtual void doTransformation (Binary* binary, Function* function);
 		
+		SSARegDef findRegDef();
+
 		void resolveRegs();
+
+		SSAArgument getSSAId(BasicBlockWrapper* wrapper, Register* reg);
+		SSAArgument getSSAId(BasicBlockWrapper* wrapper, HList<SSARegDef>& defs, Register* reg);
 		
 		bool handleBBs(BasicBlockWrapper* wrapper, Register* reg, std::vector<std::pair<HId, HId>>& gatheredIds, std::vector<HId>& visitedBlocks);
 		bool handleBBs(BasicBlockWrapper* wrapper, Memory* mem, std::vector<std::pair<HId, HId>>& gatheredIds, std::vector<HId>& visitedBlocks);

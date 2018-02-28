@@ -28,23 +28,29 @@ namespace holodec{
 					replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::create()));
 				}else*/ if(expr.type == SSAExprType::ePhi) {
 					bool undef = true;
-					SSAArgument& firstArg = expr.subExpressions[1];
+					SSAArgument cmpArg;
+					cmpArg.type = SSAArgType::eId;
+					cmpArg.ssaId = 0;
 					bool alwaysTheSame = true;
 					
 					for (size_t i = 0; i < expr.subExpressions.size(); i += 2) {
 						//SSAArgument& blockArg = expr.subExpressions[i];
 						SSAArgument& arg = expr.subExpressions[i + 1];
+						if (arg.type == SSAArgType::eId && arg.ssaId == expr.id)
+							continue;
+						if (cmpArg.type == SSAArgType::eId && cmpArg.ssaId == 0)
+							cmpArg = arg;
 						if(arg.type != SSAArgType::eUndef){
 							undef = false;
 						}
-						if(arg != firstArg){
+						if(arg != cmpArg){
 							alwaysTheSame = false;
 						}
 					}
 					if(undef){
 						replacements.insert(std::pair<HId, SSAArgument>(expr.id, SSAArgument::createUndef (expr.location, expr.locref, expr.size)));
 					}else if(alwaysTheSame){
-						replacements.insert(std::pair<HId, SSAArgument>(expr.id, firstArg));
+						replacements.insert(std::pair<HId, SSAArgument>(expr.id, cmpArg));
 					}
 				}/*else if(expr.type == SSAExprType::eAssign || expr.type == SSAExprType::eUpdatePart){
 					if(expr.subExpressions[0].type == SSAArgType::eUndef){

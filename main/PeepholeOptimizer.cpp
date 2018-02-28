@@ -117,32 +117,6 @@ namespace holodec {
 
 		RuleBuilder builder (peephole_optimizer->ruleSet);
 		
-		builder
-		.ssaType (0, 0, SSAFlagType::eC)
-		.ssaType (1, 1, SSAOpType::eSub)
-		.execute ([] (Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-			SSAExpression& flagExpr = ssaRep->expressions[context->expressionsMatched[0]];
-			SSAExpression& opExpr = ssaRep->expressions[context->expressionsMatched[1]];
-			flagExpr.type = SSAExprType::eOp;
-			flagExpr.opType = SSAOpType::eLower;
-			g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry");
-
-			if (opExpr.subExpressions.size() > 2) {
-				SSAExpression addExpr;
-				addExpr.type = SSAExprType::eOp;
-				addExpr.size = opExpr.size;
-				addExpr.exprtype = opExpr.exprtype;
-				addExpr.opType = SSAOpType::eAdd;
-				addExpr.subExpressions.insert (addExpr.subExpressions.begin(), opExpr.subExpressions.begin() + 1, opExpr.subExpressions.end());
-				addExpr.instrAddr = opExpr.instrAddr;
-
-				flagExpr.subExpressions = {opExpr.subExpressions[0], SSAArgument::createId(ssaRep->addBefore (&addExpr, opExpr.id), addExpr.size) };
-
-			} else if (opExpr.subExpressions.size() == 2) {
-				flagExpr.subExpressions = {opExpr.subExpressions[0], opExpr.subExpressions[1]};
-			}
-			return true;
-		});
 		builder = peephole_optimizer->ruleSet;
 		builder
 		.ssaType(0, 0, SSAExprType::eAppend)
@@ -199,10 +173,10 @@ namespace holodec {
 		});
 		builder = peephole_optimizer->ruleSet;
 		builder
-		.ssaType(0, 0, SSAOpType::eAdd)
-		.ssaType(1, 3, SSAFlagType::eC)
-		.ssaType(2, 1, SSAOpType::eAdd)
-		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			.ssaType(0, 0, SSAOpType::eAdd)
+			.ssaType(1, 3, SSAFlagType::eC)
+			.ssaType(2, 1, SSAOpType::eAdd)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& firstAdd = ssaRep->expressions[context->expressionsMatched[2]];
 			SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
@@ -260,6 +234,95 @@ namespace holodec {
 		});
 		builder = peephole_optimizer->ruleSet;
 		builder
+			.ssaType(0, 0, SSAOpType::eSub)
+			.ssaType(1, 3, SSAFlagType::eC)
+			.ssaType(2, 1, SSAOpType::eSub)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& firstSub = ssaRep->expressions[context->expressionsMatched[2]];
+			SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
+			SSAExpression& secondSub = ssaRep->expressions[context->expressionsMatched[0]];
+			if (firstSub.subExpressions.size() != 2 || secondSub.subExpressions.size() != 3 || carryExpr.subExpressions[0].offset + carryExpr.subExpressions[0].size != firstSub.size)
+				return false;
+			g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry Sub");
+
+			SSAExpression combine1;
+			combine1.type = SSAExprType::eAppend;
+			combine1.exprtype = firstSub.exprtype;
+			combine1.instrAddr = firstSub.instrAddr;
+			combine1.subExpressions = {
+				firstSub.subExpressions[0],
+				secondSub.subExpressions[0]
+			};
+			combine1.size = firstSub.subExpressions[0].size + secondSub.subExpressions[0].size;
+
+			SSAExpression combine2;
+			combine2.type = SSAExprType::eAppend;
+			combine2.exprtype = firstSub.exprtype;
+			combine2.instrAddr = firstSub.instrAddr;
+			combine2.subExpressions = {
+				firstSub.subExpressions[1],
+				secondSub.subExpressions[1]
+			};
+			combine2.size = firstSub.subExpressions[1].size + secondSub.subExpressions[1].size;
+
+			assert(combine1.size == combine2.size);
+
+			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondSub.id), combine1.size);
+			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
+
+			uint64_t secsize = secondSub.size;
+			secondSub.exprtype = secondSub.exprtype;
+			secondSub.instrAddr = secondSub.instrAddr;
+			secondSub.subExpressions = { combine1Arg, combine2Arg };
+			secondSub.size += firstSub.size;
+
+			SSAArgument addArg = SSAArgument::createId(secondSub.id, secsize);
+
+			SSAArgument splitArg2 = addArg;
+			splitArg2.size = secsize;
+			splitArg2.offset = firstSub.size;
+
+			SSAArgument splitArg1 = addArg;
+			splitArg1.size = firstSub.size;
+			splitArg1.offset = 0;
+
+			splitArg2.print(arch);
+			splitArg1.print(arch);
+			ssaRep->replaceAllArgs(firstSub, splitArg1);
+			ssaRep->replaceAllArgs(secondSub, splitArg2);
+
+			return true;
+		});
+		/*
+		builder
+			.ssaType(0, 0, SSAFlagType::eC)
+			.ssaType(1, 1, SSAOpType::eSub)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& flagExpr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAExpression& opExpr = ssaRep->expressions[context->expressionsMatched[1]];
+			flagExpr.type = SSAExprType::eOp;
+			flagExpr.opType = SSAOpType::eLower;
+			g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry");
+
+			if (opExpr.subExpressions.size() > 2) {
+				SSAExpression addExpr;
+				addExpr.type = SSAExprType::eOp;
+				addExpr.size = opExpr.size;
+				addExpr.exprtype = opExpr.exprtype;
+				addExpr.opType = SSAOpType::eAdd;
+				addExpr.subExpressions.insert(addExpr.subExpressions.begin(), opExpr.subExpressions.begin() + 1, opExpr.subExpressions.end());
+				addExpr.instrAddr = opExpr.instrAddr;
+
+				flagExpr.subExpressions = { opExpr.subExpressions[0], SSAArgument::createId(ssaRep->addBefore(&addExpr, opExpr.id), addExpr.size) };
+
+			}
+			else if (opExpr.subExpressions.size() == 2) {
+				flagExpr.subExpressions = { opExpr.subExpressions[0], opExpr.subExpressions[1] };
+			}
+			return true;
+		});*/
+		builder = peephole_optimizer->ruleSet;
+		builder
 			.ssaType(0, 0, SSAExprType::eOp)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -305,6 +368,7 @@ namespace holodec {
 						return true;
 					}
 				}
+				
 				ssaRep->replaceAllArgs(expr, arg);
 				return true;
 			}

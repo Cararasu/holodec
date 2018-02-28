@@ -263,7 +263,7 @@ namespace holoavr {
 			{ 0, "=($zf,0)" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_COM, "com",{
-			{ 1, "#seq(=(#t[1],255),#rec[sub](#t[1],#arg[1]),=(#arg[1],#t[1]))" }
+			{ 1, "#seq(=(#t[1],255[8]),#rec[sub](#t[1],#arg[1]),=(#arg[1],#t[1]))" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_CP, "cp",{
 			{ 2, "#seq(=(#t[1],#arg[1]),#rec[sub](#t[1],#arg[2]))" }
@@ -371,6 +371,9 @@ namespace holoavr {
 			{ 2, "=(#arg[1],#arg[2])" }
 		}, InstructionType::eMov },
 		{ AVR_INSTR_MOVW, "movw",{
+			{ 2, "=(#arg[1],#arg[2])" },
+			{ 3, "==(#bsize(#arg[1]),16)", "=(#arg[1],#app(#arg[2],#arg[3]))" },
+			{ 3, "==(#bsize(#arg[3]),16)", "#seq(=(#arg[1],#arg[3][0,8]),=(#arg[2],#arg[3][8,8]))" },
 			{ 4, "#seq(=(#arg[1],#arg[3]),=(#arg[2],#arg[4]))" }
 		}, InstructionType::eMov },
 
@@ -385,7 +388,7 @@ namespace holoavr {
 		}, InstructionType::eMul },
 
 		{ AVR_INSTR_NEG, "neg",{
-			{ 1, "#seq(=(#t[1],0),#rec[sub](#t[1],#arg[1]),=(#arg[1],#t[1]))" }
+			{ 1, "#seq(=(#t[1],0[8]),#rec[sub](#t[1],#arg[1]),=(#arg[1],#t[1]))" }
 		}, InstructionType::eMul },
 
 		{ AVR_INSTR_NOP, "nop",{ { "#nop" } }, InstructionType::eNop },
@@ -435,7 +438,7 @@ namespace holoavr {
 		}, InstructionType::eShr },
 
 		{ AVR_INSTR_SBC, "sbc",{
-			{ 2, "#seq(=(#arg[1],-(#arg[1],#arg[2],#ext($cf,#bsize(#arg[1])))),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
+			{ 2, "#seq(=(#arg[1],-(#arg[1],#arg[2],$cf)),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eSub },
 
 		{ AVR_INSTR_SBI, "sbi",{
@@ -499,7 +502,7 @@ namespace holoavr {
 			{ 3, "#st($dmem,+(#arg[1],#arg[2]),#arg[3])" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_ST | AVR_INSTR_INC_PTR, "st+",{
-			{ 2, "#seq(#st($dmem,#arg[1],#arg[2]),=(#arg[2],+(#arg[2],1)))" }
+			{ 2, "#seq(#st($dmem,#arg[1],#arg[2]),=(#arg[1],+(#arg[1],1)))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_ST | AVR_INSTR_DEC_PTR, "st-",{
 			{ 2, "#seq(=(#arg[2],-(#arg[2],1)),#st($dmem,#arg[1],#arg[2]))" }

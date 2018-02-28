@@ -12,13 +12,18 @@ namespace holodec {
 			if(function->ssaRep.expressions[block->exprIds.back()].type == SSAExprType::eReturn)//if last statement is return then we do nothing
 				return;
 		if(!block->fallthroughId){
-			for(SSABB& bb : function->ssaRep.bbs){
-				if(bb.startaddr == block->endaddr){
-					block->fallthroughId = bb.id;
-					block->outBlocks.insert(bb.id);
-					bb.inBlocks.insert(block->id);
-					break;
+			if (function->ssaRep.expressions[block->exprIds.back()].type != SSAExprType::eJmp && function->ssaRep.expressions[block->exprIds.back()].type != SSAExprType::eReturn) {
+				for(SSABB& bb : function->ssaRep.bbs){
+					if (bb.startaddr == block->endaddr) {
+						block->fallthroughId = bb.id;
+						block->outBlocks.insert(bb.id);
+						bb.inBlocks.insert(block->id);
+						break;
+					}
 				}
+			}
+			else {
+				block->fallthroughId = 0;
 			}
 		}
 	}

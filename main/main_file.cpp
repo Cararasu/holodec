@@ -397,7 +397,7 @@ int main (int argc, const char** argv) {
 			Function* newfunction = new Function();
 			newfunction->symbolref = sym->id;
 			newfunction->baseaddr = sym->vaddr;
-			newfunction->addrToAnalyze.push_back (sym->vaddr);
+			newfunction->addrToAnalyze.insert (sym->vaddr);
 			binary->functions.push_back (newfunction);
 		}
 	}
@@ -418,7 +418,7 @@ int main (int argc, const char** argv) {
 							Function* newfunction = new Function();
 							newfunction->symbolref = symbol->id;
 							newfunction->baseaddr = symbol->vaddr;
-							newfunction->addrToAnalyze.push_back (symbol->vaddr);
+							newfunction->addrToAnalyze.insert(symbol->vaddr);
 							binary->functions.push_back (newfunction);
 						}
 					}
@@ -450,7 +450,10 @@ int main (int argc, const char** argv) {
 	for (Function* func : binary->functions) {
 
 		transformers[0]->doTransformation(binary, func);
+		func->print(binary->arch);
 		transformers[1]->doTransformation(binary, func);
+		func->ssaRep.recalcRefCounts();
+		func->print(binary->arch);
 
 		holodec::g_logger.log<LogLevel::eInfo> ("Symbol %s", binary->getSymbol (func->symbolref)->name.cstr());
 		//func->print (&holox86::x86architecture);
@@ -458,12 +461,12 @@ int main (int argc, const char** argv) {
 		bool applied = false;
 		do {
 			transformers[2]->doTransformation(binary, func);
+			func->ssaRep.recalcRefCounts();
 			assert(func->ssaRep.checkIntegrity());
 			bool applied = false;
 			do {
 				applied = false;
 				assert(func->ssaRep.checkIntegrity());
-				func->ssaRep.recalcRefCounts();
 				for (size_t i = 0; i < func->ssaRep.expressions.size();) {
 					SSAExpression& expr = func->ssaRep.expressions[i + 1];
 					MatchContext context;
@@ -477,12 +480,16 @@ int main (int argc, const char** argv) {
 					}
 				}
 				transformers[3]->doTransformation(binary, func);
+				func->ssaRep.recalcRefCounts();
 				assert(func->ssaRep.checkIntegrity());
 			} while (applied);
 
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
 		} while (applied);
+		func->ssaRep.recalcRefCounts();
+		transformers[4]->doTransformation(binary, func);
 		func->print(binary->arch);
+		printf("");
 	}
 	g_peephole_logger.level = LogLevel::eDebug;
 

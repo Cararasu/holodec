@@ -21,10 +21,11 @@ namespace holodec {
 				if (instrdef->irs[i].condstring) {
 					IRArgument constArg = parseConstExpression(instrdef->irs[i].condExpr, &instr->operands);
 					if (constArg && constArg.type == IR_ARGTYPE_UINT && constArg.uval) {
-						printf("Successfully parsed Condition for Instruction\n");
+						/*printf("Successfully parsed Condition for Instruction\n");
 						instrdef->irs[i].print(arch);
 						instr->print(arch);
-						printf("\n");
+						printf("\n");*/
+						return &instrdef->irs[i];
 					}
 					else {
 						/*printf("Failed to parse Condition for Instruction\n");
@@ -34,7 +35,9 @@ namespace holodec {
 						continue;
 					}
 				}
-				return &instrdef->irs[i];
+				else {
+					return &instrdef->irs[i];
+				}
 			}
 		}
 		for (size_t i = 0; i < instr->operands.size(); i++) {
@@ -1029,6 +1032,7 @@ namespace holodec {
 				tmpdefs.clear();
 				this->arguments = args;
 
+				
 				InstrDefinition* instrdef = arch->getInstrDef (irExpr->mod.instrId);
 
 				size_t i;

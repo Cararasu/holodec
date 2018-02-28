@@ -212,20 +212,51 @@ namespace holoavr{
 					}
 					return false;
 				case 0x01: {//movw
-					uint32_t regId1 = parseRegType2Small(firstbytes);
-					uint32_t regId2 = parseRegType1Small(firstbytes);
+					uint32_t regId1 = parseRegType2Small(firstbytes) * 2;
+					uint32_t regId2 = parseRegType1Small(firstbytes) * 2;
 
 					instr->instrdef = arch->getInstrDef(AVR_INSTR_MOVW);
-					Register* reg1a = getRegister((regId1 * 2), arch);
-					Register* reg1b = getRegister((regId1 * 2) + 1, arch);
-					Register* reg2a = getRegister((regId2 * 2), arch);
-					Register* reg2b = getRegister((regId2 * 2) + 1, arch);
-					if (!(reg1a && reg1a->id && reg1b && reg1b->id && reg2a && reg2a->id && reg2b && reg2b->id))
+					Register* reg1a = nullptr;
+					Register* reg1b = nullptr;
+					Register* reg2a = nullptr;
+					Register* reg2b = nullptr;
+
+					if (regId1 == 26) {
+						reg1a = arch->getRegister("x");
+					}
+					else if (regId1 == 28) {
+						reg1a = arch->getRegister("y");
+					}
+					else if (regId1 == 30) {
+						reg1a = arch->getRegister("z");
+					}
+					else {
+						reg1a = getRegister(regId1, arch);
+						reg1b = getRegister(regId1 + 1, arch);
+					}
+					if (regId2 == 26) {
+						reg2a = arch->getRegister("x");
+					}
+					else if (regId2 == 28) {
+						reg2a = arch->getRegister("y");
+					}
+					else if (regId2 == 30) {
+						reg2a = arch->getRegister("z");
+					}
+					else {
+						reg2a = getRegister(regId2, arch);
+						reg2b = getRegister(regId2 + 1, arch);
+					}
+					if (!(reg1a && reg1a->id))
 						return false;
 					instr->operands.push_back(IRArgument::createReg(reg1a));
-					instr->operands.push_back(IRArgument::createReg(reg1b));
+					if (reg1b && reg1b->id)
+						instr->operands.push_back(IRArgument::createReg(reg1b));
+					if (!(reg2a && reg2a->id))
+						return false;
 					instr->operands.push_back(IRArgument::createReg(reg2a));
-					instr->operands.push_back(IRArgument::createReg(reg2b));
+					if (reg2b && reg2b->id)
+						instr->operands.push_back(IRArgument::createReg(reg2b));
 				}break;
 				case 0x02: {//muls
 					Register* reg1 = getRegister(parseRegType2Small(firstbytes) + 16, arch);
@@ -265,7 +296,7 @@ namespace holoavr{
 				return true;
 			}
 			else if ((firstbytes & 0x3000) == 0x3000) {
-				Register* reg1 = getRegister(parseRegType2Small(firstbytes), arch);
+				Register* reg1 = getRegister(parseRegType2Small(firstbytes) + 16, arch);
 				uint16_t value = (firstbytes & 0xF) | ((firstbytes & 0x0F00) >> 4);
 				if (!(reg1 && reg1->id)) {
 					return false;
@@ -406,7 +437,7 @@ namespace holoavr{
 			return true;
 		}
 		else if ((firstbytes & 0xF000) == 0xE000) {//ldi
-			Register* reg = getRegister(parseRegType2Small(firstbytes), arch);
+			Register* reg = getRegister(parseRegType2Small(firstbytes) + 16, arch);
 			if (!(reg && reg->id)) {
 				return false;
 			}
@@ -558,10 +589,10 @@ namespace holoavr{
 					instr->instrdef = arch->getInstrDef(AVR_INSTR_LPM | AVR_INSTR_INC_PTR);
 				}break;
 				case 0x6: {//elpm rd, Z+
-					instr->instrdef = arch->getInstrDef(AVR_INSTR_ELPM | AVR_INSTR_INC_PTR);
+					instr->instrdef = arch->getInstrDef(AVR_INSTR_ELPM);
 				}break;
 				case 0x7: {//elpm rd, Z
-					instr->instrdef = arch->getInstrDef(AVR_INSTR_ELPM);
+					instr->instrdef = arch->getInstrDef(AVR_INSTR_ELPM | AVR_INSTR_INC_PTR);
 				}break;
 				case 0x9: {//ld Rd, Y+
 					instr->instrdef = arch->getInstrDef(AVR_INSTR_LD | AVR_INSTR_INC_PTR);
