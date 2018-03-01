@@ -16,22 +16,33 @@ namespace holodec {
 
 	typedef std::function<bool (Architecture*, SSARepresentation*, MatchContext*) > PhExecutor;
 
+
 	struct PhRule {
 		HId matchedIndex;//select the ith matched expression
 		HId argIndex;//select the ith indexed expression
 		SSAExprType type;
 		SSAOpType opType;
 		SSAFlagType flagType;
-		std::vector<PhRule*> subRules;
-		PhExecutor executor;
 
 		PhRule (HId matchedIndex, HId argIndex, SSAExprType type, SSAOpType opType, SSAFlagType flagType) : matchedIndex (matchedIndex), argIndex (argIndex), type (type), opType (opType), flagType (flagType) {}
 
 		bool matchRule (Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr, MatchContext* context);
 	};
+	struct PhRuleInstance {
+		std::vector<PhRule> rules;
+		PhExecutor executor;
+
+		bool match(Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr);
+	};
 	
 	struct PhRuleSet {
-		PhRule baserule = PhRule (0, 0, SSAExprType::eInvalid, SSAOpType::eInvalid, SSAFlagType::eUnknown);
+		std::vector<PhRuleInstance> ruleInstances;
+		bool match(Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr) {
+			for (PhRuleInstance& inst : ruleInstances)
+				if (inst.match(arch, ssaRep, expr))
+					return true;
+			return false;
+		}
 	};
 	
 	struct PeepholeOptimizer {

@@ -65,8 +65,15 @@ namespace holodec {
 		}
 		return nullptr;
 	}
-	Function* Binary::getFunction (HId id) {
+	Function* Binary::getFunction(HId id) {
 		return functions[id];
+	}
+	Function* Binary::getFunctionByAddr(uint64_t addr) {
+		for (Function* func : functions) {
+			if (func->baseaddr == addr)
+				return func;
+		}
+		return nullptr;
 	}
 	HId Binary::addDynamicLibrary (DynamicLibrary* dynamicLibrary){
 		return dynamic_libraries.push_back (dynamicLibrary);

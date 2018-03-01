@@ -421,10 +421,10 @@ namespace holoavr {
 			{ 1, "#seq(#push($stack,#ip),#call(#arg[1]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_RET, "ret",{
-			{ 0, "#seq(#ret(#pop($stack,#bsize(#ip))))" }
+			{ 0, "#seq(#ret(#pop($stack,#size(#ip))))" }
 		}, InstructionType::eRet },
 		{ AVR_INSTR_RETI, "reti",{
-			{ 0, "#seq(#pop($stack,#ip),=($if,1),#ret(#pop($stack,#bsize(#ip))))" }
+			{ 0, "#seq(#pop($stack,#ip),=($if,1),#ret(#pop($stack,#size(#ip))))" }
 		}, InstructionType::eRet },
 		{ AVR_INSTR_RJMP, "rjmp",{
 			{ 1, "#jmp(#arg[1])" }

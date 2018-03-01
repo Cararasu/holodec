@@ -52,26 +52,22 @@ namespace holodec {
 
 		if (matched)
 			context->expressionsMatched.push_back (expr->id);
-		for (PhRule* rule : subRules) {
-			if (rule->matchRule(arch, ssaRep, expr, context)) {
-				return true;
-			}
+		return matched;
+	}
+	bool PhRuleInstance::match(Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr) {
+		MatchContext context;
+		for (PhRule& rule : rules) {
+			if (!rule.matchRule(arch, ssaRep, expr, &context))
+				return false;
 		}
-		if (executor) {
-			if (executor(arch, ssaRep, context)) {
-				//ssaRep->print(arch);
-				return true;
-			}
-			//ssaRep->print(arch);
-		}
-		return false;
+		return executor(arch, ssaRep, &context);
 	}
 
 	struct RuleBuilder {
 		PhRuleSet* ruleSet;
-		PhRule* rule;
+		PhRuleInstance ruleInstance;
 
-		RuleBuilder (PhRuleSet& ruleSet) : ruleSet (&ruleSet), rule (&ruleSet.baserule) {}
+		RuleBuilder (PhRuleSet& ruleSet) : ruleSet (&ruleSet), ruleInstance() {}
 
 		RuleBuilder& ssaType(HId matchIndex, HId index, SSAFlagType flagType) {
 			return ssaType(matchIndex, index, SSAExprType::eFlag, SSAOpType::eInvalid, flagType);
@@ -80,26 +76,14 @@ namespace holodec {
 			return ssaType(matchIndex, index, SSAExprType::eOp, opType, SSAFlagType::eUnknown);
 		}
 		RuleBuilder& ssaType (HId matchIndex, HId index, SSAExprType type, SSAOpType opType = SSAOpType::eInvalid, SSAFlagType flagType = SSAFlagType::eUnknown) {
-			for (PhRule* itRule : rule->subRules) {
-				if (itRule->argIndex == index && itRule->type == type && itRule->opType == opType && itRule->flagType == flagType) {
-					rule = itRule;
-					return *this;
-				}
-			}
-			PhRule* newRule = new PhRule (matchIndex, index, type, opType, flagType);
-			rule->subRules.push_back (newRule);
-			rule = newRule;
+			ruleInstance.rules.push_back (PhRule(matchIndex, index, type, opType, flagType));
 			return *this;
 		}
 
 		RuleBuilder& execute (PhExecutor executor) {
-			if (rule)
-				rule->executor = executor;
-			return *this;
-		}
-
-		RuleBuilder& build() {
-			rule = &ruleSet->baserule;
+			ruleInstance.executor = executor;
+			ruleSet->ruleInstances.push_back(std::move(ruleInstance));
+			ruleInstance = std::move(PhRuleInstance());
 			return *this;
 		}
 	};
@@ -170,13 +154,11 @@ namespace holodec {
 				g_peephole_logger.log<LogLevel::eDebug>("Replace Some Appends of same Expr");
 			}
 			return replaced;
-		});
-		builder = peephole_optimizer->ruleSet;
-		builder
-			.ssaType(0, 0, SSAOpType::eAdd)
-			.ssaType(1, 3, SSAFlagType::eC)
-			.ssaType(2, 1, SSAOpType::eAdd)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+		})
+		.ssaType(0, 0, SSAOpType::eAdd)
+		.ssaType(1, 3, SSAFlagType::eC)
+		.ssaType(2, 1, SSAOpType::eAdd)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& firstAdd = ssaRep->expressions[context->expressionsMatched[2]];
 			SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
@@ -228,17 +210,14 @@ namespace holodec {
 			//set arguments of second arg
 			ssaRep->expressions[context->expressionsMatched[0]].subExpressions = { combine1Arg, combine2Arg };
 
-			ssaRep->replaceAllArgs(firstAdd, splitArg1);
-			ssaRep->replaceAllArgs(secondAdd, splitArg2);
-
+			ssaRep->replaceAllArgs(ssaRep->expressions[context->expressionsMatched[2]], splitArg1);
+			ssaRep->replaceAllArgs(ssaRep->expressions[context->expressionsMatched[0]], splitArg2);
 			return true;
-		});
-		builder = peephole_optimizer->ruleSet;
-		builder
-			.ssaType(0, 0, SSAOpType::eSub)
-			.ssaType(1, 3, SSAFlagType::eC)
-			.ssaType(2, 1, SSAOpType::eSub)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+		})
+		.ssaType(0, 0, SSAOpType::eSub)
+		.ssaType(1, 3, SSAFlagType::eC)
+		.ssaType(2, 1, SSAOpType::eSub)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& firstSub = ssaRep->expressions[context->expressionsMatched[2]];
 			SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAExpression& secondSub = ssaRep->expressions[context->expressionsMatched[0]];
@@ -268,13 +247,9 @@ namespace holodec {
 
 			assert(combine1.size == combine2.size);
 
-			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondSub.id), combine1.size);
-			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
-
 			uint64_t secsize = secondSub.size;
 			secondSub.exprtype = secondSub.exprtype;
 			secondSub.instrAddr = secondSub.instrAddr;
-			secondSub.subExpressions = { combine1Arg, combine2Arg };
 			secondSub.size += firstSub.size;
 
 			SSAArgument addArg = SSAArgument::createId(secondSub.id, secsize);
@@ -287,45 +262,19 @@ namespace holodec {
 			splitArg1.size = firstSub.size;
 			splitArg1.offset = 0;
 
-			splitArg2.print(arch);
-			splitArg1.print(arch);
-			ssaRep->replaceAllArgs(firstSub, splitArg1);
-			ssaRep->replaceAllArgs(secondSub, splitArg2);
+			//Expression references invalidated
+			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondSub.id), combine1.size);
+			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
 
+			//set arguments of second arg
+			ssaRep->expressions[context->expressionsMatched[0]].subExpressions = { combine1Arg, combine2Arg };
+
+			ssaRep->replaceAllArgs(ssaRep->expressions[context->expressionsMatched[2]], splitArg1);
+			ssaRep->replaceAllArgs(ssaRep->expressions[context->expressionsMatched[0]], splitArg2);
 			return true;
-		});
-		/*
-		builder
-			.ssaType(0, 0, SSAFlagType::eC)
-			.ssaType(1, 1, SSAOpType::eSub)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-			SSAExpression& flagExpr = ssaRep->expressions[context->expressionsMatched[0]];
-			SSAExpression& opExpr = ssaRep->expressions[context->expressionsMatched[1]];
-			flagExpr.type = SSAExprType::eOp;
-			flagExpr.opType = SSAOpType::eLower;
-			g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry");
-
-			if (opExpr.subExpressions.size() > 2) {
-				SSAExpression addExpr;
-				addExpr.type = SSAExprType::eOp;
-				addExpr.size = opExpr.size;
-				addExpr.exprtype = opExpr.exprtype;
-				addExpr.opType = SSAOpType::eAdd;
-				addExpr.subExpressions.insert(addExpr.subExpressions.begin(), opExpr.subExpressions.begin() + 1, opExpr.subExpressions.end());
-				addExpr.instrAddr = opExpr.instrAddr;
-
-				flagExpr.subExpressions = { opExpr.subExpressions[0], SSAArgument::createId(ssaRep->addBefore(&addExpr, opExpr.id), addExpr.size) };
-
-			}
-			else if (opExpr.subExpressions.size() == 2) {
-				flagExpr.subExpressions = { opExpr.subExpressions[0], opExpr.subExpressions[1] };
-			}
-			return true;
-		});*/
-		builder = peephole_optimizer->ruleSet;
-		builder
-			.ssaType(0, 0, SSAExprType::eOp)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+		})
+		.ssaType(0, 0, SSAExprType::eOp)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
 			if ((expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eBXor) && expr.subExpressions.size() == 2 && expr.subExpressions[0] == expr.subExpressions[1] && !usedOnlyInFlags(ssaRep, expr)) {
 				g_peephole_logger.log<LogLevel::eDebug>("Zero-Op");
@@ -333,9 +282,7 @@ namespace holodec {
 				return true;
 			}
 			return false;
-		});
-		builder = peephole_optimizer->ruleSet;
-		builder
+		})
 		.ssaType(0, 0, SSAExprType::eAppend)
 		.ssaType(1, 1, SSAExprType::eAppend)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
@@ -349,9 +296,7 @@ namespace holodec {
 				return true;
 			}
 			return false;
-		});
-		builder = peephole_optimizer->ruleSet;
-		builder
+		})
 		.ssaType(0, 0, SSAExprType::eAssign)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -374,9 +319,7 @@ namespace holodec {
 				return true;
 			}
 			return false;
-		});
-		builder = peephole_optimizer->ruleSet;
-		builder
+		})
 		.ssaType(0, 0, SSAExprType::eFlag)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -388,9 +331,7 @@ namespace holodec {
 				return true;
 			}
 			return false;
-		});
-		builder = peephole_optimizer->ruleSet;
-		builder
+		})
 			.ssaType(0, 0, SSAExprType::eReturn)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -410,9 +351,7 @@ namespace holodec {
 			if(replaced)
 				g_peephole_logger.log<LogLevel::eDebug>("Removed non used Return-args");
 			return replaced;
-		});
-		builder = peephole_optimizer->ruleSet;
-		builder
+		})
 			.ssaType(0, 0, SSAExprType::eLoadAddr)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -436,7 +375,7 @@ namespace holodec {
 				}
 			}
 			return false;
-		});
+		})
 		/*builder = peephole_optimizer->ruleSet;
 		builder
 			.ssaType(0, 0, SSAExprType::ePhi)
@@ -471,17 +410,13 @@ namespace holodec {
 			}
 			return false;
 		});*/
-		builder = peephole_optimizer->ruleSet;
-		builder
 		.ssaType(0, 0, SSAExprType::eUndef)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
 			ssaRep->replaceAllArgs(expr, SSAArgument::createUndef(expr.location, expr.locref, expr.size));
 			g_peephole_logger.log<LogLevel::eDebug>("Replace Undefs");
 			return true;
-		});
-		builder = peephole_optimizer->ruleSet;
-		builder
+		})
 			.ssaType(0, 0, SSAOpType::eAdd)
 			.ssaType(0, 0, SSAOpType::eAdd)
 			.ssaType(0, 0, SSAExprType::eAssign)

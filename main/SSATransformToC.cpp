@@ -315,10 +315,12 @@ namespace holodec{
 		arguments.clear();
 		resolveIds.clear();
 		printf("Function: %s\n", sym->name.cstr());
-		printf("Calling Functions ");
+		printf("Calling Functions: ");
 		for (uint64_t addr : function->funcsCall) {
 			printf("0x%x ", addr);
 		}
+		printf("\n");
+		printf("CalledFunctions: ");
 		for (uint64_t addr : function->funcsCalled) {
 			printf("0x%x ", addr);
 		}

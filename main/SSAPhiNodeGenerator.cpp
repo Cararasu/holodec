@@ -194,10 +194,6 @@ namespace holodec {
 				}
 			}
 		}
-		for (size_t i = 0; i < function->ssaRep.bbs.list.size(); i++) {
-			bbwrappers[i].print(binary->arch);
-		}
-		function->print(binary->arch);
 		function->ssaRep.compress();
 	}
 

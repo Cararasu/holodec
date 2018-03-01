@@ -69,12 +69,34 @@ namespace holodec {
 		eNone	= 0x0,
 		eWrite	= 0x1,
 		eRead	= 0x2,
-		eFuncWrite	= 0x4,
-		eFuncRead	= 0x8,
+		eArithmeticChange = 0x4,
 	};
 	struct RegisterState{
 		HId regId;
 		Flags<RegisterUsedFlag> flags;
+		int64_t arithChange = 0;
+	};
+	struct FuncRegState {
+		HList<RegisterState> states;
+		bool parsed = false;
+
+		RegisterState* getRegisterState(HId regId) {
+
+			for (RegisterState& regState : states) {
+				if (regState.regId == regId)
+					return &regState;
+			}
+			return nullptr;
+		}
+		RegisterState* getNewRegisterState(HId regId) {
+
+			for (RegisterState& regState : states) {
+				if (regState.regId == regId)
+					return &regState;
+			}
+			states.push_back({ regId, {}, 0 });
+			return &states.back();
+		}
 	};
 	
 	struct Function {
@@ -82,7 +104,7 @@ namespace holodec {
 		HId symbolref;
 		uint64_t baseaddr;
 		
-		HList<RegisterState> regStates;
+		FuncRegState regStates;
 		HUniqueList<uint64_t> funcsCalled;
 		HList<uint64_t> funcsCall;
 		
@@ -120,6 +142,7 @@ namespace holodec {
 		HId addBasicBlock (DisAsmBasicBlock basicblock) {
 			return basicblocks.push_back (basicblock);
 		}
+
 		void clear() {
 			id = 0;
 			symbolref = 0;
@@ -127,21 +150,7 @@ namespace holodec {
 			ssaRep.clear();
 		}
 
-		void print (Architecture* arch, int indent = 0) {
-			printIndent (indent);
-			printf ("Printing Function\n");
-			printf ("Calling Functions: ");
-			
-			for (uint64_t addr : funcsCalled) {
-				printf("0x%" PRIx64 ", ", addr);
-			}
-			printf ("\n");
-			for (DisAsmBasicBlock& bb : basicblocks) {
-				bb.print (arch, indent + 1);
-			}
-			
-			ssaRep.print(arch, indent + 1);
-		}
+		void print(Architecture* arch, int indent = 0);
 	};
 
 }

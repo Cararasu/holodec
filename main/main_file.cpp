@@ -19,6 +19,7 @@
 #include "HIdList.h"
 #include "SSAPeepholeOptimizer.h"
 #include "SSATransformToC.h"
+#include "SSAApplyRegRef.h"
 #include "PeepholeOptimizer.h"
 #include "ScriptingInterface.h"
 
@@ -432,12 +433,11 @@ int main (int argc, const char** argv) {
 
 	std::vector<SSATransformer*> transformers = {
 		new SSAAddressToBlockTransformer(),
-		//new SSACallingConvApplier(),
 		new SSAPhiNodeGenerator(),
 		new SSAAssignmentSimplifier(),
 		new SSADCETransformer(),
-		//new SSAPeepholeOptimizer(),
-		new SSATransformToC()
+		new SSAApplyRegRef(),
+		new SSATransformToC(),
 	};
 
 	for (SSATransformer* transform : transformers) {
@@ -448,9 +448,8 @@ int main (int argc, const char** argv) {
 
 	g_peephole_logger.level = LogLevel::eDebug;
 	for (Function* func : binary->functions) {
-
-		transformers[0]->doTransformation(binary, func);
-		func->print(binary->arch);
+		printf("Function: %s\n", binary->getSymbol(func->symbolref)->name.cstr());
+		/*transformers[0]->doTransformation(binary, func);
 		transformers[1]->doTransformation(binary, func);
 		assert(func->ssaRep.checkIntegrity());
 		func->ssaRep.recalcRefCounts();
@@ -470,9 +469,8 @@ int main (int argc, const char** argv) {
 				assert(func->ssaRep.checkIntegrity());
 				for (size_t i = 0; i < func->ssaRep.expressions.size();) {
 					SSAExpression& expr = func->ssaRep.expressions[i + 1];
-					MatchContext context;
 
-					if (optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
+					if (optimizer->ruleSet.match(&holox86::x86architecture, &func->ssaRep, &expr)) {
 						assert(func->ssaRep.checkIntegrity());
 						applied = true;
 					}
@@ -490,39 +488,49 @@ int main (int argc, const char** argv) {
 		func->ssaRep.recalcRefCounts();
 		transformers[4]->doTransformation(binary, func);
 		func->print(binary->arch);
-		printf("");
+		printf("");*/
 	}
 	g_peephole_logger.level = LogLevel::eDebug;
-
-	Function* func = binary->getFunction("func_0x2516");
-	if (func) {
-		func->print(binary->arch);
-
-		transformers[2]->doTransformation(binary, func);
-		bool applied = false;
-		do {
-			applied = false;
+	
+	HList<uint64_t> funcs = {
+		0x2516,
+		0x2525,
+	};
+	for (uint64_t addr : funcs) {
+		Function* func = binary->getFunctionByAddr(addr);
+		if (func) {
+			transformers[0]->doTransformation(binary, func);
+			transformers[1]->doTransformation(binary, func);
+			assert(func->ssaRep.checkIntegrity());
 			func->ssaRep.recalcRefCounts();
-			for (size_t i = 0; i < func->ssaRep.expressions.size();) {
-				SSAExpression& expr = func->ssaRep.expressions[i + 1];
-				MatchContext context;
-
-				if (!optimizer->ruleSet.baserule.matchRule(&holox86::x86architecture, &func->ssaRep, &expr, &context)) {
-					i++;
-				}
-				else {
-					applied = true;
-				}
-			}
 			func->print(binary->arch);
-			transformers[3]->doTransformation(binary, func);
-			printf("%d\n", applied);
-		} while (applied);
-		func->ssaRep.recalcRefCounts();
-		transformers[4]->doTransformation(binary, func);
 
-		holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-		func->print(binary->arch);
+			transformers[2]->doTransformation(binary, func);
+			bool applied = false;
+			do {
+				applied = false;
+				func->ssaRep.recalcRefCounts();
+				for (size_t i = 0; i < func->ssaRep.expressions.size();) {
+					SSAExpression& expr = func->ssaRep.expressions[i + 1];
+
+					if (!optimizer->ruleSet.match(&holox86::x86architecture, &func->ssaRep, &expr)) {
+						i++;
+					}
+					else {
+						applied = true;
+					}
+				}
+				transformers[3]->doTransformation(binary, func);
+				transformers[4]->doTransformation(binary, func);
+				//func->print(binary->arch);
+				printf("%d\n", applied);
+			} while (applied);
+			func->ssaRep.recalcRefCounts();
+			transformers[5]->doTransformation(binary, func);
+
+			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
+			func->print(binary->arch);
+		}
 	}
 	delete optimizer;
 

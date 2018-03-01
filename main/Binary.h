@@ -167,6 +167,7 @@ namespace holodec {
 		HId addFunction (Function* function);
 		Function* getFunction (HString string);
 		Function* getFunction (HId id);
+		Function* getFunctionByAddr(uint64_t addr);
 
 		HId addDynamicLibrary (DynamicLibrary* dynamicLibrary);
 		DynamicLibrary* getDynamicLibrary (HString string);

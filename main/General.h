@@ -188,6 +188,10 @@ namespace holodec {
 			return mask != rhs.mask;
 		}
 
+		inline bool contains(FlagEnum const flag) const {
+			return (mask & (uint64_t)flag) != 0;
+		}
+
 		explicit operator bool() const {
 			return !!mask;
 		}

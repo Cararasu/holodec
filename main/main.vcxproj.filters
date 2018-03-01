@@ -162,6 +162,9 @@
     <ClCompile Include="arch\AvrFunctionAnalyzer.cpp">
       <Filter>Quelldateien\arch</Filter>
     </ClCompile>
+    <ClCompile Include="SSAApplyRegRef.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Architecture.h">
@@ -298,6 +301,9 @@
     </ClInclude>
     <ClInclude Include="arch\AvrFunctionAnalyzer.h">
       <Filter>Headerdateien\arch</Filter>
+    </ClInclude>
+    <ClInclude Include="SSAApplyRegRef.h">
+      <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
