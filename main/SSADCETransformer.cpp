@@ -8,10 +8,11 @@
 
 namespace holodec {
 
-	void SSADCETransformer::doTransformation (Binary* binary, Function* function) {
+	bool SSADCETransformer::doTransformation (Binary* binary, Function* function) {
 
 		printf ("DCE for Function at Address 0x%llx\n", function->baseaddr);
 		function->ssaRep.recalcRefCounts();
+		bool removed = false;
 		ssaRep = &function->ssaRep;
 		do {
 			HSet<HId> toRemove;
@@ -22,10 +23,11 @@ namespace holodec {
 			}
 			if(toRemove.empty())
 				break;
+			removed |= !toRemove.empty();
 			function->ssaRep.removeNodes(&toRemove);
 			printf("Removed %d\n", toRemove.size());
 		}while(true);
 		function->ssaRep.compress();
-
+		return removed;
 	}
 }

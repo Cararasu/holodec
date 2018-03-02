@@ -303,7 +303,7 @@ namespace holodec{
 		puts("");
 	}
 
-	void SSATransformToC::doTransformation (Binary* binary, Function* function){
+	bool SSATransformToC::doTransformation (Binary* binary, Function* function){
 		printf("Transform To C\n");
 
 		this->binary = binary;
@@ -362,6 +362,7 @@ namespace holodec{
 		for (size_t index = 1; index < function->ssaRep.bbs.list.size(); ++index) {
 			printBasicBlock(function->ssaRep.bbs.list[index]);
 		}
+		return false;
 	}
 }
 

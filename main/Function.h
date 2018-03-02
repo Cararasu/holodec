@@ -97,6 +97,7 @@ namespace holodec {
 			states.push_back({ regId, {}, 0 });
 			return &states.back();
 		}
+		void print(Architecture* arch, int indent = 0);
 	};
 	
 	struct Function {

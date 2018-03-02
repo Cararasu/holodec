@@ -6,6 +6,78 @@
 
 namespace holodec {
 
+	void SSAExpression::addArgument(SSARepresentation* rep, SSAArgument arg) {
+		if (arg.type == SSAArgType::eId) {//add ref
+			SSAExpression& expr = rep->expressions[arg.ssaId];
+			expr.directRefs.push_back(id);
+		}
+		subExpressions.push_back(arg);
+	}
+	void SSAExpression::setArgument(SSARepresentation* rep, int index, SSAArgument arg) {
+		if (subExpressions[index].type == SSAArgType::eId) {//remove ref
+			SSAExpression& expr = rep->expressions[subExpressions[index].ssaId];
+			for (auto it = expr.directRefs.begin(); it != expr.directRefs.end(); ++it) {
+				if (*it == id) {
+					expr.directRefs.erase(it);//erase only one
+					break;
+				}
+			}
+		}
+		if (arg.type == SSAArgType::eId) {//add ref
+			SSAExpression& expr = rep->expressions[arg.ssaId];
+			expr.directRefs.push_back(id);
+		}
+		subExpressions[index].set(arg);
+	}
+	HList<SSAArgument>::iterator SSAExpression::removeArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it) {
+		if (it->type == SSAArgType::eId) {//remove ref
+			SSAExpression& expr = rep->expressions[it->ssaId];
+			for (auto it = expr.directRefs.begin(); it != expr.directRefs.end(); ++it) {
+				if (*it == id) {
+					expr.directRefs.erase(it);//erase only one
+					break;
+				}
+			}
+		}
+		return subExpressions.erase(it);
+	}
+	void SSAExpression::replaceArgument(SSARepresentation* rep, int index, SSAArgument arg) {
+		if (subExpressions[index].type == SSAArgType::eId) {//remove ref
+			SSAExpression& expr = rep->expressions[subExpressions[index].ssaId];
+			for (auto it = expr.directRefs.begin(); it != expr.directRefs.end(); ++it) {
+				if (*it == id) {
+					expr.directRefs.erase(it);//erase only one
+					break;
+				}
+			}
+		}
+		if (arg.type == SSAArgType::eId) {//add ref
+			SSAExpression& expr = rep->expressions[arg.ssaId];
+			expr.directRefs.push_back(id);
+		}
+		subExpressions[index].replace(arg);
+	}
+	void SSAExpression::setAllArguments(SSARepresentation* rep, HList<SSAArgument> args) {
+		for (SSAArgument& arg : subExpressions) {//remove refs
+			if (arg.type == SSAArgType::eId) {
+				SSAExpression& expr = rep->expressions[arg.ssaId];
+				for (auto it = expr.directRefs.begin(); it != expr.directRefs.end();) {
+					if (*it == id) {
+						it = expr.directRefs.erase(it);//erase all
+						continue;
+					}
+					++it;
+				}
+			}
+		}
+		for (SSAArgument& arg : args) {//add refs
+			if (arg.type == SSAArgType::eId) {
+				SSAExpression& expr = rep->expressions[arg.ssaId];
+				expr.directRefs.push_back(id);
+			}
+		}
+		subExpressions = args;
+	}
 	void SSAExpression::print (Architecture* arch, int indent) {
 		printIndent (indent);
 		printf ("0x%" PRIx64 ":", instrAddr);

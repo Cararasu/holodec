@@ -3,11 +3,9 @@
 
 #include "SSATransformer.h"
 namespace holodec {
-	struct SSAAddressToBlockTransformer : public SSATransformParser {
-		
-		virtual HList<HId>::iterator parseExpression (SSABB* basicBlock, HList<HId>::iterator it);
-		
-		virtual void parseBlock (SSABB* block);
+	struct SSAAddressToBlockTransformer : public SSATransformer {
+
+		virtual bool doTransformation(Binary* binary, Function* function);
 
 	};
 }

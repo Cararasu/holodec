@@ -17,7 +17,7 @@ namespace holodec {
 		HSet<HId> resolveIds;
 		HIdList<CArgument> arguments;
 
-		virtual void doTransformation (Binary* binary, Function* function);
+		virtual bool doTransformation (Binary* binary, Function* function);
 
 		void printBasicBlock(SSABB& bb);
 		void printExpression(SSAExpression& expression);

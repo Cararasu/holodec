@@ -79,21 +79,23 @@ namespace holodec {
 		}
 		assert(wrapper->ssaBB->inBlocks.size() > 1);
 
+		Register* parent_reg = arch->getRegister(reg->parentRef.refId);
+
 		SSAExpression phinode;
 		phinode.type = SSAExprType::ePhi;
 		phinode.exprtype = SSAType::eUInt;
 		phinode.location = SSALocation::eReg;
-		phinode.locref = { reg->id, 0 };
-		phinode.size = reg->size;
+		phinode.locref = { parent_reg->id, 0 };
+		phinode.size = parent_reg->size;
 		phinode.instrAddr = wrapper->ssaBB->startaddr;
 		HId id = function->ssaRep.addAtStart(&phinode, wrapper->ssaBB);
-		addRegDef(id, reg, &wrapper->outputs, false);
+		addRegDef(id, parent_reg, &wrapper->outputs, false);
 		for (HId bbId : wrapper->ssaBB->inBlocks) {
 			//expressions need to reloaded after each call to getSSAId as they may insert an expression
 			function->ssaRep.expressions[id].subExpressions.push_back(SSAArgument::createBlock(bbId));
-			function->ssaRep.expressions[id].subExpressions.push_back(getSSAId(getWrapper(bbId), reg));
+			function->ssaRep.expressions[id].subExpressions.push_back(getSSAId(getWrapper(bbId), parent_reg));
 		}
-		return SSAArgument::createReg(reg, id);
+		return SSAArgument::createReg(parent_reg, id);
 	}
 	SSAArgument SSAPhiNodeGenerator::getSSAId(BasicBlockWrapper* wrapper, HList<SSARegDef>& defs, Register* reg) {
 
@@ -113,34 +115,36 @@ namespace holodec {
 
 		assert(wrapper->ssaBB->inBlocks.size() > 1);
 
+		Register* parent_reg = arch->getRegister(reg->parentRef.refId);
+
 		SSAExpression phinode;
 		phinode.type = SSAExprType::ePhi;
 		phinode.exprtype = SSAType::eUInt;
 		phinode.location = SSALocation::eReg;
-		phinode.locref = { reg->id, 0 };
-		phinode.size = reg->size;
+		phinode.locref = { parent_reg->id, 0 };
+		phinode.size = parent_reg->size;
 		phinode.instrAddr = wrapper->ssaBB->startaddr;
 		HId id = function->ssaRep.addAtStart(&phinode, wrapper->ssaBB);
-		addRegDef(id, reg, &defs, false);
+		addRegDef(id, parent_reg, &defs, false);
 		bool contains = false;
 		for (SSARegDef& def : wrapper->outputs) {
-			if (def.regId == reg->id || ((def.parentId == (HId)reg->parentRef) && ((def.offset <= reg->offset) && ((reg->offset + reg->size) <= (def.offset + def.size))))) {
+			if (def.regId == parent_reg->id || ((def.parentId == (HId)parent_reg->parentRef) && ((def.offset <= parent_reg->offset) && ((parent_reg->offset + parent_reg->size) <= (def.offset + def.size))))) {
 				contains = true;
 				break;
 			}
 		}
 		if (!contains) {
-			addRegDef(id, reg, &wrapper->outputs, false);
+			addRegDef(id, parent_reg, &wrapper->outputs, false);
 		}
 		for (HId bbId : wrapper->ssaBB->inBlocks) {
 			//expressions need to reloaded after each call to getSSAId as they may insert an expression
 			function->ssaRep.expressions[id].subExpressions.push_back(SSAArgument::createBlock(bbId));
-			function->ssaRep.expressions[id].subExpressions.push_back(getSSAId(getWrapper(bbId), reg));
+			function->ssaRep.expressions[id].subExpressions.push_back(getSSAId(getWrapper(bbId), parent_reg));
 		}
-		return SSAArgument::createReg(reg, id);
+		return SSAArgument::createReg(parent_reg, id);
 	}
 
-	void SSAPhiNodeGenerator::doTransformation (Binary* binary, Function* function) {
+	bool SSAPhiNodeGenerator::doTransformation (Binary* binary, Function* function) {
 
 		printf ("Generating Phi-Nodes for Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 		this->binary = binary;
@@ -166,7 +170,6 @@ namespace holodec {
 		}
 
 		for (BasicBlockWrapper& bbwrapper : bbwrappers) {//iterate Blocks
-
 			HList<SSARegDef> defs;
 			for (size_t j = 0; j < bbwrapper.ssaBB->exprIds.size(); j++) {//iterate Expressions
 				HId id = bbwrapper.ssaBB->exprIds[j];
@@ -195,6 +198,7 @@ namespace holodec {
 			}
 		}
 		function->ssaRep.compress();
+		return true;
 	}
 
 	bool SSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, Register* reg,  std::vector<std::pair<HId, HId>>& gatheredIds, std::vector<HId>& visitedBlocks) {
@@ -256,30 +260,4 @@ namespace holodec {
 			return handled;
 		}
 	}
-	/*
-	void SSAPhiNodeGenerator::handleBBs (BasicBlockWrapper* wrapper, Memory* mem,  HId* gatheredIds, uint64_t* gatheredIdCount, HId* visitedBlocks, uint64_t* visitedBlockCount) {
-		//printf("\nHandling Block %d\n", wrapper->ssaBB->id);
-
-		//printf("Found no match on BB %d\n", wrapper->ssaBB->id);
-
-		SSAMemDef* foundDef = nullptr;
-		for (SSAMemDef& memDef : wrapper->outputMems) {
-			if (memDef.memId == mem->id) {
-				gatheredIds[ (*gatheredIdCount)++] = memDef.ssaId;
-				return;
-			}
-		}
-		for (int i = 0; i < *visitedBlockCount; i++) {
-			if (visitedBlocks[i] == wrapper->ssaBB->id) {
-				//printf("Already Visited BB %d\n", wrapper->ssaBB->id);
-				return;
-			}
-		}
-		visitedBlocks[ (*visitedBlockCount)++] = wrapper->ssaBB->id;
-
-		for (HId inBlockId : wrapper->ssaBB->inBlocks) {
-			handleBBs (getWrapper (inBlockId), mem, gatheredIds, gatheredIdCount, visitedBlocks, visitedBlockCount);
-		}
-	}*/
-
 }

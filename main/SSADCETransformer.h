@@ -10,7 +10,7 @@ namespace holodec {
 		SSARepresentation* ssaRep;
 		HList<HId> usecount;
 		
-		virtual void doTransformation (Binary* binary, Function* function);
+		virtual bool doTransformation (Binary* binary, Function* function);
 		
 	};
 

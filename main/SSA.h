@@ -273,6 +273,8 @@ namespace holodec {
 		return ! (lhs == rhs);
 	}
 	
+	struct SSARepresentation;
+
 	struct SSAExpression {
 		HId id = 0;
 		HId uniqueId = 0;
@@ -293,6 +295,12 @@ namespace holodec {
 		HList<HId> refs;
 		HList<HId> directRefs;
 		HList<SSAArgument> subExpressions;
+
+		void addArgument(SSARepresentation* rep, SSAArgument arg);
+		void setArgument(SSARepresentation* rep, int index, SSAArgument arg);
+		HList<SSAArgument>::iterator removeArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it);
+		void replaceArgument(SSARepresentation* rep, int index, SSAArgument arg);
+		void setAllArguments(SSARepresentation* rep, HList<SSAArgument> args);
 
 		bool operator!() {
 			return type == SSAExprType::eInvalid;

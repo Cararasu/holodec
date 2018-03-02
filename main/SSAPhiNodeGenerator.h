@@ -31,7 +31,7 @@ namespace holodec {
 		
 		HList<BasicBlockWrapper> bbwrappers;
 		
-		virtual void doTransformation (Binary* binary, Function* function);
+		virtual bool doTransformation (Binary* binary, Function* function);
 		
 		SSARegDef findRegDef();
 

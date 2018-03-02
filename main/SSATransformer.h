@@ -14,18 +14,7 @@ namespace holodec {
 	struct SSATransformer {
 		Architecture* arch;
 
-		virtual void doTransformation (Binary* binary, Function* function) = 0;
-	};
-
-	struct SSATransformParser : public SSATransformer {
-		Binary* binary;
-		Function* function;
-
-		virtual void parseBlock (SSABB* block){};
-		
-		virtual HList<HId>::iterator parseExpression (SSABB* basicBlock, HList<HId>::iterator it) = 0;
-
-		virtual void doTransformation (Binary* binary, Function* function);
+		virtual bool doTransformation (Binary* binary, Function* function) = 0;
 	};
 
 }

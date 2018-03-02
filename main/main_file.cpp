@@ -432,12 +432,13 @@ int main (int argc, const char** argv) {
 	binary->print();
 
 	std::vector<SSATransformer*> transformers = {
-		new SSAAddressToBlockTransformer(),
-		new SSAPhiNodeGenerator(),
-		new SSAAssignmentSimplifier(),
-		new SSADCETransformer(),
-		new SSAApplyRegRef(),
-		new SSATransformToC(),
+		new SSAAddressToBlockTransformer(),//0
+		new SSAPhiNodeGenerator(),//1
+		new SSAAssignmentSimplifier(),//2
+		new SSAPeepholeOptimizer(),//3
+		new SSADCETransformer(),//4
+		new SSAApplyRegRef(),//5
+		new SSATransformToC(),//6
 	};
 
 	for (SSATransformer* transform : transformers) {
@@ -449,52 +450,13 @@ int main (int argc, const char** argv) {
 	g_peephole_logger.level = LogLevel::eDebug;
 	for (Function* func : binary->functions) {
 		printf("Function: %s\n", binary->getSymbol(func->symbolref)->name.cstr());
-		/*transformers[0]->doTransformation(binary, func);
-		transformers[1]->doTransformation(binary, func);
-		assert(func->ssaRep.checkIntegrity());
-		func->ssaRep.recalcRefCounts();
-		func->print(binary->arch);
-
-		holodec::g_logger.log<LogLevel::eInfo> ("Symbol %s", binary->getSymbol (func->symbolref)->name.cstr());
-		//func->print (&holox86::x86architecture);
-		assert(func->ssaRep.checkIntegrity());
-		bool applied = false;
-		do {
-			transformers[2]->doTransformation(binary, func);
-			func->ssaRep.recalcRefCounts();
-			assert(func->ssaRep.checkIntegrity());
-			bool applied = false;
-			do {
-				applied = false;
-				assert(func->ssaRep.checkIntegrity());
-				for (size_t i = 0; i < func->ssaRep.expressions.size();) {
-					SSAExpression& expr = func->ssaRep.expressions[i + 1];
-
-					if (optimizer->ruleSet.match(&holox86::x86architecture, &func->ssaRep, &expr)) {
-						assert(func->ssaRep.checkIntegrity());
-						applied = true;
-					}
-					else {
-						i++;
-					}
-				}
-				transformers[3]->doTransformation(binary, func);
-				func->ssaRep.recalcRefCounts();
-				assert(func->ssaRep.checkIntegrity());
-			} while (applied);
-
-			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-		} while (applied);
-		func->ssaRep.recalcRefCounts();
-		transformers[4]->doTransformation(binary, func);
-		func->print(binary->arch);
-		printf("");*/
 	}
 	g_peephole_logger.level = LogLevel::eDebug;
 	
 	HList<uint64_t> funcs = {
-		0x2516,
+		0x0,
 		0x2525,
+		0x2516,
 	};
 	for (uint64_t addr : funcs) {
 		Function* func = binary->getFunctionByAddr(addr);
@@ -503,31 +465,36 @@ int main (int argc, const char** argv) {
 			transformers[1]->doTransformation(binary, func);
 			assert(func->ssaRep.checkIntegrity());
 			func->ssaRep.recalcRefCounts();
-			func->print(binary->arch);
-
-			transformers[2]->doTransformation(binary, func);
-			bool applied = false;
-			do {
-				applied = false;
-				func->ssaRep.recalcRefCounts();
-				for (size_t i = 0; i < func->ssaRep.expressions.size();) {
-					SSAExpression& expr = func->ssaRep.expressions[i + 1];
-
-					if (!optimizer->ruleSet.match(&holox86::x86architecture, &func->ssaRep, &expr)) {
-						i++;
-					}
-					else {
-						applied = true;
-					}
-				}
-				transformers[3]->doTransformation(binary, func);
-				transformers[4]->doTransformation(binary, func);
-				//func->print(binary->arch);
-				printf("%d\n", applied);
-			} while (applied);
+		}
+	}
+	bool funcChanged = false;
+	do {
+		printf("---------------------\n");
+		printf("Run Transformations\n");
+		printf("---------------------\n");
+		funcChanged = false;
+		for (uint64_t addr : funcs) {
+			Function* func = binary->getFunctionByAddr(addr);
+			if (func) {
+				bool applied = false;
+				do {
+					applied = false;
+					applied |= transformers[2]->doTransformation(binary, func);
+					func->ssaRep.recalcRefCounts();
+					applied |= transformers[3]->doTransformation(binary, func);
+					applied |= transformers[4]->doTransformation(binary, func);
+					applied |= transformers[5]->doTransformation(binary, func);
+					funcChanged |= applied;
+					//func->print(binary->arch);
+				} while (applied);
+			}
+		}
+	} while (funcChanged);
+	for (uint64_t addr : funcs) {
+		Function* func = binary->getFunctionByAddr(addr);
+		if (func) {
 			func->ssaRep.recalcRefCounts();
-			transformers[5]->doTransformation(binary, func);
-
+			transformers[6]->doTransformation(binary, func);
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
 			func->print(binary->arch);
 		}

@@ -4,15 +4,18 @@
 #include "General.h"
 #include "SSA.h"
 #include "SSATransformer.h"
+#include "PeepholeOptimizer.h"
+
 namespace holodec {
 
 	
 	struct SSAPeepholeOptimizer : public SSATransformer {
 		
-		
+		PeepholeOptimizer* phOpt;
+
 		SSAPeepholeOptimizer();
-		
-		virtual void doTransformation (Function* function);
+
+		virtual bool doTransformation(Binary* binary, Function* function);
 	};
 
 }

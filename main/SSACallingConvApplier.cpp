@@ -5,7 +5,7 @@
 
 namespace holodec {
 
-	void SSACallingConvApplier::doTransformation (Function* function) {
+	bool SSACallingConvApplier::doTransformation (Function* function) {
 
 		printf ("Apply Calling Convention in Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 		/*
@@ -189,5 +189,6 @@ namespace holodec {
 			}
 		}*/
 		function->ssaRep.compress();
+		return false;
 	}
 }

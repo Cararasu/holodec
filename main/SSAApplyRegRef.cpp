@@ -4,7 +4,8 @@
 
 namespace holodec {
 
-	void SSAApplyRegRef::doTransformation(Binary* binary, Function* function) {
+	bool SSAApplyRegRef::doTransformation(Binary* binary, Function* function) {
+		bool applied = false;
 		function->regStates.states.clear();
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type == SSAExprType::eReturn) {
@@ -29,22 +30,18 @@ namespace holodec {
 				Function* callFunc = binary->getFunctionByAddr(expr.subExpressions[0].uval);
 				if (!(callFunc && callFunc->regStates.parsed))
 					continue;
-				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();) {
-					if (it->location != SSALocation::eReg) {
-						++it;
+				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end(); ++it) {
+					if (it->location != SSALocation::eReg)
 						continue;
-					}
 					Register* reg = arch->getRegister(it->locref.refId);
-					if (!reg) {
-						++it;
+					if (!reg)
 						continue;
-					}
 					RegisterState* state = callFunc->regStates.getRegisterState(reg->parentRef.refId);
 					if (!state || !state->flags.contains(RegisterUsedFlag::eRead)) {
-						it = expr.subExpressions.erase(it);
+						it = expr.subExpressions.erase(it) - 1;
+						applied = true;
 						continue;
 					}
-					++it;
 				}
 			}
 			else if (expr.type == SSAExprType::eOutput) {
@@ -63,17 +60,19 @@ namespace holodec {
 				if (!state || !state->flags.contains(RegisterUsedFlag::eWrite)) {
 					expr.type = SSAExprType::eAssign;
 					expr.subExpressions.erase(expr.subExpressions.begin());
-					break;
+					applied = true;
 				}
-				else {
-					if (!state || !state->flags.contains(RegisterUsedFlag::eRead)) {
-						if (expr.subExpressions.size() > 1)
-							expr.subExpressions.erase(expr.subExpressions.begin() + 1);
+				else if (!state || !state->flags.contains(RegisterUsedFlag::eRead)) {
+					if (expr.subExpressions.size() > 1) {
+						expr.subExpressions.erase(expr.subExpressions.begin() + 1);
+						applied = true;
+
 					}
 				}
 			}
 		}
 		function->regStates.parsed = true;
+		return applied;
 	}
 
 

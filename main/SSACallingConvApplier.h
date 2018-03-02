@@ -8,7 +8,7 @@ namespace holodec {
 
 	struct SSACallingConvApplier : public SSATransformer{
 
-		virtual void doTransformation (Function* function);
+		virtual bool doTransformation (Function* function);
 	};
 	
 }
