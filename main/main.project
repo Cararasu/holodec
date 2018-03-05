@@ -41,8 +41,6 @@
       <File Name="HoloIO.cpp"/>
       <File Name="HoloIO.h"/>
       <File Name="CHolodec.cpp"/>
-      <File Name="JobController.cpp"/>
-      <File Name="JobController.h"/>
       <File Name="HString.h"/>
       <File Name="SSA.h"/>
       <File Name="SSA.cpp"/>
@@ -96,6 +94,8 @@
       <File Name="PeepholeOptimizer.cpp"/>
       <File Name="SSADCETransformer.cpp"/>
       <File Name="SSADCETransformer.h"/>
+      <File Name="SSAApplyRegRef.cpp"/>
+      <File Name="SSAApplyRegRef.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="binary">
       <VirtualDirectory Name="elf">
@@ -103,6 +103,8 @@
         <File Name="binary/elf/ElfBinaryAnalyzer.h"/>
         <File Name="binary/elf/ElfBinaryAnalyzer.cpp"/>
       </VirtualDirectory>
+      <File Name="binary/ihex/IHexBinaryAnalyzer.cpp"/>
+      <File Name="binary/ihex/IHexBinaryAnalyzer.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="arch">
       <VirtualDirectory Name="x86">
@@ -110,6 +112,9 @@
         <File Name="arch/x86/X86FunctionAnalyzer.cpp"/>
         <File Name="arch/x86/X86Architecture.cpp"/>
       </VirtualDirectory>
+      <File Name="arch/AvrArchitecture.cpp"/>
+      <File Name="arch/AvrFunctionAnalyzer.cpp"/>
+      <File Name="arch/AvrFunctionAnalyzer.h"/>
     </VirtualDirectory>
     <File Name="main_file.cpp"/>
   </VirtualDirectory>
@@ -118,7 +123,7 @@
   <Dependencies Name="Release"/>
   <Settings Type="Executable">
     <GlobalSettings>
-      <Compiler Options="" C_Options="" Assembler="">
+      <Compiler Options="-std=c++17" C_Options="-std=c99" Assembler="">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="">
@@ -169,7 +174,7 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Debug VC17" CompilerType="Visual C++ 17" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Debug VC17" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-Wall" C_Options="-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../capstone/include"/>
@@ -179,10 +184,9 @@
         <LibraryPath Value="../capstone/build"/>
         <LibraryPath Value="../cpython/PCbuild/amd64"/>
         <Library Value="capstone"/>
-        <Library Value="python37"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./DebugWin" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./DebugWin" Command="./$(ProjectName)" CommandArguments="../../workingdir/media_unit_fw.hex" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[PATH=$(PATH);../../cpython/PCbuild/amd64

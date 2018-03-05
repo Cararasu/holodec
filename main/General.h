@@ -11,6 +11,11 @@
 #include "CHolodecHeader.h"
 
 
+#ifndef _MSC_VER // maybe check the specific version, too...
+    #define sscanf_s sscanf
+#endif
+
+
 namespace holodec {
 
 	typedef uint32_t HId;

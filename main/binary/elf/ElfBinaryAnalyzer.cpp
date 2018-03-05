@@ -22,16 +22,16 @@ T* getPtrInFile(File* file, uint64_t addr) {
 }
 //TODO byte order!!!
 template<typename T>
-const T& getValue(File* file, uint64_t addr, Endianess endianess) {
+const T getValue(File* file, uint64_t addr, Endianess endianess) {
 	uint8_t buffer[sizeof(T)];
 	switch (endianess) {
 	case Endianess::eBig: {
-		for (int i = 0; i < sizeof(T); i++) {
+		for (size_t i = 0; i < sizeof(T); i++) {
 			buffer[i] = file->data[addr + i];
 		}
 	}break;
 	case Endianess::eLittle: {
-		for (int i = 1; i <= sizeof(T); i++) {
+		for (size_t i = 1; i <= sizeof(T); i++) {
 			buffer[i] = file->data[addr + sizeof(T) - i];
 		}
 	}break;
@@ -446,18 +446,18 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable() {
 		entrysize = 0x28;
 	else if (binary->bitbase == 64)
 		entrysize = 0x40;
-
-#if defined(__GNUC__) || defined(__MINGW32__)
-	Section* sections[sectionHeaderTable.entries];
-#else
+		
+#ifdef _MSC_VER
 	Section** sections = new Section*[sectionHeaderTable.entries];
+#else
+	Section* sections[sectionHeaderTable.entries];
 #endif
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++)
 		sections[i] = new Section();
-#if defined(__GNUC__) || defined(__MINGW32__)
-	uint32_t nameoffset[sectionHeaderTable.entries];
-#else
+#ifdef _MSC_VER
 	uint32_t* nameoffset = new uint32_t[sectionHeaderTable.entries];
+#else
+	uint32_t nameoffset[sectionHeaderTable.entries];
 #endif
 
 	for (unsigned int i = 0; i < sectionHeaderTable.entries; i++) {
@@ -509,7 +509,7 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable() {
 			continue;
 		binary->addSection(section);
 	}
-#if !defined(__GNUC__) || !defined(__MINGW32__)
+#ifdef _MSC_VER
 	delete[]sections;
 	delete[]nameoffset;
 #endif

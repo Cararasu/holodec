@@ -1,19 +1,19 @@
 
 #include "AvrFunctionAnalyzer.h"
-#include "../../InstrDefinition.h"
+#include "../InstrDefinition.h"
 
 using namespace holodec;
 
 namespace holoavr {
 
-	Architecture holoavr::avrarchitecture{
+	Architecture avrarchitecture{
 		"avr", "", 8, 3, 8,
 	{
 		[](Binary * binary) {
 		static FunctionAnalyzer* analyzer = nullptr;
 		if (analyzer == nullptr) {
 			printf("Create New Object\n");
-			analyzer = new holoavr::AVRFunctionAnalyzer(&holoavr::avrarchitecture);
+			analyzer = new AVRFunctionAnalyzer(&avrarchitecture);
 		}
 		if (analyzer->canAnalyze(binary)) {
 			FunctionAnalyzer* temp = analyzer;

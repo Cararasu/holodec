@@ -36,7 +36,7 @@ namespace holodec{
 					if(arg.type != SSAArgType::eUndef){
 						undef = false;
 					}
-					if(arg != cmpArg){
+					if(!weak_equals(arg, cmpArg)){
 						alwaysTheSame = false;
 					}
 				}

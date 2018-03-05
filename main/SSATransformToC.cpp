@@ -86,6 +86,11 @@ namespace holodec{
 		case SSAArgType::eOther:
 			break;
 		}
+		if(arg.valueoffset > 0){
+			printf(" + %d ", arg.valueoffset);
+		}else if(arg.valueoffset < 0){
+			printf(" - %d ", arg.valueoffset * -1);
+		}
 	}
 	void SSATransformToC::resolveExpression(SSAExpression& expr) {
 		switch (expr.type) {

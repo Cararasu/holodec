@@ -28,11 +28,11 @@ namespace holodec {
 		std::mutex end_mutex;
 		std::condition_variable end_cond;
 		
-		std::atomic_int executors_running = 0;
-		std::atomic_int jobs_to_do = 0;
+		std::atomic_int executors_running = {0};
+		std::atomic_int jobs_to_do = {0};
 		
-		std::atomic_bool end_on_empty = false;
-		std::atomic_bool running = true;
+		std::atomic_bool end_on_empty  = {false};
+		std::atomic_bool running = {true};
 
 	public:
 		JobController() = default;

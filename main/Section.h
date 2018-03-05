@@ -68,11 +68,6 @@ namespace holodec {
 			return vaddr <= addr && addr < vaddr + size;
 		}
 		
-		template<typename T>
-		inline T getValue (DataSegment* data, size_t offset = 0) {
-			return reinterpret_cast<T>(data->get(this->offset + offset));
-		}
-		
 		void print (int indent = 0) {
 			printIndent (indent);
 			printf ("Section %s \t0x%" PRIx64 "-0x%" PRIx64 "\n", name.cstr(), vaddr, vaddr + size);

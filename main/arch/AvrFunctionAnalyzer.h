@@ -2,10 +2,10 @@
 
 
 
-#include "../../FunctionAnalyzer.h"
-#include "../../General.h"
+#include "../FunctionAnalyzer.h"
+#include "../General.h"
 
-#include "../../Architecture.h"
+#include "../Architecture.h"
 
 namespace holoavr {
 

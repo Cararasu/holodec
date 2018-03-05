@@ -271,6 +271,26 @@ namespace holodec {
 		}
 		return false;
 	}
+	inline bool weak_equals (SSAArgument& lhs, SSAArgument& rhs) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset && lhs.valueoffset == rhs.valueoffset) {
+			switch (lhs.type) {
+			case SSAArgType::eSInt:
+				return lhs.sval == rhs.sval;
+			case SSAArgType::eUInt:
+				return lhs.uval == rhs.uval;
+			case SSAArgType::eFloat:
+				return lhs.fval == rhs.fval;
+			case SSAArgType::eId:
+				return lhs.ssaId == rhs.ssaId;
+			case SSAArgType::eOther:
+				return true;
+			default:
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
 	inline bool operator!= (SSAArgument& lhs, SSAArgument& rhs) {
 		return ! (lhs == rhs);
 	}

@@ -92,7 +92,6 @@ namespace holodec {
 					if (expr.subExpressions.size() > 1) {
 						expr.subExpressions.erase(expr.subExpressions.begin() + 1);
 						applied = true;
-
 					}
 				}
 			}
