@@ -45,6 +45,12 @@ void holodec::FuncRegState::print(holodec::Architecture* arch, int indent) {
 		if (regState.flags.contains(RegisterUsedFlag::eWrite)) {
 			printf("Write, ");
 		}
+		else {
+			if (regState.arithChange > 0)
+				printf("Arith + %d, ", regState.arithChange);
+			else if (regState.arithChange < 0)
+				printf("Arith - %d, ", regState.arithChange*-1);
+		}
 		if (regState.flags.contains(RegisterUsedFlag::eRead)) {
 			printf("Read, ");
 		}

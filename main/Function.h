@@ -69,7 +69,6 @@ namespace holodec {
 		eNone	= 0x0,
 		eWrite	= 0x1,
 		eRead	= 0x2,
-		eArithmeticChange = 0x4,
 	};
 	struct RegisterState{
 		HId regId;

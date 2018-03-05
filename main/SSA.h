@@ -122,6 +122,7 @@ namespace holodec {
 		//HId id = 0;
 		SSAArgType type = SSAArgType::eUndef;
 		uint32_t offset = 0, size = -1;
+		int64_t valueoffset = 0;
 		union {
 			HId ssaId;
 			ArgSInt sval;
@@ -158,6 +159,7 @@ namespace holodec {
 			}
 			arg.size = size;
 			arg.offset += offset;
+			arg.valueoffset += valueoffset;
 			*this = arg;
 		}
 		void set(SSAArgument arg) {
@@ -250,7 +252,7 @@ namespace holodec {
 
 
 	inline bool operator== (SSAArgument& lhs, SSAArgument& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.location == rhs.location && lhs.locref == rhs.locref) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset && lhs.valueoffset == rhs.valueoffset && lhs.location == rhs.location && lhs.locref == rhs.locref) {
 			switch (lhs.type) {
 			case SSAArgType::eSInt:
 				return lhs.sval == rhs.sval;
@@ -399,6 +401,13 @@ namespace holodec {
 		void removeExpr(HId ssaId, HId blockId);
 		void removeExpr(HId ssaId, SSABB* bb = nullptr);
 
+		bool usedOnlyInFlags(SSAExpression& expr) {
+			for (HId id : expr.directRefs) {//iterate refs
+				if (expressions[id].type != SSAExprType::eFlag)
+					return false;
+			}
+			return true;
+		}
 
 		void print (Architecture* arch, int indent = 0);
 	};

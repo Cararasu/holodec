@@ -61,7 +61,6 @@ namespace holodec {
 	SSAArgument SSAPhiNodeGenerator::getSSAId(BasicBlockWrapper* wrapper, Register* reg) {
 
 		while (true) {
-
 			for (SSARegDef& def : wrapper->outputs) {
 				if (def.regId == reg->id) {
 					return SSAArgument::createId(def.ssaId, reg->size);
@@ -171,6 +170,7 @@ namespace holodec {
 
 		for (BasicBlockWrapper& bbwrapper : bbwrappers) {//iterate Blocks
 			HList<SSARegDef> defs;
+			assert(bbwrapper.ssaBB->id == 1 || bbwrapper.ssaBB->inBlocks.size() != 0);
 			for (size_t j = 0; j < bbwrapper.ssaBB->exprIds.size(); j++) {//iterate Expressions
 				HId id = bbwrapper.ssaBB->exprIds[j];
 				SSAExpression* expr = function->ssaRep.expressions.get(id);

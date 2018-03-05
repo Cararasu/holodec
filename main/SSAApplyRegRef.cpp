@@ -10,6 +10,15 @@ namespace holodec {
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type == SSAExprType::eReturn) {
 				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId) {
+						SSAExpression& reffedExpr = function->ssaRep.expressions[arg.ssaId];
+						if (reffedExpr.type == SSAExprType::eInput && arg.location == SSALocation::eReg) {
+							Register* reg = arch->getRegister(arg.locref.refId);
+							RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
+							state->arithChange = arg.valueoffset;
+							continue;
+						}
+					}
 					if (arg.location == SSALocation::eReg) {
 						Register* reg = arch->getRegister(arg.locref.refId);
 						RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
@@ -58,9 +67,26 @@ namespace holodec {
 					continue;
 				RegisterState* state = callFunc->regStates.getRegisterState(reg->parentRef.refId);
 				if (!state || !state->flags.contains(RegisterUsedFlag::eWrite)) {
-					expr.type = SSAExprType::eAssign;
-					expr.subExpressions.erase(expr.subExpressions.begin());
-					applied = true;
+					if (state && state->arithChange) {
+						expr.type = SSAExprType::eOp;
+						expr.subExpressions.erase(expr.subExpressions.begin());
+						if (state->arithChange > 0) {
+							expr.opType = SSAOpType::eAdd;
+							expr.addArgument(&function->ssaRep, SSAArgument::createUVal(state->arithChange, arch->bitbase));
+						}
+						else {
+							expr.opType = SSAOpType::eSub;
+							expr.addArgument(&function->ssaRep, SSAArgument::createUVal(state->arithChange * -1, arch->bitbase));
+						}
+						applied = true;
+					}
+					else {
+						expr.type = SSAExprType::eAssign;
+						if (expr.uniqueId == 0x2e)
+							printf("");
+						expr.subExpressions.erase(expr.subExpressions.begin());
+						applied = true;
+					}
 				}
 				else if (!state || !state->flags.contains(RegisterUsedFlag::eRead)) {
 					if (expr.subExpressions.size() > 1) {

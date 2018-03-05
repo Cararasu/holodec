@@ -455,9 +455,11 @@ int main (int argc, const char** argv) {
 	
 	HList<uint64_t> funcs = {
 		0x0,
+		0x1f7f,
 		0x2525,
 		0x2516,
 	};
+	//for (Function* func : binary->functions) {
 	for (uint64_t addr : funcs) {
 		Function* func = binary->getFunctionByAddr(addr);
 		if (func) {
@@ -473,6 +475,8 @@ int main (int argc, const char** argv) {
 		printf("Run Transformations\n");
 		printf("---------------------\n");
 		funcChanged = false;
+
+		//for (Function* func : binary->functions) {
 		for (uint64_t addr : funcs) {
 			Function* func = binary->getFunctionByAddr(addr);
 			if (func) {
@@ -481,6 +485,7 @@ int main (int argc, const char** argv) {
 					applied = false;
 					applied |= transformers[2]->doTransformation(binary, func);
 					func->ssaRep.recalcRefCounts();
+					assert(func->ssaRep.checkIntegrity());
 					applied |= transformers[3]->doTransformation(binary, func);
 					applied |= transformers[4]->doTransformation(binary, func);
 					applied |= transformers[5]->doTransformation(binary, func);
@@ -490,11 +495,12 @@ int main (int argc, const char** argv) {
 			}
 		}
 	} while (funcChanged);
+	//for (Function* func : binary->functions) {
 	for (uint64_t addr : funcs) {
 		Function* func = binary->getFunctionByAddr(addr);
 		if (func) {
 			func->ssaRep.recalcRefCounts();
-			transformers[6]->doTransformation(binary, func);
+			//transformers[6]->doTransformation(binary, func);
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
 			func->print(binary->arch);
 		}

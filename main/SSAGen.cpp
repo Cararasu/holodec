@@ -927,7 +927,7 @@ namespace holodec {
 				case StackType::eMemory: {
 					assert (subexpressioncount == 2);
 					assert (stack->backingMem);
-					SSAArgument sizeadjust = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[1]));
+					SSAArgument value = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[1]));
 					Register* reg = arch->getRegister (stack->trackingReg);
 					Memory* mem = arch->getMemory (stack->backingMem);
 					assert (reg->id);
@@ -941,7 +941,8 @@ namespace holodec {
 					expression.locref = {mem->id, 0};
 					expression.subExpressions = {
 						SSAArgument::createMem(mem->id),
-						SSAArgument::createReg (reg)
+						SSAArgument::createReg (reg),
+						value
 					};
 
 					SSAExpression adjustExpr;
@@ -950,7 +951,7 @@ namespace holodec {
 					adjustExpr.opType = stack->policy == StackPolicy::eTop ?  SSAOpType::eAdd : SSAOpType::eSub;
 					adjustExpr.subExpressions = {
 						SSAArgument::createReg (reg),
-						sizeadjust
+						SSAArgument::createUVal((value.size + stack->wordbitsize - 1) / stack->wordbitsize, arch->bitbase)
 					};
 					adjustExpr.size = reg->size;
 					adjustExpr.location = SSALocation::eReg;

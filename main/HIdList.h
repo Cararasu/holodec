@@ -267,6 +267,7 @@ namespace holodec {
 				++fit;
 			
 			list.erase(fit, list.end());
+			list.shrink_to_fit();
 		}
 		auto begin() -> decltype(list.begin()){
 			return list.begin();

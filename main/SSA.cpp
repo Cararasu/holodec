@@ -337,6 +337,13 @@ namespace holodec {
 		default:
 			printf ("Unknown Argtype %x ", type);
 		}
+		if (valueoffset) {
+			if (valueoffset >= 0)
+				printf(" + %d ", valueoffset);
+			else
+				printf(" - %d ", valueoffset * -1);
+		}
+
 		switch (location) {
 		case SSALocation::eReg:
 			if (locref.refId)
@@ -506,6 +513,10 @@ namespace holodec {
 			replacements[oldId] = newId;
 		});
 
+		for (SSABB& bb : bbs) {
+			bb.exprIds.shrink_to_fit();
+		}
+
 		if (!replacements.empty()) {
 			for (SSAExpression& expr : expressions) {
 				for (SSAArgument& arg : expr.subExpressions) {
@@ -530,10 +541,14 @@ namespace holodec {
 
 	bool SSARepresentation::checkIntegrity() {
 		for (SSAExpression& expr : expressions) {
-			if (expr.id)
-				for (SSAArgument& arg : expr.subExpressions)
-					if (!(arg.type != SSAArgType::eId || (arg.ssaId && arg.ssaId <= expressions.size() && expressions[arg.ssaId].id)))
+			if (expr.id) {
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId && !(arg.ssaId > 0 && arg.ssaId <= expressions.size()))
 						return false;
+					if (arg.type == SSAArgType::eId && !expressions[arg.ssaId].id)
+						return false;
+				}
+			}
 			for (HId& id : expr.refs)
 				if (!(id && id <= expressions.size() && expressions[id].id))
 					return false;
@@ -666,14 +681,16 @@ namespace holodec {
 		if (bb) {
 			for (auto it = bb->exprIds.begin(); it != bb->exprIds.end(); ++it) {
 				if (*it == ssaId) {
-					return *addBefore (expr, bb->exprIds, it);
+					it = addBefore (expr, bb->exprIds, it);
+					return *it;
 				}
 			}
 		}
 		for (SSABB& basicblock : bbs) {
 			for (auto it = basicblock.exprIds.begin(); it != basicblock.exprIds.end(); ++it) {
 				if (*it == ssaId) {
-					return *addBefore (expr, basicblock.exprIds, it);
+					it = addBefore(expr, basicblock.exprIds, it);
+					return *it;
 				}
 			}
 		}
@@ -694,7 +711,7 @@ namespace holodec {
 		if (bb) {
 			for (auto it = bb->exprIds.begin(); it != bb->exprIds.end(); ++it) {
 				if (*it == ssaId) {
-					return *addAfter (expr, bb->exprIds, it);
+					return *addAfter(expr, bb->exprIds, it);
 				}
 			}
 		}
