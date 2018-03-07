@@ -9,6 +9,10 @@ namespace holodec {
 		HId ssaId;
 		StringRef regRef;
 	};
+	struct UnifiedExprs {
+		HId id;
+		std::set<HId> occuringIds;
+	};
 
 	struct SSATransformToC : public SSATransformer {
 
@@ -16,8 +20,11 @@ namespace holodec {
 		Function* function;
 		HSet<HId> resolveIds;
 		HIdList<CArgument> arguments;
+		HIdList<UnifiedExprs> unifiedExprs;
 
 		virtual bool doTransformation (Binary* binary, Function* function);
+
+		UnifiedExprs* getUnifiedExpr(HId uId);
 
 		void printBasicBlock(SSABB& bb);
 		void printExpression(SSAExpression& expression);

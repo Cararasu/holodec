@@ -47,7 +47,7 @@ namespace holodec {
 
 		eJmp		= SSA_EXPR_JMP,
 		eCJmp		= SSA_EXPR_CJMP,
-		eMultiBranch	= SSA_EXPR_MULTIBR,
+		eMultiBranch= SSA_EXPR_MULTIBR,
 
 		eMemAccess	= SSA_EXPR_MEMACCESS,
 		ePush		= SSA_EXPR_PUSH,
@@ -237,8 +237,8 @@ namespace holodec {
 		static inline SSAArgument createMem (HId memId) {
 			return  createOther(SSAArgType::eOther, 0, SSALocation::eMem, {memId, 0});
 		}
-		static inline SSAArgument createStck (Stack* stack, HId index) {
-			return  createOther(SSAArgType::eOther, 0, SSALocation::eStack, {stack->id, index});
+		static inline SSAArgument createStck(Stack* stack, HId index = 0) {
+			return  createOther(SSAArgType::eOther, 0, SSALocation::eStack, { stack->id, index });
 		}
 		static inline SSAArgument createStck (Reference ref) {
 			return createOther(SSAArgType::eOther, 0, SSALocation::eStack, ref);

@@ -33,11 +33,21 @@ namespace holodec{
 		printf("(");
 		for (size_t i = 0; i < expr.subExpressions.size(); i++) {
 			SSAArgument& arg = expr.subExpressions[i];
+			if (arg.type == SSAArgType::eOther)
+				continue;
 			resolveArg(arg);
 			if(i + 1 != expr.subExpressions.size())
 				printf("%s", delimiter);
 		}
 		printf(")");
+	}
+	UnifiedExprs* SSATransformToC::getUnifiedExpr(HId uId) {
+		for (UnifiedExprs& exprs : unifiedExprs) {
+			if (exprs.occuringIds.find(uId) != exprs.occuringIds.end()) {
+				return &exprs;
+			}
+		}
+		return nullptr;
 	}
 	void SSATransformToC::resolveArg(SSAArgument& arg) {
 
@@ -68,15 +78,16 @@ namespace holodec{
 			}
 			if (nonZeroOffset)
 				printf("(");
-			if (resolveIds.find(arg.ssaId) == resolveIds.end()) {
-				if(subExpr.type != SSAExprType::eInput)
-					printf("(");
-				resolveExpression(subExpr);
-				if (subExpr.type != SSAExprType::eInput)
-					printf(")");
+
+			if (UnifiedExprs* uExprs = getUnifiedExpr(subExpr.uniqueId)) {
+				printf("var%d", uExprs->id);
+			}
+			else if (resolveIds.find(subExpr.id) != resolveIds.end()) {
+				printf("tmp%d", subExpr.id);
+				return;
 			}
 			else {
-				printf("var%d", arg.ssaId);
+				resolveExpression(subExpr);
 			}
 			if (nonZeroOffset)
 				printf(" >> %d)", arg.offset);
@@ -93,6 +104,9 @@ namespace holodec{
 		}
 	}
 	void SSATransformToC::resolveExpression(SSAExpression& expr) {
+
+		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
+			printf("(");
 		switch (expr.type) {
 		case SSAExprType::eInvalid:
 			break;
@@ -233,6 +247,12 @@ namespace holodec{
 			break;
 
 		case SSAExprType::eCall: {
+			for (HId id : expr.directRefs) {
+				SSAExpression& refExpr = function->ssaRep.expressions[id];
+				if (refExpr.type == SSAExprType::eOutput && refExpr.location == SSALocation::eReg) {
+					printf("tmp%d <- %s, ", refExpr.id, arch->getRegister(refExpr.locref.refId)->name.cstr());
+				}
+			}
 			printf("Call ");
 			resolveArgs(expr);
 		}break;
@@ -299,14 +319,27 @@ namespace holodec{
 			resolveArgs(expr);
 		}break;
 		}
+		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
+			printf(")");
 	}
 	void SSATransformToC::printExpression(SSAExpression& expr) {
+		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::ePhi)
+			return;
 		resolveIds.insert(expr.id);
 		printIndent(1);
-		printf("var%d = ", expr.id);
+		if (expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type)) {
+			if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
+				printf("var%d = ", uExprs->id);
+			}
+			else if (resolveIds.find(expr.id) != resolveIds.end()) {
+				printf("tmp%d = ", expr.id);
+			}
+		}
 		resolveExpression(expr);
 		puts("");
 	}
+
+
 
 	bool SSATransformToC::doTransformation (Binary* binary, Function* function){
 		printf("Transform To C\n");
@@ -344,22 +377,60 @@ namespace holodec{
 			printIndent(1);
 			printf("Input (");
 			for (CArgument arg : arguments) {
-				printf("arg%d: %s ", arg.id, arg.regRef.name.cstr());
+				printf("arg%d <- %s ", arg.id, arg.regRef.name.cstr());
 			}
 			puts(")\n");
-			for (HId id = 2; id < function->ssaRep.bbs.size(); ++id) {
-				SSABB& bb = function->ssaRep.bbs[id];
-				for (HId id : bb.exprIds) {
-					SSAExpression& expr = function->ssaRep.expressions[id];
-					if (expr.type == SSAExprType::ePhi) {
-						resolveIds.insert(expr.id);
-						for (SSAArgument& arg : expr.subExpressions) {
-							if (arg.type == SSAArgType::eId) {
-								resolveIds.insert(arg.ssaId);
+
+			unifiedExprs.clear();
+
+			for (SSAExpression& expr : function->ssaRep.expressions) {
+				if (expr.type == SSAExprType::ePhi) {
+					HId foundId = 0;
+					UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
+					if (uExprs) {
+						foundId = uExprs->id;
+					}
+					else {
+						foundId = unifiedExprs.emplace_back();
+					}
+
+					for (SSAArgument& arg : expr.subExpressions) {
+						if (arg.type == SSAArgType::eId) {
+							SSAExpression& argExpr = function->ssaRep.expressions[arg.ssaId];
+							if (argExpr.type == SSAExprType::ePhi) {
+								for (auto it = unifiedExprs.begin(); it != unifiedExprs.end();) {
+									if (it->id != foundId && it->occuringIds.find(expr.uniqueId) != it->occuringIds.end()) {
+										unifiedExprs.get(foundId)->occuringIds.insert(it->occuringIds.begin(), it->occuringIds.end());
+										it = unifiedExprs.erase(it);
+										continue;
+									}
+									++it;
+								}
 							}
+							unifiedExprs.get(foundId)->occuringIds.insert(argExpr.uniqueId);
+						}
+					}
+					unifiedExprs.get(foundId)->occuringIds.insert(expr.uniqueId);
+
+					resolveIds.insert(expr.id);
+					for (SSAArgument& arg : expr.subExpressions) {
+						if (arg.type == SSAArgType::eId) {
+							resolveIds.insert(arg.ssaId);
 						}
 					}
 				}
+
+				if (expr.type == SSAExprType::eOutput) {
+					resolveIds.insert(expr.id);
+				}
+			}
+			printf("UnifiedExprs\n");
+			for (UnifiedExprs& uex : unifiedExprs) {
+				printf("Id: %d\n", uex.id);
+				for (HId uid : uex.occuringIds) {
+					printf("UId: %x,", uid);
+				}
+				printf("\n");
 			}
 
 		}

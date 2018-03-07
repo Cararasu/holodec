@@ -38,11 +38,17 @@ namespace holodec {
 		HIdList (HList<T> list) : list (list) {
 			relabel();
 		}
-		
-		HId push_back (T& ele) {
+
+		HId push_back(T& ele) {
 			ele.id = gen.next();
-			list.push_back (ele);
+			list.push_back(ele);
 			return ele.id;
+		}
+		template< class... Args >
+		HId emplace_back(Args&&... args) {
+			list.emplace_back(args...);
+			list.back().id = gen.next();
+			return list.back().id;
 		}
 		void relabel () {
 			for (T& ele : list) {

@@ -227,7 +227,7 @@ namespace holoavr {
 			{ 1, "==(7,#arg[1])", "=($if,1)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_CALL, "call",{
-			{ 1, "#call(#arg[1])" }
+			{ 1, "#seq(#push($stack,#ip),#call(#arg[1]))" }
 		}, InstructionType::eShr },
 		{ AVR_INSTR_CBI, "cbi",{
 			{ 2, "#seq(#rec[in](#t[1],#arg[1]),#rec[out](#arg[1],#and(#t[1],#bnot(#shl(1,#arg[2])))))" }
@@ -284,10 +284,10 @@ namespace holoavr {
 			{ 0, "#jmp(#app($z,$eind))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_ELPM, "elpm",{
-			{ 1, "=(#arg[1],#ld($pmem,#app($z,$rampz),#bsize(#arg[1])))" }
+			{ 1, "=(#arg[1],#ld($pmem,#app($z,$rampz),#size(#arg[1])))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_ELPM | AVR_INSTR_INC_PTR, "elpm+",{
-			{ 1, "#seq(=(#arg[1],#ld($pmem,#app($z,$rampz),#bsize(#arg[1]))),=(#t[1],+(#app($z,$rampz),1)),=($z,#t[1][0,16]),=($rampz,#t[1][16,8]))" }
+			{ 1, "#seq(=(#arg[1],#ld($pmem,#app($z,$rampz),#size(#arg[1]))),=(#t[1],+(#app($z,$rampz),1)),=($z,#t[1][0,16]),=($rampz,#t[1][16,8]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_EOR, "eor",{
 			{ 2, "#seq(=(#arg[1],#bxor(#arg[1],#arg[2])),=($vf,0),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
@@ -326,39 +326,39 @@ namespace holoavr {
 			{ 1, "#jmp(#arg[1])" }
 		}, InstructionType::eJmp },
 		{ AVR_INSTR_LD, "ld",{
-			{ 2, "=(#arg[1],#ld($dmem,#arg[2],#bsize(#arg[1])))" }
+			{ 2, "=(#arg[1],#ld($dmem,#arg[2],#size(#arg[1])))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LDD, "ldd",{
-			{ 3, "=(#arg[1],#ld($dmem,+(#arg[2],#arg[3]),#bsize(#arg[1])))" }
+			{ 3, "=(#arg[1],#ld($dmem,+(#arg[2],#arg[3]),#size(#arg[1])))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LD | AVR_INSTR_INC_PTR, "ld+",{
-			{ 2, "#seq(=(#arg[1],#ld($dmem,#arg[2],#bsize(#arg[1]))),=(#arg[2],+(#arg[2],1)))" }
+			{ 2, "#seq(=(#arg[1],#ld($dmem,#arg[2],#size(#arg[1]))),=(#arg[2],+(#arg[2],1)))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LD | AVR_INSTR_DEC_PTR, "ld-",{
-			{ 2, "#seq(=(#arg[2],-(#arg[2],1)),=(#arg[1],#ld($dmem,#arg[2],#bsize(#arg[1]))))" }
+			{ 2, "#seq(=(#arg[2],-(#arg[2],1)),=(#arg[1],#ld($dmem,#arg[2],#size(#arg[1]))))" }
 		}, InstructionType::eLoad },
 
 		//TODO maybe use rampz for these??
 		{ AVR_INSTR_LAT, "lat",{
-			{ 1, "#seq(=(#t[1],#ld($dmem,$z,8)),#st($dmem,$z,<>(#arg[1],#t[1])),=(#arg[1],#t[1]))" }
+			{ 1, "#seq(=(#t[1],#ld($dmem,$z,1)),#st($dmem,$z,<>(#arg[1],#t[1])),=(#arg[1],#t[1]))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LAS, "las",{
-			{ 1, "#seq(=(#t[1],#ld($dmem,$z,8)),#st($dmem,$z,#or(#arg[1],#t[1])),=(#arg[1],#t[1]))" }
+			{ 1, "#seq(=(#t[1],#ld($dmem,$z,1)),#st($dmem,$z,#or(#arg[1],#t[1])),=(#arg[1],#t[1]))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LAC, "lac",{
-			{ 1, "#seq(=(#t[1],#ld($dmem,$z,8)),#st($dmem,$z,#and(-(255,#arg[1]),#t[1])),=(#arg[1],#t[1]))" }
+			{ 1, "#seq(=(#t[1],#ld($dmem,$z,1)),#st($dmem,$z,#and(-(255,#arg[1]),#t[1])),=(#arg[1],#t[1]))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LDI, "ldi",{
 			{ 2, "=(#arg[1],#arg[2])" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LDS, "lds",{
-			{ 2, "=(#arg[1],#ld($dmem,#arg[2],8))" }
+			{ 2, "=(#arg[1],#ld($dmem,#arg[2],1))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LPM, "lpm",{
-			{ 1, "=(#arg[1],#ld($pmem,$z,8))" }
+			{ 1, "=(#arg[1],#ld($pmem,$z,1))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LPM | AVR_INSTR_INC_PTR, "lpm+",{
-			{ 1, "#seq(=(#arg[1],#ld($pmem,$z,#bsize(#arg[1]))),=($z,+($z,1)))" }
+			{ 1, "#seq(=(#arg[1],#ld($pmem,$z,#size(#arg[1]))),=($z,+($z,1)))" }
 		}, InstructionType::eLoad },
 
 		{ AVR_INSTR_LSL, "lsl",{
@@ -524,7 +524,7 @@ namespace holoavr {
 			{ 1, "$watchdogreset" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_XCH, "xch",{
-			{ 1, "#seq(=(#t[1],#ld($dmem,$z,8)),#st($dmem,$z,#arg[1]),=(#arg[1],#t[1]))" }
+			{ 1, "#seq(=(#t[1],#ld($dmem,$z,1)),#st($dmem,$z,#arg[1]),=(#arg[1],#t[1]))" }
 		}, InstructionType::eLoad },
 
 		}

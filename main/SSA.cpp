@@ -296,7 +296,7 @@ namespace holodec {
 			printf ("Block: %4.4" PRId32 "     ", locref.refId);
 			break;
 		case SSALocation::eNone:
-			printf("                 ");
+			printf("                ");
 			break;
 		}
 		printf ("Ref: %2.2" PRId64 " UId: %4.4" PRIx64 " | %4.4" PRId32 " = ", refs.size(), uniqueId, id);
@@ -414,7 +414,7 @@ namespace holodec {
 						refId = repIt->second.ssaId;
 					}
 					else {
-						expr.refs.erase(it);
+						it = expr.refs.erase(it);
 						continue;
 					}
 				}

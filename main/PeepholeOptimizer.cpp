@@ -224,6 +224,8 @@ namespace holodec {
 			SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
 			if (firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || carryExpr.subExpressions[0].offset + carryExpr.subExpressions[0].size != firstAdd.size)
 				return false;
+			//TODO check if arguments of secondAdd are before firstAdd
+			//and replace firstAdd not secondAdd
 			g_peephole_logger.log<LogLevel::eDebug>("Replace Add - Carry Add");
 
 			SSAExpression combine1;

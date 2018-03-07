@@ -198,7 +198,7 @@ int main (int argc, const char** argv) {
 	for (Function* func : binary->functions) {
 		printf("Function: %s\n", binary->getSymbol(func->symbolref)->name.cstr());
 	}
-	g_peephole_logger.level = LogLevel::eDebug;
+	g_peephole_logger.level = LogLevel::eInfo;
 	
 	HList<uint64_t> funcs = {
 		0x0,
@@ -239,6 +239,7 @@ int main (int argc, const char** argv) {
 					funcChanged |= applied;
 					//func->print(binary->arch);
 				} while (applied);
+				//transformers[6]->doTransformation(binary, func);
 			}
 		}
 	} while (funcChanged);
@@ -247,9 +248,9 @@ int main (int argc, const char** argv) {
 	//	Function* func = binary->getFunctionByAddr(addr);
 		if (func) {
 			func->ssaRep.recalcRefCounts();
-			transformers[6]->doTransformation(binary, func);
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
 			func->print(binary->arch);
+			transformers[6]->doTransformation(binary, func);
 		}
 	}
 	delete optimizer;

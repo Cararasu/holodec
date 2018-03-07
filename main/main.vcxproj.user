@@ -6,7 +6,7 @@
     <LocalDebuggerEnvironment>PATH=%PATH%;E:\GNUProg\llvm\build-vc17\Release\bin; $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>..\workingdir\media_unit_fw.hex &gt; output.txt</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>..\workingdir\media_unit_fw.hex</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=%PATH%;E:\GNUProg\llvm\build-vc17\Release\bin; $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
