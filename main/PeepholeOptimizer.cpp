@@ -96,6 +96,42 @@ namespace holodec {
 		
 		builder = peephole_optimizer->ruleSet;
 		builder
+		.ssaType(0, 0, SSAExprType::eExtend)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
+			if (expr.directRefs.size() && expr.subExpressions[0].isConst()) {
+				expr.subExpressions[0].size = expr.size;
+				ssaRep->replaceAllArgs(expr, expr.subExpressions[0]);
+				return true;
+			}
+			return false;
+		})
+		.ssaType(0, 0, SSAExprType::eUpdatePart)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
+			if (expr.directRefs.size() && expr.subExpressions[0].type == SSAArgType::eUInt && expr.subExpressions[1].type == SSAArgType::eUInt) {
+
+				uint64_t mask = std::numeric_limits<uint64_t>::max();
+				if (expr.subExpressions[2].uval + expr.subExpressions[1].size > 64)
+					return false;
+				if (expr.subExpressions[2].uval + expr.subExpressions[1].size == 64)
+					mask = 0x0;
+				else
+					mask ^= (1 << (expr.subExpressions[2].uval + expr.subExpressions[1].size)) - 1;
+
+				if (expr.subExpressions[2].uval == 64)
+					return false;
+				else
+					mask ^= (1 << expr.subExpressions[2].uval) - 1;
+
+				SSAArgument replaceArg = expr.subExpressions[0];
+				replaceArg.uval &= mask;
+				replaceArg.uval |= expr.subExpressions[1].uval << expr.subExpressions[2].uval;
+				ssaRep->replaceAllArgs(expr, replaceArg);
+				return true;
+			}
+			return false;
+		})
 		.ssaType(0, 0, SSAExprType::eAppend)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];

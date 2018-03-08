@@ -36,6 +36,8 @@ namespace holodec {
 		
 		eInput		= SSA_EXPR_INPUT,
 		eOutput		= SSA_EXPR_OUTPUT,
+		eMemOutput	= SSA_EXPR_MEMOUTPUT,
+		
 		
 		eCall		= SSA_EXPR_CALL,
 		eReturn		= SSA_EXPR_RETURN,
@@ -50,8 +52,6 @@ namespace holodec {
 		eMultiBranch= SSA_EXPR_MULTIBR,
 
 		eMemAccess	= SSA_EXPR_MEMACCESS,
-		ePush		= SSA_EXPR_PUSH,
-		ePop		= SSA_EXPR_POP,
 		eStore		= SSA_EXPR_STORE,
 		eLoad		= SSA_EXPR_LOAD,
 
@@ -231,11 +231,11 @@ namespace holodec {
 		static inline SSAArgument createReg (Reference ref, uint32_t size, uint32_t offset, HId ssaId = 0) {
 			return create(ssaId, size, offset, SSALocation::eReg, ref);
 		}
-		static inline SSAArgument createMem (Memory* mem) {
-			return  createOther(SSAArgType::eOther, 0, SSALocation::eMem, {mem->id, 0});
+		static inline SSAArgument createMem(Memory* mem, HId ssaId = 0) {
+			return  create(ssaId, 0, 0, SSALocation::eMem, {mem->id, 0});
 		}
-		static inline SSAArgument createMem (HId memId) {
-			return  createOther(SSAArgType::eOther, 0, SSALocation::eMem, {memId, 0});
+		static inline SSAArgument createMem (HId memId, HId ssaId = 0) {
+			return  create(ssaId, 0, 0, SSALocation::eMem, {memId, 0});
 		}
 		static inline SSAArgument createStck(Stack* stack, HId index = 0) {
 			return  createOther(SSAArgType::eOther, 0, SSALocation::eStack, { stack->id, index });

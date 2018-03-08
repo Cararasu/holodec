@@ -302,14 +302,6 @@ namespace holodec{
 			printf("MemAccess ");
 			resolveArgs(expr);
 		}break;
-		case SSAExprType::ePush: {
-			printf("Push ");
-			resolveArgs(expr);
-		}break;
-		case SSAExprType::ePop: {
-			printf("Pop ");
-			resolveArgs(expr);
-		}break;
 		case SSAExprType::eStore: {
 			printf("Store ");
 			resolveArgs(expr);

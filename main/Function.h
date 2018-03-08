@@ -65,36 +65,50 @@ namespace holodec {
 		}
 	};
 	// Unknown -> FunctionRead
-	enum class RegisterUsedFlag{
+	enum class UsageFlags{
 		eNone	= 0x0,
 		eWrite	= 0x1,
 		eRead	= 0x2,
 	};
-	struct RegisterState{
+	struct RegisterState {
 		HId regId;
-		Flags<RegisterUsedFlag> flags;
+		Flags<UsageFlags> flags;
 		int64_t arithChange = 0;
 	};
+	struct MemoryState {
+		HId memId;
+		Flags<UsageFlags> flags;
+	};
 	struct FuncRegState {
-		HList<RegisterState> states;
+		HList<RegisterState> reg_states;
+		HList<MemoryState> mem_states;
 		bool parsed = false;
 
 		RegisterState* getRegisterState(HId regId) {
-
-			for (RegisterState& regState : states) {
+			for (RegisterState& regState : reg_states) {
 				if (regState.regId == regId)
 					return &regState;
 			}
 			return nullptr;
 		}
-		RegisterState* getNewRegisterState(HId regId) {
-
-			for (RegisterState& regState : states) {
-				if (regState.regId == regId)
-					return &regState;
+		MemoryState* getMemoryState(HId memId) {
+			for (MemoryState& mem_state : mem_states) {
+				if (mem_state.memId == memId)
+					return &mem_state;
 			}
-			states.push_back({ regId, {}, 0 });
-			return &states.back();
+			return nullptr;
+		}
+		RegisterState* getNewRegisterState(HId regId) {
+			if (RegisterState* reg_state = getRegisterState(regId))
+				return reg_state;
+			reg_states.push_back({ regId,{}, 0 });
+			return &reg_states.back();
+		}
+		MemoryState* getNewMemoryState(HId memId) {
+			if (MemoryState* mem_state = getMemoryState(memId))
+				return mem_state;
+			mem_states.push_back({ memId,{} });
+			return &mem_states.back();
 		}
 		void print(Architecture* arch, int indent = 0);
 	};

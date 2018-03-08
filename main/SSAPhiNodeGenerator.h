@@ -19,8 +19,9 @@ namespace holodec {
 	
 	struct BasicBlockWrapper{
 		SSABB* ssaBB;
-		
+
 		HList<SSARegDef> outputs;
+		HList<SSAMemDef> mem_outputs;
 		
 		void print(Architecture* arch);
 	};
@@ -38,12 +39,12 @@ namespace holodec {
 		void resolveRegs();
 
 		void addRegDef(HId id, Register* reg, HList<SSARegDef>* list, bool replace);
+		void addMemDef(HId id, Memory* mem, HList<SSAMemDef>* list, bool replace);
 
 		SSAArgument getSSAId(BasicBlockWrapper* wrapper, Register* reg);
+		SSAArgument getSSAId(BasicBlockWrapper* wrapper, Memory* mem);
 		SSAArgument getSSAId(BasicBlockWrapper* wrapper, HList<SSARegDef>& defs, Register* reg);
-		
-		bool handleBBs(BasicBlockWrapper* wrapper, Register* reg, std::vector<std::pair<HId, HId>>& gatheredIds, std::vector<HId>& visitedBlocks);
-		bool handleBBs(BasicBlockWrapper* wrapper, Memory* mem, std::vector<std::pair<HId, HId>>& gatheredIds, std::vector<HId>& visitedBlocks);
+		SSAArgument getSSAId(BasicBlockWrapper* wrapper, HList<SSAMemDef>& defs, Memory* mem);
 		
 		BasicBlockWrapper* getWrapper(HId id){
 			for(BasicBlockWrapper& wrapper : bbwrappers){
@@ -53,7 +54,6 @@ namespace holodec {
 			return nullptr;
 		}
 		
-		void getDominator();
 	};
 
 }

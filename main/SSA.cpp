@@ -223,7 +223,10 @@ namespace holodec {
 			printf ("Call   ");
 			break;
 		case SSAExprType::eOutput:
-			printf ("Output ");
+			printf("Output ");
+			break;
+		case SSAExprType::eMemOutput:
+			printf("MemOut ");
 			break;
 		case SSAExprType::eReturn:
 			printf ("Return ");
@@ -258,12 +261,6 @@ namespace holodec {
 		case SSAExprType::eLoad:
 			printf ("Load   ");
 			break;
-		case SSAExprType::ePop:
-			printf ("Pop    ");
-			break;
-		case SSAExprType::ePush:
-			printf ("Push   ");
-			break;
 		case SSAExprType::eFlag:
 			printf ("Flag");
 			switch (flagType) {
@@ -284,16 +281,16 @@ namespace holodec {
 		}
 		switch (location) {
 		case SSALocation::eReg:
-			printf ("Reg: %6.6s     ", arch->getRegister (locref.refId)->name.cstr());
+			printf ("Reg: %10.10s ", arch->getRegister (locref.refId)->name.cstr());
 			break;
 		case SSALocation::eStack:
 			printf ("Stack: %4.4s[%.2" PRId32 "] ", arch->getStack (locref.refId)->name.cstr(), locref.index);
 			break;
 		case SSALocation::eMem:
-			printf ("Mem: %6.6" PRId32 "     ", locref.refId);
+			printf ("Mem: %10.10s ", arch->getMemory(locref.refId)->name.cstr());
 			break;
 		case SSALocation::eBlock:
-			printf ("Block: %4.4" PRId32 "     ", locref.refId);
+			printf ("Block: %.4" PRId32 "     ", locref.refId);
 			break;
 		case SSALocation::eNone:
 			printf("                ");
@@ -319,18 +316,18 @@ namespace holodec {
 			break;
 		case SSAArgType::eSInt:
 			if (sval < 0)
-				printf ("-0x%" PRIx64 "", -sval);
+				printf ("-0x%" PRIx64 " ", -sval);
 			else
-				printf ("0x%" PRIx64 "", sval);
+				printf ("0x%" PRIx64 " ", sval);
 			break;
 		case SSAArgType::eUInt:
-			printf ("0x%" PRIx64, uval);
+			printf ("0x%" PRIx64 " ", uval);
 			break;
 		case SSAArgType::eFloat:
-			printf ("%f", fval);
+			printf ("%f ", fval);
 			break;
 		case SSAArgType::eId:
-			printf("SSA: %d", ssaId);
+			printf("SSA: %d ", ssaId);
 			break;
 		case SSAArgType::eOther:
 			break;
@@ -339,31 +336,31 @@ namespace holodec {
 		}
 		if (valueoffset) {
 			if (valueoffset >= 0)
-				printf(" + %d ", valueoffset);
+				printf("+ %d ", valueoffset);
 			else
-				printf(" - %d ", valueoffset * -1);
+				printf("- %d ", valueoffset * -1);
 		}
 
 		switch (location) {
 		case SSALocation::eReg:
 			if (locref.refId)
-				printf (" Reg: %s", arch->getRegister (locref.refId)->name.cstr());
+				printf ("Reg: %s ", arch->getRegister (locref.refId)->name.cstr());
 			else
-				printf ("No Reg Def");
+				printf ("No Reg Def ");
 			break;
 		case SSALocation::eStack:
-			printf ("Stack-%s[%d]", arch->getStack (locref.refId)->name.cstr(), locref.index);
+			printf ("Stack-%s[%d] ", arch->getStack (locref.refId)->name.cstr(), locref.index);
 			break;
 		case SSALocation::eMem:
-			printf ("Memory %d", locref.refId);
+			printf ("Memory %s ", arch->getMemory(locref.refId)->name.cstr());
 			break;
 		case SSALocation::eBlock:
-			printf ("Block %d", locref.refId);
+			printf ("Block %d ", locref.refId);
 			break;
 		case SSALocation::eNone:
 			break;
 		}
-		if (offset || size) printf (" S[%d,%d]", offset, size);
+		if (offset || size) printf ("S[%d,%d]", offset, size);
 	}
 
 

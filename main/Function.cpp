@@ -38,11 +38,11 @@ void holodec::Function::print(holodec::Architecture* arch, int indent) {
 
 void holodec::FuncRegState::print(holodec::Architecture* arch, int indent) {
 	printIndent(indent);
-	printf("RegisterState\n");
-	for (RegisterState& regState : states) {
+	puts("RegisterState");
+	for (RegisterState& regState : reg_states) {
 		printIndent(indent + 1);
 		printf("%s ", arch->getRegister(regState.regId)->name.cstr());
-		if (regState.flags.contains(RegisterUsedFlag::eWrite)) {
+		if (regState.flags.contains(UsageFlags::eWrite)) {
 			printf("Write, ");
 		}
 		else {
@@ -51,7 +51,20 @@ void holodec::FuncRegState::print(holodec::Architecture* arch, int indent) {
 			else if (regState.arithChange < 0)
 				printf("Arith - %d, ", regState.arithChange*-1);
 		}
-		if (regState.flags.contains(RegisterUsedFlag::eRead)) {
+		if (regState.flags.contains(UsageFlags::eRead)) {
+			printf("Read, ");
+		}
+		printf("\n");
+	}
+	printIndent(indent);
+	puts("MemoryState");
+	for (MemoryState& memState : mem_states) {
+		printIndent(indent + 1);
+		printf("%s ", arch->getMemory(memState.memId)->name.cstr());
+		if (memState.flags.contains(UsageFlags::eWrite)) {
+			printf("Write, ");
+		}
+		if (memState.flags.contains(UsageFlags::eRead)) {
 			printf("Read, ");
 		}
 		printf("\n");

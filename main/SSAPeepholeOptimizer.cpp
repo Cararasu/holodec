@@ -16,7 +16,7 @@ namespace holodec {
 		bool applied = false;
 
 		for (size_t i = 0; i < function->ssaRep.expressions.size();) {
-			if (phOpt->ruleSet.match(arch, &function->ssaRep, &function->ssaRep.expressions.list[i])) {
+			if (function->ssaRep.expressions.list[i].id && phOpt->ruleSet.match(arch, &function->ssaRep, &function->ssaRep.expressions.list[i])) {
 				applied = true;
 			}
 			else {

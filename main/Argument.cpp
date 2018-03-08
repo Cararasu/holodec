@@ -21,7 +21,7 @@ namespace holodec {
 			printf ("Stack-%s[%d]", arch->getStack (ref.refId)->name.cstr(), ref.index);
 			break;
 		case IR_ARGTYPE_MEM: 
-			printf("Memory %d", ref.refId);
+			printf("Memory %s", arch->getMemory(ref.refId)->name.cstr());
 			break;
 		case IR_ARGTYPE_SINT:
 			if(sval < 0)

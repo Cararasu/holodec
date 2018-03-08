@@ -239,7 +239,6 @@ int main (int argc, const char** argv) {
 					funcChanged |= applied;
 					//func->print(binary->arch);
 				} while (applied);
-				//transformers[6]->doTransformation(binary, func);
 			}
 		}
 	} while (funcChanged);
