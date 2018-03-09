@@ -25,8 +25,8 @@ namespace holodec {
 		HString name;
 		HString desc;
 		uint32_t bitbase;
+		uint32_t bytebase;
 		uint32_t instrptrsize;
-		uint32_t wordbase;
 
 		HList<std::function<FunctionAnalyzer* (Binary*) >> functionanalyzerfactories;
 		HIdList<Register> registers;
@@ -50,6 +50,10 @@ namespace holodec {
 		~Architecture() = default;
 
 		void init();
+
+		inline uint32_t bitToByte(uint32_t bit) {
+			return (bit + bitbase - 1) / bitbase;
+		}
 
 		FunctionAnalyzer* createFunctionAnalyzer (Binary* binary) {
 			for (std::function<FunctionAnalyzer* (Binary*) >& fac : functionanalyzerfactories) {

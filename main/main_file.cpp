@@ -227,6 +227,9 @@ int main (int argc, const char** argv) {
 		//for (uint64_t addr : funcs) {
 		//	Function* func = binary->getFunctionByAddr(addr);
 			if (func) {
+				if (func->baseaddr == 0x1ddb) {
+					func->print(binary->arch);
+				}
 				bool applied = false;
 				do {
 					applied = false;
@@ -248,8 +251,11 @@ int main (int argc, const char** argv) {
 		if (func) {
 			func->ssaRep.recalcRefCounts();
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-			func->print(binary->arch);
-			transformers[6]->doTransformation(binary, func);
+			//func->print(binary->arch);
+			//transformers[6]->doTransformation(binary, func);
+			if (func->baseaddr == 0x1ddb) {
+				func->print(binary->arch);
+			}
 		}
 	}
 	delete optimizer;

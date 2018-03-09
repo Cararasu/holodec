@@ -99,11 +99,11 @@ namespace holodec {
 							expr.subExpressions.erase(expr.subExpressions.begin());
 							if (state->arithChange > 0) {
 								expr.opType = SSAOpType::eAdd;
-								expr.addArgument(&function->ssaRep, SSAArgument::createUVal(state->arithChange, arch->bitbase));
+								expr.addArgument(&function->ssaRep, SSAArgument::createUVal(state->arithChange, arch->bytebase * arch->bitbase));
 							}
 							else {
 								expr.opType = SSAOpType::eSub;
-								expr.addArgument(&function->ssaRep, SSAArgument::createUVal(state->arithChange * -1, arch->bitbase));
+								expr.addArgument(&function->ssaRep, SSAArgument::createUVal(state->arithChange * -1, arch->bytebase * arch->bitbase));
 							}
 							applied = true;
 						}

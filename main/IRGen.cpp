@@ -39,7 +39,7 @@ namespace holodec {
 			expression.exprtype = SSAType::eUInt;
 			{
 				expression.type = IR_EXPR_FLAG;
-				expression.size = 1;
+				expression.size = arch->bitbase;
 				expression.mod.flagType = SSAFlagType::eO;
 				expressionmap.insert(std::make_pair("o", expression));
 				expression.mod.flagType = SSAFlagType::eU;
@@ -187,7 +187,7 @@ namespace holodec {
 					return IRArgument::create();
 				}
 			} else {
-				size = IRArgument::createUVal( (uint64_t) 1, arch->bitbase);
+				size = IRArgument::createUVal( (uint64_t) 1, arch->bytebase * arch->bitbase);
 			}
 			if (parseCharacter (']')) {
 				IRExpression expression;
@@ -457,7 +457,7 @@ namespace holodec {
 					printParseFailure ("Number");
 					return IRArgument::create();//IR_EXPR_INVALID;
 				}
-				IRArgument arg = IRArgument::createUVal((uint64_t)num, 0);
+				IRArgument arg = IRArgument::createUVal((uint64_t)num, arch->bytebase * arch->bitbase);
 				parseArgFlags(&arg);
 				return arg;
 			}
@@ -476,12 +476,12 @@ namespace holodec {
 			case IR_EXPR_BSIZE:
 				assert (expression.subExpressions.size() == 1);
 				if (expression.subExpressions[0].size)
-					return IRArgument::createUVal( (uint64_t) (expression.subExpressions[0].size), arch->bitbase);
+					return IRArgument::createUVal( (uint64_t) (expression.subExpressions[0].size * arch->bitbase), arch->bytebase * arch->bitbase);
 				break;
 			case IR_EXPR_SIZE:
 				assert (expression.subExpressions.size() == 1);
 				if (expression.subExpressions[0].size)
-					return IRArgument::createUVal( (uint64_t) (expression.subExpressions[0].size / arch->wordbase), arch->bitbase);
+					return IRArgument::createUVal( (uint64_t) (expression.subExpressions[0].size), arch->bytebase * arch->bitbase);
 				break;
 			case IR_EXPR_INVALID:
 				printf ("%s\n", string.cstr());

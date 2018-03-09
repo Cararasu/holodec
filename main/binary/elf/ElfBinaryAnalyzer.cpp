@@ -59,13 +59,13 @@ void createSymbol(Binary* binary, File* file, uint64_t addr, const SymbolType* t
 	Elf64_Xword st_size;//64
 	} Elf64_Sym;
 	*/
-	size_t dynsim_structlength = binary->bitbase == 32 ? 0x10 : 0x18;
+	size_t dynsim_structlength = binary->bytebase == 4 ? 0x10 : 0x18;
 	size_t dynsim_offset = dynsim_structlength * index;
 	const char* name = getPtrInFile<char>(file, dynstr->offset + getValue<uint32_t>(file, dynsym->offset + dynsim_offset, binary->endianess));
 	uint64_t value = 0;
 	uint64_t size = 0;
 	uint8_t info = 0;
-	if (binary->bitbase == 32) {
+	if (binary->bytebase == 4) {
 		value = getValue<uint32_t>(file, dynsym->offset + dynsim_offset + 0x4, binary->endianess);
 		size = getValue<uint32_t>(file, dynsym->offset + dynsim_offset + 0x8, binary->endianess);
 		info = getValue<uint8_t>(file, dynsym->offset + dynsim_offset + 0xC, binary->endianess);
@@ -78,11 +78,11 @@ void createSymbol(Binary* binary, File* file, uint64_t addr, const SymbolType* t
 	Symbol* sym = binary->findSymbol(addr, type);
 	if (sym) {
 		sym->name = HString(name);
-		sym->size = binary->bitbase / 8;
+		sym->size = binary->bytebase;
 	}
 	else {
 		Symbol* sym = new Symbol();
-		*sym = { 0, name, type, 0, addr, binary->bitbase / 8 };
+		*sym = { 0, name, type, 0, addr, binary->bytebase };
 		binary->addSymbol(sym);
 	}
 }
@@ -117,14 +117,14 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 			binary->addSymbol(new Symbol({ 0, ".finit", &SymbolType::symfunc, 0, finit->vaddr, 0 }));
 		}
 		if (Section* init_array = binary->getSection(".init_array")) {
-			if (binary->bitbase == 32) {
+			if (binary->bytebase == 4) {
 				for (size_t i = 0; i < init_array->size; i += 4) {
 					size_t fncptr = getValue<uint32_t>(file, init_array->offset + i, binary->endianess);
 					snprintf(buffer, 20, ".init_array%zu", i);
 					binary->addEntrypoint(binary->addSymbol(new Symbol({ 0, buffer, &SymbolType::symfunc, 0, fncptr, 0 })));
 				}
 			}
-			else if (binary->bitbase == 64) {
+			else if (binary->bytebase == 8) {
 				for (size_t i = 0; i < init_array->size; i += 8) {
 					size_t fncptr = getValue<uint32_t>(file, init_array->offset + i, binary->endianess);
 					snprintf(buffer, 20, ".init_array%zu", i);
@@ -133,14 +133,14 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 			}
 		}
 		if (Section* finit_array = binary->getSection(".finit_array")) {
-			if (binary->bitbase == 32) {
+			if (binary->bytebase == 4) {
 				for (size_t i = 0; i < finit_array->size; i += 4) {
 					size_t fncptr = getValue<uint32_t>(file, finit_array->offset + i, binary->endianess);
 					snprintf(buffer, 20, ".finit_array%zu", i);
 					binary->addSymbol(new Symbol({ 0, buffer, &SymbolType::symfunc, 0, fncptr, 0 }));
 				}
 			}
-			else if (binary->bitbase == 64) {
+			else if (binary->bytebase == 8) {
 				for (size_t i = 0; i < finit_array->size; i += 8) {
 					size_t fncptr = getValue<uint32_t>(file, finit_array->offset + i, binary->endianess);
 					snprintf(buffer, 20, ".finit_array%zu", i);
@@ -155,7 +155,7 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 		if ((dynsym = binary->getSection(".dynsym")) &&
 			(dynstr = binary->getSection(".dynstr"))) {
 
-			size_t rela_structlength = binary->bitbase == 32 ? 0x0c : 0x18;
+			size_t rela_structlength = binary->bytebase == 4 ? 0x0c : 0x18;
 			for (Section* section : binary->sections) {
 				if (section->name.str().compare(0, 6, ".rela.") == 0) {
 					for (size_t entryoffset = 0; entryoffset < section->size; entryoffset += rela_structlength) {
@@ -164,10 +164,10 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 						uint64_t info = getValue<uint64_t>(file, section->offset + entryoffset + 0x8, binary->endianess);
 						uint64_t addend = getValue<uint64_t>(file, section->offset + entryoffset + 0x10, binary->endianess);
 
-						uint64_t type = binary->bitbase == 32 ? info >> 8 : info >> 32;
+						uint64_t type = binary->bytebase == 4 ? info >> 8 : info >> 32;
 
 						if (binary->arch && binary->arch->name == "x86") {
-							switch (binary->bitbase == 32 ? info & 0xF : info & 0xFFFFFFFF) {
+							switch (binary->bytebase == 4 ? info & 0xF : info & 0xFFFFFFFF) {
 							case 0x07: {
 								createSymbol(binary, file, offset, &SymbolType::symdynfunc, dynsym, dynstr, type);
 							}break;
@@ -185,7 +185,7 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 						uint64_t offset = getValue<uint64_t>(file, section->offset + entryoffset, binary->endianess);
 						uint64_t info = getValue<uint64_t>(file, section->offset + entryoffset + 0x8, binary->endianess);
 
-						uint64_t type = binary->bitbase == 32 ? info >> 8 : info >> 32;
+						uint64_t type = binary->bytebase == 4 ? info >> 8 : info >> 32;
 
 						if (binary->arch && binary->arch->name == "x86") {
 							switch (info & 0xF) {
@@ -209,7 +209,7 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 			(dynamic = binary->getSection(".dynamic"))) {
 			size_t structlength;
 
-			if (binary->bitbase == 32)
+			if (binary->bytebase == 4)
 				structlength = 0x08;
 			else
 				structlength = 0x10;
@@ -236,7 +236,7 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 
 				uint64_t tag;
 				uint64_t value;
-				if (binary->bitbase == 32) {
+				if (binary->bytebase == 4) {
 					tag = getValue<uint32_t>(file, dynamic->offset + entryoffset, binary->endianess);
 					value = getValue<uint32_t>(file, dynamic->offset + entryoffset + 0x4, binary->endianess);
 				}
@@ -280,10 +280,12 @@ bool holoelf::ElfBinaryAnalyzer::parseFileHeader() {
 	//Architecture flag
 	switch (file->data[4]) {
 	case 0x01:
-		binary->bitbase = 32;
+		binary->bitbase = 4;
+		binary->bytebase = 8;
 		break;
 	case 0x02:
-		binary->bitbase = 64;
+		binary->bitbase = 8;
+		binary->bytebase = 8;
 		break;
 	default:
 		printf("Not supported Architecture\n");
@@ -364,7 +366,7 @@ bool holoelf::ElfBinaryAnalyzer::parseFileHeader() {
 		printf("Not supported Version\n");
 
 	size_t offset64bit;
-	if (binary->bitbase == 32) {
+	if (binary->bytebase == 4) {
 		//Ptr to EntryPoint handled later
 		//Ptr to Program Header Table
 		programHeaderTable.offset = getValue<uint32_t>(file, 0x1C, binary->endianess);
@@ -396,9 +398,9 @@ bool holoelf::ElfBinaryAnalyzer::parseProgramHeaderTable() {
 
 	size_t entrysize = 0;
 
-	if (binary->bitbase == 32)
+	if (binary->bytebase == 4)
 		entrysize = 0x20;
-	else if (binary->bitbase == 64)
+	else if (binary->bytebase == 8)
 		entrysize = 0x38;
 
 	for (unsigned int i = 0; i < programHeaderTable.entries; i++) {
@@ -408,13 +410,13 @@ bool holoelf::ElfBinaryAnalyzer::parseProgramHeaderTable() {
 			Section* section = new Section();
 
 			uint32_t flags = 0;
-			if (binary->bitbase == 32)
+			if (binary->bytebase == 4)
 				flags = getValue<uint32_t>(file, entryoffset + 0x18, binary->endianess);
-			else if (binary->bitbase == 64)
+			else if (binary->bytebase == 8)
 				flags = getValue<uint32_t>(file, entryoffset + 0x04, binary->endianess);
 			section->srwx = (flags & 0x4 ? 0x1 : 0x0) | (flags & 0x2 ? 0x2 : 0x0) | (flags & 0x1 ? 0x4 : 0x0);
 
-			if (binary->bitbase == 32) {
+			if (binary->bytebase == 4) {
 				section->offset = getValue<uint32_t>(file, entryoffset + 0x04, binary->endianess);
 				section->vaddr = getValue<uint32_t>(file, entryoffset + 0x08, binary->endianess);
 				//section.paddr = data.get<uint32_t> (entryoffset + 0x0C);
@@ -422,7 +424,7 @@ bool holoelf::ElfBinaryAnalyzer::parseProgramHeaderTable() {
 				section->size = getValue<uint32_t>(file, entryoffset + 0x14, binary->endianess);//Size in Memory
 																			   //printf ("Alignment: %X\n", data.get<uint32_t> (entryoffset + 0x1C));
 			}
-			else if (binary->bitbase == 64) {
+			else if (binary->bytebase == 8) {
 				section->offset = getValue<uint32_t>(file, entryoffset + 0x08, binary->endianess);
 				section->vaddr = getValue<uint32_t>(file, entryoffset + 0x10, binary->endianess);
 				//section.paddr = data.get<uint32_t> (entryoffset + 0x18);
@@ -442,9 +444,9 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable() {
 
 	size_t entrysize = 0;
 
-	if (binary->bitbase == 32)
+	if (binary->bytebase == 4)
 		entrysize = 0x28;
-	else if (binary->bitbase == 64)
+	else if (binary->bytebase == 8)
 		entrysize = 0x40;
 		
 #ifdef _MSC_VER
@@ -467,7 +469,7 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable() {
 
 		nameoffset[i] = getValue<uint32_t>(file, entryoffset + 0x00, binary->endianess);
 
-		uint64_t flags = binary->bitbase == 32 ? getValue<uint32_t>(file, entryoffset + 0x08, binary->endianess) : getValue<uint32_t>(file, entryoffset + 0x08, binary->endianess);
+		uint64_t flags = binary->bytebase == 4 ? getValue<uint32_t>(file, entryoffset + 0x08, binary->endianess) : getValue<uint32_t>(file, entryoffset + 0x08, binary->endianess);
 		sections[i]->srwx = 0;
 		if (flags & 0x1)
 			sections[i]->srwx |= 0x2;
@@ -479,7 +481,7 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable() {
 			sections[i]->srwx |= 0x4;
 		//printf ("SHF_EXECINSTR\n");
 
-		if (binary->bitbase == 32) {
+		if (binary->bytebase == 4) {
 			sections[i]->vaddr = getValue<uint32_t>(file, entryoffset + 0x0C, binary->endianess);
 			sections[i]->offset = getValue<uint32_t>(file, entryoffset + 0x10, binary->endianess);
 			sections[i]->size = getValue<uint32_t>(file, entryoffset + 0x14, binary->endianess);
@@ -488,7 +490,7 @@ bool holoelf::ElfBinaryAnalyzer::parseSectionHeaderTable() {
 			//printf ("Alignment: %X\n", binary->getValue<uint32_t> (entryoffset + 0x20));
 			//printf ("Entrysize: %X\n", binary->getValue<uint32_t> (entryoffset + 0x24));
 		}
-		else if (binary->bitbase == 64) {
+		else if (binary->bytebase == 8) {
 			sections[i]->vaddr = getValue<uint32_t>(file, entryoffset + 0x10, binary->endianess);
 			sections[i]->offset = getValue<uint32_t>(file, entryoffset + 0x18, binary->endianess);
 			sections[i]->size = getValue<uint32_t>(file, entryoffset + 0x20, binary->endianess);

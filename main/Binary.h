@@ -84,6 +84,7 @@ namespace holodec {
 		HMap<HId, MemoryArea*> memoryAreas;
 
 		size_t bitbase;
+		size_t bytebase;
 		Endianess endianess;
 		Architecture* arch;
 

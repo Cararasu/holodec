@@ -42,6 +42,7 @@ namespace holoihex {
 
 		binary = new holodec::Binary(file->name);
 		binary->bitbase = 8;
+		binary->bytebase = 1;
 		binary->endianess = holodec::Endianess::eLittle;
 
 		holodec::MemoryArea* area = new holodec::MemoryArea();

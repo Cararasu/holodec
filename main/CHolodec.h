@@ -44,7 +44,7 @@ uint64_t holodec_get_archcount (void);
 const char* arch_get_name (HArchitecture* arch);
 const char* arch_get_description (HArchitecture* arch);
 uint64_t arch_get_bitbase (HArchitecture* arch);
-uint64_t arch_get_wordbase (HArchitecture* arch);
+uint64_t arch_get_bytebase (HArchitecture* arch);
 
 HRegister* arch_get_register (HArchitecture* arch, uint64_t index);
 HRegister* arch_get_register_by_id (HArchitecture* arch, HId index);

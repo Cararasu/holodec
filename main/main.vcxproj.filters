@@ -257,9 +257,6 @@
     <ClInclude Include="Section.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="SSA.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="SSAAddressToBlockTransformer.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -303,6 +300,9 @@
       <Filter>Headerdateien\arch</Filter>
     </ClInclude>
     <ClInclude Include="SSAApplyRegRef.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="SSA.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

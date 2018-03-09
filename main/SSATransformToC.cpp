@@ -208,9 +208,6 @@ namespace holodec{
 				printf("extend%d", expr.size);
 			resolveArgs(expr);
 		}break;
-		case SSAExprType::eUpdatePart: {
-			printf("UpdatePart");
-		}break;
 		case SSAExprType::eAppend: {
 			printf("(");
 			uint32_t offset = 0;

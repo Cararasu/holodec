@@ -30,7 +30,6 @@ namespace holodec {
 		eFlag		= SSA_EXPR_FLAG,
 		eBuiltin	= SSA_EXPR_BUILTIN,
 		eExtend		= SSA_EXPR_EXTEND,
-		eUpdatePart	= SSA_EXPR_UPDATEPART,
 		eAppend		= SSA_EXPR_APPEND,
 		eCast		= SSA_EXPR_CAST,
 		
@@ -159,10 +158,16 @@ namespace holodec {
 			}
 			arg.size = size;
 			arg.offset += offset;
+			if (arg.size < 0) {
+				puts(" ");
+			}
 			arg.valueoffset += valueoffset;
 			*this = arg;
 		}
 		void set(SSAArgument arg) {
+			if (arg.size < 0) {
+				puts(" ");
+			}
 			*this = arg;
 		}
 		static inline SSAArgument create() {
@@ -194,8 +199,6 @@ namespace holodec {
 		}
 		static inline SSAArgument create(HId ssaId, uint32_t size = 0, uint32_t offset = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
 			SSAArgument arg;
-			if (ssaId == 338)
-				printf("");
 			arg.type = SSAArgType::eId;
 			arg.ssaId = ssaId;
 			arg.location = location;
@@ -223,10 +226,11 @@ namespace holodec {
 		}
 		static inline SSAArgument createId(HId ssaId, uint32_t size, uint32_t offset = 0) {
 			assert(ssaId);
+			assert(size > 0);
 			return create(ssaId, size, offset, SSALocation::eNone, { 0, 0 });
 		}
 		static inline SSAArgument createReg(Register* reg, HId ssaId = 0, uint32_t offset = 0) {
-			return create(ssaId, reg->size, offset, SSALocation::eReg, { reg->id, 0 });
+			return create(ssaId, reg->size - offset, offset, SSALocation::eReg, { reg->id, 0 });
 		}
 		static inline SSAArgument createReg (Reference ref, uint32_t size, uint32_t offset, HId ssaId = 0) {
 			return create(ssaId, size, offset, SSALocation::eReg, ref);
@@ -271,7 +275,7 @@ namespace holodec {
 		}
 		return false;
 	}
-	inline bool weak_equals (SSAArgument& lhs, SSAArgument& rhs) {
+	inline bool weak_equals(SSAArgument& lhs, SSAArgument& rhs) {
 		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset && lhs.valueoffset == rhs.valueoffset) {
 			switch (lhs.type) {
 			case SSAArgType::eSInt:
@@ -290,6 +294,37 @@ namespace holodec {
 			return true;
 		}
 		return false;
+	}
+	inline bool consecutive_arg(SSAArgument& lhs, SSAArgument& rhs) {
+
+		if (lhs.type == rhs.type && lhs.size + lhs.offset == rhs.offset && lhs.valueoffset == rhs.valueoffset) {
+			switch (lhs.type) {
+			case SSAArgType::eSInt:
+				return lhs.sval == rhs.sval;
+			case SSAArgType::eUInt:
+				return lhs.uval == rhs.uval;
+			case SSAArgType::eFloat:
+				return lhs.fval == rhs.fval;
+			case SSAArgType::eId:
+				return lhs.ssaId == rhs.ssaId;
+			case SSAArgType::eOther:
+				return true;
+			default:
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+	inline bool consecutive_args(HList<SSAArgument>::iterator lhs, HList<SSAArgument>::iterator rhs) {
+		if (std::distance(lhs, rhs) <= 0)
+			return false;
+		for (; lhs != rhs; ++lhs) {
+			if (!consecutive_arg(*lhs, *(lhs + 1))) {
+				return false;
+			}
+		}
+		return true;
 	}
 	inline bool operator!= (SSAArgument& lhs, SSAArgument& rhs) {
 		return ! (lhs == rhs);
@@ -321,6 +356,8 @@ namespace holodec {
 		void addArgument(SSARepresentation* rep, SSAArgument arg);
 		void setArgument(SSARepresentation* rep, int index, SSAArgument arg);
 		HList<SSAArgument>::iterator removeArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it);
+		HList<SSAArgument>::iterator removeArguments(SSARepresentation* rep, HList<SSAArgument>::iterator beginit, HList<SSAArgument>::iterator endit);
+		HList<SSAArgument>::iterator insertArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg);
 		void replaceArgument(SSARepresentation* rep, int index, SSAArgument arg);
 		void setAllArguments(SSARepresentation* rep, HList<SSAArgument> args);
 

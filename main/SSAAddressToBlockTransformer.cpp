@@ -50,8 +50,8 @@ namespace holodec {
 							if (loadExpr.type == SSAExprType::eLoad) {
 								uint64_t baseaddr;
 								if (function->ssaRep.calcConstValue(loadExpr.subExpressions[0], &baseaddr)) {
-									if (arch->bitbase < sizeof(uint64_t) * 8)
-										baseaddr %= ((uint64_t)1 << arch->bitbase);
+									if (arch->bytebase < sizeof(uint64_t))
+										baseaddr %= ((uint64_t)1 << (arch->bytebase * arch->bitbase));
 
 									Symbol* sym = binary->findSymbol(baseaddr, &SymbolType::symdynfunc);
 									if (sym) {

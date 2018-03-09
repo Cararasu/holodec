@@ -41,6 +41,26 @@ namespace holodec {
 		}
 		return subExpressions.erase(it);
 	}
+	HList<SSAArgument>::iterator SSAExpression::removeArguments(SSARepresentation* rep, HList<SSAArgument>::iterator beginit, HList<SSAArgument>::iterator endit) {
+		for (auto it = beginit; it != endit; ++it) {
+			if (it->type == SSAArgType::eId) {//remove ref
+				SSAExpression& expr = rep->expressions[it->ssaId];
+				for (auto it = expr.directRefs.begin(); it != expr.directRefs.end(); ++it) {
+					if (*it == id) {
+						expr.directRefs.erase(it);//erase only one
+						break;
+					}
+				}
+			}
+		}
+		return subExpressions.erase(beginit, endit);
+	}
+	HList<SSAArgument>::iterator SSAExpression::insertArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg) {
+		if (arg.type == SSAArgType::eId) {//remove ref
+			rep->expressions[arg.ssaId].directRefs.push_back(id);
+		}
+		return subExpressions.insert(it, arg);
+	}
 	void SSAExpression::replaceArgument(SSARepresentation* rep, int index, SSAArgument arg) {
 		if (subExpressions[index].type == SSAArgType::eId) {//remove ref
 			SSAExpression& expr = rep->expressions[subExpressions[index].ssaId];
@@ -239,9 +259,6 @@ namespace holodec {
 			break;
 		case SSAExprType::eBuiltin:
 			printf ("Builtin");
-			break;
-		case SSAExprType::eUpdatePart:
-			printf ("UpdPart");
 			break;
 		case SSAExprType::eExtend:
 			printf ("Extend ");

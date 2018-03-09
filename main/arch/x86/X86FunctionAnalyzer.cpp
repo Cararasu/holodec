@@ -127,14 +127,14 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 			uint32_t index;
 			int res = sscanf_s(regname,"st%" SCNd32, &index);
 			if(res == 1){
-				arg = IRArgument::createStck (arch->getStack ("st"),index);
+				arg = IRArgument::createStck (arch->getStack ("st"), index);
 			}else{
 				arg = IRArgument::createReg (arch->getRegister (regname));
 			}
 			break;
 		}
 		case X86_OP_IMM:
-			arg = IRArgument::createUVal( (uint64_t) x86.operands[i].imm, x86.operands[i].size * 8);
+			arg = IRArgument::createUVal( (uint64_t) x86.operands[i].imm, x86.operands[i].size * arch->bitbase);
 			break;
 		case X86_OP_MEM: {
 			/*
@@ -147,7 +147,7 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 						arch->getRegister ((HId)0),
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),
 						x86.operands[i].mem.scale, x86.operands[i].mem.disp + instruction->addr + instruction->size,
-						x86.operands[i].size * 8
+						x86.operands[i].size * arch->bitbase
 					);
 			} else {
 				arg = IRArgument::createMemOp (
@@ -155,13 +155,13 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.base)),//base
 						arch->getRegister (cs_reg_name (handle, x86.operands[i].mem.index)),//index
 						x86.operands[i].mem.scale, x86.operands[i].mem.disp,
-						x86.operands[i].size * 8
+						x86.operands[i].size * arch->bitbase
 					);
 			}
 		}
 		break;
 		case X86_OP_FP:
-			arg = IRArgument::createDVal ( (double) x86.operands[i].fp, x86.operands[i].size * 8);
+			arg = IRArgument::createDVal ( (double) x86.operands[i].fp, x86.operands[i].size * arch->bitbase);
 			break;
 		default:
 			printf ("Invalid ...\n");

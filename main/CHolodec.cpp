@@ -28,8 +28,8 @@ extern "C" {
 	uint64_t arch_get_bitbase (HArchitecture* arch) {
 		return reinterpret_cast<holodec::Architecture*> (arch)->bitbase;
 	}
-	uint64_t arch_get_wordbase (HArchitecture* arch) {
-		return reinterpret_cast<holodec::Architecture*> (arch)->wordbase;
+	uint64_t arch_get_bytebase (HArchitecture* arch) {
+		return reinterpret_cast<holodec::Architecture*> (arch)->bytebase;
 	}
 
 	HRegister* arch_get_register (HArchitecture* arch, uint64_t index) {

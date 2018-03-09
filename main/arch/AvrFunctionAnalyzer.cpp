@@ -181,7 +181,7 @@ namespace holoavr{
 				uint32_t dst = secbytes;
 				dst |= (firstbytes & 0x01) << 16;
 				dst |= (firstbytes & 0x1F0) << (17 - 4);
-				instr->operands.push_back(IRArgument::createUVal(dst, 24));
+				instr->operands.push_back(IRArgument::createUVal(dst, arch->instrptrsize * arch->bitbase));
 				instr->size = 2;
 				if (firstbytes & 0x0002) {//call
 					instr->instrdef = arch->getInstrDef(AVR_INSTR_CALL);
@@ -374,13 +374,13 @@ namespace holoavr{
 			uint16_t value = (firstbytes & 0xF) | ((firstbytes & 0x600) >> 5);
 			if (firstbytes & 0x0800) {//out
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_OUT);
-				instr->operands.push_back(IRArgument::createUVal(value, arch->bitbase));
+				instr->operands.push_back(IRArgument::createUVal(value, arch->bytebase * arch->bitbase));
 				instr->operands.push_back(IRArgument::createReg(reg1));
 			}
 			else {//in
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_IN);
 				instr->operands.push_back(IRArgument::createReg(reg1));
-				instr->operands.push_back(IRArgument::createUVal(value, arch->bitbase));
+				instr->operands.push_back(IRArgument::createUVal(value, arch->bytebase * arch->bitbase));
 			}
 			return true;
 		}
@@ -398,7 +398,7 @@ namespace holoavr{
 				if (!(parseInstruction(&nextinstr, binary, addr + instr->size, arch))) {
 					return false;
 				}
-				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, 16));
+				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, arch->instrptrsize * arch->bitbase));
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_SBIC);
 				return true;
 			}
@@ -410,7 +410,7 @@ namespace holoavr{
 				if (!(parseInstruction(&nextinstr, binary, addr + instr->size, arch))) {
 					return false;
 				}
-				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, 16));
+				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, arch->instrptrsize * arch->bitbase));
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_SBIS);
 				return true;
 			}
@@ -425,12 +425,12 @@ namespace holoavr{
 			if (firstbytes & 0x0200) {//lds
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_LD);
 				instr->operands.push_back(IRArgument::createReg(reg));
-				instr->operands.push_back(IRArgument::createUVal(secbytes, 16));
+				instr->operands.push_back(IRArgument::createUVal(secbytes, arch->instrptrsize * arch->bitbase));
 				instr->size = 2;
 			}
 			else {//sts
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_ST);
-				instr->operands.push_back(IRArgument::createUVal(secbytes, 16));
+				instr->operands.push_back(IRArgument::createUVal(secbytes, arch->instrptrsize * arch->bitbase));
 				instr->operands.push_back(IRArgument::createReg(reg));
 				instr->size = 2;
 			}
@@ -637,7 +637,7 @@ namespace holoavr{
 			}
 			uint32_t bitIndex = firstbytes & 0x07;
 			instr->operands.push_back(IRArgument::createReg(reg));
-			instr->operands.push_back(IRArgument::createUVal(bitIndex, arch->bitbase));
+			instr->operands.push_back(IRArgument::createUVal(bitIndex, arch->bytebase * arch->bitbase));
 			switch ((firstbytes & 0x0600) >> 9) {
 			case 0x00:
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_BLD);
@@ -650,7 +650,7 @@ namespace holoavr{
 				if (!(parseInstruction(&nextinstr, binary, addr + instr->size, arch))) {
 					return false;
 				}
-				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, 16));
+				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, arch->instrptrsize * arch->bitbase));
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_SBRC);
 				return true;
 			}
@@ -659,7 +659,7 @@ namespace holoavr{
 				if (!(parseInstruction(&nextinstr, binary, addr + instr->size, arch))) {
 					return false;
 				}
-				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, 16));
+				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, arch->instrptrsize * arch->bitbase));
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_SBRS);
 				return true;
 			}
@@ -674,7 +674,7 @@ namespace holoavr{
 			else {
 				instr->jumpdest = instr->addr + instr->size + rel;
 			}
-			instr->operands.push_back(IRArgument::createUVal(instr->jumpdest, 24));
+			instr->operands.push_back(IRArgument::createUVal(instr->jumpdest, arch->instrptrsize * arch->bitbase));
 			if (firstbytes & 0x1000) {//rcall
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_CALL);
 			}
@@ -691,7 +691,7 @@ namespace holoavr{
 			else {
 				instr->jumpdest = instr->addr + instr->size + value;
 			}
-			instr->operands.push_back(IRArgument::createUVal(instr->jumpdest, 24));
+			instr->operands.push_back(IRArgument::createUVal(instr->jumpdest, arch->instrptrsize * arch->bitbase));
 			instr->nojumpdest = instr->addr + instr->size;
 			if (firstbytes & 0x0400) {//br on clear
 				switch (firstbytes & 0x7) {

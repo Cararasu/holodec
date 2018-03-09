@@ -7,7 +7,7 @@ using namespace holodec;
 namespace holoavr {
 
 	Architecture avrarchitecture{
-		"avr", "", 8, 3, 8,
+		"avr", "", 8, 1, 3,/*bitbase, bytebase, instrptrsize*/
 	{
 		[](Binary * binary) {
 		static FunctionAnalyzer* analyzer = nullptr;
@@ -70,8 +70,8 @@ namespace holoavr {
 			{ 0, "rampz", RegType::eSegment, nullptr, "rampz", 8, 0, false },//0x3B
 			{ 0, "eind", RegType::eSegment, nullptr, "eind", 8, 0, false },//0x3C
 			{ 0, "sp", RegType::eStackPtr, nullptr, "sp", 16, 0, false },//0x3e-0x3d
-			{ 0, "sph", RegType::eStackPtr, "sp", "sp", 8, 0, false },//0x3e
-			{ 0, "spl", RegType::eStackPtr, "sp", "sp", 8, 8, false },//0x3d
+			{ 0, "sph", RegType::eStackPtr, "sp", "sp", 8, 8, false },//0x3e
+			{ 0, "spl", RegType::eStackPtr, "sp", "sp", 8, 0, false },//0x3d
 
 			//{ 0, nullptr, RegType::eFlag, nullptr, nullptr, 8, 0, false },//0x3f
 			{ 0, "cf", RegType::eFlag, nullptr, "cf", 1, 0, false },
@@ -316,7 +316,7 @@ namespace holoavr {
 			{ 2, "==(#arg[2],60)", "=(#arg[1],$eind)" },
 			{ 2, "==(#arg[2],61)", "=(#arg[1],$spl)" },
 			{ 2, "==(#arg[2],62)", "=(#arg[1],$sph)" },
-			{ 2, "==(#arg[2],63)", "=(#arg[1],#app($cf,$zf,$nf,$vf,$sf,$hf,$tf,$if))" },
+			{ 2, "==(#arg[2],63)", "=(#arg[1],#app($cf[1],$zf[1],$nf[1],$vf[1],$sf[1],$hf[1],$tf[1],$if[1]))" },
 			{ 2, "=(#arg[1],$in(#arg[2]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_INC, "inc",{
