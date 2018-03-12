@@ -120,7 +120,7 @@ namespace holodec {
 	struct SSAArgument {
 		//HId id = 0;
 		SSAArgType type = SSAArgType::eUndef;
-		uint32_t offset = 0, size = -1;
+		uint32_t offset = 0, size = 0;
 		int64_t valueoffset = 0;
 		union {
 			HId ssaId;
@@ -335,6 +335,7 @@ namespace holodec {
 	struct SSAExpression {
 		HId id = 0;
 		HId uniqueId = 0;
+		HId blockId = 0;
 		SSAExprType type = SSAExprType::eInvalid;
 		uint32_t size = 0;
 		SSAType exprtype = SSAType::eUnknown;
@@ -342,13 +343,11 @@ namespace holodec {
 			SSAFlagType flagType;
 			SSAOpType opType;
 			HId builtinId;
-			//HId instrId;
 		};
 		SSALocation location = SSALocation::eNone;
 		Reference locref = {0,0};
 		uint64_t instrAddr = 0;
-		
-		//HLocalBackedList<SSAArgument, SSA_LOCAL_USEID_MAX> subExpressions;
+
 		HList<HId> refs;
 		HList<HId> directRefs;
 		HList<SSAArgument> subExpressions;
@@ -410,7 +409,10 @@ namespace holodec {
 	};
 
 
-	struct SSARepresentation {
+	class SSARepresentation {
+		HList<HId>::iterator addBefore(SSAExpression* expr, HList<HId>& ids, HList<HId>::iterator it);
+		HList<HId>::iterator addAfter(SSAExpression* expr, HList<HId>& ids, HList<HId>::iterator it);
+	public:
 		HIdList<SSABB> bbs;
 		HSparseIdList<SSAExpression> expressions;
 
@@ -447,16 +449,11 @@ namespace holodec {
 		HId addAtStart(SSAExpression* expr, HId blockId);
 		HId addAtStart(SSAExpression* expr, SSABB* bb);
 		
-		HId addBefore(SSAExpression* expr, HId ssaId, HId blockId);
-		HId addBefore(SSAExpression* expr, HId ssaId, SSABB* bb = nullptr);
-		HList<HId>::iterator addBefore(SSAExpression* expr, HList<HId>& ids, HList<HId>::iterator it);
-		HId addAfter(SSAExpression* expr, HId ssaId, HId blockId);
-		HId addAfter(SSAExpression* expr, HId ssaId, SSABB* bb = nullptr);
-		HList<HId>::iterator addAfter(SSAExpression* expr, HList<HId>& ids, HList<HId>::iterator it);
-		
+		HId addBefore(SSAExpression* expr, HId ssaId);
+		HId addAfter(SSAExpression* expr, HId ssaId);
+
 		HList<HId>::iterator removeExpr(HList<HId>& ids, HList<HId>::iterator it);
-		void removeExpr(HId ssaId, HId blockId);
-		void removeExpr(HId ssaId, SSABB* bb = nullptr);
+		void removeExpr(HId ssaId);
 
 		bool usedOnlyInFlags(SSAExpression& expr) {
 			for (HId id : expr.directRefs) {//iterate refs

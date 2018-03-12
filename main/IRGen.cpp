@@ -199,7 +199,7 @@ namespace holodec {
 				IRArgument arg = IRArgument::createIRId (arch->addIrExpr (expression), expression.size);
 				return arg;
 			}
-			printParseFailure ("']'");
+			printParseFailure ("']'"); 
 			return IRArgument::create();
 		}
 		return arg;

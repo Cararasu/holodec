@@ -389,7 +389,6 @@ namespace holodec {
 			splitArg2.size = firstsize;
 			splitArg2.offset = firstSub.size;
 
-
 			//Expression references invalidated
 			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondSub.id), combine1.size);
 			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);

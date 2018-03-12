@@ -313,7 +313,7 @@ namespace holodec {
 			printf("                ");
 			break;
 		}
-		printf ("Ref: %2.2" PRId64 " UId: %4.4" PRIx64 " | %4.4" PRId32 " = ", refs.size(), uniqueId, id);
+		printf ("Ref: %2.2" PRId64 " UId: %4.4" PRIx64 " Block: %2.2" PRId32 " | %4.4" PRId32 " = ", refs.size(), uniqueId, blockId, id);
 		for (SSAArgument& arg : subExpressions) {
 			arg.print(arch);
 			printf(", ");
@@ -562,13 +562,15 @@ namespace holodec {
 					if (arg.type == SSAArgType::eId && !expressions[arg.ssaId].id)
 						return false;
 				}
+				if (!expr.blockId)
+					return false;
+				for (HId& id : expr.refs)
+					if (!(id && id <= expressions.size() && expressions[id].id))
+						return false;
+				for (HId& id : expr.directRefs)
+					if (!(id && id <= expressions.size() && expressions[id].id))
+						return false;
 			}
-			for (HId& id : expr.refs)
-				if (!(id && id <= expressions.size() && expressions[id].id))
-					return false;
-			for (HId& id : expr.directRefs)
-				if (!(id && id <= expressions.size() && expressions[id].id))
-					return false;
 		}
 		return true;
 	}
@@ -671,6 +673,7 @@ namespace holodec {
 	HId SSARepresentation::addAtEnd (SSAExpression* expr, SSABB* bb) {
 		HId newId = addExpr (expr);
 		bb->exprIds.push_back (newId);
+		expressions[newId].blockId = bb->id;
 		return newId;
 	}
 	HId SSARepresentation::addAtStart (SSAExpression* expr, HId blockId) {
@@ -679,63 +682,33 @@ namespace holodec {
 	HId SSARepresentation::addAtStart (SSAExpression* expr, SSABB* bb) {
 		HId newId = addExpr (expr);
 		bb->exprIds.insert (bb->exprIds.begin(), newId);
+		expressions[newId].blockId = bb->id;
 		return newId;
 	}
 
-	HId SSARepresentation::addBefore (SSAExpression* expr, HId ssaId, HId blockId) {
-		if (blockId)
-			return addBefore (expr, ssaId, &bbs[blockId]);
-		else
-			return addBefore (expr, ssaId);
-	}
-	HId SSARepresentation::addBefore (SSAExpression* expr, HId ssaId, SSABB* bb) {
+	HId SSARepresentation::addBefore (SSAExpression* expr, HId ssaId) {
 		if (! (ssaId && ssaId <= expressions.size() && expressions[ssaId].id))
 			return 0;
-
-		if (bb) {
-			for (auto it = bb->exprIds.begin(); it != bb->exprIds.end(); ++it) {
-				if (*it == ssaId) {
-					it = addBefore (expr, bb->exprIds, it);
-					return *it;
-				}
+		SSABB& bb = bbs[expressions[ssaId].blockId];
+		for (auto it = bb.exprIds.begin(); it != bb.exprIds.end(); ++it) {
+			if (*it == ssaId) {
+				it = bb.exprIds.insert(it, addExpr(expr));
+				expressions[*it].blockId = bb.id;
+				return *it;
 			}
 		}
-		for (SSABB& basicblock : bbs) {
-			for (auto it = basicblock.exprIds.begin(); it != basicblock.exprIds.end(); ++it) {
-				if (*it == ssaId) {
-					it = addBefore(expr, basicblock.exprIds, it);
-					return *it;
-				}
-			}
-		}
+		assert(false);
 		return 0;
 	}
-	HList<HId>::iterator SSARepresentation::addBefore (SSAExpression* expr, HList<HId>& ids, HList<HId>::iterator it) {
-		return ids.insert (it, addExpr (expr));
-	}
-	HId SSARepresentation::addAfter (SSAExpression* expr, HId ssaId, HId blockId) {
-		if (blockId)
-			return addAfter (expr, ssaId, &bbs[blockId]);
-		else
-			return addAfter (expr, ssaId);
-	}
-	HId SSARepresentation::addAfter (SSAExpression* expr, HId ssaId, SSABB* bb) {
+	HId SSARepresentation::addAfter (SSAExpression* expr, HId ssaId) {
 		if (! (ssaId && ssaId <= expressions.size() && expressions[ssaId].id))
 			return 0;
-		if (bb) {
-			for (auto it = bb->exprIds.begin(); it != bb->exprIds.end(); ++it) {
-				if (*it == ssaId) {
-					return *addAfter(expr, bb->exprIds, it);
-				}
-			}
-		}
-		else {
-			for (SSABB& basicblock : bbs) {
-				for (auto it = basicblock.exprIds.begin(); it != basicblock.exprIds.end(); ++it) {
-					if (*it == ssaId) {
-						return *addAfter(expr, basicblock.exprIds, it);
-					}
-				}
+		SSABB& bb = bbs[expressions[ssaId].blockId];
+		for (auto it = bb.exprIds.begin(); it != bb.exprIds.end(); ++it) {
+			if (*it == ssaId) {
+				it = bb.exprIds.insert(it + 1, addExpr(expr));
+				expressions[*it].blockId = bb.id;
+				return *it;
 			}
 		}
 		assert(false);
@@ -750,29 +723,14 @@ namespace holodec {
 		expr.id = 0;
 		return ids.erase (it);
 	}
-	void SSARepresentation::removeExpr (HId ssaId, HId blockId) {
-		if (blockId)
-			removeExpr (ssaId, &bbs[blockId]);
-		else
-			removeExpr (ssaId);
-	}
-	void SSARepresentation::removeExpr (HId ssaId, SSABB* bb) {
+	void SSARepresentation::removeExpr (HId ssaId) {
 		if (! (ssaId && ssaId <= expressions.size() && expressions[ssaId].id))
 			return;
-		if (bb) {
-			for (auto it = bb->exprIds.begin(); it != bb->exprIds.end(); ++it) {
-				if (*it == ssaId) {
-					removeExpr (bb->exprIds, it);
-					return;
-				}
-			}
-		}
-		for (SSABB& basicblock : bbs) {
-			for (auto it = basicblock.exprIds.begin(); it != basicblock.exprIds.end(); ++it) {
-				if (*it == ssaId) {
-					removeExpr (basicblock.exprIds, it);
-					return;
-				}
+		SSABB& bb = bbs[expressions[ssaId].blockId];
+		for (auto it = bb.exprIds.begin(); it != bb.exprIds.end(); ++it) {
+			if (*it == ssaId) {
+				removeExpr (bb.exprIds, it);
+				return;
 			}
 		}
 	}

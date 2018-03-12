@@ -341,7 +341,10 @@ namespace holodec {
 						bb.exprIds.erase (it, bb.exprIds.end());
 
 						SSABB createdbb (bb.fallthroughId, addr, newEndAddr, exprsOfNewBlock, {oldId}, bb.outBlocks);
-						ssaRepresentation->bbs.push_back (createdbb);
+						HId newBlockId = ssaRepresentation->bbs.push_back (createdbb);
+						for (HId id : exprsOfNewBlock) {//set the blockid for the split block
+							ssaRepresentation->expressions[id].blockId = newBlockId;
+						}
 
 						SSABB* newbb = &ssaRepresentation->bbs.back();
 						SSABB* oldbb = ssaRepresentation->bbs.get (oldId);
@@ -434,7 +437,7 @@ namespace holodec {
 				}
 				updateExpression.subExpressions.push_back (SSAArgument::createId(ssaId, baseReg->size));
 				if ((parentReg->offset + parentReg->size) != (baseReg->offset + baseReg->size)) {
-					updateExpression.subExpressions.push_back(SSAArgument::createReg(parentReg, baseReg->offset + baseReg->size));
+					updateExpression.subExpressions.push_back(SSAArgument::createReg(parentReg, 0, baseReg->offset + baseReg->size));
 					updateExpression.subExpressions.back().size = (parentReg->size + parentReg->offset) - (baseReg->offset + baseReg->size);
 				}
 			}

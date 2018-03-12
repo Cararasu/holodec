@@ -165,6 +165,9 @@
     <ClCompile Include="SSAApplyRegRef.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="SSACalleeCallerRegs.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Architecture.h">
@@ -303,6 +306,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="SSA.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="SSACalleeCallerRegs.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
