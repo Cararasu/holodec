@@ -320,8 +320,19 @@ namespace holodec {
 				case '0':case '1':case '2':case '3':case '4':
 				case '5':case '6':case '7':case '8':case '9':
 					int64_t size;
-					if (parseNumber(&size))
-						arg->size = size;
+					if (parseNumber(&size)) {
+						if (arg->size >= size) {
+							arg->size = size;
+						}
+						else {
+							IRExpression expression;
+							expression.type = IR_EXPR_EXTEND;
+							expression.size = size;
+							expression.exprtype = SSAType::eUInt;
+							expression.subExpressions = {*arg, IRArgument::createUVal(expression.size, arch->bitbase * arch->bytebase)};
+							*arg = IRArgument::createIRId(arch->addIrExpr(expression), expression.size);
+						}
+					}
 					continue;
 				default:
 					break;

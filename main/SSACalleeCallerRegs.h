@@ -45,9 +45,9 @@ namespace holodec {
 
 		SSARepresentation* ssaRep;
 
-		bool isInput(CalleeArgument arg, uint32_t outoffset, CalleeArgument* retArg);
+		bool isInput(CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, CalleeArgument* retArg);
 
-		bool isInputMem(HId memId, CalleeArgument arg, uint32_t outoffset, std::set<HId>& visited, CalleeArgument* retArg, CalleeArgument ptrArg);
+		bool isInputMem(HId memId, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, CalleeArgument* retArg, CalleeArgument ptrArg);
 
 		virtual bool doTransformation(Binary* binary, Function* function);
 

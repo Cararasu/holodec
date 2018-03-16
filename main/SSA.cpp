@@ -59,7 +59,7 @@ namespace holodec {
 		if (arg.type == SSAArgType::eId) {//remove ref
 			rep->expressions[arg.ssaId].directRefs.push_back(id);
 		}
-		return subExpressions.insert(it, arg);
+		return subExpressions.insert(it, arg) + 1;
 	}
 	void SSAExpression::replaceArgument(SSARepresentation* rep, int index, SSAArgument arg) {
 		if (subExpressions[index].type == SSAArgType::eId) {//remove ref
@@ -152,9 +152,6 @@ namespace holodec {
 			break;
 		case SSAExprType::eCJmp:
 			printf ("Cjmp   ");
-			break;
-		case SSAExprType::eMultiBranch:
-			printf ("Mlt-Br ");
 			break;
 		case SSAExprType::eOp:
 			printf ("Op");
@@ -560,6 +557,8 @@ namespace holodec {
 					if (arg.type == SSAArgType::eId && !(arg.ssaId > 0 && arg.ssaId <= expressions.size()))
 						return false;
 					if (arg.type == SSAArgType::eId && !expressions[arg.ssaId].id)
+						return false;
+					if (arg.type == SSAArgType::eId && expressions[arg.ssaId].size < arg.offset + arg.size)
 						return false;
 				}
 				if (!expr.blockId)

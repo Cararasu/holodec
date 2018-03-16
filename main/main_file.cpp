@@ -214,7 +214,10 @@ int main (int argc, const char** argv) {
 		if (func) {
 			transformers[0]->doTransformation(binary, func);
 			transformers[1]->doTransformation(binary, func);
-			assert(func->ssaRep.checkIntegrity());
+			/*if (!func->ssaRep.checkIntegrity()) {
+				func->print(binary->arch);
+				assert(false);
+			}*/
 			func->ssaRep.recalcRefCounts();
 		}
 	}
@@ -230,11 +233,20 @@ int main (int argc, const char** argv) {
 		//	Function* func = binary->getFunctionByAddr(addr);
 			if (func) {
 				bool applied = false;
+				if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
+					func->print(binary->arch);
+				/*if (!func->ssaRep.checkIntegrity()) {
+					func->print(binary->arch);
+					assert(false);
+				}*/
 				do {
 					applied = false;
 					applied |= transformers[2]->doTransformation(binary, func);
 					func->ssaRep.recalcRefCounts();
-					assert(func->ssaRep.checkIntegrity());
+					/*if (!func->ssaRep.checkIntegrity()) {
+						func->print(binary->arch);
+						assert(false);
+					}*/
 					applied |= transformers[3]->doTransformation(binary, func);
 					applied |= transformers[4]->doTransformation(binary, func);
 					applied |= transformers[5]->doTransformation(binary, func);
@@ -252,9 +264,10 @@ int main (int argc, const char** argv) {
 		if (func) {
 			func->ssaRep.recalcRefCounts();
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-			//func->print(binary->arch);
-			//transformers[6]->doTransformation(binary, func);
-			func->print(binary->arch);
+			if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
+				func->print(binary->arch);
+			if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
+				transformers[6]->doTransformation(binary, func);
 		}
 	}
 	delete optimizer;

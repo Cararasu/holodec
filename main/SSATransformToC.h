@@ -29,7 +29,9 @@ namespace holodec {
 		void printBasicBlock(SSABB& bb);
 		void printExpression(SSAExpression& expression);
 		void resolveArgs(SSAExpression& expression, const char* delimiter = ", ");
+		void resolveArgWithoutOffset(SSAArgument& arg);
 		void resolveArg(SSAArgument& arg);
+		void resolveMemArg(SSAArgument& arg, uint32_t size);
 		void resolveExpression(SSAExpression& expression);
 		bool shouldResolve(SSAExpression& expr);
 

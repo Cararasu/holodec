@@ -85,7 +85,7 @@ bool holodec::FunctionAnalyzer::trySplitBasicBlock (uint64_t splitaddr) {
 	return false;
 }
 void holodec::FunctionAnalyzer::addAddressToAnalyze (uint64_t addr) {
-	if (std::find (state.function->addrToAnalyze.begin(), state.function->addrToAnalyze.end(), addr) == state.function->addrToAnalyze.end()) {
+	if (state.function->addrToAnalyze.find(addr) == state.function->addrToAnalyze.end()) {
 		printf ("Add Address for Analyze 0x%" PRIx64 "\n", addr);
 		state.function->addrToAnalyze.insert (addr);
 	}

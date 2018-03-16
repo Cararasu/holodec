@@ -7,8 +7,46 @@
 
 namespace holodec {
 
+	bool SSAAddressToBlockTransformer::resolveDstTarget(SSABB& block, SSAExpression& expr, SSAArgument& arg) {
+		if (arg.type == SSAArgType::eUInt) {
+			for (SSABB& bb : function->ssaRep.bbs) {
+				if (bb.startaddr == arg.uval) {
+					arg = SSAArgument::createBlock(bb.id);
+					block.outBlocks.insert(bb.id);
+					bb.inBlocks.insert(block.id);
+					return true;
+				}
+			}
+		}
+		else {
+			if (arg.type == SSAArgType::eOther && arg.location != SSALocation::eBlock) {
+				SSAExpression& loadExpr = function->ssaRep.expressions[arg.ssaId];
+				if (loadExpr.type == SSAExprType::eLoad) {
+					uint64_t baseaddr;
+					if (function->ssaRep.calcConstValue(loadExpr.subExpressions[0], &baseaddr)) {
+						if (arch->bytebase < sizeof(uint64_t))
+							baseaddr %= ((uint64_t)1 << (arch->bytebase * arch->bitbase));
+
+						Symbol* sym = binary->findSymbol(baseaddr, &SymbolType::symdynfunc);
+						if (sym) {
+							sym->print();
+						}
+					}
+				}
+			}
+			for (Register& reg : arch->registers) {
+				if (!reg.id || reg.directParentRef)
+					continue;
+				expr.subExpressions.push_back(SSAArgument::createReg(&reg, 0));
+			}
+			return true;
+		}
+
+	}
 	bool SSAAddressToBlockTransformer::doTransformation(Binary* binary, Function* function){
 
+		this->binary = binary;
+		this->function = function;
 		bool applied = false;
 
 		for (SSABB& block : function->ssaRep.bbs) {
@@ -32,56 +70,11 @@ namespace holodec {
 
 			for (HId& id : block.exprIds) {
 				SSAExpression& expression = function->ssaRep.expressions[id];
-				if (expression.type == SSAExprType::eJmp || expression.type == SSAExprType::eCJmp) {
-					if (expression.subExpressions[0].type == SSAArgType::eUInt) {
-						for (SSABB& bb : function->ssaRep.bbs) {
-							if (bb.startaddr == expression.subExpressions[0].uval) {
-								expression.subExpressions[0] = SSAArgument::createBlock(bb.id);
-								block.outBlocks.insert(bb.id);
-								bb.inBlocks.insert(block.id);
-								applied = true;
-								break;
-							}
-						}
-					}
-					else {
-						if (expression.subExpressions[0].type == SSAArgType::eOther && expression.subExpressions[0].location != SSALocation::eBlock) {
-							SSAExpression& loadExpr = function->ssaRep.expressions[expression.subExpressions[0].ssaId];
-							if (loadExpr.type == SSAExprType::eLoad) {
-								uint64_t baseaddr;
-								if (function->ssaRep.calcConstValue(loadExpr.subExpressions[0], &baseaddr)) {
-									if (arch->bytebase < sizeof(uint64_t))
-										baseaddr %= ((uint64_t)1 << (arch->bytebase * arch->bitbase));
-
-									Symbol* sym = binary->findSymbol(baseaddr, &SymbolType::symdynfunc);
-									if (sym) {
-										sym->print();
-									}
-								}
-							}
-						}
-						for (Register& reg : arch->registers) {
-							if (!reg.id || reg.directParentRef)
-								continue;
-							expression.subExpressions.push_back(SSAArgument::createReg(&reg, 0));
-						}
-						applied = true;
-					}
+				if (expression.type == SSAExprType::eJmp) {
+					applied |= resolveDstTarget(block, expression, expression.subExpressions[0]);
 				}
-				else if (expression.type == SSAExprType::eMultiBranch) {
-					for (auto it = expression.subExpressions.begin() + 1; it != expression.subExpressions.end(); ++it) {
-						if (it->type == SSAArgType::eUInt) {
-							for (SSABB& bb : function->ssaRep.bbs) {
-								if (bb.startaddr == it->uval) {
-									it->set(SSAArgument::createBlock(bb.id));
-									block.outBlocks.insert(bb.id);
-									bb.inBlocks.insert(block.id);
-									applied = true;
-									break;
-								}
-							}
-						}
-					}
+				else if (expression.type == SSAExprType::eCJmp) {
+					applied |= resolveDstTarget(block, expression, expression.subExpressions[0]);
 				}
 			}
 		}

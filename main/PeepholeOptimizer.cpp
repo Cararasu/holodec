@@ -133,40 +133,53 @@ namespace holodec {
 		})*/
 		.ssaType(0, 0, SSAExprType::eAppend)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+
+			//TODO the appends seem to not be simplified correctly and sometimes even completely removed
+
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
 			bool subAppends = false;
+
 			for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();) {
 				SSAArgument arg = *it;
-				uint32_t offset = it->offset;
-				uint32_t offsetlimit = it->offset + it->size;
-				if (arg.type == SSAArgType::eId) {
-					SSAExpression& subExpr = ssaRep->expressions[arg.ssaId];
-					if (subExpr.type == SSAExprType::eAppend) {
-						subAppends = true;
-						it = expr.removeArgument(ssaRep, it);
-						uint32_t innerOffset = 0;
-						for (auto innerIt = subExpr.subExpressions.begin(); innerIt != subExpr.subExpressions.end(); ++innerIt) {
-							if (innerOffset >= offsetlimit)
-								break;
-							if (offset < innerOffset + innerIt->size) {
-								SSAArgument innerArg = *innerIt;
-
-								if(innerOffset < offset)
-									innerArg.offset += offset - innerOffset;
-								if (offsetlimit < innerOffset + innerIt->size)
-									innerArg.size -= (innerOffset + arg.size) - offsetlimit;
-								it = expr.insertArgument(ssaRep, it, innerArg);
-								if (offset > offsetlimit)
-									offset = offsetlimit;
-							}
-							innerOffset += innerIt->size;
-						}
-						offset += arg.size;
-						continue;
-					}
+				if (arg.type != SSAArgType::eId) {
+					++it;
+					continue;
 				}
-				offset += it->size;
-				++it;
+				SSAExpression& subExpr = ssaRep->expressions[arg.ssaId];
+				if (subExpr.type != SSAExprType::eAppend) {
+					++it;
+					continue;
+				}
+				subAppends = true;
+				uint32_t offset = it->offset;
+				int64_t valueOffset = it->valueoffset;
+				assert(it->offset + it->size <= subExpr.size);
+				expr.print(arch);
+				printf("Sub: %d-%d\n", offset, arg.size);
+				subExpr.print(arch);
+				uint32_t offsetlimit = it->offset + it->size;
+				it = expr.removeArgument(ssaRep, it);
+				uint32_t innerOffset = 0;
+				for (auto innerIt = subExpr.subExpressions.begin(); innerIt != subExpr.subExpressions.end(); ++innerIt) {
+					if (innerOffset >= offsetlimit)
+						break;
+					if (offset < innerOffset + innerIt->size) {
+						SSAArgument innerArg = *innerIt;
+
+						if(innerOffset < offset)
+							innerArg.offset += offset - innerOffset;
+						if (offsetlimit < innerOffset + innerIt->size)
+							innerArg.size -= (innerOffset + innerIt->size) - offsetlimit;
+						innerArg.valueoffset += valueOffset;
+						innerArg.print(arch);
+						printf("\n");
+						it = expr.insertArgument(ssaRep, it, innerArg);
+					}
+					innerOffset += innerIt->size;
+				}
+				expr.print(arch);
+				fflush(stdout);
+				printf("\n");
 			}
 			return subAppends;
 		})
@@ -203,42 +216,28 @@ namespace holodec {
 					}
 					++it;
 				}
-				if (expr.subExpressions.size() == 1) {
-					expr.type = SSAExprType::eAssign;
-					return true;
-				}
 			}
 			assert(expr.subExpressions.size());
 			auto baseit = expr.subExpressions.begin();
-			uint64_t offset = baseit->offset;
-			for (auto it = baseit; it != expr.subExpressions.end(); it++) {
+			for (auto it = baseit; it != expr.subExpressions.end();) {
 				//if ssaId does not change and offset fits
-				if (!consecutive_args(baseit, it)) {
-					if (std::distance(baseit, it) > 1) {
-						SSAArgument arg = *baseit;
-						arg.size = offset - baseit->offset;
-						it = expr.insertArgument(ssaRep, expr.removeArguments(ssaRep, baseit, it), arg);//replace range with arg
-						replaced = true;
-					}
-					baseit = it;
-					offset = baseit->offset;
+				if (baseit + 1 == it && consecutive_arg(*baseit, *it)) {
+					SSAArgument arg = *baseit;
+					arg.size = it->offset - baseit->offset;
+					arg.valueoffset += it->valueoffset * (1 << baseit->size);
+					it = expr.insertArgument(ssaRep, expr.removeArguments(ssaRep, baseit, it + 1), arg);//replace range with arg
+					replaced = true;
+					continue;
 				}
-				if (it->offset == offset) {
-					offset += it->size;
-				}
-			}
-			if (std::distance(baseit, expr.subExpressions.end()) > 1) {
-				SSAArgument arg = *baseit;
-				arg.size = offset - arg.offset;
-				expr.insertArgument(ssaRep, expr.removeArguments(ssaRep, baseit, expr.subExpressions.end()), arg);
-				if (expr.subExpressions.size() == 1) {
-					expr.type = SSAExprType::eAssign;
-				}
-				g_peephole_logger.log<LogLevel::eDebug>("Replace Appends of same Expr at end");
-				return true;
+				baseit = it;
+				it++;
 			}
 			if (replaced) {
 				g_peephole_logger.log<LogLevel::eDebug>("Replace Some Appends of same Expr");
+			}
+			if (expr.subExpressions.size() == 1) {
+				expr.type = SSAExprType::eAssign;
+				return true;
 			}
 			return replaced;
 		});
@@ -387,10 +386,10 @@ namespace holodec {
 
 			SSAArgument splitArg2 = addArg;
 			splitArg2.size = firstsize;
-			splitArg2.offset = firstSub.size;
+			splitArg2.offset = secondSub.size;
 
 			//Expression references invalidated
-			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondSub.id), combine1.size);
+			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, firstSub.id), combine1.size);
 			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
 
 			//set arguments of first arg

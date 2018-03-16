@@ -48,7 +48,6 @@ namespace holodec {
 
 		eJmp		= SSA_EXPR_JMP,
 		eCJmp		= SSA_EXPR_CJMP,
-		eMultiBranch= SSA_EXPR_MULTIBR,
 
 		eMemAccess	= SSA_EXPR_MEMACCESS,
 		eStore		= SSA_EXPR_STORE,
@@ -157,11 +156,11 @@ namespace holodec {
 				arg.locref = locref;
 			}
 			arg.size = size;
-			arg.offset += offset;
 			if (arg.size < 0) {
 				puts(" ");
 			}
-			arg.valueoffset += valueoffset;
+			arg.valueoffset = (arg.valueoffset / (1 << offset)) + (valueoffset / (1 << arg.offset));
+			arg.offset += offset;
 			*this = arg;
 		}
 		void set(SSAArgument arg) {
@@ -297,7 +296,7 @@ namespace holodec {
 	}
 	inline bool consecutive_arg(SSAArgument& lhs, SSAArgument& rhs) {
 
-		if (lhs.type == rhs.type && lhs.size + lhs.offset == rhs.offset && lhs.valueoffset == rhs.valueoffset) {
+		if (lhs.type == rhs.type && lhs.size + lhs.offset == rhs.offset) {
 			switch (lhs.type) {
 			case SSAArgType::eSInt:
 				return lhs.sval == rhs.sval;

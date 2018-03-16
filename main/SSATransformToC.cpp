@@ -19,7 +19,7 @@ namespace holodec{
 
 
 	void SSATransformToC::printBasicBlock(SSABB& bb) {
-		printf("Basic Block %d\n", bb.id);
+		printf("L%d:\n", bb.id);
 		for (HId id : bb.exprIds) {
 			SSAExpression& expr = function->ssaRep.expressions[id];
 			if (shouldResolve(expr))
@@ -27,7 +27,7 @@ namespace holodec{
 		}
 
 		if(bb.fallthroughId)
-			printf("goto %d\n", bb.fallthroughId);
+			printf("goto L%d\n", bb.fallthroughId);
 	}
 	void SSATransformToC::resolveArgs(SSAExpression& expr, const char* delimiter) {
 		printf("(");
@@ -49,8 +49,7 @@ namespace holodec{
 		}
 		return nullptr;
 	}
-	void SSATransformToC::resolveArg(SSAArgument& arg) {
-
+	void SSATransformToC::resolveArgWithoutOffset(SSAArgument& arg) {
 		switch (arg.type) {
 		case SSAArgType::eUndef:
 			printf("undef");
@@ -59,7 +58,7 @@ namespace holodec{
 			printf("%d", arg.sval);
 			break;
 		case SSAArgType::eUInt:
-			printf("%u", arg.uval);
+			printf("0x%x", arg.uval);
 			break;
 		case SSAArgType::eFloat:
 			printf("%f", arg.fval);
@@ -84,7 +83,6 @@ namespace holodec{
 			}
 			else if (resolveIds.find(subExpr.id) != resolveIds.end()) {
 				printf("tmp%d", subExpr.id);
-				return;
 			}
 			else {
 				resolveExpression(subExpr);
@@ -97,10 +95,25 @@ namespace holodec{
 		case SSAArgType::eOther:
 			break;
 		}
+	}
+	void SSATransformToC::resolveArg(SSAArgument& arg) {
+		resolveArgWithoutOffset(arg);
 		if(arg.valueoffset > 0){
 			printf(" + %d ", arg.valueoffset);
 		}else if(arg.valueoffset < 0){
 			printf(" - %d ", arg.valueoffset * -1);
+		}
+	}
+	void SSATransformToC::resolveMemArg(SSAArgument& arg, uint32_t size) {
+		uint32_t bytesize = arch->bitToByte(size);
+		if (bytesize == 1) {
+			resolveArgWithoutOffset(arg);
+			printf("[%d]", arg.valueoffset);
+		}
+		else {
+			printf("*((uint%d_t *)", size);
+			resolveArg(arg);
+			printf(")");
 		}
 	}
 	void SSATransformToC::resolveExpression(SSAExpression& expr) {
@@ -251,7 +264,17 @@ namespace holodec{
 				}
 			}
 			printf("Call ");
-			resolveArgs(expr);
+			resolveArg(expr.subExpressions[0]);
+			printf("(");
+			for (size_t i = 0; i < expr.subExpressions.size(); i++) {
+				SSAArgument& arg = expr.subExpressions[i];
+				if (arg.type == SSAArgType::eId && arg.location == SSALocation::eReg) {
+					printf("%s <- ", arch->getRegister(arg.locref.refId)->name.cstr());
+					resolveArg(arg);
+					printf(", ");
+				}
+			}
+			printf(")");
 		}break;
 		case SSAExprType::eReturn: {
 			printf("Return ");
@@ -285,34 +308,42 @@ namespace holodec{
 		}break;
 
 		case SSAExprType::eJmp: {
-			printf("Jmp ");
-			resolveArgs(expr);
+			SSAArgument& blockarg = expr.subExpressions[0];
+			if (blockarg.type == SSAArgType::eOther && blockarg.location == SSALocation::eBlock)
+				printf("goto L%d", blockarg.locref.refId);
 		}break;
 		case SSAExprType::eCJmp: {
-			printf("CJmp ");
-			resolveArgs(expr);
+			printf("if(");
+			resolveArg(expr.subExpressions[1]);
+			printf(")");
+			SSAArgument& blockarg = expr.subExpressions[0];
+			if (blockarg.type == SSAArgType::eOther && blockarg.location == SSALocation::eBlock)
+				printf(" goto L%d", blockarg.locref.refId);
+			else {
+				printf(" goto ");
+				resolveArg(blockarg);
+			}
 		}break;
-		case SSAExprType::eMultiBranch:
-			printf("Multibranch");
-			break;
 		case SSAExprType::eMemAccess: {
 			printf("MemAccess ");
 			resolveArgs(expr);
 		}break;
 		case SSAExprType::eStore: {
-			printf("Store ");
-			resolveArgs(expr);
+			SSAArgument& valueArg = expr.subExpressions[2];
+
+			resolveMemArg(expr.subExpressions[1], valueArg.size);
+			printf(" = ");
+			resolveArg(valueArg);
 		}break;
 		case SSAExprType::eLoad: {
-			printf("Load ");
-			resolveArgs(expr);
+			resolveMemArg(expr.subExpressions[1], expr.size);
 		}break;
 		}
 		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
 			printf(")");
 	}
 	void SSATransformToC::printExpression(SSAExpression& expr) {
-		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::ePhi)
+		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::ePhi || expr.type == SSAExprType::eMemOutput)
 			return;
 		resolveIds.insert(expr.id);
 		printIndent(1);

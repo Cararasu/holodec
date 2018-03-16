@@ -316,7 +316,7 @@ namespace holoavr {
 			{ 2, "==(#arg[2],60)", "=(#arg[1],$eind)" },
 			{ 2, "==(#arg[2],61)", "=(#arg[1],$spl)" },
 			{ 2, "==(#arg[2],62)", "=(#arg[1],$sph)" },
-			{ 2, "==(#arg[2],63)", "=(#arg[1],#app($cf[1],$zf[1],$nf[1],$vf[1],$sf[1],$hf[1],$tf[1],$if[1]))" },
+			{ 2, "==(#arg[2],63)", "=(#arg[1],#app($cf,$zf,$nf,$vf,$sf,$hf,$tf,$if))" },
 			{ 2, "=(#arg[1],$in(#arg[2]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_INC, "inc",{
@@ -477,7 +477,7 @@ namespace holoavr {
 			{ 0, "=($sf,1)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SET, "set",{
-			{ 0, "=($tf,1)" }
+			{ 0, "=($tf,1)" } 
 		}, InstructionType::eCall },
 		{ AVR_INSTR_SEV, "sev",{
 			{ 0, "=($vf,1)" }
