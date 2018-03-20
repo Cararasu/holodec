@@ -14,8 +14,11 @@ namespace holodec {
 		subExpressions.push_back(arg);
 	}
 	void SSAExpression::setArgument(SSARepresentation* rep, int index, SSAArgument arg) {
-		if (subExpressions[index].type == SSAArgType::eId) {//remove ref
-			SSAExpression& expr = rep->expressions[subExpressions[index].ssaId];
+		setArgument(rep, subExpressions.begin() + index, arg);
+	}
+	void SSAExpression::setArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg) {
+		if (it->type == SSAArgType::eId) {//remove ref
+			SSAExpression& expr = rep->expressions[it->ssaId];
 			for (auto it = expr.directRefs.begin(); it != expr.directRefs.end(); ++it) {
 				if (*it == id) {
 					expr.directRefs.erase(it);//erase only one
@@ -27,7 +30,7 @@ namespace holodec {
 			SSAExpression& expr = rep->expressions[arg.ssaId];
 			expr.directRefs.push_back(id);
 		}
-		subExpressions[index].set(arg);
+		it->set(arg);
 	}
 	HList<SSAArgument>::iterator SSAExpression::removeArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it) {
 		if (it->type == SSAArgType::eId) {//remove ref

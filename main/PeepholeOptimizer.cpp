@@ -217,20 +217,63 @@ namespace holodec {
 					++it;
 				}
 			}
-			assert(expr.subExpressions.size());
-			auto baseit = expr.subExpressions.begin();
-			for (auto it = baseit; it != expr.subExpressions.end();) {
-				//if ssaId does not change and offset fits
-				if (baseit + 1 == it && consecutive_arg(*baseit, *it)) {
-					SSAArgument arg = *baseit;
-					arg.size = it->offset - baseit->offset;
-					arg.valueoffset += it->valueoffset * (1 << baseit->size);
-					it = expr.insertArgument(ssaRep, expr.removeArguments(ssaRep, baseit, it + 1), arg);//replace range with arg
-					replaced = true;
-					continue;
+			if (expr.subExpressions.size() > 1) {
+				auto baseit = expr.subExpressions.begin();
+				for (auto it = expr.subExpressions.begin() + 1; it != expr.subExpressions.end(); ) {
+					auto lastit = expr.subExpressions.begin();
+					if (baseit + 1 == it && it->type == SSAArgType::eId && it->location != SSALocation::eMem && baseit->type == SSAArgType::eId && baseit->location != SSALocation::eMem) {
+						SSAExpression& firstExpr = ssaRep->expressions[baseit->ssaId];
+						SSAExpression& secExpr = ssaRep->expressions[it->ssaId];
+
+						if (firstExpr.type == SSAExprType::eLoad && secExpr.type == SSAExprType::eLoad && firstExpr.subExpressions[0].ssaId == secExpr.subExpressions[0].ssaId) {
+							SSAArgument& firstPtrArg = firstExpr.subExpressions[1];
+							SSAArgument& secPtrArg = secExpr.subExpressions[1];
+							if (firstPtrArg.type == secPtrArg.type) {
+								switch (firstPtrArg.type) {
+								case SSAArgType::eUInt: {
+									if ((firstPtrArg.uval + 1 == secPtrArg.uval && firstPtrArg.valueoffset == secPtrArg.valueoffset) || (firstPtrArg.uval == secPtrArg.uval && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset)){
+										SSAArgument newSecArg = *it;
+										newSecArg.offset += firstExpr.size;
+										newSecArg.ssaId = baseit->ssaId;
+										firstExpr.size += secExpr.size;
+										ssaRep->replaceAllArgs(secExpr, newSecArg);
+									}
+								}break;
+								case SSAArgType::eId: {
+									if (firstPtrArg.ssaId == secPtrArg.ssaId && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset) {
+										SSAArgument newSecArg = *it;
+										newSecArg.offset += firstExpr.size;
+										newSecArg.ssaId = baseit->ssaId;
+										firstExpr.size += secExpr.size;
+										ssaRep->replaceAllArgs(secExpr, newSecArg);
+									}
+								}break;
+								default:
+									break;
+								}
+							}
+						}
+					}
+					baseit = it;
+					it++;
 				}
-				baseit = it;
-				it++;
+			}
+			assert(expr.subExpressions.size());
+			if (expr.subExpressions.size() > 1) {
+				auto baseit = expr.subExpressions.begin();
+				for (auto it = baseit; it != expr.subExpressions.end();) {
+					//if ssaId does not change and offset fits
+					if (baseit + 1 == it && consecutive_arg(*baseit, *it)) {
+						SSAArgument arg = *baseit;
+						arg.size = it->offset - baseit->offset;
+						arg.valueoffset += it->valueoffset * (1 << baseit->size);
+						it = expr.insertArgument(ssaRep, expr.removeArguments(ssaRep, baseit, it + 1), arg);//replace range with arg
+						replaced = true;
+						continue;
+					}
+					baseit = it;
+					it++;
+				}
 			}
 			if (replaced) {
 				g_peephole_logger.log<LogLevel::eDebug>("Replace Some Appends of same Expr");

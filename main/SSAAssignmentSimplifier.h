@@ -2,6 +2,7 @@
 #define SSAASSIGNMENTSIMPLIFIER_H
 
 #include "SSATransformer.h"
+
 namespace holodec {
 
 	class SSAAssignmentSimplifier : public SSATransformer {

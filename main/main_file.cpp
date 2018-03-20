@@ -20,6 +20,7 @@
 #include "HIdList.h"
 #include "SSAPeepholeOptimizer.h"
 #include "SSATransformToC.h"
+#include "SSAAppendSimplifier.h"
 #include "SSAApplyRegRef.h"
 #include "PeepholeOptimizer.h"
 #include "ScriptingInterface.h"
@@ -186,8 +187,9 @@ int main (int argc, const char** argv) {
 		new SSAPeepholeOptimizer(),//3
 		new SSADCETransformer(),//4
 		new SSAApplyRegRef(),//5
-		new SSATransformToC(),//6
+		new SSAAppendSimplifier(),//6
 		new SSACalleeCallerRegs(),//7
+		new SSATransformToC(),//8
 	};
 
 	for (SSATransformer* transform : transformers) {
@@ -250,6 +252,7 @@ int main (int argc, const char** argv) {
 					applied |= transformers[3]->doTransformation(binary, func);
 					applied |= transformers[4]->doTransformation(binary, func);
 					applied |= transformers[5]->doTransformation(binary, func);
+					applied |= transformers[6]->doTransformation(binary, func);
 					funcChanged |= transformers[7]->doTransformation(binary, func);
 					funcChanged |= applied;
 					//func->print(binary->arch);
@@ -264,10 +267,10 @@ int main (int argc, const char** argv) {
 		if (func) {
 			func->ssaRep.recalcRefCounts();
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-			if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
-				func->print(binary->arch);
-			if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
-				transformers[6]->doTransformation(binary, func);
+			//if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
+			func->print(binary->arch);
+			//if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
+			transformers[8]->doTransformation(binary, func);
 		}
 	}
 	delete optimizer;

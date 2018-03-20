@@ -353,6 +353,7 @@ namespace holodec {
 
 		void addArgument(SSARepresentation* rep, SSAArgument arg);
 		void setArgument(SSARepresentation* rep, int index, SSAArgument arg);
+		void setArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg);
 		HList<SSAArgument>::iterator removeArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it);
 		HList<SSAArgument>::iterator removeArguments(SSARepresentation* rep, HList<SSAArgument>::iterator beginit, HList<SSAArgument>::iterator endit);
 		HList<SSAArgument>::iterator insertArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg);

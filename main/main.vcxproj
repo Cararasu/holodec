@@ -55,6 +55,7 @@
     <ClCompile Include="Section.cpp" />
     <ClCompile Include="SSA.cpp" />
     <ClCompile Include="SSAAddressToBlockTransformer.cpp" />
+    <ClCompile Include="SSAAppendSimplifier.cpp" />
     <ClCompile Include="SSAApplyRegRef.cpp" />
     <ClCompile Include="SSAAssignmentSimplifier.cpp" />
     <ClCompile Include="SSACalleeCallerRegs.cpp" />
@@ -104,6 +105,7 @@
     <ClInclude Include="Section.h" />
     <ClInclude Include="SSA.h" />
     <ClInclude Include="SSAAddressToBlockTransformer.h" />
+    <ClInclude Include="SSAAppendSimplifier.h" />
     <ClInclude Include="SSAApplyRegRef.h" />
     <ClInclude Include="SSAAssignmentSimplifier.h" />
     <ClInclude Include="SSACalleeCallerRegs.h" />

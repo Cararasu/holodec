@@ -242,7 +242,7 @@ namespace holodec{
 				printf("S");
 			else if (expr.exprtype == SSAType::eUInt)
 				printf("U");
-			printf("Cast%d ");
+			printf("Cast%d ", expr.size);
 			resolveArgs(expr);
 		}break;
 
