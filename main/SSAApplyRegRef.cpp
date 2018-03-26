@@ -5,7 +5,7 @@
 namespace holodec {
 
 
-	bool SSAApplyRegRef::doTransformation(Binary* binary, Function* function) {
+	bool SSAApplyRegRef::doTransformation(Binary* binary, Function* function) {// results of interprocedural liveness analysis
 		bool applied = false;
 		function->regStates.reg_states.clear();
 		function->regStates.mem_states.clear();

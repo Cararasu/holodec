@@ -2,8 +2,145 @@
 
 
 namespace holodec{
-	
 
+	//gather outputs
+	//mark every nodes outwards of outputs
+	//if there exists a node that has the same number of marks as 
+	//
+
+	bool SSATransformToC::analyzeLoop(HId bbId, ControlStruct* loopStruct) {
+		HMap<HId, bool> visitedBlocks;
+		SSABB* basicBlock = &function->ssaRep.bbs[bbId];
+		visitedBlocks.insert(std::make_pair(bbId, true));
+		bool isLoop = false;
+		for (HId id : basicBlock->outBlocks) {
+			isLoop |= analyzeLoop(id, visitedBlocks, loopStruct);
+		}
+		loopStruct->contained_blocks.insert(bbId);
+
+		for (HId id : basicBlock->outBlocks) {
+			auto it = visitedBlocks.find(id);
+			if (it != visitedBlocks.end() && !it->second) {
+				loopStruct->exit_blocks.insert(id).first->count++;
+			}
+			printf("Wups %d -> %d, %d\n", bbId, id, it->second);
+		}
+		return isLoop;
+	}
+	bool SSATransformToC::analyzeLoop(HId bbId, HMap<HId, bool>& visitedBlocks, ControlStruct* loopStruct) {
+		printf("Loop %d\n", bbId);
+		auto it = visitedBlocks.find(bbId);
+		if (it != visitedBlocks.end()) {
+			printf("Visited %d\n", bbId);
+			return it->second;
+		}
+		it = visitedBlocks.insert(std::make_pair(bbId, false)).first;
+
+		SSABB* basicBlock = &function->ssaRep.bbs[bbId];
+		bool reachesHead = false;
+		for (HId id : basicBlock->outBlocks) {
+			reachesHead |= analyzeLoop(id, visitedBlocks, loopStruct);
+			it->second = reachesHead;
+		}
+		if (reachesHead) {
+			for (HId id : basicBlock->outBlocks) {
+				auto it = visitedBlocks.find(id);
+				if (it != visitedBlocks.end() && !it->second) {
+					loopStruct->exit_blocks.insert(id).first->count++;
+				}
+				printf("Wups %d -> %d, %d\n", bbId, id, it->second);
+			}
+		}
+		if (reachesHead)
+			loopStruct->contained_blocks.insert(bbId);
+		return reachesHead;
+	}
+	void SSATransformToC::analyzeOutputBranch(HId bbId, HSet<std::pair<HId, HId>>& forwardEdges) {
+
+		SSABB* basicBlock = &function->ssaRep.bbs[bbId];
+		for (auto it = basicBlock->outBlocks.begin(); it != basicBlock->outBlocks.end(); ++it) {
+			auto engeIt = forwardEdges.find(std::make_pair(bbId, *it));
+			if (engeIt == forwardEdges.end()) {
+				forwardEdges.insert(std::make_pair(bbId, *it));
+			}
+			else {
+				return;
+			}
+			analyzeOutputBranch(*it, forwardEdges);
+		}
+	}
+	void SSATransformToC::analyzeStructure(ControlStruct& controlStruct, HId start_block_id) {
+
+		for (ControlStruct& child : controlStruct.child_struct) {
+			if (child.contained_blocks.find(start_block_id) != child.contained_blocks.end()) {
+				child.input_blocks.insert(start_block_id).first->count++;
+				return;
+			}
+		}
+
+		SSABB* basicBlock = &function->ssaRep.bbs[start_block_id];
+		ControlStruct* createdStruct = nullptr;
+		if (basicBlock->inBlocks.size() > 1) {//Loop - Check
+			createdStruct = new ControlStruct(ControlStructType::LOOP);
+			createdStruct->parent_struct = &controlStruct;
+			createdStruct->input_blocks.insert(basicBlock->id).first->count++;
+			if(!analyzeLoop(start_block_id, createdStruct)){
+				delete createdStruct;
+				createdStruct = nullptr;
+			}
+		}
+		else if (basicBlock->outBlocks.size() > 1) {//Branch - Check
+			createdStruct = new ControlStruct(ControlStructType::BRANCH);
+			createdStruct->parent_struct = &controlStruct;
+			createdStruct->input_blocks.insert(basicBlock->id).first->count++;
+			createdStruct->contained_blocks.insert(basicBlock->id);
+			for (auto it = basicBlock->outBlocks.begin(); it != basicBlock->outBlocks.end(); ++it) {
+				createdStruct->exit_blocks.insert(*it).first->count++;
+			}
+
+			HSet<std::pair<HId, HId>> forwardEdges, backwardsEdges;
+
+			for (auto it = basicBlock->outBlocks.begin(); it != basicBlock->outBlocks.end(); ++it) {
+				analyzeOutputBranch(*it, forwardEdges);
+			}
+			for (std::pair<HId, HId> entry : forwardEdges) {
+				printf("Edge Forward %d -> %d\n", entry.first, entry.second);
+			}
+			for (std::pair<HId, HId> entry : backwardsEdges) {
+				printf("Edge Backwards %d -> %d\n", entry.first, entry.second);
+			}
+		}
+		else if (basicBlock->outBlocks.size() == 1) {
+			createdStruct = new ControlStruct(ControlStructType::SEQUENCE);
+			createdStruct->parent_struct = &controlStruct;
+			createdStruct->input_blocks.insert(basicBlock->id).first->count++;
+			bool tail = false;
+			do {
+				createdStruct->contained_blocks.insert(basicBlock->id);
+				basicBlock = &function->ssaRep.bbs[basicBlock->outBlocks[0]];
+			} while (basicBlock->outBlocks.size() == 1 && basicBlock->inBlocks.size() == 1);
+			if(!tail)
+				createdStruct->exit_blocks.insert(basicBlock->id).first->count++;
+		}
+		if (createdStruct) {
+			controlStruct.child_struct.push_back(*createdStruct);
+			for (auto it = createdStruct->exit_blocks.begin(); it != createdStruct->exit_blocks.end(); ++it) {
+				IOBlock exit_id = *it;
+				SSABB* block = &function->ssaRep.bbs[exit_id.blockId];
+				if (block->inBlocks.size() == 1 && block->outBlocks.size() == 1) {
+					analyzeStructure(*createdStruct, exit_id.blockId);
+					it = createdStruct->exit_blocks.erase(it);
+					createdStruct->exit_blocks.insert(block->outBlocks[0]).first->count++;
+				}
+				else {
+					analyzeStructure(controlStruct, exit_id.blockId);
+					printf("Tail: %d\n", exit_id);
+				}
+			}
+		}
+		
+		fflush(stdout);
+	}
 	bool SSATransformToC::shouldResolve(SSAExpression& expr) {
 		if (resolveIds.find(expr.id) != resolveIds.end()) {
 			return true;
@@ -19,14 +156,15 @@ namespace holodec{
 
 
 	void SSATransformToC::printBasicBlock(SSABB& bb) {
-		printf("L%d:\n", bb.id);
+		if(resolveBBs.find(bb.id) != resolveBBs.end())
+			printf("Label L%d:\n", bb.id);
 		for (HId id : bb.exprIds) {
 			SSAExpression& expr = function->ssaRep.expressions[id];
 			if (shouldResolve(expr))
 				printExpression(expr);
 		}
 
-		if(bb.fallthroughId)
+		if(bb.fallthroughId && bb.fallthroughId != bb.id + 1)
 			printf("goto L%d\n", bb.fallthroughId);
 	}
 	void SSATransformToC::resolveArgs(SSAExpression& expr, const char* delimiter) {
@@ -313,15 +451,19 @@ namespace holodec{
 				printf("goto L%d", blockarg.locref.refId);
 		}break;
 		case SSAExprType::eCJmp: {
-			printf("if(");
-			resolveArg(expr.subExpressions[1]);
-			printf(")");
-			SSAArgument& blockarg = expr.subExpressions[0];
-			if (blockarg.type == SSAArgType::eOther && blockarg.location == SSALocation::eBlock)
-				printf(" goto L%d", blockarg.locref.refId);
-			else {
-				printf(" goto ");
-				resolveArg(blockarg);
+			for (size_t i = 1; i < expr.subExpressions.size(); i += 2) {
+				if (i > 1)
+					printf("else ");
+				printf("if(");
+				resolveArg(expr.subExpressions[i]);
+				printf(")");
+				SSAArgument& blockarg = expr.subExpressions[i - 1];
+				if (blockarg.type == SSAArgType::eOther && blockarg.location == SSALocation::eBlock)
+					printf(" goto L%d", blockarg.locref.refId);
+				else {
+					printf(" goto ");
+					resolveArg(blockarg);
+				}
 			}
 		}break;
 		case SSAExprType::eMemAccess: {
@@ -359,8 +501,6 @@ namespace holodec{
 		puts("");
 	}
 
-
-
 	bool SSATransformToC::doTransformation (Binary* binary, Function* function){
 		printf("Transform To C\n");
 
@@ -370,9 +510,20 @@ namespace holodec{
 		//function->print(binary->arch);
 		Symbol *sym = binary->getSymbol(function->symbolref);
 
+		printf("Structure Analysis\n");
+		HSet<HId> visited;
+		for (SSABB& bb : function->ssaRep.bbs)
+			visited.insert(bb.id);
+		ControlStruct g_struct(ControlStructType::GLOBAL);
+		for (SSABB& bb : function->ssaRep.bbs)
+			g_struct.contained_blocks.insert(bb.id);
+		analyzeStructure(g_struct, 1);
+		g_struct.print(1);
 		arguments.clear();
 		resolveIds.clear();
-		printf("Function: %s\n", sym->name.cstr());
+		resolveBBs.clear();
+		if(sym)
+			printf("Function: %s\n", sym->name.cstr());
 		printf("Calling Functions: ");
 		for (uint64_t addr : function->funcsCall) {
 			printf("0x%x ", addr);
@@ -394,6 +545,14 @@ namespace holodec{
 					}
 				}
 			}
+			for (SSABB& bb : function->ssaRep.bbs) {
+				for (HId id : bb.outBlocks) {
+					if (bb.fallthroughId != id || bb.id + 1 != id) {
+						resolveBBs.insert(id);
+					}
+				}
+			}
+
 			printIndent(1);
 			printf("Input (");
 			for (CArgument arg : arguments) {
@@ -443,14 +602,6 @@ namespace holodec{
 				if (expr.type == SSAExprType::eOutput) {
 					resolveIds.insert(expr.id);
 				}
-			}
-			printf("UnifiedExprs\n");
-			for (UnifiedExprs& uex : unifiedExprs) {
-				printf("Id: %d\n", uex.id);
-				for (HId uid : uex.occuringIds) {
-					printf("UId: %x,", uid);
-				}
-				printf("\n");
 			}
 
 		}

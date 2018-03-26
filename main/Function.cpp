@@ -19,7 +19,7 @@ void holodec::Instruction::print (Architecture* arch, int indent) {
 
 void holodec::Function::print(holodec::Architecture* arch, int indent) {
 	printIndent(indent);
-	printf("Printing Function\n");
+	printf("Printing Function 0x%x %p\n", baseaddr, this);
 	printIndent(indent + 1);
 	printf("Calling Functions: ");
 

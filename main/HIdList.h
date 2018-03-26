@@ -182,12 +182,18 @@ namespace holodec {
 		}
 		HUniqueList (HList<T> list) : list (list) {
 		}
-		
-		void insert (T& ele) {
-			for(T& e : list)
-				if(e == ele)
+
+		void insert(T& ele) {
+			for (T& e : list)
+				if (e == ele)
 					return;
-			list.push_back (ele);
+			list.push_back(ele);
+		}
+		void insert(const T&& ele) {
+			for (T& e : list)
+				if (e == ele)
+					return;
+			list.push_back(ele);
 		}
 		auto begin() -> decltype(list.begin()){
 			return list.begin();

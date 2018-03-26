@@ -154,9 +154,6 @@ namespace holodec {
 				uint32_t offset = it->offset;
 				int64_t valueOffset = it->valueoffset;
 				assert(it->offset + it->size <= subExpr.size);
-				expr.print(arch);
-				printf("Sub: %d-%d\n", offset, arg.size);
-				subExpr.print(arch);
 				uint32_t offsetlimit = it->offset + it->size;
 				it = expr.removeArgument(ssaRep, it);
 				uint32_t innerOffset = 0;
@@ -171,15 +168,10 @@ namespace holodec {
 						if (offsetlimit < innerOffset + innerIt->size)
 							innerArg.size -= (innerOffset + innerIt->size) - offsetlimit;
 						innerArg.valueoffset += valueOffset;
-						innerArg.print(arch);
-						printf("\n");
 						it = expr.insertArgument(ssaRep, it, innerArg);
 					}
 					innerOffset += innerIt->size;
 				}
-				expr.print(arch);
-				fflush(stdout);
-				printf("\n");
 			}
 			return subAppends;
 		})
@@ -283,9 +275,44 @@ namespace holodec {
 				return true;
 			}
 			return replaced;
-		});
+		})
+		.ssaType(0, 0, SSAExprType::eStore)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& storeExpr = ssaRep->expressions[context->expressionsMatched[0]];
+			for (HId id : storeExpr.directRefs) {
+				SSAExpression& secExpr = ssaRep->expressions[id];
+				if (secExpr.type == SSAExprType::eStore) {
+					SSAArgument& firstPtrArg = storeExpr.subExpressions[1];
+					SSAArgument & secPtrArg = secExpr.subExpressions[1];
+					if (firstPtrArg.type == secPtrArg.type) {
+						switch (firstPtrArg.type) {
+						case SSAArgType::eUInt: {
+							if ((firstPtrArg.uval + 1 == secPtrArg.uval && firstPtrArg.valueoffset == secPtrArg.valueoffset) || (firstPtrArg.uval == secPtrArg.uval && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset)) {
+								//secExpr.size += storeExpr.size;
+								//secExpr.setArgument(ssaRep, 0, storeExpr.subExpressions[0]);
+								//secExpr.setArgument(ssaRep, 1, storeExpr.subExpressions[1]);
+								//ssaRep->replaceAllArgs(storeExpr, storeExpr.subExpressions[0]);
+								//ssaRep->removeExpr(storeExpr);
+								fflush(stdout);
+							}
+						}break;
+						case SSAArgType::eId: {
+							if (firstPtrArg.ssaId == secPtrArg.ssaId && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset) {
+								//storeExpr.size += secExpr.size;
+								//ssaRep->removeExpr(storeExpr);
+								fflush(stdout);
+							}
+						}break;
+						default:
+							break;
+						}
+					}
+				}
+			}
 
-		builder
+			return false;
+		})
+
 		.ssaType(0, 0, SSAOpType::eSub)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& opExpr = ssaRep->expressions[context->expressionsMatched[0]];

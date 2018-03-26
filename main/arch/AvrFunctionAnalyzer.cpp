@@ -399,6 +399,7 @@ namespace holoavr{
 					return false;
 				}
 				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, arch->instrptrsize * arch->bitbase));
+				instr->operands.push_back(IRArgument::createUVal(instr->addr + instr->size, arch->instrptrsize * arch->bitbase));
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_SBIC);
 				return true;
 			}
@@ -411,6 +412,7 @@ namespace holoavr{
 					return false;
 				}
 				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, arch->instrptrsize * arch->bitbase));
+				instr->operands.push_back(IRArgument::createUVal(instr->addr + instr->size, arch->instrptrsize * arch->bitbase));
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_SBIS);
 				return true;
 			}
@@ -651,6 +653,7 @@ namespace holoavr{
 					return false;
 				}
 				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, arch->instrptrsize * arch->bitbase));
+				instr->operands.push_back(IRArgument::createUVal(instr->addr + instr->size, arch->instrptrsize * arch->bitbase));
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_SBRC);
 				return true;
 			}
@@ -660,6 +663,7 @@ namespace holoavr{
 					return false;
 				}
 				instr->operands.push_back(IRArgument::createUVal(nextinstr.addr + nextinstr.size, arch->instrptrsize * arch->bitbase));
+				instr->operands.push_back(IRArgument::createUVal(instr->addr + instr->size, arch->instrptrsize * arch->bitbase));
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_SBRS);
 				return true;
 			}
@@ -691,8 +695,9 @@ namespace holoavr{
 			else {
 				instr->jumpdest = instr->addr + instr->size + value;
 			}
-			instr->operands.push_back(IRArgument::createUVal(instr->jumpdest, arch->instrptrsize * arch->bitbase));
 			instr->nojumpdest = instr->addr + instr->size;
+			instr->operands.push_back(IRArgument::createUVal(instr->jumpdest, arch->instrptrsize * arch->bitbase));
+			instr->operands.push_back(IRArgument::createUVal(instr->nojumpdest, arch->instrptrsize * arch->bitbase));
 			if (firstbytes & 0x0400) {//br on clear
 				switch (firstbytes & 0x7) {
 				case 0x0:

@@ -445,27 +445,27 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 
 		{X86_INS_JMP, "jmp", {{1, "#jmp(#arg[1])"}}, InstructionType::eJmp, InstructionType::eUnknown},
 
-		{X86_INS_JE, "je", {{1, "#cjmp(#arg[1],$zf)"}}, InstructionType::eCJmp},
-		{X86_INS_JNE, "jne", {{1, "#cjmp(#arg[1],#not($zf))"}}, InstructionType::eCJmp},
-		{X86_INS_JA, "ja", {{1, "#cjmp(#arg[1],#not(#or($cf,$zf)))"}}, InstructionType::eCJmp},
-		{X86_INS_JAE, "jae", {{1, "#cjmp(#arg[1],#not($cf))"}}, InstructionType::eCJmp},
-		{X86_INS_JB, "jb", {{1, "#cjmp(#arg[1],#not($cf))"}}, InstructionType::eCJmp},
-		{X86_INS_JBE, "jbe", {{1, "#cjmp(#arg[1],#or($cf,$zf))"}}, InstructionType::eCJmp},
-		{X86_INS_JG, "jg", {{1, "#cjmp(#arg[1],#and(#not($zf),==($sf,$of)))"}}, InstructionType::eCJmp},
-		{X86_INS_JGE, "jge", {{1, "#cjmp(#arg[1],==($sf,$of))"}}, InstructionType::eCJmp},
-		{X86_INS_JL, "jl", {{1, "#cjmp(#arg[1],<>($sf,$of))"}}, InstructionType::eCJmp},
-		{X86_INS_JLE, "jle", {{1, "#cjmp(#arg[1],#or($zf,<>($sf,$of)))"}}, InstructionType::eCJmp},
-		{X86_INS_JO, "jo", {{1, "#cjmp(#arg[1],$of)"}}, InstructionType::eCJmp},
-		{X86_INS_JNO, "jno", {{1, "#cjmp(#arg[1],#not($of))"}}, InstructionType::eCJmp},
-		{X86_INS_JS, "js", {{1, "#cjmp(#arg[1],$sf)"}}, InstructionType::eCJmp},
-		{X86_INS_JNS, "jns", {{1, "#cjmp(#arg[1],#not($sf))"}}, InstructionType::eCJmp},
+		{X86_INS_JE, "je", {{1, "#cjmp(#arg[1],#arg[2],$zf)"}}, InstructionType::eCJmp},
+		{X86_INS_JNE, "jne", {{1, "#cjmp(#arg[1],#arg[2],#not($zf))"}}, InstructionType::eCJmp},
+		{X86_INS_JA, "ja", {{1, "#cjmp(#arg[1],#arg[2],#not(#or($cf,$zf)))"}}, InstructionType::eCJmp},
+		{X86_INS_JAE, "jae", {{1, "#cjmp(#arg[1],#arg[2],#not($cf))"}}, InstructionType::eCJmp},
+		{X86_INS_JB, "jb", {{1, "#cjmp(#arg[1],#arg[2],#not($cf))"}}, InstructionType::eCJmp},
+		{X86_INS_JBE, "jbe", {{1, "#cjmp(#arg[1],#arg[2],#or($cf,$zf))"}}, InstructionType::eCJmp},
+		{X86_INS_JG, "jg", {{1, "#cjmp(#arg[1],#arg[2],#and(#not($zf),==($sf,$of)))"}}, InstructionType::eCJmp},
+		{X86_INS_JGE, "jge", {{1, "#cjmp(#arg[1],#arg[2],==($sf,$of))"}}, InstructionType::eCJmp},
+		{X86_INS_JL, "jl", {{1, "#cjmp(#arg[1],#arg[2],<>($sf,$of))"}}, InstructionType::eCJmp},
+		{X86_INS_JLE, "jle", {{1, "#cjmp(#arg[1],#arg[2],#or($zf,<>($sf,$of)))"}}, InstructionType::eCJmp},
+		{X86_INS_JO, "jo", {{1, "#cjmp(#arg[1],#arg[2],$of)"}}, InstructionType::eCJmp},
+		{X86_INS_JNO, "jno", {{1, "#cjmp(#arg[1],#arg[2],#not($of))"}}, InstructionType::eCJmp},
+		{X86_INS_JS, "js", {{1, "#cjmp(#arg[1],#arg[2],$sf)"}}, InstructionType::eCJmp},
+		{X86_INS_JNS, "jns", {{1, "#cjmp(#arg[1],#arg[2],#not($sf))"}}, InstructionType::eCJmp},
 
-		{X86_INS_JP, "jp", {{1, "#cjmp(#arg[1],$pf)"}}, InstructionType::eCJmp},
-		{X86_INS_JNP, "jnp", {{1, "#cjmp(#arg[1],#not($pf))"}}, InstructionType::eCJmp},
+		{X86_INS_JP, "jp", {{1, "#cjmp(#arg[1],#arg[2],$pf)"}}, InstructionType::eCJmp},
+		{X86_INS_JNP, "jnp", {{1, "#cjmp(#arg[1],#arg[2],#not($pf))"}}, InstructionType::eCJmp},
 
-		{X86_INS_JCXZ, "jcxz", {{1, "#cjmp(#arg[1],#not($cx))"}}, InstructionType::eCJmp},
-		{X86_INS_JECXZ, "jecxz", {{1, "#cjmp(#arg[1],#not($ecx))"}}, InstructionType::eCJmp},
-		{X86_INS_JRCXZ, "jrcxz", {{1, "#cjmp(#arg[1],#not($rcx))"}}, InstructionType::eCJmp},
+		{X86_INS_JCXZ, "jcxz", {{1, "#cjmp(#arg[1],#arg[2],#not($cx))"}}, InstructionType::eCJmp},
+		{X86_INS_JECXZ, "jecxz", {{1, "#cjmp(#arg[1],#arg[2],#not($ecx))"}}, InstructionType::eCJmp},
+		{X86_INS_JRCXZ, "jrcxz", {{1, "#cjmp(#arg[1],#arg[2],#not($rcx))"}}, InstructionType::eCJmp},
 
 
 		{X86_INS_XCHG, "xchg", {{2, "#seq(=(#t[1],#arg[1]),=(#arg[1],#arg[2]),=(#arg[2],#t[1]))"}}, InstructionType::eXchg},
@@ -657,12 +657,12 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 		{X86_INS_BTR, "btr", {{2, "#seq(=($cf,#arg[1][#arg[2]]),=(#arg[1][#arg[2]],0))"}}, InstructionType::eBitTest, InstructionType::eBitReset},
 		{X86_INS_BTC, "btc", {{2, "#seq(=($cf,#arg[1][#arg[2]]),=(#arg[1][#arg[2]],#not(#arg[1][#arg[2]])))"}}, InstructionType::eBitTest, InstructionType::eCpl},
 
-		{X86_INS_LOOP, "loop", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#not($ecx)))"}}, InstructionType::eCJmp},
+		{X86_INS_LOOP, "loop", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#arg[2],#not($ecx)))"}}, InstructionType::eCJmp},
 
 
-		{X86_INS_LOOPE, "loope", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#not(#and($ecx,$zf))))"}}, InstructionType::eCJmp},
+		{X86_INS_LOOPE, "loope", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#arg[2],#not(#and($ecx,$zf))))"}}, InstructionType::eCJmp},
 
-		{X86_INS_LOOPNE, "loopne", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#not(#and($ecx,#not($zf)))))"}}, InstructionType::eCJmp},
+		{X86_INS_LOOPNE, "loopne", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#arg[2],#not(#and($ecx,#not($zf)))))"}}, InstructionType::eCJmp},
 
 		{X86_INS_CALL, "call", {{1, "#seq(#push($stack,#ip),#call(#arg[1]))"}},InstructionType::eCall},
 

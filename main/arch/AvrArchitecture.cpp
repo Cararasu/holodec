@@ -139,81 +139,81 @@ namespace holoavr {
 			{ 2, "=($tf,<>(#band(#arg[1],#shl(1[8],#arg[2])),0[8]))" }
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRBC, "brbc",{
-			{ 2, "==(0,#arg[1])", "#cjmp(#arg[2],#not($cf))" },
-			{ 2, "==(1,#arg[1])", "#cjmp(#arg[2],#not($zf))" },
-			{ 2, "==(2,#arg[1])", "#cjmp(#arg[2],#not($nf))" },
-			{ 2, "==(3,#arg[1])", "#cjmp(#arg[2],#not($vf))" },
-			{ 2, "==(4,#arg[1])", "#cjmp(#arg[2],#not($sf))" },
-			{ 2, "==(5,#arg[1])", "#cjmp(#arg[2],#not($hf))" },
-			{ 2, "==(6,#arg[1])", "#cjmp(#arg[2],#not($tf))" },
-			{ 2, "==(7,#arg[1])", "#cjmp(#arg[2],#not($if))" },
+			{ 3, "==(0,#arg[1])", "#cjmp(#arg[2],#not($cf),#arg[3])" },
+			{ 3, "==(1,#arg[1])", "#cjmp(#arg[2],#not($zf),#arg[3])" },
+			{ 3, "==(2,#arg[1])", "#cjmp(#arg[2],#not($nf),#arg[3])" },
+			{ 3, "==(3,#arg[1])", "#cjmp(#arg[2],#not($vf),#arg[3])" },
+			{ 3, "==(4,#arg[1])", "#cjmp(#arg[2],#not($sf),#arg[3])" },
+			{ 3, "==(5,#arg[1])", "#cjmp(#arg[2],#not($hf),#arg[3])" },
+			{ 3, "==(6,#arg[1])", "#cjmp(#arg[2],#not($tf),#arg[3])" },
+			{ 3, "==(7,#arg[1])", "#cjmp(#arg[2],#not($if),#arg[3])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRBS, "brbs",{
-			{ 2, "==(0,#arg[1])", "#cjmp(#arg[2],$cf)" },
-			{ 2, "==(1,#arg[1])", "#cjmp(#arg[2],$zf)" },
-			{ 2, "==(2,#arg[1])", "#cjmp(#arg[2],$nf)" },
-			{ 2, "==(3,#arg[1])", "#cjmp(#arg[2],$vf)" },
-			{ 2, "==(4,#arg[1])", "#cjmp(#arg[2],$sf)" },
-			{ 2, "==(5,#arg[1])", "#cjmp(#arg[2],$hf)" },
-			{ 2, "==(6,#arg[1])", "#cjmp(#arg[2],$tf)" },
-			{ 2, "==(7,#arg[1])", "#cjmp(#arg[2],$if)" },
+			{ 3, "==(0,#arg[1])", "#cjmp(#arg[2],$cf,#arg[3])" },
+			{ 3, "==(1,#arg[1])", "#cjmp(#arg[2],$zf,#arg[3])" },
+			{ 3, "==(2,#arg[1])", "#cjmp(#arg[2],$nf,#arg[3])" },
+			{ 3, "==(3,#arg[1])", "#cjmp(#arg[2],$vf,#arg[3])" },
+			{ 3, "==(4,#arg[1])", "#cjmp(#arg[2],$sf,#arg[3])" },
+			{ 3, "==(5,#arg[1])", "#cjmp(#arg[2],$hf,#arg[3])" },
+			{ 3, "==(6,#arg[1])", "#cjmp(#arg[2],$tf,#arg[3])" },
+			{ 3, "==(7,#arg[1])", "#cjmp(#arg[2],$if,#arg[3])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRCC, "brcc",{
-			{ 1, "#cjmp(#arg[1],#not($cf))" },
+			{ 2, "#cjmp(#arg[1],#not($cf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRCS, "brcs",{
-			{ 1, "#cjmp(#arg[1],$cf)" },
+			{ 2, "#cjmp(#arg[1],$cf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BREAK, "break",{
-			{ 1, "#trap" },
+			{ 2, "#trap" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BREQ, "breq",{
-			{ 1, "#cjmp(#arg[1],$zf)" },
+			{ 2, "#cjmp(#arg[1],$zf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRGE, "brge",{
-			{ 1, "#cjmp(#arg[1],#not($sf))" },
+			{ 2, "#cjmp(#arg[1],#not($sf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRHC, "brhc",{
-			{ 1, "#cjmp(#arg[1],#not($hf))" },
+			{ 2, "#cjmp(#arg[1],#not($hf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRHS, "brhs",{
-			{ 1, "#cjmp(#arg[1],$hf)" },
+			{ 2, "#cjmp(#arg[1],$hf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRID, "brid",{
-			{ 1, "#cjmp(#arg[1],#not($hf))" },
+			{ 2, "#cjmp(#arg[1],#not($hf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRIE, "brie",{
-			{ 1, "#cjmp(#arg[1],$hf)" },
+			{ 2, "#cjmp(#arg[1],$hf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRLO, "brlo",{
-			{ 1, "#cjmp(#arg[1],$cf)" },
+			{ 2, "#cjmp(#arg[1],$cf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRLT, "brlt",{
-			{ 1, "#cjmp(#arg[1],$sf)" },
+			{ 2, "#cjmp(#arg[1],$sf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRMI, "brmi",{
-			{ 1, "#cjmp(#arg[1],$nf)" },
+			{ 2, "#cjmp(#arg[1],$nf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRNE, "brne",{
-			{ 1, "#cjmp(#arg[1],#not($zf))" },
+			{ 2, "#cjmp(#arg[1],#not($zf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRPL, "brpl",{
-			{ 1, "#cjmp(#arg[1],$nf)" },
+			{ 2, "#cjmp(#arg[1],$nf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRSH, "brsh",{
-			{ 1, "#cjmp(#arg[1],#not($cf))" },
+			{ 2, "#cjmp(#arg[1],#not($cf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRTC, "brtc",{
-			{ 1, "#cjmp(#arg[1],#not($tf))" },
+			{ 2, "#cjmp(#arg[1],#not($tf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRTS, "brts",{
-			{ 1, "#cjmp(#arg[1],$tf)" },
+			{ 2, "#cjmp(#arg[1],$tf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRVC, "bvc",{
-			{ 1, "#cjmp(#arg[1],#not($vf))" },
+			{ 2, "#cjmp(#arg[1],#not($vf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRVS, "brvs",{
-			{ 1, "#cjmp(#arg[1],$vf)" },
+			{ 2, "#cjmp(#arg[1],$vf,#arg[2])" },
 		}, InstructionType::eShr },
 
 		{ AVR_INSTR_BSET, "bset",{
@@ -445,20 +445,20 @@ namespace holoavr {
 			{ 2, "#seq(#rec[in](#t[1],#arg[1]),$out(#arg[1],#or(#t[1]),#shl(1,#arg[2])))" }
 		}, InstructionType::eSub },
 		{ AVR_INSTR_SBIC, "sbic",{
-			{ 3, "#seq(#rec[in](#t[1],#arg[1]),#cjmp(#arg[3],==(#or(#t[1],#shl(1,#arg[2])),0)))" }
+			{ 4, "#seq(#rec[in](#t[1],#arg[1]),#cjmp(#arg[3],==(#or(#t[1],#shl(1,#arg[2])),0),#arg[4]))" }
 		}, InstructionType::eSub },
 		{ AVR_INSTR_SBIS, "sbis",{
-			{ 3, "#seq(#rec[in](#t[1],#arg[1]),#cjmp(#arg[3],<>(#or(#t[1],#shl(1,#arg[2])),0)))" }
+			{ 4, "#seq(#rec[in](#t[1],#arg[1]),#cjmp(#arg[3],<>(#or(#t[1],#shl(1,#arg[2])),0),#arg[4]))" }
 		}, InstructionType::eSub },
 
 		{ AVR_INSTR_SBR, "sbr",{
 			{ 3, "#rec[or](#arg[1],#shl(1,#arg[2]))" }
 		}, InstructionType::eOr },
 		{ AVR_INSTR_SBRC, "sbrc",{
-			{ 3, "#cjmp(#arg[3],==(#or(#arg[1],#shl(1,#arg[2])),0))" }
+			{ 4, "#cjmp(#arg[3],==(#or(#arg[1],#shl(1,#arg[2])),0),#arg[4])" }
 		}, InstructionType::eJmp },
 		{ AVR_INSTR_SBRS, "sbrs",{
-			{ 3, "#cjmp(#arg[3],<>(#or(#arg[1],#shl(1,#arg[2])),0))" }
+			{ 4, "#cjmp(#arg[3],<>(#or(#arg[1],#shl(1,#arg[2])),0),#arg[4])" }
 		}, InstructionType::eJmp },
 
 		{ AVR_INSTR_SEC, "sec",{

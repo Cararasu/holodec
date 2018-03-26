@@ -691,11 +691,12 @@ namespace holodec {
 				HId falseblockId = (subexpressioncount == 3) ? createNewBlock() : 0;//generate early so the blocks are in order
 				HId endBlockId = createNewBlock();
 
-				SSAArgument exprArgs[2] = {
+				SSAArgument exprArgs[3] = {
 					SSAArgument::createBlock(trueblockId),
-					parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[0]))
+					parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[0])),
+					SSAArgument::createBlock(falseblockId)
 				};
-				expression.subExpressions.assign (exprArgs, exprArgs + 2);
+				expression.subExpressions.assign (exprArgs, exprArgs + 3);
 				addExpression (&expression);
 
 				activateBlock (trueblockId);
@@ -740,12 +741,12 @@ namespace holodec {
 				expression.type = SSAExprType::eCJmp;
 				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bytebase * arch->bitbase;
-
-				assert (subexpressioncount == 2);
-				expression.subExpressions = {
-					parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[0])),
-					parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1]))
-				};
+				assert (subexpressioncount % 2 == 1);
+				for (size_t i = 1; i < irExpr->subExpressions.size(); i += 2) {
+					expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[i - 1])));
+					expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[i])));
+				}
+				expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions.back())));
 				if (expression.subExpressions[0].type == SSAArgType::eUInt)
 					function->addrToAnalyze.insert(expression.subExpressions[0].uval);
 
@@ -1142,14 +1143,18 @@ namespace holodec {
 				HId endCondId = 0;
 				HId startBodyId = createNewBlock();
 				HId endBodyId = 0;
+				HId endId = createNewBlock();
 
 				activateBlock (startCondId);
 				SSAExpression expression;
 				expression.type = SSAExprType::eCJmp;
 				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bytebase * arch->bitbase;
-				expression.subExpressions.push_back(SSAArgument::createBlock(startBodyId));
-				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[1])));
+				expression.subExpressions = {
+					SSAArgument::createBlock(startBodyId),
+					parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1])),
+					SSAArgument::createBlock(endId)
+					};
 				addExpression (&expression);
 				endCondId = activeBlockId;
 				this->endOfBlock = false;
@@ -1159,7 +1164,6 @@ namespace holodec {
 				parseExpression (irExpr->subExpressions[1]);
 				endBodyId = activeBlockId;
 
-				HId endId = createNewBlock();
 
 				SSABB* startBlockBB = getBlock (startBlock);
 				SSABB* startCondBB = getBlock (startCondId);

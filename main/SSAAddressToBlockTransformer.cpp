@@ -41,7 +41,7 @@ namespace holodec {
 			}
 			return true;
 		}
-
+		return false;
 	}
 	bool SSAAddressToBlockTransformer::doTransformation(Binary* binary, Function* function){
 
@@ -74,7 +74,8 @@ namespace holodec {
 					applied |= resolveDstTarget(block, expression, expression.subExpressions[0]);
 				}
 				else if (expression.type == SSAExprType::eCJmp) {
-					applied |= resolveDstTarget(block, expression, expression.subExpressions[0]);
+					for(size_t i = 0; i < expression.subExpressions.size(); i += 2)
+						applied |= resolveDstTarget(block, expression, expression.subExpressions[i]);
 				}
 			}
 		}

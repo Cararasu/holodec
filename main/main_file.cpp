@@ -204,12 +204,13 @@ int main (int argc, const char** argv) {
 	}
 	g_peephole_logger.level = LogLevel::eInfo;
 	
-	HList<uint64_t> funcs = {
-		0x0,
-		0x1f7f,
-		0x2525,
-		0x2516,
+	HSet<uint64_t> funcs = {
+		0x1fe7,
 	};
+	for (Function* func : binary->functions) {
+		if (func->baseaddr == 0x1fe7)
+			printf("0x%x\n", func->baseaddr);
+	}
 	for (Function* func : binary->functions) {
 	//for (uint64_t addr : funcs) {
 	//	Function* func = binary->getFunctionByAddr(addr);
@@ -255,7 +256,8 @@ int main (int argc, const char** argv) {
 					applied |= transformers[6]->doTransformation(binary, func);
 					funcChanged |= transformers[7]->doTransformation(binary, func);
 					funcChanged |= applied;
-					//func->print(binary->arch);
+					if(funcs.find(func->baseaddr) != funcs.end())
+						func->print(binary->arch);
 				} while (applied);
 				func->ssaRep.recalcRefCounts();
 			}
@@ -267,12 +269,32 @@ int main (int argc, const char** argv) {
 		if (func) {
 			func->ssaRep.recalcRefCounts();
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-			//if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
 			func->print(binary->arch);
-			//if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
 			transformers[8]->doTransformation(binary, func);
 		}
 	}
+
+	Function* func = new Function();
+	for (int i = 0; i < 6; i++) {
+		func->ssaRep.bbs.emplace_back();
+	}
+	func->ssaRep.bbs[1].outBlocks.insert(2);
+	func->ssaRep.bbs[2].inBlocks.insert(1);
+	func->ssaRep.bbs[2].outBlocks.insert(3);
+	func->ssaRep.bbs[3].inBlocks.insert(2);
+	func->ssaRep.bbs[2].outBlocks.insert(4);
+	func->ssaRep.bbs[4].inBlocks.insert(2);
+	func->ssaRep.bbs[3].outBlocks.insert(4);
+	func->ssaRep.bbs[4].inBlocks.insert(3);
+	func->ssaRep.bbs[3].outBlocks.insert(5);
+	func->ssaRep.bbs[5].inBlocks.insert(3);
+	func->ssaRep.bbs[4].outBlocks.insert(3);
+	func->ssaRep.bbs[3].inBlocks.insert(4);
+	func->ssaRep.bbs[4].outBlocks.insert(6);
+	func->ssaRep.bbs[6].inBlocks.insert(4);
+	func->print(binary->arch);
+	transformers[8]->doTransformation(binary, func);
+
 	delete optimizer;
 
 	return 0;

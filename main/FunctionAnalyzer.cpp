@@ -63,9 +63,10 @@ bool holodec::FunctionAnalyzer::splitBasicBlock (DisAsmBasicBlock* basicblock, u
 		basicblock->instructions.erase (instrit, basicblock->instructions.end());
 		changedBasicBlock (basicblock);
 		this->postBasicBlock(&newbb);
-
-		if (analyzeWithIR)
-			assert (ssaGen.splitBasicBlock (splitaddr));
+		if (analyzeWithIR) {
+			bool split = ssaGen.splitBasicBlock(splitaddr);
+			assert(split);
+		}
 		return true;
 	}
 	return false;

@@ -69,7 +69,7 @@ namespace holodec{
 		}
 		return false;
 	}
-	bool SSACalleeCallerRegs::doTransformation(Binary* binary,Function* function) {
+	bool SSACalleeCallerRegs::doTransformation(Binary* binary,Function* function) {// interprocedural liveness analysis for callee saved registers
 
 		//function->print(arch);
 		printf("Resolving Callee-saved-Registers in Function at Address 0x%" PRIx64 "\n", function->baseaddr);
