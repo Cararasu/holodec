@@ -275,25 +275,40 @@ int main (int argc, const char** argv) {
 	}
 
 	Function* func = new Function();
+	for (int i = 0; i < 8; i++) {
+		func->ssaRep.bbs.emplace_back();
+	}
+#define PATH(function, from, to) function->ssaRep.bbs[from].outBlocks.insert(to);function->ssaRep.bbs[to].inBlocks.insert(from);
+	PATH(func, 1, 2);
+	PATH(func, 2, 3);
+	PATH(func, 2, 4);
+	PATH(func, 3, 4);
+	PATH(func, 3, 5);
+	PATH(func, 4, 3);
+	PATH(func, 4, 6);
+	PATH(func, 6, 7);
+	PATH(func, 5, 7);
+	PATH(func, 5, 8);
+	PATH(func, 7, 8);
+	transformers[8]->doTransformation(binary, func);
+	func->print(binary->arch);
+	delete func;
+
+	func = new Function();
 	for (int i = 0; i < 6; i++) {
 		func->ssaRep.bbs.emplace_back();
 	}
-	func->ssaRep.bbs[1].outBlocks.insert(2);
-	func->ssaRep.bbs[2].inBlocks.insert(1);
-	func->ssaRep.bbs[2].outBlocks.insert(3);
-	func->ssaRep.bbs[3].inBlocks.insert(2);
-	func->ssaRep.bbs[2].outBlocks.insert(4);
-	func->ssaRep.bbs[4].inBlocks.insert(2);
-	func->ssaRep.bbs[3].outBlocks.insert(4);
-	func->ssaRep.bbs[4].inBlocks.insert(3);
-	func->ssaRep.bbs[3].outBlocks.insert(5);
-	func->ssaRep.bbs[5].inBlocks.insert(3);
-	func->ssaRep.bbs[4].outBlocks.insert(3);
-	func->ssaRep.bbs[3].inBlocks.insert(4);
-	func->ssaRep.bbs[4].outBlocks.insert(6);
-	func->ssaRep.bbs[6].inBlocks.insert(4);
-	func->print(binary->arch);
+	PATH(func, 1, 2);
+	PATH(func, 2, 3);
+	PATH(func, 3, 4);
+	PATH(func, 2, 4);
+	PATH(func, 4, 5);
+	PATH(func, 4, 6);
+	PATH(func, 5, 6);
 	transformers[8]->doTransformation(binary, func);
+	func->print(binary->arch);
+
+#undef PATH
 
 	delete optimizer;
 

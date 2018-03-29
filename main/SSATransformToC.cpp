@@ -8,134 +8,204 @@ namespace holodec{
 	//if there exists a node that has the same number of marks as 
 	//
 
-	bool SSATransformToC::analyzeLoop(HId bbId, ControlStruct* loopStruct) {
-		HMap<HId, bool> visitedBlocks;
-		SSABB* basicBlock = &function->ssaRep.bbs[bbId];
-		visitedBlocks.insert(std::make_pair(bbId, true));
-		bool isLoop = false;
-		for (HId id : basicBlock->outBlocks) {
-			isLoop |= analyzeLoop(id, visitedBlocks, loopStruct);
-		}
-		loopStruct->contained_blocks.insert(bbId);
 
+	bool SSATransformToC::analyzeLoop(ControlStruct* loopStruct) {
+		ControlStruct* tmpLoopStruct = loopStruct;
+		while (tmpLoopStruct->parent_struct) {
+			if(tmpLoopStruct->parent_struct->head_block == loopStruct->head_block)
+				return false;
+			tmpLoopStruct = tmpLoopStruct->parent_struct;
+		}
+
+		HSet<HId> visitedBlocks, loopBlocks;
+		SSABB* basicBlock = &function->ssaRep.bbs[loopStruct->head_block];
 		for (HId id : basicBlock->outBlocks) {
-			auto it = visitedBlocks.find(id);
-			if (it != visitedBlocks.end() && !it->second) {
-				loopStruct->exit_blocks.insert(id).first->count++;
+			analyzeLoopFor(id, visitedBlocks, loopStruct);
+		}
+		for (HId id : basicBlock->inBlocks) {
+			analyzeLoopBack(id, visitedBlocks, loopStruct);
+		}
+		if (loopStruct->contained_blocks.empty())
+			return false;
+
+		for (const HId& id : loopStruct->contained_blocks) {
+			SSABB* basicBlock = &function->ssaRep.bbs[id];
+			for (HId id : basicBlock->inBlocks) {
+				auto it = loopStruct->contained_blocks.find(id);
+				if (it == loopStruct->contained_blocks.end()) {
+					loopStruct->input_blocks.insert(basicBlock->id).first->count++;
+				}
 			}
-			printf("Wups %d -> %d, %d\n", bbId, id, it->second);
-		}
-		return isLoop;
-	}
-	bool SSATransformToC::analyzeLoop(HId bbId, HMap<HId, bool>& visitedBlocks, ControlStruct* loopStruct) {
-		printf("Loop %d\n", bbId);
-		auto it = visitedBlocks.find(bbId);
-		if (it != visitedBlocks.end()) {
-			printf("Visited %d\n", bbId);
-			return it->second;
-		}
-		it = visitedBlocks.insert(std::make_pair(bbId, false)).first;
-
-		SSABB* basicBlock = &function->ssaRep.bbs[bbId];
-		bool reachesHead = false;
-		for (HId id : basicBlock->outBlocks) {
-			reachesHead |= analyzeLoop(id, visitedBlocks, loopStruct);
-			it->second = reachesHead;
-		}
-		if (reachesHead) {
 			for (HId id : basicBlock->outBlocks) {
-				auto it = visitedBlocks.find(id);
-				if (it != visitedBlocks.end() && !it->second) {
+				auto it = loopStruct->contained_blocks.find(id);
+				if (it == loopStruct->contained_blocks.end()) {
 					loopStruct->exit_blocks.insert(id).first->count++;
 				}
-				printf("Wups %d -> %d, %d\n", bbId, id, it->second);
 			}
 		}
-		if (reachesHead)
-			loopStruct->contained_blocks.insert(bbId);
-		return reachesHead;
+		return true;
 	}
-	void SSATransformToC::analyzeOutputBranch(HId bbId, HSet<std::pair<HId, HId>>& forwardEdges) {
+	void SSATransformToC::analyzeLoopFor(HId bbId, HSet<HId>& visitedNodes, ControlStruct* loopStruct) {
+
+		if (loopStruct->parent_struct && 
+			(loopStruct->parent_struct->head_block == bbId || loopStruct->parent_struct->contained_blocks.find(bbId) == loopStruct->parent_struct->contained_blocks.end())){
+			return;
+		}
+		if (visitedNodes.find(bbId) != visitedNodes.end()) {
+			return;
+		}
+		visitedNodes.insert(bbId);
 
 		SSABB* basicBlock = &function->ssaRep.bbs[bbId];
-		for (auto it = basicBlock->outBlocks.begin(); it != basicBlock->outBlocks.end(); ++it) {
-			auto engeIt = forwardEdges.find(std::make_pair(bbId, *it));
-			if (engeIt == forwardEdges.end()) {
-				forwardEdges.insert(std::make_pair(bbId, *it));
-			}
-			else {
-				return;
-			}
-			analyzeOutputBranch(*it, forwardEdges);
+		for (HId id : basicBlock->outBlocks) {
+			analyzeLoopFor(id, visitedNodes, loopStruct);
 		}
 	}
-	void SSATransformToC::analyzeStructure(ControlStruct& controlStruct, HId start_block_id) {
+	void SSATransformToC::analyzeLoopBack(HId bbId, HSet<HId>& visitedNodes, ControlStruct* loopStruct) {
 
+		if (loopStruct->parent_struct && 
+			(loopStruct->parent_struct->head_block == bbId || loopStruct->parent_struct->contained_blocks.find(bbId) == loopStruct->parent_struct->contained_blocks.end())) {
+			return;
+		}
+		if (visitedNodes.find(bbId) == visitedNodes.end()) {
+			return;
+		}
+		if (loopStruct->contained_blocks.find(bbId) != loopStruct->contained_blocks.end()) {
+			return;
+		}
+		loopStruct->contained_blocks.insert(bbId);
+		SSABB* basicBlock = &function->ssaRep.bbs[bbId];
+		for (HId id : basicBlock->inBlocks) {
+			analyzeLoopBack(id, visitedNodes, loopStruct);
+		}
+		return;
+	}
+	void SSATransformToC::analyzeStructure(ControlStruct& controlStruct, HId start_block_id) {
+		if (controlStruct.type != ControlStructType::LOOP) {
+			if (controlStruct.head_block == start_block_id) {
+				SSABB* basicBlock = &function->ssaRep.bbs[start_block_id];
+				for (HId id : basicBlock->outBlocks) {
+					if(id != start_block_id)
+						analyzeStructure(controlStruct, id);
+				}
+				return;
+			}
+		}
+		if (controlStruct.type == ControlStructType::SEQUENCE) {
+			return;
+		}
+		if (controlStruct.contained_blocks.find(start_block_id) == controlStruct.contained_blocks.end())
+			return;
 		for (ControlStruct& child : controlStruct.child_struct) {
 			if (child.contained_blocks.find(start_block_id) != child.contained_blocks.end()) {
-				child.input_blocks.insert(start_block_id).first->count++;
 				return;
 			}
 		}
 
 		SSABB* basicBlock = &function->ssaRep.bbs[start_block_id];
-		ControlStruct* createdStruct = nullptr;
+		ControlStruct createdStruct;
+		createdStruct.parent_struct = &controlStruct;
+		createdStruct.head_block = start_block_id;
+		bool created = false;
 		if (basicBlock->inBlocks.size() > 1) {//Loop - Check
-			createdStruct = new ControlStruct(ControlStructType::LOOP);
-			createdStruct->parent_struct = &controlStruct;
-			createdStruct->input_blocks.insert(basicBlock->id).first->count++;
-			if(!analyzeLoop(start_block_id, createdStruct)){
-				delete createdStruct;
-				createdStruct = nullptr;
+			created = true;
+			createdStruct.type = ControlStructType::LOOP;
+			//createdStruct.input_blocks.insert(start_block_id).first->count++;
+			if(controlStruct.input_blocks.find(start_block_id) == controlStruct.input_blocks.end() && analyzeLoop(&createdStruct)){
+				for (auto it = createdStruct.exit_blocks.begin(); it != createdStruct.exit_blocks.end(); ++it) {
+					SSABB* block = &function->ssaRep.bbs[it->blockId];
+					if (block->inBlocks.size() == 1 && block->outBlocks.size() <= 1) {
+						createdStruct.contained_blocks.insert(it->blockId);
+						it = createdStruct.exit_blocks.erase(it);
+						if (block->outBlocks.size() == 1)
+							createdStruct.exit_blocks.insert(block->outBlocks[0]).first->count++;
+					}
+				}
+				uint32_t count = 0;
+				for (const IOBlock& ioB : createdStruct.input_blocks) {
+					if (ioB.count > count) {
+						createdStruct.head_block = ioB.blockId;
+						count = ioB.count;
+					}
+				}
+			}
+			else {
+				createdStruct.child_struct.clear();
+				createdStruct.contained_blocks.clear();
+				createdStruct.exit_blocks.clear();
+				createdStruct.input_blocks.clear();
+				created = false;
 			}
 		}
-		else if (basicBlock->outBlocks.size() > 1) {//Branch - Check
-			createdStruct = new ControlStruct(ControlStructType::BRANCH);
-			createdStruct->parent_struct = &controlStruct;
-			createdStruct->input_blocks.insert(basicBlock->id).first->count++;
-			createdStruct->contained_blocks.insert(basicBlock->id);
+		if (!created && basicBlock->outBlocks.size() > 1) {//Branch - Check
+			created = true;
+			createdStruct.type = ControlStructType::BRANCH;
+			createdStruct.parent_struct = &controlStruct;
+			createdStruct.input_blocks.insert(basicBlock->id).first->count = basicBlock->inBlocks.size();
+			createdStruct.contained_blocks.insert(basicBlock->id);
 			for (auto it = basicBlock->outBlocks.begin(); it != basicBlock->outBlocks.end(); ++it) {
-				createdStruct->exit_blocks.insert(*it).first->count++;
-			}
-
-			HSet<std::pair<HId, HId>> forwardEdges, backwardsEdges;
-
-			for (auto it = basicBlock->outBlocks.begin(); it != basicBlock->outBlocks.end(); ++it) {
-				analyzeOutputBranch(*it, forwardEdges);
-			}
-			for (std::pair<HId, HId> entry : forwardEdges) {
-				printf("Edge Forward %d -> %d\n", entry.first, entry.second);
-			}
-			for (std::pair<HId, HId> entry : backwardsEdges) {
-				printf("Edge Backwards %d -> %d\n", entry.first, entry.second);
+				createdStruct.exit_blocks.insert(*it).first->count++;
 			}
 		}
-		else if (basicBlock->outBlocks.size() == 1) {
-			createdStruct = new ControlStruct(ControlStructType::SEQUENCE);
-			createdStruct->parent_struct = &controlStruct;
-			createdStruct->input_blocks.insert(basicBlock->id).first->count++;
-			bool tail = false;
+		if (!created && basicBlock->outBlocks.size() <= 1) {
+			created = true;
+			createdStruct.type = ControlStructType::SEQUENCE;
+			createdStruct.parent_struct = &controlStruct;
+			createdStruct.input_blocks.insert(basicBlock->id).first->count = basicBlock->inBlocks.size();
+			createdStruct.contained_blocks.insert(basicBlock->id);
+
+			SSABB* tBB = basicBlock;
 			do {
-				createdStruct->contained_blocks.insert(basicBlock->id);
-				basicBlock = &function->ssaRep.bbs[basicBlock->outBlocks[0]];
-			} while (basicBlock->outBlocks.size() == 1 && basicBlock->inBlocks.size() == 1);
-			if(!tail)
-				createdStruct->exit_blocks.insert(basicBlock->id).first->count++;
+				createdStruct.contained_blocks.insert(tBB->id);
+				if (tBB->outBlocks.size() == 0) {
+					tBB = nullptr;
+					break;
+				}
+				tBB = &function->ssaRep.bbs[tBB->outBlocks[0]];
+
+			} while (tBB->inBlocks.size() == 1 && tBB->outBlocks.size() <= 1);
+			if (tBB)
+				createdStruct.exit_blocks.insert(tBB->id).first->count++;
 		}
-		if (createdStruct) {
-			controlStruct.child_struct.push_back(*createdStruct);
-			for (auto it = createdStruct->exit_blocks.begin(); it != createdStruct->exit_blocks.end(); ++it) {
-				IOBlock exit_id = *it;
-				SSABB* block = &function->ssaRep.bbs[exit_id.blockId];
-				if (block->inBlocks.size() == 1 && block->outBlocks.size() == 1) {
-					analyzeStructure(*createdStruct, exit_id.blockId);
-					it = createdStruct->exit_blocks.erase(it);
-					createdStruct->exit_blocks.insert(block->outBlocks[0]).first->count++;
+		if (created) {
+			bool changed = true;
+			while (changed && createdStruct.exit_blocks.size() > 1) {
+				changed = false;
+				for (auto it = createdStruct.exit_blocks.begin(); it != createdStruct.exit_blocks.end(); ++it) {
+					if (createdStruct.contained_blocks.find(it->blockId) != createdStruct.contained_blocks.end()) {
+						continue;
+					}
+					if (controlStruct.contained_blocks.find(it->blockId) == controlStruct.contained_blocks.end()) {
+						continue;
+					}
+					SSABB* basicBlock = &function->ssaRep.bbs[it->blockId];
+					bool noHead = false;
+					for (HId id : basicBlock->inBlocks) {
+						if (createdStruct.contained_blocks.find(id) == createdStruct.contained_blocks.end()) {
+							noHead |= true;
+						}
+					}
+					if (!noHead) {	
+						changed = true;
+						uint32_t count = it->count;
+						it = createdStruct.exit_blocks.erase(it);
+						createdStruct.contained_blocks.insert(basicBlock->id);
+						for (HId id : basicBlock->outBlocks) {
+							createdStruct.exit_blocks.insert(id).first->count += count;
+						}
+						break;
+					}
+
 				}
-				else {
-					analyzeStructure(controlStruct, exit_id.blockId);
-					printf("Tail: %d\n", exit_id);
-				}
+			}
+
+
+			for (const IOBlock& block : createdStruct.input_blocks) {
+				analyzeStructure(createdStruct, block.blockId);
+			}
+			controlStruct.child_struct.push_back(createdStruct);
+			for (const IOBlock& block : createdStruct.exit_blocks) {
+				analyzeStructure(controlStruct, block.blockId);
 			}
 		}
 		
@@ -500,7 +570,13 @@ namespace holodec{
 		resolveExpression(expr);
 		puts("");
 	}
-
+	ControlStruct* getStructFromHead(ControlStruct* controlStruct, HId headId) {
+		for (ControlStruct& subStruct : controlStruct->child_struct) {
+			if (subStruct.head_block == headId)
+				return &subStruct;
+		}
+		return nullptr;
+	}
 	bool SSATransformToC::doTransformation (Binary* binary, Function* function){
 		printf("Transform To C\n");
 
@@ -510,15 +586,54 @@ namespace holodec{
 		//function->print(binary->arch);
 		Symbol *sym = binary->getSymbol(function->symbolref);
 
+		{
+			bool changed = false;
+			do {
+				changed = false;
+				for (SSABB& bb : function->ssaRep.bbs) {
+					if (bb.inBlocks.size() != 1 && bb.outBlocks.size() != 1) {
+						HId oldBlockId = bb.id;
+						SSABB newbb;
+						newbb.inBlocks = bb.inBlocks;
+						newbb.outBlocks = { bb.id };
+						function->ssaRep.bbs.push_back(newbb);
+						{
+							SSABB& newbb = function->ssaRep.bbs.back();
+							SSABB& oldBB = function->ssaRep.bbs[oldBlockId];//reload
+							for (HId id : oldBB.inBlocks) {
+								SSABB& loopBB = function->ssaRep.bbs[id];//reload
+								for (HId& outId : loopBB.outBlocks) {
+									if (outId == oldBlockId) {
+										outId = newbb.id;
+									}
+								}
+							}
+							oldBB.inBlocks = { function->ssaRep.bbs.back().id };
+						}
+						changed = true;
+						break;
+					}
+				}
+			} while (changed);
+		}
+
 		printf("Structure Analysis\n");
 		HSet<HId> visited;
 		for (SSABB& bb : function->ssaRep.bbs)
 			visited.insert(bb.id);
-		ControlStruct g_struct(ControlStructType::GLOBAL);
-		for (SSABB& bb : function->ssaRep.bbs)
+		ControlStruct g_struct = { ControlStructType::GLOBAL };
+		for (SSABB& bb : function->ssaRep.bbs) {
+			if(bb.inBlocks.size() == 0)
+				g_struct.input_blocks.insert(bb.id).first->count++;
 			g_struct.contained_blocks.insert(bb.id);
+			if (bb.outBlocks.size() == 0)
+				g_struct.exit_blocks.insert(bb.id).first->count++;
+		}
 		analyzeStructure(g_struct, 1);
 		g_struct.print(1);
+
+
+
 		arguments.clear();
 		resolveIds.clear();
 		resolveBBs.clear();
@@ -605,7 +720,8 @@ namespace holodec{
 			}
 
 		}
-		
+		/*std::set<HId> visited;
+		printControlStruct(&g_struct, visited);*/
 		for (size_t index = 1; index < function->ssaRep.bbs.list.size(); ++index) {
 			printBasicBlock(function->ssaRep.bbs.list[index]);
 		}

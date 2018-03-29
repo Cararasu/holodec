@@ -24,7 +24,8 @@ namespace holodec {
 		HId blockId;
 		mutable uint32_t count;
 
-		IOBlock(HId blockId) : blockId(blockId), count(0){}
+		IOBlock(HId blockId) : blockId(blockId), count(0) {}
+		IOBlock(HId blockId, uint32_t count) : blockId(blockId), count(count) {}
 	};
 	inline bool operator<(const IOBlock& lhs, const IOBlock& rhs) {
 		return lhs.blockId < rhs.blockId;
@@ -34,34 +35,34 @@ namespace holodec {
 	}
 
 	struct ControlStruct {
-		const ControlStructType type;
+		ControlStructType type;
+		HId head_block;
 		HSet<IOBlock> input_blocks;
 		HSet<HId> contained_blocks;
 		HSet<IOBlock> exit_blocks;
 		HList<ControlStruct> child_struct;
 		ControlStruct* parent_struct = nullptr;
 
-		ControlStruct(ControlStructType type) : type(type) {}
-
 		void print(int indent = 0) {
 			printIndent(indent);
 			switch (type) {
 			case ControlStructType::TAIL:
-				printf("Tail\n");
+				printf("TAIL");
 				break;
 			case ControlStructType::SEQUENCE:
-				printf("SEQUENCE\n");
+				printf("SEQUENCE");
 				break;
 			case ControlStructType::BRANCH:
-				printf("BRANCH\n");
+				printf("BRANCH");
 				break;
 			case ControlStructType::LOOP:
-				printf("LOOP\n");
+				printf("LOOP");
 				break;
 			case ControlStructType::GLOBAL:
-				printf("GLOBAL\n");
+				printf("GLOBAL");
 				break;
 			}
+			printf(" Head: %d\n", head_block);
 			printIndent(indent);
 			printf("Inputs: ");
 			for (IOBlock ioBlock : input_blocks)
@@ -98,9 +99,11 @@ namespace holodec {
 		UnifiedExprs* getUnifiedExpr(HId uId);
 
 		void analyzeStructure(ControlStruct& controlStruct, HId start_block_id);
-		bool analyzeLoop(HId bbId, ControlStruct* loopStruc);
-		bool analyzeLoop(HId bbId, HMap<HId, bool>& visitedBlocks, ControlStruct* loopStruc);
-		void analyzeOutputBranch(HId bbId, HSet<std::pair<HId, HId>>& forwardEdges);
+		bool analyzeLoop(ControlStruct* loopStruc);
+		void analyzeLoopFor(HId bbId, HSet<HId>& visitedNodes, ControlStruct* loopStruc);
+		void analyzeLoopBack(HId bbId, HSet<HId>& visitedNodes, ControlStruct* loopStruc);
+
+		void printControlStruct(ControlStruct* controlStruct, std::set<HId> printed);
 
 		void printBasicBlock(SSABB& bb);
 		void printExpression(SSAExpression& expression);
