@@ -53,7 +53,7 @@ namespace holodec {
 			if (block.exprIds.size() && function->ssaRep.expressions[block.exprIds.back()].type == SSAExprType::eReturn)//if last statement is return then we do nothing
 				continue;
 			if (!block.fallthroughId) {
-				if (function->ssaRep.expressions[block.exprIds.back()].type != SSAExprType::eJmp && function->ssaRep.expressions[block.exprIds.back()].type != SSAExprType::eReturn) {
+				if (function->ssaRep.expressions[block.exprIds.back()].type != SSAExprType::eBranch && function->ssaRep.expressions[block.exprIds.back()].type != SSAExprType::eReturn) {
 					for (SSABB& bb : function->ssaRep.bbs) {
 						if (bb.startaddr == block.endaddr) {
 							block.fallthroughId = bb.id;
@@ -70,11 +70,8 @@ namespace holodec {
 
 			for (HId& id : block.exprIds) {
 				SSAExpression& expression = function->ssaRep.expressions[id];
-				if (expression.type == SSAExprType::eJmp) {
-					applied |= resolveDstTarget(block, expression, expression.subExpressions[0]);
-				}
-				else if (expression.type == SSAExprType::eCJmp) {
-					for(size_t i = 0; i < expression.subExpressions.size(); i += 2)
+				if (expression.type == SSAExprType::eBranch) {
+					for (size_t i = 0; i < expression.subExpressions.size(); i += 2)
 						applied |= resolveDstTarget(block, expression, expression.subExpressions[i]);
 				}
 			}

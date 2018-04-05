@@ -14,7 +14,6 @@ namespace holodec {
 		std::set<HId> occuringIds;
 	};
 	enum class ControlStructType{
-		TAIL = 1,
 		SEQUENCE,
 		BRANCH,
 		LOOP,
@@ -43,46 +42,7 @@ namespace holodec {
 		HList<ControlStruct> child_struct;
 		ControlStruct* parent_struct = nullptr;
 
-		void print(int indent = 0) {
-			printIndent(indent);
-			switch (type) {
-			case ControlStructType::TAIL:
-				printf("TAIL");
-				break;
-			case ControlStructType::SEQUENCE:
-				printf("SEQUENCE");
-				break;
-			case ControlStructType::BRANCH:
-				printf("BRANCH");
-				break;
-			case ControlStructType::LOOP:
-				printf("LOOP");
-				break;
-			case ControlStructType::GLOBAL:
-				printf("GLOBAL");
-				break;
-			}
-			printf(" Head: %d\n", head_block);
-			printIndent(indent);
-			printf("Inputs: ");
-			for (IOBlock ioBlock : input_blocks)
-				printf("%d(%d), ", ioBlock.blockId, ioBlock.count);
-			printf("\n");
-			printIndent(indent);
-			printf("Contains: ");
-			for (HId id : contained_blocks)
-				printf("%d, ", id);
-			printf("\n");
-			printIndent(indent);
-			printf("Exits: ");
-			for (IOBlock ioBlock : exit_blocks)
-				printf("%d(%d), ", ioBlock.blockId, ioBlock.count);
-			printf("\n");
-			printIndent(indent);
-			printf("Children\n");
-			for (ControlStruct child : child_struct)
-				child.print(indent + 1);
-		}
+		void print(int indent = 0);
 	};
 
 	struct SSATransformToC : public SSATransformer {
@@ -102,8 +62,10 @@ namespace holodec {
 		bool analyzeLoop(ControlStruct* loopStruc);
 		void analyzeLoopFor(HId bbId, HSet<HId>& visitedNodes, ControlStruct* loopStruc);
 		void analyzeLoopBack(HId bbId, HSet<HId>& visitedNodes, ControlStruct* loopStruc);
+		void consolidateBranchLoops(ControlStruct* controlStruct);
 
-		void printControlStruct(ControlStruct* controlStruct, std::set<HId> printed);
+
+		void printControlStruct(ControlStruct* controlStruct, std::set<HId>& printed, uint32_t indent = 0);
 
 		void printBasicBlock(SSABB& bb);
 		void printExpression(SSAExpression& expression);

@@ -3,42 +3,72 @@
 
 namespace holodec{
 
-	//gather outputs
-	//mark every nodes outwards of outputs
-	//if there exists a node that has the same number of marks as 
-	//
-
+	
+	void ControlStruct::print(int indent) {
+		printIndent(indent);
+		switch (type) {
+		case ControlStructType::SEQUENCE:
+			printf("SEQUENCE");
+			break;
+		case ControlStructType::BRANCH:
+			printf("BRANCH");
+			break;
+		case ControlStructType::LOOP:
+			printf("LOOP");
+			break;
+		case ControlStructType::GLOBAL:
+			printf("GLOBAL");
+			break;
+		}
+		printf(" Head: %d\n", head_block);
+		printIndent(indent);
+		printf("Inputs: ");
+		for (IOBlock ioBlock : input_blocks)
+			printf("%d(%d), ", ioBlock.blockId, ioBlock.count);
+		printf("\n");
+		printIndent(indent);
+		printf("Contains: ");
+		for (HId id : contained_blocks)
+			printf("%d, ", id);
+		printf("\n");
+		printIndent(indent);
+		printf("Exits: ");
+		for (IOBlock ioBlock : exit_blocks)
+			printf("%d(%d), ", ioBlock.blockId, ioBlock.count);
+		printf("\n");
+		printIndent(indent);
+		printf("Children\n");
+		for (ControlStruct child : child_struct)
+			child.print(indent + 1);
+	}
 
 	bool SSATransformToC::analyzeLoop(ControlStruct* loopStruct) {
 		ControlStruct* tmpLoopStruct = loopStruct;
 		while (tmpLoopStruct->parent_struct) {
-			if(tmpLoopStruct->parent_struct->head_block == loopStruct->head_block)
+			if (tmpLoopStruct->parent_struct->head_block == loopStruct->head_block)
 				return false;
 			tmpLoopStruct = tmpLoopStruct->parent_struct;
 		}
 
 		HSet<HId> visitedBlocks, loopBlocks;
 		SSABB* basicBlock = &function->ssaRep.bbs[loopStruct->head_block];
-		for (HId id : basicBlock->outBlocks) {
-			analyzeLoopFor(id, visitedBlocks, loopStruct);
-		}
-		for (HId id : basicBlock->inBlocks) {
-			analyzeLoopBack(id, visitedBlocks, loopStruct);
-		}
-		if (loopStruct->contained_blocks.empty())
+		analyzeLoopFor(loopStruct->head_block, visitedBlocks, loopStruct);//mark forward
+		analyzeLoopBack(loopStruct->head_block, visitedBlocks, loopStruct);//gather backwards
+
+		//we split nodes that have multiple outputs and inputs into 2 distinct blocks, which means a loop always has at least 2 nodes
+		//if only 1 node is in the set then the no loop was found
+		if (loopStruct->contained_blocks.size() <= 1)
 			return false;
 
 		for (const HId& id : loopStruct->contained_blocks) {
 			SSABB* basicBlock = &function->ssaRep.bbs[id];
 			for (HId id : basicBlock->inBlocks) {
-				auto it = loopStruct->contained_blocks.find(id);
-				if (it == loopStruct->contained_blocks.end()) {
+				if (loopStruct->contained_blocks.find(id) == loopStruct->contained_blocks.end()) {
 					loopStruct->input_blocks.insert(basicBlock->id).first->count++;
 				}
 			}
 			for (HId id : basicBlock->outBlocks) {
-				auto it = loopStruct->contained_blocks.find(id);
-				if (it == loopStruct->contained_blocks.end()) {
+				if (loopStruct->contained_blocks.find(id) == loopStruct->contained_blocks.end()) {
 					loopStruct->exit_blocks.insert(id).first->count++;
 				}
 			}
@@ -110,7 +140,6 @@ namespace holodec{
 		if (basicBlock->inBlocks.size() > 1) {//Loop - Check
 			created = true;
 			createdStruct.type = ControlStructType::LOOP;
-			//createdStruct.input_blocks.insert(start_block_id).first->count++;
 			if(controlStruct.input_blocks.find(start_block_id) == controlStruct.input_blocks.end() && analyzeLoop(&createdStruct)){
 				for (auto it = createdStruct.exit_blocks.begin(); it != createdStruct.exit_blocks.end(); ++it) {
 					SSABB* block = &function->ssaRep.bbs[it->blockId];
@@ -209,7 +238,6 @@ namespace holodec{
 			}
 		}
 		
-		fflush(stdout);
 	}
 	bool SSATransformToC::shouldResolve(SSAExpression& expr) {
 		if (resolveIds.find(expr.id) != resolveIds.end()) {
@@ -380,8 +408,33 @@ namespace holodec{
 					case SSAOpType::eGreater:
 						printf(" > ");
 						break;
+					case SSAOpType::eBAnd:
+						printf(" & ");
+						break;
+					case SSAOpType::eBOr:
+						printf(" | ");
+						break;
+					case SSAOpType::eBXor:
+						printf(" ^ ");
+						break;
+					case SSAOpType::eBNot:
+						printf(" ~ ");
+						break;
+					case SSAOpType::eShr:
+						printf(" >> ");
+						break;
+					case SSAOpType::eShl:
+						printf(" << ");
+						break;
+					case SSAOpType::eRor:
+						printf(" >>> ");
+						break;
+					case SSAOpType::eRol:
+						printf(" <<< ");
+						break;
 					default:
 						printf(" op ");
+						break;
 					}
 				}
 			}
@@ -514,13 +567,7 @@ namespace holodec{
 		case SSAExprType::eAssign: {
 			resolveArg(expr.subExpressions[0]);
 		}break;
-
-		case SSAExprType::eJmp: {
-			SSAArgument& blockarg = expr.subExpressions[0];
-			if (blockarg.type == SSAArgType::eOther && blockarg.location == SSALocation::eBlock)
-				printf("goto L%d", blockarg.locref.refId);
-		}break;
-		case SSAExprType::eCJmp: {
+		case SSAExprType::eBranch: {
 			for (size_t i = 1; i < expr.subExpressions.size(); i += 2) {
 				if (i > 1)
 					printf("else ");
@@ -577,6 +624,115 @@ namespace holodec{
 		}
 		return nullptr;
 	}
+	void SSATransformToC::printControlStruct(ControlStruct* controlStruct, std::set<HId>& printed, uint32_t indent) {
+		if (!controlStruct || printed.find(controlStruct->head_block) != printed.end())
+			return;
+		switch (controlStruct->type) {
+		case ControlStructType::SEQUENCE: {
+			SSABB* bb = &function->ssaRep.bbs[controlStruct->head_block];
+			while (controlStruct->contained_blocks.find(bb->id) != controlStruct->contained_blocks.end() && printed.find(bb->id) == printed.end()) {
+				printIndent(indent); printf("Block %d\n", bb->id);
+				printed.insert(bb->id);
+				if (bb->outBlocks.size() == 0)
+					break;
+				bb = &function->ssaRep.bbs[bb->outBlocks[0]];
+			}
+		} return;
+		case ControlStructType::BRANCH: {
+			SSABB* bb = &function->ssaRep.bbs[controlStruct->head_block];
+			printIndent(indent); printf("Block %d\n", bb->id);
+			printIndent(indent); printf("Branching\n", bb->id);
+			for (HId& id : bb->outBlocks) {
+				printIndent(indent + 1); printf("Branch\n", bb->id);
+				printControlStruct(getStructFromHead(controlStruct, id), printed, indent + 2);
+			}
+		} return;
+		case ControlStructType::LOOP: {
+			SSABB* bb = &function->ssaRep.bbs[controlStruct->head_block];
+			printIndent(indent); printf("Loop\n", bb->id);
+			printIndent(indent); printf("Block %d\n", bb->id);
+			printIndent(indent); printf("Body\n", bb->id);
+			for (HId& id : bb->outBlocks) {
+				printControlStruct(getStructFromHead(controlStruct, id), printed, indent + 1);
+			}
+		} return;
+		case ControlStructType::GLOBAL: {
+			for (ControlStruct& subStruct : controlStruct->child_struct) {
+				printControlStruct(&subStruct, printed, indent + 1);
+			}
+		}return;
+		}
+	}
+	//consolidate branches and loops so that if(cond){while(cond){doStuff;}} gets correctly handled and the loop gets pushed into the branch
+	//we only handle loops after branches because they are the cases that are handled by the normal structure-analyzing
+	void SSATransformToC::consolidateBranchLoops(ControlStruct* controlStruct) {
+		bool changed = false;
+		do{
+			changed = false;
+			for (ControlStruct& childStruct : controlStruct->child_struct) {
+				//ignore non-branches and in case of one exitblock we are already finished with consolidating branches
+				if (childStruct.type != ControlStructType::BRANCH || childStruct.exit_blocks.size() <= 1)
+					continue;
+
+				for (const IOBlock& exitBlock : childStruct.exit_blocks) {
+					//if we exit the block completely continue
+					if (controlStruct->contained_blocks.find(exitBlock.blockId) == controlStruct->contained_blocks.end()) {
+						continue;
+					}
+					//search where the control flow goes next
+					auto innerInputIt = controlStruct->child_struct.begin();
+					for (; innerInputIt != controlStruct->child_struct.end(); ++innerInputIt) {
+						if (innerInputIt->type == ControlStructType::LOOP && innerInputIt->input_blocks.find(exitBlock.blockId) != innerInputIt->input_blocks.end())
+							break;
+					}
+					if (innerInputIt != controlStruct->child_struct.end()) {
+						//all inputs 
+						bool canNotFuse = false;
+						for (const IOBlock& aBlock : innerInputIt->input_blocks) {
+							for (ControlStruct& subStruct : controlStruct->child_struct) {
+								canNotFuse |= subStruct.exit_blocks.find(aBlock.blockId) != subStruct.exit_blocks.end() && &subStruct != &childStruct;
+							}
+						}
+						if (!canNotFuse) {
+							for (auto inputBlockIt = innerInputIt->input_blocks.begin(); inputBlockIt != innerInputIt->input_blocks.end(); ++inputBlockIt) {
+								if ((childStruct.exit_blocks.find(inputBlockIt->blockId)->count -= inputBlockIt->count) == 0)
+									childStruct.exit_blocks.erase(inputBlockIt->blockId);
+							}
+							childStruct.contained_blocks.insert(innerInputIt->contained_blocks.begin(), innerInputIt->contained_blocks.end());
+							for (const IOBlock& ioBlock : innerInputIt->exit_blocks) {
+								if (childStruct.contained_blocks.find(ioBlock.blockId) == childStruct.contained_blocks.end()) {
+									childStruct.exit_blocks.insert(ioBlock.blockId).first->count += ioBlock.count;
+								}
+							}
+							innerInputIt->parent_struct = &childStruct;
+							childStruct.child_struct.push_back(*innerInputIt);
+							controlStruct->child_struct.erase(innerInputIt);
+							changed = true;
+
+							for (auto it = childStruct.exit_blocks.begin(); it != childStruct.exit_blocks.end(); ++it) {
+								if (it->count == 0) {
+									it = childStruct.exit_blocks.erase(it);
+								}
+							}
+							for (auto it = childStruct.input_blocks.begin(); it != childStruct.input_blocks.end(); ++it) {
+								if (it->count == 0) {
+									it = childStruct.input_blocks.erase(it);
+								}
+							}
+							break;
+						}
+					}
+					if (changed)
+						break;
+				}
+				if (changed)
+					break;
+			}
+		} while (changed);
+		for (ControlStruct& childStruct : controlStruct->child_struct) {
+			consolidateBranchLoops(&childStruct);
+		}
+	}
 	bool SSATransformToC::doTransformation (Binary* binary, Function* function){
 		printf("Transform To C\n");
 
@@ -619,8 +775,6 @@ namespace holodec{
 
 		printf("Structure Analysis\n");
 		HSet<HId> visited;
-		for (SSABB& bb : function->ssaRep.bbs)
-			visited.insert(bb.id);
 		ControlStruct g_struct = { ControlStructType::GLOBAL };
 		for (SSABB& bb : function->ssaRep.bbs) {
 			if(bb.inBlocks.size() == 0)
@@ -631,7 +785,9 @@ namespace holodec{
 		}
 		analyzeStructure(g_struct, 1);
 		g_struct.print(1);
-
+		consolidateBranchLoops(&g_struct);
+		g_struct.print(1);
+		printControlStruct(&g_struct, visited, 1);
 
 
 		arguments.clear();

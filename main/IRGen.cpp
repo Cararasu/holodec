@@ -66,10 +66,6 @@ namespace holodec {
 				expressionmap.insert (std::make_pair ("shr", expression));
 				expression.mod.opType = SSAOpType::eShl;
 				expressionmap.insert (std::make_pair ("shl", expression));
-				expression.mod.opType = SSAOpType::eSar;
-				expressionmap.insert (std::make_pair ("sar", expression));
-				expression.mod.opType = SSAOpType::eSal;
-				expressionmap.insert (std::make_pair ("sal", expression));
 				expression.mod.opType = SSAOpType::eRor;
 				expressionmap.insert (std::make_pair ("ror", expression));
 				expression.mod.opType = SSAOpType::eRol;

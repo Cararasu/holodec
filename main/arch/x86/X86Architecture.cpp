@@ -603,8 +603,8 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 		{
 			X86_INS_SAR,
 			"sar", {
-				{1, "#seq(=(#t[1],#sar(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
-		{2, "#seq(=(#t[1],#sar(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
+				{1, "#seq(=(#t[1],#shr(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
+		{2, "#seq(=(#t[1],#shr[s](#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
 			}, InstructionType::eShr
 		},
 
@@ -619,8 +619,8 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 		{
 			X86_INS_SAL,
 			"sal", {
-				{1, "#seq(=(#t[1],#sal(#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
-				{2, "#seq(=(#t[1],#sal(#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"}
+				{1, "#seq(=(#t[1],#shl[s](#arg[1],1)),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"},
+				{2, "#seq(=(#t[1],#shl[s](#arg[1],#arg[2])),=($pf,$parity[u](#t[1])),=($sf,<[s](#t[1],0)),=($of,#o),=(#arg[1],#t[1]),=($cf,#t[1][#bsize(#arg[1]),1]),=($zf,==(#t[1],0)),#undef($af))"}
 			}, InstructionType::eShl
 		},
 

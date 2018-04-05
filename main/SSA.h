@@ -46,8 +46,7 @@ namespace holodec {
 		ePhi		= SSA_EXPR_PHI,
 		eAssign		= SSA_EXPR_ASSIGN,
 
-		eJmp		= SSA_EXPR_JMP,
-		eCJmp		= SSA_EXPR_CJMP,
+		eBranch		= SSA_EXPR_BRANCH,
 
 		eMemAccess	= SSA_EXPR_MEMACCESS,
 		eStore		= SSA_EXPR_STORE,
@@ -80,8 +79,6 @@ namespace holodec {
 
 		eShr = SSA_OP_SHR,
 		eShl = SSA_OP_SHL,
-		eSar = SSA_OP_SAR,
-		eSal = SSA_OP_SAL,
 		eRor = SSA_OP_ROR,
 		eRol = SSA_OP_ROL,
 	};

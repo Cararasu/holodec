@@ -679,7 +679,7 @@ namespace holodec {
 
 			case IR_EXPR_IF: {//TODO there seems to be an error where a block input/output is not set correctly
 				SSAExpression expression;
-				expression.type = SSAExprType::eCJmp;
+				expression.type = SSAExprType::eBranch;
 				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bytebase * arch->bitbase;
 
@@ -722,7 +722,7 @@ namespace holodec {
 			}
 			case IR_EXPR_JMP: {
 				SSAExpression expression;
-				expression.type = SSAExprType::eJmp;
+				expression.type = SSAExprType::eBranch;
 				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bytebase * arch->bitbase;
 
@@ -738,7 +738,7 @@ namespace holodec {
 			}
 			case IR_EXPR_CJMP: {
 				SSAExpression expression;
-				expression.type = SSAExprType::eCJmp;
+				expression.type = SSAExprType::eBranch;
 				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bytebase * arch->bitbase;
 				assert (subexpressioncount % 2 == 1);
@@ -1147,7 +1147,7 @@ namespace holodec {
 
 				activateBlock (startCondId);
 				SSAExpression expression;
-				expression.type = SSAExprType::eCJmp;
+				expression.type = SSAExprType::eBranch;
 				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bytebase * arch->bitbase;
 				expression.subExpressions = {

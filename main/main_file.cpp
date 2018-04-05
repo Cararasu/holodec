@@ -295,7 +295,7 @@ int main (int argc, const char** argv) {
 	delete func;
 
 	func = new Function();
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 7; i++) {
 		func->ssaRep.bbs.emplace_back();
 	}
 	PATH(func, 1, 2);
@@ -304,9 +304,24 @@ int main (int argc, const char** argv) {
 	PATH(func, 2, 4);
 	PATH(func, 4, 5);
 	PATH(func, 4, 6);
-	PATH(func, 5, 6);
+	PATH(func, 5, 7);
+	PATH(func, 6, 7);
 	transformers[8]->doTransformation(binary, func);
 	func->print(binary->arch);
+	delete func;
+
+	func = new Function();
+	for (int i = 0; i < 4; i++) {
+		func->ssaRep.bbs.emplace_back();
+	}
+	PATH(func, 1, 2);
+	PATH(func, 2, 3);
+	PATH(func, 2, 4);
+	PATH(func, 3, 3);
+	PATH(func, 3, 4);
+	transformers[8]->doTransformation(binary, func);
+	func->print(binary->arch);
+	delete func;
 
 #undef PATH
 

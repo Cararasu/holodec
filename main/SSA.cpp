@@ -150,11 +150,8 @@ namespace holodec {
 		case SSAExprType::eAssign:
 			printf ("Assign ");
 			break;
-		case SSAExprType::eJmp:
-			printf ("Jmp    ");
-			break;
-		case SSAExprType::eCJmp:
-			printf ("Cjmp   ");
+		case SSAExprType::eBranch:
+			printf ("Branch ");
 			break;
 		case SSAExprType::eOp:
 			printf ("Op");
@@ -221,12 +218,6 @@ namespace holodec {
 				break;
 			case SSAOpType::eShl:
 				printf (" <<  ");
-				break;
-			case SSAOpType::eSar:
-				printf (" pow ");
-				break;
-			case SSAOpType::eSal:
-				printf (" sqt2");
 				break;
 			case SSAOpType::eRor:
 				printf (" >>> ");
