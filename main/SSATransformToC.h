@@ -35,7 +35,8 @@ namespace holodec {
 
 	struct ControlStruct {
 		ControlStructType type;
-		HId head_block;
+		HId head_block = 0;
+		HId main_exit = 0;
 		HSet<IOBlock> input_blocks;
 		HSet<HId> contained_blocks;
 		HSet<IOBlock> exit_blocks;
@@ -65,9 +66,10 @@ namespace holodec {
 		void consolidateBranchLoops(ControlStruct* controlStruct);
 
 
-		void printControlStruct(ControlStruct* controlStruct, std::set<HId>& printed, uint32_t indent = 0);
+		void printControlStruct(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 
-		void printBasicBlock(SSABB& bb);
+		HId printBasicBlock(ControlStruct* cStruct);
+		void printBasicBlock(ControlStruct* cStruct, SSABB& bb);
 		void printExpression(SSAExpression& expression);
 		void resolveArgs(SSAExpression& expression, const char* delimiter = ", ");
 		void resolveArgWithoutOffset(SSAArgument& arg);

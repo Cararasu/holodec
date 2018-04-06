@@ -279,6 +279,9 @@ int main (int argc, const char** argv) {
 		func->ssaRep.bbs.emplace_back();
 	}
 #define PATH(function, from, to) function->ssaRep.bbs[from].outBlocks.insert(to);function->ssaRep.bbs[to].inBlocks.insert(from);
+
+	SSAExpression expr;
+	expr.type = SSAExprType::eBranch;
 	PATH(func, 1, 2);
 	PATH(func, 2, 3);
 	PATH(func, 2, 4);
@@ -286,12 +289,27 @@ int main (int argc, const char** argv) {
 	PATH(func, 3, 5);
 	PATH(func, 4, 3);
 	PATH(func, 4, 6);
-	PATH(func, 6, 7);
 	PATH(func, 5, 7);
 	PATH(func, 5, 8);
+	PATH(func, 6, 7);
 	PATH(func, 7, 8);
-	transformers[8]->doTransformation(binary, func);
+	expr.subExpressions = { SSAArgument::createBlock(2) };
+	func->ssaRep.bbs[1].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(3), SSAArgument::createUVal(0, 8), SSAArgument::createBlock(4) };
+	func->ssaRep.bbs[2].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(4), SSAArgument::createUVal(0, 8), SSAArgument::createBlock(5) };
+	func->ssaRep.bbs[3].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(3), SSAArgument::createUVal(0, 8), SSAArgument::createBlock(6) };
+	func->ssaRep.bbs[4].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(7), SSAArgument::createUVal(0, 8), SSAArgument::createBlock(8) };
+	func->ssaRep.bbs[5].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(7) };
+	func->ssaRep.bbs[6].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(8) };
+	func->ssaRep.bbs[7].exprIds.push_back(func->ssaRep.addExpr(&expr));
+
 	func->print(binary->arch);
+	transformers[8]->doTransformation(binary, func);
 	delete func;
 
 	func = new Function();
@@ -300,12 +318,24 @@ int main (int argc, const char** argv) {
 	}
 	PATH(func, 1, 2);
 	PATH(func, 2, 3);
-	PATH(func, 3, 4);
 	PATH(func, 2, 4);
+	PATH(func, 3, 4);
 	PATH(func, 4, 5);
 	PATH(func, 4, 6);
 	PATH(func, 5, 7);
 	PATH(func, 6, 7);
+	expr.subExpressions = { SSAArgument::createBlock(2) };
+	func->ssaRep.bbs[1].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(3), SSAArgument::createUVal(1, 8), SSAArgument::createBlock(4) };
+	func->ssaRep.bbs[2].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(4) };
+	func->ssaRep.bbs[3].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(5), SSAArgument::createUVal(1, 8), SSAArgument::createBlock(6) };
+	func->ssaRep.bbs[4].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(7) };
+	func->ssaRep.bbs[5].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(7) };
+	func->ssaRep.bbs[6].exprIds.push_back(func->ssaRep.addExpr(&expr));
 	transformers[8]->doTransformation(binary, func);
 	func->print(binary->arch);
 	delete func;
@@ -319,6 +349,11 @@ int main (int argc, const char** argv) {
 	PATH(func, 2, 4);
 	PATH(func, 3, 3);
 	PATH(func, 3, 4);
+	expr.subExpressions = { SSAArgument::createBlock(2) };
+	func->ssaRep.bbs[1].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	expr.subExpressions = { SSAArgument::createBlock(3), SSAArgument::createUVal(1, 8), SSAArgument::createBlock(4) };
+	func->ssaRep.bbs[2].exprIds.push_back(func->ssaRep.addExpr(&expr));
+	func->ssaRep.bbs[3].exprIds.push_back(func->ssaRep.addExpr(&expr));
 	transformers[8]->doTransformation(binary, func);
 	func->print(binary->arch);
 	delete func;

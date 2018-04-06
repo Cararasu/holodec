@@ -112,25 +112,25 @@ extern "C" {
 		return reinterpret_cast<holodec::SSABB*> (ssaBB)->exprIds.data();
 	}
 
-	HId ssa_get_block_fallthroughId (HSSABB* ssaBB) {
-		return reinterpret_cast<holodec::SSABB*> (ssaBB)->fallthroughId;
-	}
-
 	HId ssa_get_inblock (HSSABB* ssaBB, uint64_t index) {
-		return reinterpret_cast<holodec::SSABB*> (ssaBB)->inBlocks[index];
+		//return reinterpret_cast<holodec::SSABB*> (ssaBB)->inBlocks[index];
+		return 0;
 	}
 	HId* ssa_get_inblock_ptr (HSSABB* ssaBB) {
-		return &*reinterpret_cast<holodec::SSABB*> (ssaBB)->inBlocks.begin();
+		//return &*reinterpret_cast<holodec::SSABB*> (ssaBB)->inBlocks.begin();
+		return nullptr;
 	}
 	uint64_t ssa_get_inblock_count (HSSABB* ssaBB) {
 		return reinterpret_cast<holodec::SSABB*> (ssaBB)->inBlocks.size();
 	}
 
 	HId ssa_get_outblock (HSSABB* ssaBB, uint64_t index) {
-		return reinterpret_cast<holodec::SSABB*> (ssaBB)->outBlocks[index];
+		//return reinterpret_cast<holodec::SSABB*> (ssaBB)->outBlocks[index];
+		return 0;
 	}
 	HId* ssa_get_outblock_ptr (HSSABB* ssaBB) {
-		return &*reinterpret_cast<holodec::SSABB*> (ssaBB)->outBlocks.begin();
+		//return &*reinterpret_cast<holodec::SSABB*> (ssaBB)->outBlocks.begin();
+		return nullptr;
 	}
 	uint64_t ssa_get_outblock_count (HSSABB* ssaBB) {
 		return reinterpret_cast<holodec::SSABB*> (ssaBB)->outBlocks.size();

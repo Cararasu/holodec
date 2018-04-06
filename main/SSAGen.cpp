@@ -340,7 +340,7 @@ namespace holodec {
 						HList<HId> exprsOfNewBlock (it, bb.exprIds.end());
 						bb.exprIds.erase (it, bb.exprIds.end());
 
-						SSABB createdbb (bb.fallthroughId, addr, newEndAddr, exprsOfNewBlock, {oldId}, bb.outBlocks);
+						SSABB createdbb (addr, newEndAddr, exprsOfNewBlock, {oldId}, bb.outBlocks);
 						HId newBlockId = ssaRepresentation->bbs.push_back (createdbb);
 						for (HId id : exprsOfNewBlock) {//set the blockid for the split block
 							ssaRepresentation->expressions[id].blockId = newBlockId;
@@ -348,7 +348,11 @@ namespace holodec {
 
 						SSABB* newbb = &ssaRepresentation->bbs.back();
 						SSABB* oldbb = ssaRepresentation->bbs.get (oldId);
-						oldbb->fallthroughId = newbb->id;
+
+						SSAExpression branchExpr(SSAExprType::eBranch, arch->bitbase * arch->bytebase, SSAType::ePc);
+						branchExpr.subExpressions = { SSAArgument::createBlock(newbb->id) };
+						function->ssaRep.addAtEnd(&branchExpr, oldbb);
+
 						oldbb->outBlocks = {newbb->id};
 
 						return newbb->id;
@@ -688,8 +692,8 @@ namespace holodec {
 
 				HId oldBlock = activeBlockId;
 				HId trueblockId = createNewBlock();
-				HId falseblockId = (subexpressioncount == 3) ? createNewBlock() : 0;//generate early so the blocks are in order
 				HId endBlockId = createNewBlock();
+				HId falseblockId = (subexpressioncount == 3) ? createNewBlock() : endBlockId;//generate early so the blocks are in order
 
 				SSAArgument exprArgs[3] = {
 					SSAArgument::createBlock(trueblockId),
@@ -701,19 +705,26 @@ namespace holodec {
 
 				activateBlock (trueblockId);
 				parseExpression (irExpr->subExpressions[1]);//trueblock
-				getActiveBlock()->fallthroughId = endBlockId;
 
-				if (falseblockId) {
-					getBlock (oldBlock)->fallthroughId = falseblockId;
+				SSAExpression branchExpr(SSAExprType::eBranch, arch->bitbase * arch->bytebase, SSAType::ePc);
+				branchExpr.subExpressions = { SSAArgument::createBlock(endBlockId) };
+				function->ssaRep.addAtEnd(&branchExpr, getActiveBlock());
+
+				if (subexpressioncount == 3) {
+
 					activateBlock (falseblockId);
 					parseExpression (irExpr->subExpressions[2]);//falseblock
 					SSABB* activeblock = getActiveBlock();
-					activeblock->fallthroughId = endBlockId;
+
+					SSAExpression branchExpr(SSAExprType::eBranch, arch->bitbase * arch->bytebase, SSAType::ePc);
+					branchExpr.subExpressions = { SSAArgument::createBlock(endBlockId) };
+					function->ssaRep.addAtEnd(&branchExpr, activeblock);
+
 					activeblock->outBlocks.insert (endBlockId);
 					getBlock (endBlockId)->inBlocks.insert (activeblock->id);
 				} else {
 					SSABB* oldBB = getBlock (oldBlock);
-					oldBB->fallthroughId = endBlockId;
+
 					oldBB->outBlocks.insert (endBlockId);
 					getBlock (endBlockId)->inBlocks.insert (oldBB->id);
 				}
@@ -1146,16 +1157,9 @@ namespace holodec {
 				HId endId = createNewBlock();
 
 				activateBlock (startCondId);
-				SSAExpression expression;
-				expression.type = SSAExprType::eBranch;
-				expression.exprtype = SSAType::ePc;
-				expression.size = arch->bytebase * arch->bitbase;
-				expression.subExpressions = {
-					SSAArgument::createBlock(startBodyId),
-					parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1])),
-					SSAArgument::createBlock(endId)
-					};
-				addExpression (&expression);
+				SSAExpression branchExpr(SSAExprType::eBranch, arch->bitbase * arch->bytebase, SSAType::ePc);
+				branchExpr.subExpressions = { SSAArgument::createBlock(startBodyId), parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[1])), SSAArgument::createBlock(endId) };
+				addExpression (&branchExpr);
 				endCondId = activeBlockId;
 				this->endOfBlock = false;
 				this->fallthrough = false;
@@ -1173,12 +1177,12 @@ namespace holodec {
 				SSABB* endBB = getBlock (endId);
 
 				//start -> startCond
-				startBlockBB->fallthroughId = startCondId;
+				branchExpr.subExpressions = { SSAArgument::createBlock(startCondId) };
+				function->ssaRep.addAtEnd(&branchExpr, startBlockBB);
 				startBlockBB->outBlocks.insert (startCondId);
 				startCondBB->inBlocks.insert (startBlock);
 
 				//endCond -> true: startBody; false: end
-				endCondBB->fallthroughId = endId;
 				endCondBB->outBlocks.insert (endId);
 				endBB->inBlocks.insert (endCondId);
 
@@ -1186,7 +1190,8 @@ namespace holodec {
 				startBodyBB->inBlocks.insert (endCondId);
 
 				//endBody -> startCond
-				endBodyBB->fallthroughId = startCondId;
+				branchExpr.subExpressions = { SSAArgument::createBlock(startCondId) };
+				function->ssaRep.addAtEnd(&branchExpr, endBodyBB);
 				endBodyBB->outBlocks.insert (startCondId);
 				startCondBB->inBlocks.insert (endBodyId);
 

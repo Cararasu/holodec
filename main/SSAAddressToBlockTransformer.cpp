@@ -34,11 +34,11 @@ namespace holodec {
 					}
 				}
 			}
-			for (Register& reg : arch->registers) {
+			/*for (Register& reg : arch->registers) {
 				if (!reg.id || reg.directParentRef)
 					continue;
 				expr.subExpressions.push_back(SSAArgument::createReg(&reg, 0));
-			}
+			}*/
 			return true;
 		}
 		return false;
@@ -52,19 +52,16 @@ namespace holodec {
 		for (SSABB& block : function->ssaRep.bbs) {
 			if (block.exprIds.size() && function->ssaRep.expressions[block.exprIds.back()].type == SSAExprType::eReturn)//if last statement is return then we do nothing
 				continue;
-			if (!block.fallthroughId) {
-				if (function->ssaRep.expressions[block.exprIds.back()].type != SSAExprType::eBranch && function->ssaRep.expressions[block.exprIds.back()].type != SSAExprType::eReturn) {
-					for (SSABB& bb : function->ssaRep.bbs) {
-						if (bb.startaddr == block.endaddr) {
-							block.fallthroughId = bb.id;
-							block.outBlocks.insert(bb.id);
-							bb.inBlocks.insert(block.id);
-							break;
-						}
+			if (function->ssaRep.expressions[block.exprIds.back()].type != SSAExprType::eBranch && function->ssaRep.expressions[block.exprIds.back()].type != SSAExprType::eReturn) {
+				for (SSABB& bb : function->ssaRep.bbs) {
+					if (bb.startaddr == block.endaddr) {
+						SSAExpression branchExpr(SSAExprType::eBranch, arch->bitbase * arch->bytebase, SSAType::ePc);
+						branchExpr.subExpressions = { SSAArgument::createBlock(bb.id) };
+						function->ssaRep.addAtEnd(&branchExpr, &block);
+						block.outBlocks.insert(bb.id);
+						bb.inBlocks.insert(block.id);
+						break;
 					}
-				}
-				else {
-					block.fallthroughId = 0;
 				}
 			}
 

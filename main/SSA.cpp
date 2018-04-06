@@ -664,18 +664,18 @@ namespace holodec {
 		return addAtEnd (expr, &bbs[blockId]);
 	}
 	HId SSARepresentation::addAtEnd (SSAExpression* expr, SSABB* bb) {
+		expr->blockId = bb->id;
 		HId newId = addExpr (expr);
 		bb->exprIds.push_back (newId);
-		expressions[newId].blockId = bb->id;
 		return newId;
 	}
 	HId SSARepresentation::addAtStart (SSAExpression* expr, HId blockId) {
 		return addAtStart (expr, &bbs[blockId]);
 	}
 	HId SSARepresentation::addAtStart (SSAExpression* expr, SSABB* bb) {
+		expr->blockId = bb->id;
 		HId newId = addExpr (expr);
 		bb->exprIds.insert (bb->exprIds.begin(), newId);
-		expressions[newId].blockId = bb->id;
 		return newId;
 	}
 
@@ -749,8 +749,6 @@ namespace holodec {
 			for (HId id : bb.outBlocks) printf ("%d, ", id);
 			printf ("\n");
 
-			printIndent (indent + 1);
-			printf ("Fallthrough: %d\n", bb.fallthroughId);
 			printIndent (indent + 1);
 			printf ("Number Of Ids: %" PRId64 "\n", bb.exprIds.size());
 			for (HId id : bb.exprIds) {

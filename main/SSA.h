@@ -348,6 +348,9 @@ namespace holodec {
 		HList<HId> directRefs;
 		HList<SSAArgument> subExpressions;
 
+		SSAExpression() {}
+		SSAExpression(SSAExprType type, uint32_t size, SSAType exprtype) : type(type), size(size), exprtype(exprtype){}
+
 		void addArgument(SSARepresentation* rep, SSAArgument arg);
 		void setArgument(SSARepresentation* rep, int index, SSAArgument arg);
 		void setArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg);
@@ -389,16 +392,15 @@ namespace holodec {
 	
 	struct SSABB {
 		HId id;
-		HId fallthroughId = 0;
 		uint64_t startaddr = (uint64_t)-1;
 		uint64_t endaddr = 0;
 		HList<HId> exprIds;
-		HUniqueList<HId> inBlocks;
-		HUniqueList<HId> outBlocks;
+		HSet<HId> inBlocks;
+		HSet<HId> outBlocks;
 
 		SSABB() {}
-		SSABB (HId fallthroughId, uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds, HUniqueList<HId> inBlocks, HUniqueList<HId> outBlocks) :
-			id(0),fallthroughId(fallthroughId),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds),inBlocks(inBlocks),outBlocks(outBlocks){}
+		SSABB (uint64_t startaddr, uint64_t endaddr, HList<HId> exprIds, HSet<HId> inBlocks, HSet<HId> outBlocks) :
+			id(0),startaddr(startaddr),endaddr(endaddr),exprIds(exprIds),inBlocks(inBlocks),outBlocks(outBlocks){}
 		~SSABB() = default;
 
 
@@ -438,7 +440,7 @@ namespace holodec {
 		void recalcRefCounts();
 
 		bool calcConstValue(SSAArgument argument, uint64_t* result);
-		
+
 		HId addExpr(SSAExpression* expr);
 		
 		HId addAtEnd(SSAExpression* expr, HId blockId);

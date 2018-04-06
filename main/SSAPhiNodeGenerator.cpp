@@ -13,7 +13,6 @@ namespace holodec {
 	void BasicBlockWrapper::print (Architecture* arch) {
 		printf ("BB %d\n", ssaBB->id);
 		printf ("Address 0x%" PRIx64 " - 0x%" PRIx64 "\n", ssaBB->startaddr, ssaBB->endaddr);
-		printf ("Fallthrough %d\n", ssaBB->fallthroughId);
 
 		printf ("InBlocks ");
 		for (HId id : ssaBB->inBlocks) {
@@ -93,7 +92,7 @@ namespace holodec {
 			}
 			if (wrapper->ssaBB->inBlocks.size() != 1)
 				break;
-			wrapper = getWrapper(wrapper->ssaBB->inBlocks[0]);
+			wrapper = getWrapper(*wrapper->ssaBB->inBlocks.begin());
 		}
 		assert(wrapper->ssaBB->inBlocks.size() > 1);
 
@@ -125,7 +124,7 @@ namespace holodec {
 			}
 			if (wrapper->ssaBB->inBlocks.size() != 1)
 				break;
-			wrapper = getWrapper(wrapper->ssaBB->inBlocks[0]);
+			wrapper = getWrapper(*wrapper->ssaBB->inBlocks.begin());
 		}
 		assert(wrapper->ssaBB->inBlocks.size() > 1);
 
@@ -158,7 +157,7 @@ namespace holodec {
 			}
 		}
 		if (wrapper->ssaBB->inBlocks.size() == 1) {
-			return getSSAId(getWrapper(wrapper->ssaBB->inBlocks[0]), reg);
+			return getSSAId(getWrapper(*wrapper->ssaBB->inBlocks.begin()), reg);
 		}
 
 		assert(wrapper->ssaBB->inBlocks.size() > 1);
@@ -199,7 +198,7 @@ namespace holodec {
 			}
 		}
 		if (wrapper->ssaBB->inBlocks.size() == 1) {
-			return getSSAId(getWrapper(wrapper->ssaBB->inBlocks[0]), mem);
+			return getSSAId(getWrapper(*wrapper->ssaBB->inBlocks.begin()), mem);
 		}
 
 		assert(wrapper->ssaBB->inBlocks.size() > 1);
