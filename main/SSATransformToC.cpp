@@ -111,7 +111,10 @@ namespace holodec{
 		return;
 	}
 	void SSATransformToC::analyzeStructure(ControlStruct& controlStruct, HId start_block_id) {
-		if (controlStruct.type == ControlStructType::SEQUENCE || controlStruct.type == ControlStructType::BRANCH) {
+		if (controlStruct.type == ControlStructType::SEQUENCE) {//has no child nodes
+			return;
+		}
+		if (controlStruct.type == ControlStructType::BRANCH) {
 			if (controlStruct.head_block == start_block_id) {
 				SSABB* basicBlock = &function->ssaRep.bbs[start_block_id];
 				for (HId id : basicBlock->outBlocks) {
@@ -120,9 +123,6 @@ namespace holodec{
 				}
 				return;
 			}
-		}
-		if (controlStruct.type == ControlStructType::SEQUENCE) {
-			return;
 		}
 		if (controlStruct.contained_blocks.find(start_block_id) == controlStruct.contained_blocks.end())
 			return;
@@ -228,10 +228,9 @@ namespace holodec{
 				}
 			}
 
-
 			controlStruct.child_struct.push_back(createdStruct);
 			for (const IOBlock& block : createdStruct.input_blocks) {
-				analyzeStructure(createdStruct, block.blockId);
+				analyzeStructure(controlStruct.child_struct.back(), block.blockId);
 			}
 			for (const IOBlock& block : createdStruct.exit_blocks) {
 				analyzeStructure(controlStruct, block.blockId);
@@ -240,6 +239,8 @@ namespace holodec{
 		
 	}
 	bool SSATransformToC::shouldResolve(SSAExpression& expr) {
+		if (expr.type == SSAExprType::ePhi)
+			return false;
 		if (resolveIds.find(expr.id) != resolveIds.end()) {
 			return true;
 		}
@@ -253,85 +254,6 @@ namespace holodec{
 	}
 
 
-	HId SSATransformToC::printBasicBlock(ControlStruct* cStruct) {
-		printf("Printing %d\n", cStruct->head_block);
-		switch (cStruct->type) {
-		case ControlStructType::SEQUENCE: {
-			HId anId = cStruct->head_block;
-			printf("Sequence\n", anId);
-			do {
-				printf("Sequence Part %d\n", anId);
-				printBasicBlock(cStruct, function->ssaRep.bbs[anId]);
-				if (function->ssaRep.bbs[anId].outBlocks.size() != 1)
-					break;
-				anId = *function->ssaRep.bbs[anId].outBlocks.begin();
-			} while (cStruct->contained_blocks.find(anId) != cStruct->contained_blocks.end());
-			printf("Sequence End %d\n", cStruct->main_exit);
-			return cStruct->main_exit;
-		}break;
-		case ControlStructType::BRANCH: {
-			printf("Branch %d\n", cStruct->head_block);
-			printBasicBlock(cStruct, function->ssaRep.bbs[cStruct->head_block]);
-			SSAExpression& lastExpr = function->ssaRep.expressions[function->ssaRep.bbs[cStruct->head_block].exprIds.back()];
-			if (lastExpr.type == SSAExprType::eBranch) {
-				for (size_t i = 1; i < lastExpr.subExpressions.size(); i += 2) {
-					if (i > 1)
-						printf("else ");
-					printf("if(");
-					resolveArg(lastExpr.subExpressions[i]);
-					printf(")");
-					SSAArgument& blockarg = lastExpr.subExpressions[i - 1];
-					if (blockarg.type == SSAArgType::eOther && blockarg.location == SSALocation::eBlock)
-						printf(" goto L%d", blockarg.locref.refId);
-					else {
-						printf(" goto ");
-						resolveArg(blockarg);
-					}
-				}
-			}
-		}
-			
-			break;
-		case ControlStructType::GLOBAL: {
-			printf("Global %d\n", cStruct->head_block);
-			const IOBlock& iblock = *cStruct->input_blocks.begin();
-			for (ControlStruct& subStruct : cStruct->child_struct) {
-				if (iblock.blockId == subStruct.head_block) {
-					return printBasicBlock(&subStruct);
-				}
-			}
-		}break;
-		case ControlStructType::LOOP: {
-			printf("while(true) {\n");
-			HId toPrint = cStruct->input_blocks.begin()->blockId;
-			while (cStruct->contained_blocks.find(toPrint) != cStruct->contained_blocks.end()) {
-				for (ControlStruct& subStruct : cStruct->child_struct) {
-					if (toPrint == subStruct.head_block) {
-						toPrint = printBasicBlock(&subStruct);
-					}
-				}
-			}
-			printf("}\n");
-			return toPrint;
-		}break;
-		}
-		printf("Printing %d\n", 0);
-	}
-	void SSATransformToC::printBasicBlock(ControlStruct* cStruct, SSABB& bb) {
-		if (bb.outBlocks.size() > 1)
-			printf("Label L%d:\n", bb.id);
-		for (HId id : bb.exprIds) {
-			SSAExpression& expr = function->ssaRep.expressions[id];
-			if (shouldResolve(expr))
-				printExpression(expr);
-		}
-		SSAExpression& lastExpr = function->ssaRep.expressions[bb.exprIds.back()];
-		if (lastExpr.type == SSAExprType::eBranch) {
-			if (lastExpr.subExpressions.size() > 1) {
-
-			}
-		}
-	}
 	void SSATransformToC::resolveArgs(SSAExpression& expr, const char* delimiter) {
 		printf("(");
 		for (size_t i = 0; i < expr.subExpressions.size(); i++) {
@@ -672,100 +594,162 @@ namespace holodec{
 	}
 	ControlStruct* getStructFromHead(ControlStruct* controlStruct, HId headId) {
 		for (ControlStruct& subStruct : controlStruct->child_struct) {
-			if (subStruct.head_block == headId)
+			if (subStruct.head_block == headId)// || subStruct.contained_blocks.find(headId) != subStruct.contained_blocks.end())
 				return &subStruct;
 		}
 		return nullptr;
 	}
-	void SSATransformToC::printControlStruct(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent) {
-		if (!controlStruct || printed.find(controlStruct->head_block) != printed.end())
-			return;
-		printf("%p\n", controlStruct); fflush(stdout);
-		switch (controlStruct->type) {
-		case ControlStructType::SEQUENCE: {
-			SSABB* theBB = &bb;
-			while (controlStruct->contained_blocks.find(theBB->id) != controlStruct->contained_blocks.end() && printed.find(theBB->id) == printed.end()) {
-				printIndent(indent); printf("Seq-Block %d\n", theBB->id);
-				printed.insert(theBB->id);
 
-				if (theBB->inBlocks.size() > 1) {
-					printIndent(indent); printf("Label L%d:\n", theBB->id);
-				}
-				for (HId id : bb.exprIds) {
-					SSAExpression& expr = function->ssaRep.expressions[id];
-					if (shouldResolve(expr)) {
-						printIndent(indent); printExpression(expr);
+	bool resolveEscapeLoop(ControlStruct* controlStruct, HId nextBlockId, uint32_t indent) {
+		if (controlStruct->type == ControlStructType::LOOP) {
+			if (controlStruct->head_block == nextBlockId) {
+				printIndent(indent); printf("continue;\n");
+				return true;
+			}
+			else if (controlStruct->main_exit == nextBlockId) {
+				printIndent(indent); printf("break;\n");
+				return true;
+			}
+		}
+		else if(controlStruct->contained_blocks.find(nextBlockId) == controlStruct->contained_blocks.end()){
+			return resolveEscapeLoop(controlStruct->parent_struct, nextBlockId, indent);
+		}
+		return false;
+	}
+
+	void SSATransformToC::resolveBlockArgument(ControlStruct* controlStruct, SSAArgument& arg, std::set<HId>& printed, uint32_t indent) {
+		if (arg.type == SSAArgType::eOther && arg.location == SSALocation::eBlock) {
+			if (arg.locref.refId != controlStruct->main_exit) {
+				if (controlStruct->contained_blocks.find(arg.locref.refId) == controlStruct->contained_blocks.end()) {
+					if (controlStruct->main_exit != arg.locref.refId) {
+						if (!resolveEscapeLoop(controlStruct, arg.locref.refId, indent)) {
+							printIndent(indent); printf("goto L%d\n", arg.locref.refId);
+						}
 					}
 				}
-
-				if (theBB->outBlocks.size() == 0)
-					break;
-				theBB = &function->ssaRep.bbs[*theBB->outBlocks.begin()];
-			} 
-		} break;
-		case ControlStructType::BRANCH: {
-			SSABB* bb = &function->ssaRep.bbs[controlStruct->head_block];
-			printIndent(indent); printf("Branch-Block %d\n", bb->id);
-
-			if (bb->inBlocks.size() > 1) {
-				printIndent(indent); printf("Label L%d:\n", bb->id);
-			}
-			for (HId id : bb->exprIds) {
-				SSAExpression& expr = function->ssaRep.expressions[id];
-				if (shouldResolve(expr)) {
-					printIndent(indent); printExpression(expr);
-				}
-			}
-			SSAExpression& lastExpr = function->ssaRep.expressions[bb->exprIds.back()];
-			if (lastExpr.type == SSAExprType::eBranch) {
-				for (size_t i = 1; i < lastExpr.subExpressions.size(); i += 2) {
-					printIndent(indent);
-					if (i > 1)
-						printf("else ");
-					printf("if(");
-					resolveArg(lastExpr.subExpressions[i]);
-					printf(") {\n");
-					SSAArgument& blockarg = lastExpr.subExpressions[i - 1];
-					if (blockarg.type == SSAArgType::eOther && blockarg.location == SSALocation::eBlock) {
-						if (blockarg.locref.refId != controlStruct->main_exit) {
-							if (controlStruct->contained_blocks.find(controlStruct->main_exit) == controlStruct->contained_blocks.end()) {
-								printIndent(indent);  printf("goto L%d;\n", blockarg.locref.refId);
-							}
-							else {
-								ControlStruct* subStruct = getStructFromHead(controlStruct, blockarg.locref.refId);
-								printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent + 1);
-							}
+				else {
+					ControlStruct* subStruct = getStructFromHead(controlStruct, arg.locref.refId);
+					if (subStruct)
+						printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent);
+					else if (controlStruct->main_exit != arg.locref.refId)  {
+						if (!resolveEscapeLoop(controlStruct, arg.locref.refId, indent)) {
+							printIndent(indent); printf("goto fff1 L%d\n", arg.locref.refId);
 						}
 					}
 					else {
-						printIndent(indent + 1);  printf("goto ");
-						resolveArg(blockarg);
-						printf(";\n");
+						//goto to the main exit
 					}
-					printIndent(indent); printf("}\n");
 				}
 			}
+			else {
+				//main exit
+			}
+		}
+		else {
+			printIndent(indent + 1); printf("goto "); resolveArg(arg); printf(";\n");
+		}
+	}
+	void SSATransformToC::resolveBranchExpr(ControlStruct* controlStruct, SSAExpression& expr, std::set<HId>& printed, uint32_t indent) {
+		if (expr.type == SSAExprType::eBranch) {
+			for (size_t i = 1; i < expr.subExpressions.size(); i += 2) {
+				printIndent(indent);
+				if (i > 1)
+					printf("else ");
+				printf("if(");
+				resolveArg(expr.subExpressions[i]);
+				printf(") {\n");
+				SSAArgument& blockarg = expr.subExpressions[i - 1];
+				resolveBlockArgument(controlStruct, expr.subExpressions[i - 1], printed, indent + 1);
+				printIndent(indent); printf("}\n");
+			}
+			if (expr.subExpressions.size() > 1) {
+				printIndent(indent); printf("else {\n");
+			}
+			resolveBlockArgument(controlStruct, expr.subExpressions.back(), printed, indent + 1);
+			if (expr.subExpressions.size() > 1) {
+				printIndent(indent); printf("}\n");
+			}
+		}
+		else if (expr.type != SSAExprType::eReturn) {
+			printf("Branch Block with no Branch at the end\n");
+		}
+	}
+	void SSATransformToC::resolveBlock(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent) {
+		printIndent(indent); printf("Label L%d:\n", bb.id);
+		if (bb.inBlocks.size() > 1) {
+			//printIndent(indent); printf("Label L%d:\n", theBB->id);
+		}
+		if (printed.find(bb.id) != printed.end()) {
+			printIndent(indent); printf("goto resolveBlock L%d;\n", bb.id);
+			return;
+		}
+		for (HId id : bb.exprIds) {
+			SSAExpression& expr = function->ssaRep.expressions[id];
+			if (shouldResolve(expr)) {
+				printIndent(indent); printExpression(expr);
+			}
+		}
+		printed.insert(bb.id);
+	}
+	void SSATransformToC::printControlStruct(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent) {
+		if (!controlStruct || printed.find(controlStruct->head_block) != printed.end())
+			return;
+		switch (controlStruct->type) {
+		case ControlStructType::SEQUENCE: {
+			SSABB* theBB = &bb;
+			while (controlStruct->contained_blocks.find(theBB->id) != controlStruct->contained_blocks.end()) {
 
+				resolveBlock(controlStruct, *theBB, printed, indent);
+
+				if (theBB->outBlocks.size() == 0){
+					break;
+				}
+				SSABB* nextBB = &function->ssaRep.bbs[*theBB->outBlocks.begin()];
+				if (printed.find(theBB->id) != printed.end()) {
+					break;
+				}
+				theBB = nextBB;
+			}
+			resolveBranchExpr(controlStruct, function->ssaRep.expressions[theBB->exprIds.back()], printed, indent);
+		} break;
+		case ControlStructType::BRANCH: {
+			resolveBlock(controlStruct, function->ssaRep.bbs[controlStruct->head_block], printed, indent);
+			resolveBranchExpr(controlStruct, function->ssaRep.expressions[function->ssaRep.bbs[controlStruct->head_block].exprIds.back()], printed, indent);
 		} break;
 		case ControlStructType::LOOP: {
-			SSABB* bb = &function->ssaRep.bbs[controlStruct->head_block];
-			printIndent(indent); printf("Loop-Block %d\n", bb->id);
+			printIndent(indent); printf("while(true) {\n");
+			ControlStruct* subStruct = getStructFromHead(controlStruct, controlStruct->head_block);
+			if (subStruct)
+				printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent + 1);
+			else {
+				printIndent(indent + 1); printf("goto LOOP L%d\n", controlStruct->head_block);
+			}
+			printIndent(indent); printf("}\n");
 		} break;
 		case ControlStructType::GLOBAL: {
 			printControlStruct(&controlStruct->child_struct[0], function->ssaRep.bbs[controlStruct->child_struct[0].head_block], printed, indent + 1);
 		}break;
 		}
-		printf("1%p\n", controlStruct); fflush(stdout);
 		if (controlStruct->parent_struct && controlStruct->main_exit) {
 			if (controlStruct->parent_struct->contained_blocks.find(controlStruct->main_exit) != controlStruct->parent_struct->contained_blocks.end()) {
-				printf("2%p\n", controlStruct->parent_struct); fflush(stdout);
 				ControlStruct* subStruct = getStructFromHead(controlStruct->parent_struct, controlStruct->main_exit);
-				printf("3%p\n", subStruct); fflush(stdout);
-				printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent);
+				if (subStruct)
+					printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent);
+				else {
+					printIndent(indent); printf("goto END L%d\n", controlStruct->main_exit);
+				}
 			}
 		}
 
 	}
+
+	void setParentStructs(ControlStruct* controlStruct) {
+		for (ControlStruct& child_struct : controlStruct->child_struct) {
+			child_struct.parent_struct = controlStruct;
+			setParentStructs(&child_struct);
+		}
+	}
+
 	//consolidate branches and loops so that if(cond){while(cond){doStuff;}} gets correctly handled and the loop gets pushed into the branch
 	//we only handle loops after branches because they are the cases that are handled by the normal structure-analyzing
 	void SSATransformToC::consolidateBranchLoops(ControlStruct* controlStruct) {
@@ -906,6 +890,7 @@ namespace holodec{
 			} while (changed);
 		}
 
+		function->print(binary->arch);
 		printf("Structure Analysis\n");
 		ControlStruct g_struct = { ControlStructType::GLOBAL };
 		g_struct.head_block = 1;
@@ -918,6 +903,7 @@ namespace holodec{
 		}
 		analyzeStructure(g_struct, 1);
 		consolidateBranchLoops(&g_struct);
+		setParentStructs(&g_struct);
 		g_struct.print(1);
 
 
@@ -1009,7 +995,6 @@ namespace holodec{
 		}
 		HSet<HId> visited;
 		printControlStruct(&g_struct, function->ssaRep.bbs[1], visited, 1);
-		printBasicBlock(&g_struct);
 		/*std::set<HId> visited;
 		printControlStruct(&g_struct, visited);*/
 		for (size_t index = 1; index < function->ssaRep.bbs.list.size(); ++index) {

@@ -66,10 +66,11 @@ namespace holodec {
 		void consolidateBranchLoops(ControlStruct* controlStruct);
 
 
+		void resolveBlockArgument(ControlStruct* controlStruct, SSAArgument& arg, std::set<HId>& printed, uint32_t indent = 0);
+		void resolveBranchExpr(ControlStruct* controlStruct, SSAExpression& expr, std::set<HId>& printed, uint32_t indent = 0);
+		void resolveBlock(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 		void printControlStruct(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 
-		HId printBasicBlock(ControlStruct* cStruct);
-		void printBasicBlock(ControlStruct* cStruct, SSABB& bb);
 		void printExpression(SSAExpression& expression);
 		void resolveArgs(SSAExpression& expression, const char* delimiter = ", ");
 		void resolveArgWithoutOffset(SSAArgument& arg);
