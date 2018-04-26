@@ -2,24 +2,25 @@
 #include "Architecture.h"
 
 
-void holodec::Instruction::print (Architecture* arch, int indent) {
+void holodec::Instruction::print(Architecture* arch, int indent) {
 	if (instrdef) {
-		printIndent (indent);
-		printf ("0x%" PRIx64 ": %s ", addr, instrdef->mnemonics.cstr());
+		printIndent(indent);
+		printf("0x%" PRIx64 ": %s ", addr, instrdef->mnemonics.cstr());
 		for (size_t i = 0; i < operands.size(); i++) {
-			operands[i].print (arch);
+			operands[i].print(arch);
 			printf(", ");
 		}
 		printf("\n");
-	} else {
-		printIndent (indent);
-		printf ("No Def\n");
+	}
+	else {
+		printIndent(indent);
+		printf("No Def\n");
 	}
 }
 
 void holodec::Function::print(holodec::Architecture* arch, int indent) {
 	printIndent(indent);
-	printf("Printing Function 0x%x %p\n", baseaddr, this);
+	printf("Printing Function 0x%x\n", baseaddr);
 	printIndent(indent + 1);
 	printf("Calling Functions: ");
 
@@ -34,6 +35,16 @@ void holodec::Function::print(holodec::Architecture* arch, int indent) {
 	}
 
 	ssaRep.print(arch, indent + 1);
+}
+void holodec::Function::printSimple(holodec::Architecture* arch, int indent) {
+	printIndent(indent);
+	printf("Printing Function 0x%x simple\n", baseaddr);
+
+	for (DisAsmBasicBlock& bb : basicblocks) {
+		bb.printSimple(arch, indent + 1);
+	}
+
+	ssaRep.printSimple(arch, indent + 1);
 }
 
 void holodec::FuncRegState::print(holodec::Architecture* arch, int indent) {

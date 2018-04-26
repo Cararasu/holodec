@@ -247,7 +247,8 @@ namespace holodec {
 			return createOther(SSAArgType::eOther, 0, SSALocation::eBlock, {blockId, 0});
 		}
 
-		void print (Architecture* arch);
+		void print(Architecture* arch);
+		void printSimple(Architecture* arch);
 	};
 
 
@@ -367,6 +368,7 @@ namespace holodec {
 			return type != SSAExprType::eInvalid;
 		}
 		void print(Architecture* arch, int indent = 0);
+		void printSimple(Architecture* arch, int indent = 0);
 	};
 	inline bool operator== (SSAExpression& lhs, SSAExpression& rhs) {
 		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype && lhs.location == rhs.location && lhs.locref.refId == rhs.locref.refId && lhs.locref.index == rhs.locref.index) {
@@ -462,7 +464,9 @@ namespace holodec {
 			return true;
 		}
 
-		void print (Architecture* arch, int indent = 0);
+		void print(Architecture* arch, int indent = 0);
+		void printSimple(Architecture* arch, int indent = 0);
+		
 	};
 	
 

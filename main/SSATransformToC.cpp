@@ -703,6 +703,7 @@ namespace holodec{
 					printIndent(indent); printf("}\n");
 				}
 				if (!(expr.subExpressions.back().type == SSAArgType::eOther && expr.subExpressions.back().location == SSALocation::eBlock && expr.subExpressions.back().locref.refId == controlStruct->main_exit)) {
+					//TODO also check for empty blocks
 					if (expr.subExpressions.size() > 1) {
 						printIndent(indent); printf("else {\n");
 					}
@@ -941,7 +942,7 @@ namespace holodec{
 			} while (changed);
 		}
 
-		function->print(binary->arch);
+		function->printSimple(binary->arch);
 		printf("Structure Analysis\n");
 		ControlStruct g_struct = { ControlStructType::GLOBAL };
 		g_struct.head_block = 1;

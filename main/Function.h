@@ -23,7 +23,8 @@ namespace holodec {
 
 		HLocalBackedList<IRArgument,HINSTRUCTION_MAX_OPERANDS> operands;
 
-		void print (Architecture* arch, int indent = 0);
+		void print(Architecture* arch, int indent = 0);
+		void printSimple(Architecture* arch, int indent = 0);
 	};
 	struct JumpTable {
 		struct HEntry {
@@ -56,11 +57,18 @@ namespace holodec {
 		uint64_t addr;
 		uint32_t size;
 
-		void print (Architecture* arch, int indent = 0) {
-			printIndent (indent);
-			printf ("BB 0x%" PRIx64 "-0x%" PRIx64 " t:0x%" PRIx64 " f:0x%" PRIx64 "\n", addr, addr + size, instructions.back().jumpdest, instructions.back().nojumpdest);
+		void print(Architecture* arch, int indent = 0) {
+			printIndent(indent);
+			printf("BB 0x%" PRIx64 "-0x%" PRIx64 " t:0x%" PRIx64 " f:0x%" PRIx64 "\n", addr, addr + size, instructions.back().jumpdest, instructions.back().nojumpdest);
 			for (Instruction& instruction : instructions) {
-				instruction.print (arch, indent + 1);
+				instruction.print(arch, indent + 1);
+			}
+		}
+		void printSimple(Architecture* arch, int indent = 0) {
+			printIndent(indent);
+			printf("BB 0x%" PRIx64 "-0x%" PRIx64 "\n", addr, addr + size);
+			for (Instruction& instruction : instructions) {
+				instruction.print(arch, indent + 1);
 			}
 		}
 	};
@@ -165,6 +173,7 @@ namespace holodec {
 		}
 
 		void print(Architecture* arch, int indent = 0);
+		void printSimple(Architecture* arch, int indent = 0);
 	};
 
 }

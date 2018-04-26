@@ -101,137 +101,137 @@ namespace holodec {
 		}
 		subExpressions = args;
 	}
-	void SSAExpression::print (Architecture* arch, int indent) {
-		printIndent (indent);
-		printf ("0x%" PRIx64 ":", instrAddr);
+	void SSAExpression::print(Architecture* arch, int indent) {
+		printIndent(indent);
+		printf("0x%" PRIx64 ":", instrAddr);
 
 		switch (this->exprtype) {
 		case SSAType::eUnknown:
-			printf (" unkn");
+			printf(" unkn");
 			break;
 		case SSAType::eInt:
-			printf ("  int");
+			printf("  int");
 			break;
 		case SSAType::eUInt:
-			printf (" uint");
+			printf(" uint");
 			break;
 		case SSAType::eFloat:
-			printf ("float");
+			printf("float");
 			break;
 		case SSAType::ePc:
-			printf ("   pc");
+			printf("   pc");
 			break;
 		case SSAType::eMemaccess:
-			printf ("  mem");
+			printf("  mem");
 			break;
 		}
-		printf ("%.3d ", size);
+		printf("%.3d ", size);
 
 		switch (type) {
 		case SSAExprType::eInvalid:
-			printf ("---------------------------------------");
-			printf ("Invalid%d ", type);
+			printf("---------------------------------------");
+			printf("Invalid%d ", type);
 			break;
 		case SSAExprType::eLabel:
-			printf ("Label  ");
+			printf("Label  ");
 			break;
 		case SSAExprType::eInput:
-			printf ("Input  ");
+			printf("Input  ");
 			break;
 		case SSAExprType::eUndef:
-			printf ("Undef  ");
+			printf("Undef  ");
 			break;
 		case SSAExprType::eNop:
-			printf ("Nop    ");
+			printf("Nop    ");
 			break;
 		case SSAExprType::ePhi:
-			printf ("Phi    ");
+			printf("Phi    ");
 			break;
 		case SSAExprType::eAssign:
-			printf ("Assign ");
+			printf("Assign ");
 			break;
 		case SSAExprType::eBranch:
-			printf ("Branch ");
+			printf("Branch ");
 			break;
 		case SSAExprType::eOp:
-			printf ("Op");
+			printf("Op");
 			switch (opType) {
 			case SSAOpType::eInvalid:
-				printf (" Inv ");
+				printf(" Inv ");
 				break;
 			case SSAOpType::eAdd:
-				printf (" +   ");
+				printf(" +   ");
 				break;
 			case SSAOpType::eSub:
-				printf (" -   ");
+				printf(" -   ");
 				break;
 			case SSAOpType::eMul:
-				printf (" *   ");
+				printf(" *   ");
 				break;
 			case SSAOpType::eDiv:
-				printf (" /   ");
+				printf(" /   ");
 				break;
 			case SSAOpType::eMod:
-				printf (" %   ");
+				printf(" %   ");
 				break;
 			case SSAOpType::eAnd:
-				printf (" &&  ");
+				printf(" &&  ");
 				break;
 			case SSAOpType::eOr:
-				printf (" ||  ");
+				printf(" ||  ");
 				break;
 			case SSAOpType::eNot:
-				printf (" !   ");
+				printf(" !   ");
 				break;
 			case SSAOpType::eEq:
-				printf (" ==  ");
+				printf(" ==  ");
 				break;
 			case SSAOpType::eNe:
-				printf (" !=  ");
+				printf(" !=  ");
 				break;
 			case SSAOpType::eLower:
-				printf (" <   ");
+				printf(" <   ");
 				break;
 			case SSAOpType::eLe:
-				printf (" <=  ");
+				printf(" <=  ");
 				break;
 			case SSAOpType::eGreater:
-				printf (" >   ");
+				printf(" >   ");
 				break;
 			case SSAOpType::eGe:
-				printf (" >=  ");
+				printf(" >=  ");
 				break;
 			case SSAOpType::eBAnd:
-				printf (" &   ");
+				printf(" &   ");
 				break;
 			case SSAOpType::eBOr:
-				printf (" |   ");
+				printf(" |   ");
 				break;
 			case SSAOpType::eBXor:
-				printf (" ^   ");
+				printf(" ^   ");
 				break;
 			case SSAOpType::eBNot:
-				printf (" ~   ");
+				printf(" ~   ");
 				break;
 			case SSAOpType::eShr:
-				printf (" >>  ");
+				printf(" >>  ");
 				break;
 			case SSAOpType::eShl:
-				printf (" <<  ");
+				printf(" <<  ");
 				break;
 			case SSAOpType::eRor:
-				printf (" >>> ");
+				printf(" >>> ");
 				break;
 			case SSAOpType::eRol:
-				printf (" <<< ");
+				printf(" <<< ");
 				break;
 			}
 			break;
 		case SSAExprType::eLoadAddr:
-			printf ("Lea    ");
+			printf("Lea    ");
 			break;
 		case SSAExprType::eCall:
-			printf ("Call   ");
+			printf("Call   ");
 			break;
 		case SSAExprType::eOutput:
 			printf("Output ");
@@ -240,71 +240,71 @@ namespace holodec {
 			printf("MemOut ");
 			break;
 		case SSAExprType::eReturn:
-			printf ("Return ");
+			printf("Return ");
 			break;
 		case SSAExprType::eSyscall:
-			printf ("Syscall");
+			printf("Syscall");
 			break;
 		case SSAExprType::eTrap:
-			printf ("Trap   ");
+			printf("Trap   ");
 			break;
 		case SSAExprType::eBuiltin:
-			printf ("Builtin");
+			printf("Builtin");
 			break;
 		case SSAExprType::eExtend:
-			printf ("Extend ");
+			printf("Extend ");
 			break;
 		case SSAExprType::eAppend:
-			printf ("Append ");
+			printf("Append ");
 			break;
 		case SSAExprType::eCast:
-			printf ("Cast   ");
+			printf("Cast   ");
 			break;
 		case SSAExprType::eMemAccess:
-			printf ("MemAcc ");
+			printf("MemAcc ");
 			break;
 		case SSAExprType::eStore:
-			printf ("Store  ");
+			printf("Store  ");
 			break;
 		case SSAExprType::eLoad:
-			printf ("Load   ");
+			printf("Load   ");
 			break;
 		case SSAExprType::eFlag:
-			printf ("Flag");
+			printf("Flag");
 			switch (flagType) {
 			case SSAFlagType::eUnknown:
-				printf ("Unk");
+				printf("Unk");
 				break;
 			case SSAFlagType::eC:
-				printf ("Cry");
+				printf("Cry");
 				break;
 			case SSAFlagType::eO:
-				printf ("Ovf");
+				printf("Ovf");
 				break;
 			case SSAFlagType::eU:
-				printf ("Udf");
+				printf("Udf");
 				break;
 			}
 			break;
 		}
 		switch (location) {
 		case SSALocation::eReg:
-			printf ("Reg: %10.10s ", arch->getRegister (locref.refId)->name.cstr());
+			printf("Reg: %10.10s ", arch->getRegister(locref.refId)->name.cstr());
 			break;
 		case SSALocation::eStack:
-			printf ("Stack: %4.4s[%.2" PRId32 "] ", arch->getStack (locref.refId)->name.cstr(), locref.index);
+			printf("Stack: %4.4s[%.2" PRId32 "] ", arch->getStack(locref.refId)->name.cstr(), locref.index);
 			break;
 		case SSALocation::eMem:
-			printf ("Mem: %10.10s ", arch->getMemory(locref.refId)->name.cstr());
+			printf("Mem: %10.10s ", arch->getMemory(locref.refId)->name.cstr());
 			break;
 		case SSALocation::eBlock:
-			printf ("Block: %.4" PRId32 "     ", locref.refId);
+			printf("Block: %.4" PRId32 "     ", locref.refId);
 			break;
 		case SSALocation::eNone:
 			printf("                ");
 			break;
 		}
-		printf ("Ref: %2.2" PRId64 " UId: %4.4" PRIx64 " Block: %2.2" PRId32 " | %4.4" PRId32 " = ", refs.size(), uniqueId, blockId, id);
+		printf("Ref: %2.2" PRId64 " UId: %4.4" PRIx64 " Block: %2.2" PRId32 " | %4.4" PRId32 " = ", refs.size(), uniqueId, blockId, id);
 		for (SSAArgument& arg : subExpressions) {
 			arg.print(arch);
 			printf(", ");
@@ -314,25 +314,233 @@ namespace holodec {
 		for (HId refId : refs) {
 			printf("%d, ", refId);
 		}
-		printf ("\n");
+		printf("\n");
 	}
 
-	void SSAArgument::print (Architecture* arch) {
+	void SSAExpression::printSimple(Architecture* arch, int indent) {
+		printIndent(indent);
+
+		switch (this->exprtype) {
+		case SSAType::eUnknown:
+			printf(" unkn");
+			break;
+		case SSAType::eInt:
+			printf("  int");
+			break;
+		case SSAType::eUInt:
+			printf(" uint");
+			break;
+		case SSAType::eFloat:
+			printf("float");
+			break;
+		case SSAType::ePc:
+			printf("   pc");
+			break;
+		case SSAType::eMemaccess:
+			printf("  mem");
+			break;
+		}
+		printf("%3.3d ", size);
+
+		switch (type) {
+		case SSAExprType::eInvalid:
+			printf("---------------------------------------");
+			printf("Invalid%d ", type);
+			break;
+		case SSAExprType::eLabel:
+			printf("Label  ");
+			break;
+		case SSAExprType::eInput:
+			printf("Input  ");
+			break;
+		case SSAExprType::eUndef:
+			printf("Undef  ");
+			break;
+		case SSAExprType::eNop:
+			printf("Nop    ");
+			break;
+		case SSAExprType::ePhi:
+			printf("Phi    ");
+			break;
+		case SSAExprType::eAssign:
+			printf("Assign ");
+			break;
+		case SSAExprType::eBranch:
+			printf("Branch ");
+			break;
+		case SSAExprType::eOp:
+			printf("Op");
+			switch (opType) {
+			case SSAOpType::eInvalid:
+				printf(" Inv ");
+				break;
+			case SSAOpType::eAdd:
+				printf(" +   ");
+				break;
+			case SSAOpType::eSub:
+				printf(" -   ");
+				break;
+			case SSAOpType::eMul:
+				printf(" *   ");
+				break;
+			case SSAOpType::eDiv:
+				printf(" /   ");
+				break;
+			case SSAOpType::eMod:
+				printf(" %   ");
+				break;
+			case SSAOpType::eAnd:
+				printf(" &&  ");
+				break;
+			case SSAOpType::eOr:
+				printf(" ||  ");
+				break;
+			case SSAOpType::eNot:
+				printf(" !   ");
+				break;
+			case SSAOpType::eEq:
+				printf(" ==  ");
+				break;
+			case SSAOpType::eNe:
+				printf(" !=  ");
+				break;
+			case SSAOpType::eLower:
+				printf(" <   ");
+				break;
+			case SSAOpType::eLe:
+				printf(" <=  ");
+				break;
+			case SSAOpType::eGreater:
+				printf(" >   ");
+				break;
+			case SSAOpType::eGe:
+				printf(" >=  ");
+				break;
+			case SSAOpType::eBAnd:
+				printf(" &   ");
+				break;
+			case SSAOpType::eBOr:
+				printf(" |   ");
+				break;
+			case SSAOpType::eBXor:
+				printf(" ^   ");
+				break;
+			case SSAOpType::eBNot:
+				printf(" ~   ");
+				break;
+			case SSAOpType::eShr:
+				printf(" >>  ");
+				break;
+			case SSAOpType::eShl:
+				printf(" <<  ");
+				break;
+			case SSAOpType::eRor:
+				printf(" >>> ");
+				break;
+			case SSAOpType::eRol:
+				printf(" <<< ");
+				break;
+			}
+			break;
+		case SSAExprType::eLoadAddr:
+			printf("Lea    ");
+			break;
+		case SSAExprType::eCall:
+			printf("Call   ");
+			break;
+		case SSAExprType::eOutput:
+			printf("Output ");
+			break;
+		case SSAExprType::eMemOutput:
+			printf("MemOut ");
+			break;
+		case SSAExprType::eReturn:
+			printf("Return ");
+			break;
+		case SSAExprType::eSyscall:
+			printf("Syscall");
+			break;
+		case SSAExprType::eTrap:
+			printf("Trap   ");
+			break;
+		case SSAExprType::eBuiltin:
+			printf("Builtin");
+			break;
+		case SSAExprType::eExtend:
+			printf("Extend ");
+			break;
+		case SSAExprType::eAppend:
+			printf("Append ");
+			break;
+		case SSAExprType::eCast:
+			printf("Cast   ");
+			break;
+		case SSAExprType::eMemAccess:
+			printf("MemAcc ");
+			break;
+		case SSAExprType::eStore:
+			printf("Store  ");
+			break;
+		case SSAExprType::eLoad:
+			printf("Load   ");
+			break;
+		case SSAExprType::eFlag:
+			printf("Flag");
+			switch (flagType) {
+			case SSAFlagType::eUnknown:
+				printf("Unk");
+				break;
+			case SSAFlagType::eC:
+				printf("Cry");
+				break;
+			case SSAFlagType::eO:
+				printf("Ovf");
+				break;
+			case SSAFlagType::eU:
+				printf("Udf");
+				break;
+			}
+			break;
+		}
+		printf("%" PRId32 " = ", id);
+		switch (location) {
+		case SSALocation::eReg:
+			printf("Reg: %s ", arch->getRegister(locref.refId)->name.cstr());
+			break;
+		case SSALocation::eStack:
+			printf("Stack: %s[%" PRId32 "] ", arch->getStack(locref.refId)->name.cstr(), locref.index);
+			break;
+		case SSALocation::eMem:
+			printf("Mem: %s ", arch->getMemory(locref.refId)->name.cstr());
+			break;
+		case SSALocation::eBlock:
+			printf("Block: %" PRId32 " ", locref.refId);
+			break;
+		case SSALocation::eNone:
+			break;
+		}
+		for (SSAArgument& arg : subExpressions) {
+			arg.printSimple(arch);
+			printf(", ");
+		}
+		printf("\n");
+	}
+	void SSAArgument::print(Architecture* arch) {
 		switch (type) {
 		case SSAArgType::eUndef:
-			printf ("Undef");
+			printf("Undef");
 			break;
 		case SSAArgType::eSInt:
 			if (sval < 0)
-				printf ("-0x%" PRIx64 " ", -sval);
+				printf("-0x%" PRIx64 " ", -sval);
 			else
-				printf ("0x%" PRIx64 " ", sval);
+				printf("0x%" PRIx64 " ", sval);
 			break;
 		case SSAArgType::eUInt:
-			printf ("0x%" PRIx64 " ", uval);
+			printf("0x%" PRIx64 " ", uval);
 			break;
 		case SSAArgType::eFloat:
-			printf ("%f ", fval);
+			printf("%f ", fval);
 			break;
 		case SSAArgType::eId:
 			printf("SSA: %d ", ssaId);
@@ -340,7 +548,7 @@ namespace holodec {
 		case SSAArgType::eOther:
 			break;
 		default:
-			printf ("Unknown Argtype %x ", type);
+			printf("Unknown Argtype %x ", type);
 		}
 		if (valueoffset) {
 			if (valueoffset >= 0)
@@ -352,23 +560,69 @@ namespace holodec {
 		switch (location) {
 		case SSALocation::eReg:
 			if (locref.refId)
-				printf ("Reg: %s ", arch->getRegister (locref.refId)->name.cstr());
+				printf("Reg: %s ", arch->getRegister(locref.refId)->name.cstr());
 			else
-				printf ("No Reg Def ");
+				printf("No Reg Def ");
 			break;
 		case SSALocation::eStack:
-			printf ("Stack-%s[%d] ", arch->getStack (locref.refId)->name.cstr(), locref.index);
+			printf("Stack-%s[%d] ", arch->getStack(locref.refId)->name.cstr(), locref.index);
 			break;
 		case SSALocation::eMem:
-			printf ("Memory %s ", arch->getMemory(locref.refId)->name.cstr());
+			printf("Memory %s ", arch->getMemory(locref.refId)->name.cstr());
 			break;
 		case SSALocation::eBlock:
-			printf ("Block %d ", locref.refId);
+			printf("Block %d ", locref.refId);
 			break;
 		case SSALocation::eNone:
 			break;
 		}
-		if (offset || size) printf ("S[%d,%d]", offset, size);
+		if (offset || size) printf("S[%d,%d]", offset, size);
+	}
+	void SSAArgument::printSimple(Architecture* arch) {
+		switch (type) {
+		case SSAArgType::eUndef:
+			printf("Undef");
+			break;
+		case SSAArgType::eSInt:
+			if (sval < 0)
+				printf("-0x%" PRIx64 " ", -sval);
+			else
+				printf("0x%" PRIx64 " ", sval);
+			break;
+		case SSAArgType::eUInt:
+			printf("0x%" PRIx64 " ", uval);
+			break;
+		case SSAArgType::eFloat:
+			printf("%f ", fval);
+			break;
+		case SSAArgType::eId:
+			printf("SSA: %d ", ssaId);
+			break;
+		case SSAArgType::eOther:
+			break;
+		default:
+			printf("Unknown Argtype %x ", type);
+		}
+		if (valueoffset) {
+			if (valueoffset >= 0)
+				printf("+ %d ", valueoffset);
+			else
+				printf("- %d ", valueoffset * -1);
+		}
+
+		switch (location) {
+		case SSALocation::eStack:
+			printf("Stack-%s[%d] ", arch->getStack(locref.refId)->name.cstr(), locref.index);
+			break;
+		case SSALocation::eMem:
+			printf("Memory %s ", arch->getMemory(locref.refId)->name.cstr());
+			break;
+		case SSALocation::eBlock:
+			printf("Block %d ", locref.refId);
+			break;
+		case SSALocation::eNone:
+			break;
+		}
 	}
 
 
@@ -729,33 +983,56 @@ namespace holodec {
 	}
 
 
-	void SSARepresentation::print (Architecture* arch, int indent) {
-		printIndent (indent);
-		printf ("Printing SSA-Gen DataSegment\n");
-		printIndent (indent);
-		printf ("Number Of Expressions: %" PRId64 "\n", expressions.size());
+	void SSARepresentation::print(Architecture* arch, int indent) {
+		printIndent(indent);
+		printf("Printing SSA-Gen DataSegment\n");
+		printIndent(indent);
+		printf("Number Of Expressions: %" PRId64 "\n", expressions.size());
 
 		for (SSABB& bb : bbs) {
-			printIndent (indent + 1);
-			printf ("Block bb Id: %d 0x%" PRIx64 " - 0x%" PRIx64 "\n", bb.id, bb.startaddr, bb.endaddr);
+			printIndent(indent + 1);
+			printf("Block bb Id: %d 0x%" PRIx64 " - 0x%" PRIx64 "\n", bb.id, bb.startaddr, bb.endaddr);
 
-			printIndent (indent + 1);
-			printf ("InBlocks ");
-			for (HId id : bb.inBlocks) printf ("%d, ", id);
-			printf ("\n");
+			printIndent(indent + 1);
+			printf("InBlocks ");
+			for (HId id : bb.inBlocks) printf("%d, ", id);
+			printf("\n");
 
-			printIndent (indent + 1);
-			printf ("OutBlocks ");
-			for (HId id : bb.outBlocks) printf ("%d, ", id);
-			printf ("\n");
+			printIndent(indent + 1);
+			printf("OutBlocks ");
+			for (HId id : bb.outBlocks) printf("%d, ", id);
+			printf("\n");
 
-			printIndent (indent + 1);
-			printf ("Number Of Ids: %" PRId64 "\n", bb.exprIds.size());
+			printIndent(indent + 1);
+			printf("Number Of Ids: %" PRId64 "\n", bb.exprIds.size());
 			for (HId id : bb.exprIds) {
-				expressions[id].print (arch, indent + 2);
+				expressions[id].print(arch, indent + 2);
 			}
 		}
+	}
+	void SSARepresentation::printSimple(Architecture* arch, int indent) {
+		printIndent(indent);
+		printf("Printing SSA-Gen DataSegment\n");
 
+		for (SSABB& bb : bbs) {
+			printIndent(indent + 1);
+			printf("Block bb Id: %d\n", bb.id);
 
+			printIndent(indent + 1);
+			printf("InBlocks ");
+			for (HId id : bb.inBlocks) printf("%d, ", id);
+			printf("\n");
+
+			printIndent(indent + 1);
+			printf("OutBlocks ");
+			for (HId id : bb.outBlocks) printf("%d, ", id);
+			printf("\n");
+
+			printIndent(indent + 1);
+			printf("Number Of Ids: %" PRId64 "\n", bb.exprIds.size());
+			for (HId id : bb.exprIds) {
+				expressions[id].printSimple(arch, indent + 2);
+			}
+		}
 	}
 }
