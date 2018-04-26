@@ -3,7 +3,30 @@
 
 namespace holodec{
 
-	
+
+	void printExprType(SSAExpression& expr) {
+		switch (expr.exprtype) {
+		case SSAType::eUnknown:
+			printf("Unkn ");
+			break;
+		case SSAType::eInt:
+			printf("int%d_t ", expr.size);
+			break;
+		case SSAType::eUInt:
+			printf("uint%d_t ", expr.size);
+			break;
+		case SSAType::eFloat:
+			printf("float%d_t ", expr.size);
+			break;
+		case SSAType::ePc:
+			printf("pc ");
+			break;
+		case SSAType::eMemaccess:
+			printf("mem ");
+			break;
+		}
+
+	}
 	void ControlStruct::print(int indent) {
 		printIndent(indent);
 		switch (type) {
@@ -239,8 +262,10 @@ namespace holodec{
 		
 	}
 	bool SSATransformToC::shouldResolve(SSAExpression& expr) {
-		if (expr.type == SSAExprType::ePhi)
+		if (expr.type == SSAExprType::ePhi)//should never appear
 			return false;
+		if (expr.type == SSAExprType::eLoad)//for ordering sake until a comprehensive DFA is implemented
+			return true;
 		if (resolveIds.find(expr.id) != resolveIds.end()) {
 			return true;
 		}
@@ -513,6 +538,7 @@ namespace holodec{
 			for (HId id : expr.directRefs) {
 				SSAExpression& refExpr = function->ssaRep.expressions[id];
 				if (refExpr.type == SSAExprType::eOutput && refExpr.location == SSALocation::eReg) {
+					printExprType(refExpr);
 					printf("tmp%d <- %s, ", refExpr.id, arch->getRegister(refExpr.locref.refId)->name.cstr());
 				}
 			}
@@ -583,14 +609,16 @@ namespace holodec{
 		resolveIds.insert(expr.id);
 		if (expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type)) {
 			if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
+				printExprType(expr);
 				printf("var%d = ", uExprs->id);
 			}
 			else if (resolveIds.find(expr.id) != resolveIds.end()) {
+				printExprType(expr);
 				printf("tmp%d = ", expr.id);
 			}
 		}
 		resolveExpression(expr);
-		puts("");
+		printf("\n");
 	}
 	ControlStruct* getStructFromHead(ControlStruct* controlStruct, HId headId) {
 		for (ControlStruct& subStruct : controlStruct->child_struct) {
@@ -695,7 +723,7 @@ namespace holodec{
 			//printIndent(indent); printf("Label L%d:\n", theBB->id);
 		}
 		if (printed.find(bb.id) != printed.end()) {
-			printIndent(indent); printf("goto resolveBlock L%d;\n", bb.id);
+			printIndent(indent); printf("goto L%d;\n", bb.id);
 			return;
 		}
 		for (HId id : bb.exprIds) {
@@ -739,7 +767,7 @@ namespace holodec{
 			if (subStruct)
 				printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent + 1);
 			else {
-				printIndent(indent + 1); printf("goto LOOP L%d\n", controlStruct->head_block);
+				printIndent(indent + 1); printf("goto L%d\n", controlStruct->head_block);
 			}
 			printIndent(indent); printf("}\n");
 		} break;
@@ -753,7 +781,7 @@ namespace holodec{
 				if (subStruct)
 					printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent);
 				else {
-					printIndent(indent); printf("goto END L%d\n", controlStruct->main_exit);
+					printIndent(indent); printf("goto L%d\n", controlStruct->main_exit);
 				}
 			}
 		}
@@ -969,7 +997,7 @@ namespace holodec{
 			for (CArgument arg : arguments) {
 				printf("arg%d <- %s ", arg.id, arg.regRef.name.cstr());
 			}
-			puts(")\n");
+			(")\n");
 
 			unifiedExprs.clear();
 
