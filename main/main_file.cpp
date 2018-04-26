@@ -269,7 +269,6 @@ int main (int argc, const char** argv) {
 		if (func) {
 			func->ssaRep.recalcRefCounts();
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-			func->print(binary->arch);
 			transformers[8]->doTransformation(binary, func);
 		}
 	}
@@ -340,7 +339,6 @@ int main (int argc, const char** argv) {
 	func->ssaRep.bbs[6].exprIds.push_back(func->ssaRep.addExpr(&expr));
 	func->ssaRep.bbs[7].exprIds.push_back(func->ssaRep.addExpr(&retexpr));
 	transformers[8]->doTransformation(binary, func);
-	func->print(binary->arch);
 	delete func;
 
 	func = new Function();
@@ -359,7 +357,6 @@ int main (int argc, const char** argv) {
 	func->ssaRep.bbs[3].exprIds.push_back(func->ssaRep.addExpr(&expr));
 	func->ssaRep.bbs[4].exprIds.push_back(func->ssaRep.addExpr(&retexpr));
 	transformers[8]->doTransformation(binary, func);
-	func->print(binary->arch);
 	delete func;
 
 #undef PATH

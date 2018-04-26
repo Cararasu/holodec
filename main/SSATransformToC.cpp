@@ -611,7 +611,7 @@ namespace holodec{
 				return true;
 			}
 		}
-		else if(controlStruct->contained_blocks.find(nextBlockId) == controlStruct->contained_blocks.end()){
+		else if(controlStruct->parent_struct){
 			return resolveEscapeLoop(controlStruct->parent_struct, nextBlockId, indent);
 		}
 		return false;
@@ -633,7 +633,7 @@ namespace holodec{
 						printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent);
 					else if (controlStruct->main_exit != arg.locref.refId)  {
 						if (!resolveEscapeLoop(controlStruct, arg.locref.refId, indent)) {
-							printIndent(indent); printf("goto fff1 L%d\n", arg.locref.refId);
+							printIndent(indent); printf("goto L%d\n", arg.locref.refId);
 						}
 					}
 					else {
@@ -651,23 +651,38 @@ namespace holodec{
 	}
 	void SSATransformToC::resolveBranchExpr(ControlStruct* controlStruct, SSAExpression& expr, std::set<HId>& printed, uint32_t indent) {
 		if (expr.type == SSAExprType::eBranch) {
-			for (size_t i = 1; i < expr.subExpressions.size(); i += 2) {
+			if (expr.subExpressions.size() == 3 &&
+				expr.subExpressions[0].type == SSAArgType::eOther && expr.subExpressions[0].location == SSALocation::eBlock && expr.subExpressions[0].locref.refId == controlStruct->main_exit) {
+				//special case where the first jump leads to the end of the branch
+				//then we invert the if and only print the original else block
 				printIndent(indent);
-				if (i > 1)
-					printf("else ");
-				printf("if(");
-				resolveArg(expr.subExpressions[i]);
+				printf("if(!");
+				resolveArg(expr.subExpressions[1]); 
 				printf(") {\n");
-				SSAArgument& blockarg = expr.subExpressions[i - 1];
-				resolveBlockArgument(controlStruct, expr.subExpressions[i - 1], printed, indent + 1);
+				resolveBlockArgument(controlStruct, expr.subExpressions[2], printed, indent + 1);
 				printIndent(indent); printf("}\n");
 			}
-			if (expr.subExpressions.size() > 1) {
-				printIndent(indent); printf("else {\n");
-			}
-			resolveBlockArgument(controlStruct, expr.subExpressions.back(), printed, indent + 1);
-			if (expr.subExpressions.size() > 1) {
-				printIndent(indent); printf("}\n");
+			else {
+				for (size_t i = 1; i < expr.subExpressions.size(); i += 2) {
+					printIndent(indent);
+					if (i > 1)
+						printf("else ");
+					printf("if(");
+					resolveArg(expr.subExpressions[i]);
+					printf(") {\n");
+					SSAArgument& blockarg = expr.subExpressions[i - 1];
+					resolveBlockArgument(controlStruct, expr.subExpressions[i - 1], printed, indent + 1);
+					printIndent(indent); printf("}\n");
+				}
+				if (!(expr.subExpressions.back().type == SSAArgType::eOther && expr.subExpressions.back().location == SSALocation::eBlock && expr.subExpressions.back().locref.refId == controlStruct->main_exit)) {
+					if (expr.subExpressions.size() > 1) {
+						printIndent(indent); printf("else {\n");
+					}
+					resolveBlockArgument(controlStruct, expr.subExpressions.back(), printed, indent + 1);
+					if (expr.subExpressions.size() > 1) {
+						printIndent(indent); printf("}\n");
+					}
+				}
 			}
 		}
 		else if (expr.type != SSAExprType::eReturn) {
@@ -697,20 +712,22 @@ namespace holodec{
 		switch (controlStruct->type) {
 		case ControlStructType::SEQUENCE: {
 			SSABB* theBB = &bb;
+			SSABB* endBB = nullptr;
 			while (controlStruct->contained_blocks.find(theBB->id) != controlStruct->contained_blocks.end()) {
 
 				resolveBlock(controlStruct, *theBB, printed, indent);
-
-				if (theBB->outBlocks.size() == 0){
+				endBB = theBB;
+				if (theBB->outBlocks.size() != 1){
 					break;
 				}
-				SSABB* nextBB = &function->ssaRep.bbs[*theBB->outBlocks.begin()];
+				theBB = &function->ssaRep.bbs[*theBB->outBlocks.begin()];
 				if (printed.find(theBB->id) != printed.end()) {
 					break;
 				}
-				theBB = nextBB;
 			}
-			resolveBranchExpr(controlStruct, function->ssaRep.expressions[theBB->exprIds.back()], printed, indent);
+			if (endBB) {
+				resolveBranchExpr(controlStruct, function->ssaRep.expressions[endBB->exprIds.back()], printed, indent);
+			}
 		} break;
 		case ControlStructType::BRANCH: {
 			resolveBlock(controlStruct, function->ssaRep.bbs[controlStruct->head_block], printed, indent);
@@ -738,6 +755,12 @@ namespace holodec{
 				else {
 					printIndent(indent); printf("goto END L%d\n", controlStruct->main_exit);
 				}
+			}
+		}
+		
+		for (ControlStruct& cStruct : controlStruct->child_struct) {
+			if (printed.find(cStruct.head_block) == printed.end()) {
+				printControlStruct(&cStruct, function->ssaRep.bbs[cStruct.head_block], printed, indent);
 			}
 		}
 
