@@ -108,9 +108,6 @@
     <ClCompile Include="SSAAddressToBlockTransformer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="SSAAssignmentSimplifier.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="SSACallingConvApplier.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -264,9 +261,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="SSAAddressToBlockTransformer.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="SSAAssignmentSimplifier.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="SSACallingConvApplier.h">

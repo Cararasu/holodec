@@ -96,7 +96,35 @@ namespace holodec{
 				}
 			}
 		}
+		for (StringRef& ref : this->volatileRegs) {
+			if(!ref.refId)
+				ref.refId = arch->getRegister(ref)->id;
+		}
 		return false;
+		bool changed = false;
+		for (SSAExpression& expr : ssaRep->expressions) {
+			bool exprRemove = false;
+			if (expr.type == SSAExprType::eReturn) {
+				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();) {
+					if (it->location == SSALocation::eReg) {
+						bool remove = false;
+						for (StringRef& ref : volatileRegs) {
+							if (ref.refId == it->locref.refId) {
+								remove = true;
+								break;
+							}
+						}
+						if (remove) {
+							it = expr.removeArgument(ssaRep, it);
+							changed = true;
+							continue;
+						}
+					}
+					++it;
+				}
+			}
+		}
+		return changed;
 	}
 
 }

@@ -328,7 +328,11 @@ namespace holodec{
 			if (nonZeroOffset)
 				printf("(");
 
-			if (UnifiedExprs* uExprs = getUnifiedExpr(subExpr.uniqueId)) {
+			auto it = argumentIds.find(subExpr.id);
+			if (it != argumentIds.end()) {
+				printf("arg%d", it->second);
+			}
+			else if (UnifiedExprs* uExprs = getUnifiedExpr(subExpr.uniqueId)) {
 				printf("var%d", uExprs->id);
 			}
 			else if (resolveIds.find(subExpr.id) != resolveIds.end()) {
@@ -361,28 +365,27 @@ namespace holodec{
 			printf("[%d]", arg.valueoffset);
 		}
 		else {
-			printf("*((uint%d_t *)", size);
+			printf("mem(uint%d_t, ", size);
 			resolveArg(arg);
 			printf(")");
 		}
 	}
-	void SSATransformToC::resolveExpression(SSAExpression& expr) {
+	bool SSATransformToC::resolveExpression(SSAExpression& expr) {
 
 		if (expr.type == SSAExprType::eBranch)
-			return;
+			return false;
 
 		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
 			printf("(");
 		switch (expr.type) {
 		case SSAExprType::eInvalid:
-			break;
+			return false;
 		case SSAExprType::eLabel:
-			break;
+			return false;
 		case SSAExprType::eUndef:
-			printf("undef ");
-			break;
+			return false;
 		case SSAExprType::eNop:
-			break;
+			return false;
 		case SSAExprType::eOp: {
 			for (size_t i = 0; i < expr.subExpressions.size(); ++i) {
 				SSAArgument& arg = expr.subExpressions[i];
@@ -532,7 +535,7 @@ namespace holodec{
 			}
 			break;
 		case SSAExprType::eOutput:
-			break;
+			return false;
 
 		case SSAExprType::eCall: {
 			for (HId id : expr.directRefs) {
@@ -590,25 +593,40 @@ namespace holodec{
 			resolveArgs(expr);
 		}break;
 		case SSAExprType::eStore: {
+			SSAArgument& memArg = expr.subExpressions[0];
+			SSAArgument& ptrArg = expr.subExpressions[1];
 			SSAArgument& valueArg = expr.subExpressions[2];
 
-			resolveMemArg(expr.subExpressions[1], valueArg.size);
-			printf(" = ");
+			printf("store(%s, uint%d_t, ", arch->getMemory(memArg.locref.refId)->name.cstr(), ptrArg.size);
+			resolveArg(ptrArg);
+			printf(", ");
 			resolveArg(valueArg);
+			printf(")");
 		}break;
 		case SSAExprType::eLoad: {
-			resolveMemArg(expr.subExpressions[1], expr.size);
+			SSAArgument& memArg = expr.subExpressions[0];
+			SSAArgument& ptrArg = expr.subExpressions[1];
+
+			printf("load(%s, uint%d_t, ", arch->getMemory(memArg.locref.refId)->name.cstr(), expr.size);
+			resolveArg(ptrArg);
+			printf(")");
 		}break;
 		}
 		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
 			printf(")");
+		return true;
 	}
-	void SSATransformToC::printExpression(SSAExpression& expr) {
-		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::ePhi || expr.type == SSAExprType::eMemOutput)
-			return;
+	bool SSATransformToC::printExpression(SSAExpression& expr, uint32_t indent) {
+		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::ePhi || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch)
+			return false;
 		resolveIds.insert(expr.id);
+		printIndent(indent);
 		if (expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type)) {
-			if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
+			auto it = argumentIds.find(expr.id);
+			if (it != argumentIds.end()) {
+				printExprType(expr);
+				printf("arg%d = ", it->second);
+			} else if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
 				printExprType(expr);
 				printf("var%d = ", uExprs->id);
 			}
@@ -617,8 +635,7 @@ namespace holodec{
 				printf("tmp%d = ", expr.id);
 			}
 		}
-		resolveExpression(expr);
-		printf("\n");
+		return resolveExpression(expr);
 	}
 	ControlStruct* getStructFromHead(ControlStruct* controlStruct, HId headId) {
 		for (ControlStruct& subStruct : controlStruct->child_struct) {
@@ -730,7 +747,8 @@ namespace holodec{
 		for (HId id : bb.exprIds) {
 			SSAExpression& expr = function->ssaRep.expressions[id];
 			if (shouldResolve(expr)) {
-				printIndent(indent); printExpression(expr);
+				if(printExpression(expr, indent))
+					printf("\n");
 			}
 		}
 		printed.insert(bb.id);
@@ -770,8 +788,13 @@ namespace holodec{
 			else {
 				printIndent(indent + 1); printf("goto L%d\n", controlStruct->head_block);
 			}
+			for (ControlStruct& cStruct : controlStruct->child_struct) {
+				if (printed.find(cStruct.head_block) == printed.end()) {
+					printControlStruct(&cStruct, function->ssaRep.bbs[cStruct.head_block], printed, indent + 1);
+				}
+			}
 			printIndent(indent); printf("}\n");
-		} break;
+		} return;
 		case ControlStructType::GLOBAL: {
 			printControlStruct(&controlStruct->child_struct[0], function->ssaRep.bbs[controlStruct->child_struct[0].head_block], printed, indent + 1);
 		}break;
@@ -786,13 +809,11 @@ namespace holodec{
 				}
 			}
 		}
-		
 		for (ControlStruct& cStruct : controlStruct->child_struct) {
 			if (printed.find(cStruct.head_block) == printed.end()) {
-				printControlStruct(&cStruct, function->ssaRep.bbs[cStruct.head_block], printed, indent);
+				printControlStruct(&cStruct, function->ssaRep.bbs[cStruct.head_block], printed, indent + 1);
 			}
 		}
-
 	}
 
 	void setParentStructs(ControlStruct* controlStruct) {
@@ -942,8 +963,8 @@ namespace holodec{
 			} while (changed);
 		}
 
-		function->printSimple(binary->arch);
-		printf("Structure Analysis\n");
+		//function->printSimple(binary->arch);
+		//printf("Structure Analysis\n");
 		ControlStruct g_struct = { ControlStructType::GLOBAL };
 		g_struct.head_block = 1;
 		for (SSABB& bb : function->ssaRep.bbs) {
@@ -956,24 +977,15 @@ namespace holodec{
 		analyzeStructure(g_struct, 1);
 		consolidateBranchLoops(&g_struct);
 		setParentStructs(&g_struct);
-		g_struct.print(1);
+		//g_struct.print(1);
 
 
 		arguments.clear();
+		argumentIds.clear();
 		resolveIds.clear();
 		resolveBBs.clear();
 		if(sym)
 			printf("Function: %s\n", sym->name.cstr());
-		printf("Calling Functions: ");
-		for (uint64_t addr : function->funcsCall) {
-			printf("0x%x ", addr);
-		}
-		printf("\n");
-		printf("CalledFunctions: ");
-		for (uint64_t addr : function->funcsCalled) {
-			printf("0x%x ", addr);
-		}
-		printf("\n");
 		{
 			SSABB& bb = function->ssaRep.bbs[1];
 			for (HId id : bb.exprIds) {
@@ -982,6 +994,7 @@ namespace holodec{
 					if (expr.location == SSALocation::eReg) {
 						CArgument arg = { 0, expr.id, { binary->arch->getRegister(expr.locref.refId)->name.cstr(), expr.locref.refId } };
 						arguments.push_back(arg);
+						argumentIds.insert(std::make_pair(expr.id, arguments.size()));
 					}
 				}
 			}
@@ -998,7 +1011,7 @@ namespace holodec{
 			for (CArgument arg : arguments) {
 				printf("arg%d <- %s ", arg.id, arg.regRef.name.cstr());
 			}
-			(")\n");
+			printf("){\n");
 
 			unifiedExprs.clear();
 
@@ -1047,11 +1060,10 @@ namespace holodec{
 		}
 		HSet<HId> visited;
 		printControlStruct(&g_struct, function->ssaRep.bbs[1], visited, 1);
-		/*std::set<HId> visited;
-		printControlStruct(&g_struct, visited);*/
-		for (size_t index = 1; index < function->ssaRep.bbs.list.size(); ++index) {
-			;
-		}
+
+		printIndent(1);
+		printf("}\n");
+
 		return false;
 	}
 }

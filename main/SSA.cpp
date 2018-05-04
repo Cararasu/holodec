@@ -715,11 +715,22 @@ namespace holodec {
 		}
 		return count;
 	}
+
+	inline bool shouldReplaceIn(SSAExpression& expr, SSAArgument& replaceArg) {
+		if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific and need the operation for it's meaning
+			return false;
+		}
+		if (EXPR_IS_TRANSPARENT(expr.type) && replaceArg.valueoffset) {//ignore transparent nodes if the valueoffset is not 0, because we don't want changes there
+			return false;
+		}
+		return true;//otherwise replace it
+	}
+
 	uint64_t SSARepresentation::replaceArg(SSAExpression& origExpr, SSAArgument replaceArg) {
 		uint64_t count = 0;
-		for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();++it) {//iterate refs
-			SSAExpression& expr = expressions[*it];
-			if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific
+		for (HId directRefId : origExpr.directRefs) {//iterate refs
+			SSAExpression& expr = expressions[directRefId];
+			if (!shouldReplaceIn(expr, replaceArg)) {
 				continue;
 			}
 			if (replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
@@ -736,19 +747,25 @@ namespace holodec {
 						arg.replace(replaceArg);
 						count++;
 						if (replaceArg.type == SSAArgType::eId)
-							expressions[replaceArg.ssaId].refs.push_back(*it);
+							expressions[replaceArg.ssaId].refs.push_back(directRefId);
 					}
 				}
 			}
 		}
 		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
-			origExpr.directRefs.clear();
 			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
-				if (expressions[*it].type == SSAExprType::eFlag) {
+				if (!shouldReplaceIn(expressions[*it], replaceArg)) {
 					it++;
 					continue;
 				}
 				it = origExpr.refs.erase(it);
+			}
+			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
+				if (!shouldReplaceIn(expressions[*it], replaceArg)) {
+					it++;
+					continue;
+				}
+				it = origExpr.directRefs.erase(it);
 			}
 		}
 		return count;
@@ -1019,12 +1036,9 @@ namespace holodec {
 			printf("Block bb Id: %d\n", bb.id);
 
 			printIndent(indent + 1);
-			printf("InBlocks ");
 			for (HId id : bb.inBlocks) printf("%d, ", id);
-			printf("\n");
+			printf("-> Block -> ");
 
-			printIndent(indent + 1);
-			printf("OutBlocks ");
 			for (HId id : bb.outBlocks) printf("%d, ", id);
 			printf("\n");
 

@@ -14,7 +14,6 @@
 #include "SSAPhiNodeGenerator.h"
 #include "SSAAddressToBlockTransformer.h"
 #include "SSACallingConvApplier.h"
-#include "SSAAssignmentSimplifier.h"
 #include "SSADCETransformer.h"
 #include "SSACalleeCallerRegs.h"
 #include "HIdList.h"
@@ -84,8 +83,6 @@ extern Architecture holox86::x86architecture;
 
 int main (int argc, const char** argv) {
 
-	 
-	 
 	g_logger.log<LogLevel::eInfo> ("Init X86\n");
 
 	if (argc < 2) {
@@ -180,20 +177,23 @@ int main (int argc, const char** argv) {
 
 	binary->print();
 
+	std::vector<StringRef> volatileRegisters = { "cf" , "zf" , "nf" , "vf" , "sf" , "hf" , "tf" , "if" };
+
 	std::vector<SSATransformer*> transformers = {
 		new SSAAddressToBlockTransformer(),//0
 		new SSAPhiNodeGenerator(),//1
-		new SSAAssignmentSimplifier(),//2
+		nullptr,//2
 		new SSAPeepholeOptimizer(),//3
 		new SSADCETransformer(),//4
 		new SSAApplyRegRef(),//5
 		new SSAAppendSimplifier(),//6
-		new SSACalleeCallerRegs(),//7
+		new SSACalleeCallerRegs(volatileRegisters),//7
 		new SSATransformToC(),//8
 	};
 
 	for (SSATransformer* transform : transformers) {
-		transform->arch = binary->arch;
+		if(transform)
+			transform->arch = binary->arch;
 	}
 
 	PeepholeOptimizer* optimizer = parsePhOptimizer ();
@@ -205,12 +205,8 @@ int main (int argc, const char** argv) {
 	g_peephole_logger.level = LogLevel::eInfo;
 	
 	HSet<uint64_t> funcs = {
-		0x1fe7,
+		0x0,
 	};
-	for (Function* func : binary->functions) {
-		if (func->baseaddr == 0x1fe7)
-			printf("0x%x\n", func->baseaddr);
-	}
 	for (Function* func : binary->functions) {
 	//for (uint64_t addr : funcs) {
 	//	Function* func = binary->getFunctionByAddr(addr);
@@ -236,33 +232,45 @@ int main (int argc, const char** argv) {
 		//	Function* func = binary->getFunctionByAddr(addr);
 			if (func) {
 				bool applied = false;
-				if (func->baseaddr == 0x195b || func->baseaddr == 0x1938)
-					func->print(binary->arch);
 				/*if (!func->ssaRep.checkIntegrity()) {
 					func->print(binary->arch);
 					assert(false);
 				}*/
 				do {
 					applied = false;
-					applied |= transformers[2]->doTransformation(binary, func);
 					func->ssaRep.recalcRefCounts();
 					/*if (!func->ssaRep.checkIntegrity()) {
 						func->print(binary->arch);
 						assert(false);
 					}*/
+					if (func->baseaddr == 0x0)
+						func->printSimple(binary->arch);
 					applied |= transformers[3]->doTransformation(binary, func);
+					printf("3: %d\n", applied);
+					if (func->baseaddr == 0x0)
+						func->printSimple(binary->arch);
 					applied |= transformers[4]->doTransformation(binary, func);
+					printf("4: %d\n", applied);
+					if (func->baseaddr == 0x0)
+						func->printSimple(binary->arch);
 					applied |= transformers[5]->doTransformation(binary, func);
+					printf("5: %d\n", applied);
+					if (func->baseaddr == 0x0)
+						func->printSimple(binary->arch);
 					applied |= transformers[6]->doTransformation(binary, func);
+					printf("6: %d\n", applied);
+					if (func->baseaddr == 0x0)
+						func->printSimple(binary->arch);
 					funcChanged |= transformers[7]->doTransformation(binary, func);
 					funcChanged |= applied;
-					if(funcs.find(func->baseaddr) != funcs.end())
-						func->print(binary->arch);
 				} while (applied);
 				func->ssaRep.recalcRefCounts();
 			}
 		}
 	} while (funcChanged);
+	for (Function* func : binary->functions) {
+		func->printSimple(binary->arch);
+	}
 	for (Function* func : binary->functions) {
 	//for (uint64_t addr : funcs) {
 	//	Function* func = binary->getFunctionByAddr(addr);
@@ -277,6 +285,7 @@ int main (int argc, const char** argv) {
 	for (int i = 0; i < 8; i++) {
 		func->ssaRep.bbs.emplace_back();
 	}
+
 #define PATH(function, from, to) function->ssaRep.bbs[from].outBlocks.insert(to);function->ssaRep.bbs[to].inBlocks.insert(from);
 
 	SSAExpression retexpr;
@@ -310,7 +319,7 @@ int main (int argc, const char** argv) {
 	func->ssaRep.bbs[7].exprIds.push_back(func->ssaRep.addExpr(&expr));
 	func->ssaRep.bbs[8].exprIds.push_back(func->ssaRep.addExpr(&retexpr));
 	
-	transformers[8]->doTransformation(binary, func);
+	//transformers[8]->doTransformation(binary, func);
 	delete func;
 
 	func = new Function();
@@ -338,7 +347,7 @@ int main (int argc, const char** argv) {
 	expr.subExpressions = { SSAArgument::createBlock(7) };
 	func->ssaRep.bbs[6].exprIds.push_back(func->ssaRep.addExpr(&expr));
 	func->ssaRep.bbs[7].exprIds.push_back(func->ssaRep.addExpr(&retexpr));
-	transformers[8]->doTransformation(binary, func);
+	//transformers[8]->doTransformation(binary, func);
 	delete func;
 
 	func = new Function();
@@ -356,7 +365,7 @@ int main (int argc, const char** argv) {
 	func->ssaRep.bbs[2].exprIds.push_back(func->ssaRep.addExpr(&expr));
 	func->ssaRep.bbs[3].exprIds.push_back(func->ssaRep.addExpr(&expr));
 	func->ssaRep.bbs[4].exprIds.push_back(func->ssaRep.addExpr(&retexpr));
-	transformers[8]->doTransformation(binary, func);
+	//transformers[8]->doTransformation(binary, func);
 	delete func;
 
 #undef PATH

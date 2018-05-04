@@ -88,16 +88,16 @@ namespace holodec {
 		}
 	}; 
 
-	PeepholeOptimizer* parsePhOptimizer () {
+	PeepholeOptimizer* parsePhOptimizer() {
 
 		PeepholeOptimizer* peephole_optimizer = new PeepholeOptimizer();
 
-		RuleBuilder builder (peephole_optimizer->ruleSet);
-		
+		RuleBuilder builder(peephole_optimizer->ruleSet);
+
 		builder = peephole_optimizer->ruleSet;
 		builder
-		.ssaType(0, 0, SSAExprType::eExtend)
-		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			.ssaType(0, 0, SSAExprType::eExtend)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
 			if (expr.directRefs.size() && expr.subExpressions[0].isConst()) {
 				expr.subExpressions[0].size = expr.size;
@@ -131,8 +131,8 @@ namespace holodec {
 			}
 			return false;
 		})*/
-		.ssaType(0, 0, SSAExprType::eAppend)
-		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			.ssaType(0, 0, SSAExprType::eAppend)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 
 			//TODO the appends seem to not be simplified correctly and sometimes even completely removed
 
@@ -163,7 +163,7 @@ namespace holodec {
 					if (offset < innerOffset + innerIt->size) {
 						SSAArgument innerArg = *innerIt;
 
-						if(innerOffset < offset)
+						if (innerOffset < offset)
 							innerArg.offset += offset - innerOffset;
 						if (offsetlimit < innerOffset + innerIt->size)
 							innerArg.size -= (innerOffset + innerIt->size) - offsetlimit;
@@ -175,8 +175,8 @@ namespace holodec {
 			}
 			return subAppends;
 		})
-		.ssaType(0, 0, SSAExprType::eAppend)
-		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			.ssaType(0, 0, SSAExprType::eAppend)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
 
 			if (expr.subExpressions.size() == 2 && expr.subExpressions[1].type == SSAArgType::eUInt && expr.subExpressions[1].uval == 0) {
@@ -223,7 +223,7 @@ namespace holodec {
 							if (firstPtrArg.type == secPtrArg.type) {
 								switch (firstPtrArg.type) {
 								case SSAArgType::eUInt: {
-									if ((firstPtrArg.uval + 1 == secPtrArg.uval && firstPtrArg.valueoffset == secPtrArg.valueoffset) || (firstPtrArg.uval == secPtrArg.uval && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset)){
+									if ((firstPtrArg.uval + 1 == secPtrArg.uval && firstPtrArg.valueoffset == secPtrArg.valueoffset) || (firstPtrArg.uval == secPtrArg.uval && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset)) {
 										SSAArgument newSecArg = *it;
 										newSecArg.offset += firstExpr.size;
 										newSecArg.ssaId = baseit->ssaId;
@@ -276,8 +276,8 @@ namespace holodec {
 			}
 			return replaced;
 		})
-		.ssaType(0, 0, SSAExprType::eStore)
-		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			.ssaType(0, 0, SSAExprType::eStore)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& storeExpr = ssaRep->expressions[context->expressionsMatched[0]];
 			for (HId id : storeExpr.directRefs) {
 				SSAExpression& secExpr = ssaRep->expressions[id];
@@ -313,6 +313,36 @@ namespace holodec {
 			return false;
 		})
 
+		.ssaType(0, 0, SSAExprType::ePhi)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
+			if (expr.type == SSAExprType::ePhi && expr.subExpressions.size()) {
+				bool undef = true;
+				SSAArgument cmpArg = expr.subExpressions[1];
+				bool alwaysTheSame = true;
+
+				for (size_t i = 1; i < expr.subExpressions.size(); i += 2) {
+					//SSAArgument& blockArg = expr.subExpressions[i];
+					SSAArgument& arg = expr.subExpressions[i];
+					if (arg.type == SSAArgType::eId && arg.ssaId == expr.id && arg.valueoffset == 0)
+						continue;
+					if (arg.type != SSAArgType::eUndef) {
+						undef = false;
+					}
+					if (!weak_equals(arg, cmpArg)) {
+						alwaysTheSame = false;
+					}
+				}
+				if (undef) {
+					return ssaRep->replaceArg(expr, SSAArgument::createUndef(expr.location, expr.locref, expr.size)) != 0;
+				}
+				else if (alwaysTheSame) {
+					return ssaRep->replaceArg(expr, expr.subExpressions[1]) != 0;
+				}
+			}
+			return false;
+		})
+
 		.ssaType(0, 0, SSAOpType::eSub)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& opExpr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -320,14 +350,12 @@ namespace holodec {
 				if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
 					SSAArgument arg = opExpr.subExpressions[0];
 					arg.valueoffset -= opExpr.subExpressions[1].uval;
-					ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg);
-					return true;
+					return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
 				}
 				else if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
 					SSAArgument arg = opExpr.subExpressions[0];
 					arg.valueoffset -= opExpr.subExpressions[1].sval;
-					ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg);
-					return true;
+					return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
 				}
 			}
 			return false;
@@ -339,14 +367,12 @@ namespace holodec {
 				if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
 					SSAArgument arg = opExpr.subExpressions[0];
 					arg.valueoffset += opExpr.subExpressions[1].uval;
-					ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg);
-					return true;
+					//return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
 				}
 				else if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
 					SSAArgument arg = opExpr.subExpressions[0];
 					arg.valueoffset += opExpr.subExpressions[1].sval;
-					ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg);
-					return true;
+					//return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
 				}
 			}
 			return false;
@@ -474,8 +500,7 @@ namespace holodec {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
 			if ((expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eBXor) && expr.subExpressions.size() == 2 && expr.subExpressions[0] == expr.subExpressions[1] && !ssaRep->usedOnlyInFlags(expr)) {
 				g_peephole_logger.log<LogLevel::eDebug>("Zero-Op");
-				ssaRep->replaceArg(expr, SSAArgument::createUVal(0, expr.size));
-				return true;
+				return ssaRep->replaceArg(expr, SSAArgument::createUVal(0, expr.size)) != 0;
 			}
 			return false;
 		})
@@ -503,18 +528,16 @@ namespace holodec {
 				if (arg.isConst()) {
 					if (arg.type == SSAArgType::eUInt) {
 						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
-						ssaRep->replaceAllArgs(expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
+						return ssaRep->replaceArg(expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size)) != 0;
 						return true;
 					}
 					else if (arg.type == SSAArgType::eSInt) {
 						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
-						ssaRep->replaceAllArgs(expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size));
-						return true;
+						return ssaRep->replaceArg(expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size)) != 0;
 					}
 				}
 				
-				ssaRep->replaceAllArgs(expr, arg);
-				return true;
+				return ssaRep->replaceArg(expr, arg) != 0;
 			}
 			return false;
 		})
@@ -590,12 +613,10 @@ namespace holodec {
 			SSAArgument& arg = expr.subExpressions[0];
 			if (arg.isConst()) {
 				if (arg.type == SSAArgType::eUInt) {
-					ssaRep->replaceArg(expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
-					return true;
+					return ssaRep->replaceArg(expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size)) != 0;
 				}
 				else if (arg.type == SSAArgType::eSInt) {
-					ssaRep->replaceArg(expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size));
-					return true;
+					return ssaRep->replaceArg(expr, SSAArgument::createUVal(arg.sval >> arg.offset, arg.size)) != 0;
 				}
 			}
 			return false;

@@ -50,6 +50,7 @@ namespace holodec {
 
 		Binary* binary;
 		Function* function;
+		HMap<HId, HId> argumentIds;
 		HSet<HId> resolveIds;
 		HSet<HId> resolveBBs;
 		HIdList<CArgument> arguments;
@@ -71,12 +72,12 @@ namespace holodec {
 		void resolveBlock(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 		void printControlStruct(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 
-		void printExpression(SSAExpression& expression);
+		bool printExpression(SSAExpression& expression, uint32_t indent);
 		void resolveArgs(SSAExpression& expression, const char* delimiter = ", ");
 		void resolveArgWithoutOffset(SSAArgument& arg);
 		void resolveArg(SSAArgument& arg);
 		void resolveMemArg(SSAArgument& arg, uint32_t size);
-		void resolveExpression(SSAExpression& expression);
+		bool resolveExpression(SSAExpression& expression);
 		bool shouldResolve(SSAExpression& expr);
 
 		bool shouldResolve(HId id);

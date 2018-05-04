@@ -43,13 +43,18 @@ namespace holodec {
 
 	class SSACalleeCallerRegs : public SSATransformer {
 
+		std::vector<StringRef> volatileRegs;
 		SSARepresentation* ssaRep;
+	public:
+		SSACalleeCallerRegs() :volatileRegs(), ssaRep(nullptr){}
+		SSACalleeCallerRegs(std::vector<StringRef> volatileRegs) :volatileRegs(volatileRegs), ssaRep(nullptr) {}
 
+		virtual bool doTransformation(Binary* binary, Function* function);
+	private:
 		bool isInput(CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, CalleeArgument* retArg);
 
 		bool isInputMem(HId memId, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, CalleeArgument* retArg, CalleeArgument ptrArg);
 
-		virtual bool doTransformation(Binary* binary, Function* function);
 
 	};
 

@@ -33,18 +33,17 @@ namespace holodec {
 
 		HList<std::function<FunctionAnalyzer* (Binary*) >> functionanalyzerfactories;
 		HIdList<Register> registers;
-
 		HIdList<Stack> stacks;
-
 		HIdList<Memory> memories;
-
+		//a list of all builtin functions that can not be represented with the ir
 		HIdList<Builtin> builtins;
-
 		HIdList<CallingConvention> callingconventions;
 
+
+		//is filled at init
 		HUniqueList<HId> instrIds;
 		HIdMap<HId, InstrDefinition> instrdefs;
-
+		//is filled at init with the instructions
 		HSparseIdList<IRExpression> irExpressions;
 
 		Architecture() = default;
