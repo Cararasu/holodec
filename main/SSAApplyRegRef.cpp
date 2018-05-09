@@ -93,30 +93,18 @@ namespace holodec {
 					if (!reg)
 						continue;
 					RegisterState* state = callFunc->regStates.getRegisterState(reg->parentRef.refId);
-					if (!state || !state->flags.contains(UsageFlags::eWrite)) {
-						if (state && state->arithChange) {
-							expr.type = SSAExprType::eOp;
-							expr.subExpressions.erase(expr.subExpressions.begin());
-							if (state->arithChange > 0) {
-								expr.opType = SSAOpType::eAdd;
-								expr.addArgument(&function->ssaRep, SSAArgument::createUVal(state->arithChange, arch->bytebase * arch->bitbase));
-							}
-							else {
-								expr.opType = SSAOpType::eSub;
-								expr.addArgument(&function->ssaRep, SSAArgument::createUVal(state->arithChange * -1, arch->bytebase * arch->bitbase));
-							}
-							applied = true;
-						}
-						else {
-							expr.type = SSAExprType::eAssign;
-							expr.subExpressions.erase(expr.subExpressions.begin());
-							applied = true;
-						}
-					}
-					else if (!state || !state->flags.contains(UsageFlags::eRead)) {
+					if (state) {
 						if (expr.subExpressions.size() > 1) {
-							expr.subExpressions.erase(expr.subExpressions.begin() + 1);
-							applied = true;
+							if (!state->flags.contains(UsageFlags::eWrite)) {//if the register was not written to ther is no change or just an arithmetic one
+								expr.type = SSAExprType::eAssign;
+								expr.removeArgument(&function->ssaRep, expr.subExpressions.begin());
+								expr.subExpressions[0].valueoffset += state->arithChange;
+								applied = true;
+							}
+							else if (!state->flags.contains(UsageFlags::eRead)) {//if the register was written to but not read, we remove the input as a second argument
+								expr.subExpressions.erase(expr.subExpressions.begin() + 1);
+								applied = true;
+							}
 						}
 					}
 				}

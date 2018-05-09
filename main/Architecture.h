@@ -67,7 +67,7 @@ namespace holodec {
 			return nullptr;
 		}
 
-		Register* getRegister (const StringRef stringRef) {
+		Register* getRegister (StringRef& stringRef) {
 			if (stringRef.refId) {
 				for (Register& reg : registers) {
 					if (stringRef.refId == reg.id)
@@ -75,27 +75,38 @@ namespace holodec {
 				}
 			}else if (stringRef.name){
 				for (Register& reg : registers) {
-					if (stringRef.name == reg.name)
+					if (stringRef.name == reg.name) {
+						stringRef.refId = reg.id;
 						return &reg;
+					}
 				}
 			}
 			return &invalidReg;
 		}
-		Stack* getStack (const StringRef stringRef) {
+		Register* getRegister(StringRef&& stringRef) {
+			return getRegister(stringRef);
+		}
+		Stack* getStack(StringRef& stringRef) {
 			if (stringRef.refId) {
 				for (Stack& stack : stacks) {
 					if (stringRef.refId == stack.id)
 						return &stack;
 				}
-			}else if (stringRef.name){
+			}
+			else if (stringRef.name) {
 				for (Stack& stack : stacks) {
-					if (stringRef.name == stack.name)
+					if (stringRef.name == stack.name) {
+						stringRef.refId = stack.id;
 						return &stack;
+					}
 				}
 			}
 			return &invalidStack;
 		}
-		Memory* getMemory(const StringRef stringRef) {
+		Stack* getStack (StringRef&& stringRef) {
+			return getStack(stringRef);
+		}
+		Memory* getMemory(StringRef& stringRef) {
 			if (stringRef.refId) {
 				for (Memory& memory : memories) {
 					if (stringRef.refId == memory.id)
@@ -104,16 +115,21 @@ namespace holodec {
 			}
 			else if (stringRef.name) {
 				for (Memory& memory : memories) {
-					if (stringRef.name == memory.name)
+					if (stringRef.name == memory.name) {
+						stringRef.refId = memory.id;
 						return &memory;
+					}
 				}
 			}
 			return &invalidMem;
 		}
+		Memory* getMemory(StringRef&& stringRef) {
+			return getMemory(stringRef);
+		}
 		Memory* getDefaultMemory() {
 			return memories.get(1);
 		}
-		Builtin* getBuiltin(const StringRef stringRef) {
+		Builtin* getBuiltin(StringRef& stringRef) {
 			if (stringRef.refId) {
 				for (Builtin& builtin : builtins) {
 					if (stringRef.refId == builtin.id)
@@ -122,11 +138,16 @@ namespace holodec {
 			}
 			else if (stringRef.name) {
 				for (Builtin& builtin : builtins) {
-					if (stringRef.name == builtin.name)
+					if (stringRef.name == builtin.name) {
+						stringRef.refId = builtin.id;
 						return &builtin;
+					}
 				}
 			}
 			return nullptr;
+		}
+		Builtin* getBuiltin(StringRef&& stringRef) {
+			return getBuiltin(stringRef);
 		}
 
 		CallingConvention* getCallingConvention(const HString string){

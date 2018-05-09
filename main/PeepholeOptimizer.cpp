@@ -131,8 +131,8 @@ namespace holodec {
 			}
 			return false;
 		})*/
-			.ssaType(0, 0, SSAExprType::eAppend)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+		.ssaType(0, 0, SSAExprType::eAppend)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 
 			//TODO the appends seem to not be simplified correctly and sometimes even completely removed
 
@@ -276,8 +276,8 @@ namespace holodec {
 			}
 			return replaced;
 		})
-			.ssaType(0, 0, SSAExprType::eStore)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+		.ssaType(0, 0, SSAExprType::eStore)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& storeExpr = ssaRep->expressions[context->expressionsMatched[0]];
 			for (HId id : storeExpr.directRefs) {
 				SSAExpression& secExpr = ssaRep->expressions[id];
@@ -367,12 +367,12 @@ namespace holodec {
 				if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
 					SSAArgument arg = opExpr.subExpressions[0];
 					arg.valueoffset += opExpr.subExpressions[1].uval;
-					//return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
+					return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
 				}
 				else if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
 					SSAArgument arg = opExpr.subExpressions[0];
 					arg.valueoffset += opExpr.subExpressions[1].sval;
-					//return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
+					return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
 				}
 			}
 			return false;
@@ -501,6 +501,22 @@ namespace holodec {
 			if ((expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eBXor) && expr.subExpressions.size() == 2 && expr.subExpressions[0] == expr.subExpressions[1] && !ssaRep->usedOnlyInFlags(expr)) {
 				g_peephole_logger.log<LogLevel::eDebug>("Zero-Op");
 				return ssaRep->replaceArg(expr, SSAArgument::createUVal(0, expr.size)) != 0;
+			}
+			return false;
+		})
+		.ssaType(0, 0, SSAOpType::eEq)
+		.ssaType(1, 1, SSAOpType::eSub)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& expr1 = ssaRep->expressions[context->expressionsMatched[1]];
+			SSAExpression& expr2 = ssaRep->expressions[context->expressionsMatched[0]];
+			if (expr1.subExpressions.size() == 2 &&
+				expr2.subExpressions.size() == 2 &&
+				((expr2.subExpressions[1].type == SSAArgType::eUInt && expr2.subExpressions[1].uval == 0) ||
+				(expr2.subExpressions[1].type == SSAArgType::eSInt && expr2.subExpressions[1].sval == 0))) {
+				g_peephole_logger.log<LogLevel::eDebug>("Eq %d - Sub %d ", context->expressionsMatched[0], context->expressionsMatched[1]);
+
+				expr2.setAllArguments(ssaRep, expr1.subExpressions);
+				return true;
 			}
 			return false;
 		})

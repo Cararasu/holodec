@@ -123,9 +123,13 @@ namespace holodec {
 	
 	struct Function {
 		HId id;
+		//the id of the function symbol that holds the name
 		HId symbolref;
+		//the start-address of the function
 		uint64_t baseaddr;
+		bool exported;
 		
+
 		FuncRegState regStates;
 		HUniqueList<uint64_t> funcsCalled;
 		HList<uint64_t> funcsCall;

@@ -182,13 +182,12 @@ int main (int argc, const char** argv) {
 	std::vector<SSATransformer*> transformers = {
 		new SSAAddressToBlockTransformer(),//0
 		new SSAPhiNodeGenerator(),//1
-		nullptr,//2
-		new SSAPeepholeOptimizer(),//3
-		new SSADCETransformer(),//4
-		new SSAApplyRegRef(),//5
-		new SSAAppendSimplifier(),//6
-		new SSACalleeCallerRegs(volatileRegisters),//7
-		new SSATransformToC(),//8
+		new SSAPeepholeOptimizer(),//2
+		new SSADCETransformer(),//3
+		new SSAApplyRegRef(),//4
+		new SSAAppendSimplifier(),//5
+		new SSACalleeCallerRegs(volatileRegisters),//6
+		new SSATransformToC(),//7
 	};
 
 	for (SSATransformer* transform : transformers) {
@@ -245,23 +244,11 @@ int main (int argc, const char** argv) {
 					}*/
 					if (func->baseaddr == 0x0)
 						func->printSimple(binary->arch);
+					applied |= transformers[2]->doTransformation(binary, func);
 					applied |= transformers[3]->doTransformation(binary, func);
-					printf("3: %d\n", applied);
-					if (func->baseaddr == 0x0)
-						func->printSimple(binary->arch);
 					applied |= transformers[4]->doTransformation(binary, func);
-					printf("4: %d\n", applied);
-					if (func->baseaddr == 0x0)
-						func->printSimple(binary->arch);
 					applied |= transformers[5]->doTransformation(binary, func);
-					printf("5: %d\n", applied);
-					if (func->baseaddr == 0x0)
-						func->printSimple(binary->arch);
-					applied |= transformers[6]->doTransformation(binary, func);
-					printf("6: %d\n", applied);
-					if (func->baseaddr == 0x0)
-						func->printSimple(binary->arch);
-					funcChanged |= transformers[7]->doTransformation(binary, func);
+					funcChanged |= transformers[6]->doTransformation(binary, func);
 					funcChanged |= applied;
 				} while (applied);
 				func->ssaRep.recalcRefCounts();
@@ -269,7 +256,7 @@ int main (int argc, const char** argv) {
 		}
 	} while (funcChanged);
 	for (Function* func : binary->functions) {
-		func->printSimple(binary->arch);
+		func->print(binary->arch);
 	}
 	for (Function* func : binary->functions) {
 	//for (uint64_t addr : funcs) {
@@ -277,7 +264,7 @@ int main (int argc, const char** argv) {
 		if (func) {
 			func->ssaRep.recalcRefCounts();
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-			transformers[8]->doTransformation(binary, func);
+			transformers[7]->doTransformation(binary, func);
 		}
 	}
 

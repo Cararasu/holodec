@@ -62,9 +62,9 @@ namespace holodec {
 		}
 	};
 	inline bool operator== (StringRef& lhs, StringRef& rhs) {
-		if (lhs.refId && lhs.refId == rhs.refId)
+		if (lhs.refId && rhs.refId && lhs.refId == rhs.refId)
 			return true;
-		if (lhs.name && lhs.name == rhs.name)
+		if (lhs.name && rhs.name && lhs.name == rhs.name)
 			return true;
 		return false;
 	}

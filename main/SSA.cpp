@@ -304,7 +304,7 @@ namespace holodec {
 			printf("                ");
 			break;
 		}
-		printf("Ref: %2.2" PRId64 " UId: %4.4" PRIx64 " Block: %2.2" PRId32 " | %4.4" PRId32 " = ", refs.size(), uniqueId, blockId, id);
+		printf("Ref: %2.2" PRId64 " UId: %4.4" PRIx64 " Block: %2.2" PRId32 " | %" PRId32 " = ", refs.size(), uniqueId, blockId, id);
 		for (SSAArgument& arg : subExpressions) {
 			arg.print(arch);
 			printf(", ");
@@ -716,21 +716,29 @@ namespace holodec {
 		return count;
 	}
 
-	inline bool shouldReplaceIn(SSAExpression& expr, SSAArgument& replaceArg) {
+
+	inline bool shouldReplaceIn(SSAExpression& expr, SSAArgument& replaceArg, bool isCopy/*if the argument copies the referencing expression or value*/) {
 		if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific and need the operation for it's meaning
 			return false;
 		}
-		if (EXPR_IS_TRANSPARENT(expr.type) && replaceArg.valueoffset) {//ignore transparent nodes if the valueoffset is not 0, because we don't want changes there
+		if (EXPR_IS_TRANSPARENT(expr.type) && (replaceArg.valueoffset || !isCopy)) {//ignore transparent nodes if the valueoffset is not 0, because we don't want changes there
 			return false;
 		}
-		return true;//otherwise replace it
+		return true;//otherwise can be replaced
 	}
 
 	uint64_t SSARepresentation::replaceArg(SSAExpression& origExpr, SSAArgument replaceArg) {
 		uint64_t count = 0;
+
+		//if the argument is not the same as the expression it references then we do not replace them
+		bool isCopy = (replaceArg.offset == 0);
+		if (replaceArg.type == SSAArgType::eId) {
+			SSAExpression& expr = expressions[replaceArg.ssaId];
+			isCopy = isCopy && (expr.size == (replaceArg.offset + replaceArg.size));
+		}
 		for (HId directRefId : origExpr.directRefs) {//iterate refs
 			SSAExpression& expr = expressions[directRefId];
-			if (!shouldReplaceIn(expr, replaceArg)) {
+			if (!shouldReplaceIn(expr, replaceArg, isCopy)) {
 				continue;
 			}
 			if (replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
@@ -754,14 +762,14 @@ namespace holodec {
 		}
 		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
 			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
-				if (!shouldReplaceIn(expressions[*it], replaceArg)) {
+				if (!shouldReplaceIn(expressions[*it], replaceArg, isCopy)) {
 					it++;
 					continue;
 				}
 				it = origExpr.refs.erase(it);
 			}
 			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
-				if (!shouldReplaceIn(expressions[*it], replaceArg)) {
+				if (!shouldReplaceIn(expressions[*it], replaceArg, isCopy)) {
 					it++;
 					continue;
 				}

@@ -80,8 +80,17 @@ namespace holodec{
 
 		//we split nodes that have multiple outputs and inputs into 2 distinct blocks, which means a loop always has at least 2 nodes
 		//if only 1 node is in the set then the no loop was found
-		if (loopStruct->contained_blocks.size() <= 1)
-			return false;
+		if (loopStruct->contained_blocks.size() <= 1) {
+			SSABB& headbb = function->ssaRep.bbs[loopStruct->head_block];
+			//in case that one block loops onto itself and has no outnode
+			//then the node is not split and we do not see it as a loop
+			//as an example this instruction:
+			// 0xf00d: jmp 0xf00d
+			//causes such an event
+			if (headbb.outBlocks.find(headbb.id) == headbb.outBlocks.end()) {
+				return false;
+			}
+		}
 
 		for (const HId& id : loopStruct->contained_blocks) {
 			SSABB* basicBlock = &function->ssaRep.bbs[id];
@@ -95,6 +104,32 @@ namespace holodec{
 					loopStruct->exit_blocks.insert(id).first->count++;
 				}
 			}
+		}
+		for (auto it = loopStruct->exit_blocks.begin(); it != loopStruct->exit_blocks.end(); ) {
+			//go through the exitblocks and add blocks that are dominated by the loop
+			//as long as there are more than one exit
+			//builds a near dominator-frontier
+			if (loopStruct->exit_blocks.size() == 1)
+				break;
+			SSABB* block = &function->ssaRep.bbs[it->blockId];
+			bool canAddBlock = true;
+			for (auto inIt = block->inBlocks.begin(); inIt != block->inBlocks.end(); inIt++) {
+				if (loopStruct->exit_blocks.find(*inIt) == loopStruct->exit_blocks.end()) {
+					canAddBlock = false;
+					break;
+				}
+			}
+			if (canAddBlock) {
+				it = loopStruct->exit_blocks.erase(it);
+				for (HId id : block->outBlocks) {
+					auto newit = loopStruct->exit_blocks.insert(id).first;
+					newit->count++;
+					if (*newit < *it)
+						it = newit;
+				}
+				continue;
+			}
+			++it;
 		}
 		return true;
 	}
@@ -164,15 +199,6 @@ namespace holodec{
 			created = true;
 			createdStruct.type = ControlStructType::LOOP;
 			if(controlStruct.input_blocks.find(start_block_id) == controlStruct.input_blocks.end() && analyzeLoop(&createdStruct)){
-				for (auto it = createdStruct.exit_blocks.begin(); it != createdStruct.exit_blocks.end(); ++it) {
-					SSABB* block = &function->ssaRep.bbs[it->blockId];
-					if (block->inBlocks.size() == 1 && block->outBlocks.size() <= 1) {
-						createdStruct.contained_blocks.insert(it->blockId);
-						it = createdStruct.exit_blocks.erase(it);
-						if (block->outBlocks.size() == 1)
-							createdStruct.exit_blocks.insert(*block->outBlocks.begin()).first->count++;
-					}
-				}
 				uint32_t count = 0;
 				for (const IOBlock& ioB : createdStruct.input_blocks) {
 					if (ioB.count > count) {
@@ -563,6 +589,9 @@ namespace holodec{
 			printf("(");
 			for (size_t i = 0; i < expr.subExpressions.size(); i++) {
 				SSAArgument& arg = expr.subExpressions[i];
+				if (arg.location == SSALocation::eMem) {
+					continue;
+				}
 				if (arg.location == SSALocation::eReg) {
 					printf("%s: ", arch->getRegister(arg.locref.refId)->name.cstr());
 				}
@@ -597,19 +626,18 @@ namespace holodec{
 			SSAArgument& ptrArg = expr.subExpressions[1];
 			SSAArgument& valueArg = expr.subExpressions[2];
 
-			printf("store(%s, uint%d_t, ", arch->getMemory(memArg.locref.refId)->name.cstr(), ptrArg.size);
+			printf("%s[uint%d_t, ", arch->getMemory(memArg.locref.refId)->name.cstr(), ptrArg.size);
 			resolveArg(ptrArg);
-			printf(", ");
+			printf("] = ");
 			resolveArg(valueArg);
-			printf(")");
 		}break;
 		case SSAExprType::eLoad: {
 			SSAArgument& memArg = expr.subExpressions[0];
 			SSAArgument& ptrArg = expr.subExpressions[1];
 
-			printf("load(%s, uint%d_t, ", arch->getMemory(memArg.locref.refId)->name.cstr(), expr.size);
+			printf("%s[uint%d_t, ", arch->getMemory(memArg.locref.refId)->name.cstr(), expr.size);
 			resolveArg(ptrArg);
-			printf(")");
+			printf("]");
 		}break;
 		}
 		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
@@ -677,16 +705,17 @@ namespace holodec{
 					if (subStruct)
 						printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent);
 					else if (controlStruct->main_exit != arg.locref.refId)  {
-						if (!resolveEscapeLoop(controlStruct, arg.locref.refId, indent)) {
-							printIndent(indent); printf("goto L%d\n", arg.locref.refId);
-						}
+						resolveEscapeLoop(controlStruct, arg.locref.refId, indent);
+						printIndent(indent); printf("goto L%d\n", arg.locref.refId);
 					}
 					else {
+						resolveEscapeLoop(controlStruct, arg.locref.refId, indent);
 						//goto to the main exit
 					}
 				}
 			}
 			else {
+				resolveEscapeLoop(controlStruct, arg.locref.refId, indent);
 				//main exit
 			}
 		}
@@ -696,8 +725,9 @@ namespace holodec{
 	}
 	void SSATransformToC::resolveBranchExpr(ControlStruct* controlStruct, SSAExpression& expr, std::set<HId>& printed, uint32_t indent) {
 		if (expr.type == SSAExprType::eBranch) {
-			if (expr.subExpressions.size() == 3 &&
-				expr.subExpressions[0].type == SSAArgType::eOther && expr.subExpressions[0].location == SSALocation::eBlock && expr.subExpressions[0].locref.refId == controlStruct->main_exit) {
+			/*if (expr.subExpressions.size() == 3 &&
+				expr.subExpressions[0].type == SSAArgType::eOther && expr.subExpressions[0].location == SSALocation::eBlock && 
+				(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions[].locref.refId == controlStruct->main_exit))) {
 				//special case where the first jump leads to the end of the branch
 				//then we invert the if and only print the original else block
 				printIndent(indent);
@@ -706,6 +736,10 @@ namespace holodec{
 				printf(") {\n");
 				resolveBlockArgument(controlStruct, expr.subExpressions[2], printed, indent + 1);
 				printIndent(indent); printf("}\n");
+			}
+			else */if (expr.subExpressions.size() == 1) {
+				SSAArgument& blockarg = expr.subExpressions[0];
+				resolveBlockArgument(controlStruct, blockarg, printed, indent);
 			}
 			else {
 				for (size_t i = 1; i < expr.subExpressions.size(); i += 2) {
@@ -716,10 +750,11 @@ namespace holodec{
 					resolveArg(expr.subExpressions[i]);
 					printf(") {\n");
 					SSAArgument& blockarg = expr.subExpressions[i - 1];
-					resolveBlockArgument(controlStruct, expr.subExpressions[i - 1], printed, indent + 1);
+					resolveBlockArgument(controlStruct, blockarg, printed, indent + 1);
 					printIndent(indent); printf("}\n");
 				}
-				if (!(expr.subExpressions.back().type == SSAArgType::eOther && expr.subExpressions.back().location == SSALocation::eBlock && expr.subExpressions.back().locref.refId == controlStruct->main_exit)) {
+				//if (!(expr.subExpressions.back().type == SSAArgType::eOther && expr.subExpressions.back().location == SSALocation::eBlock && 
+				//	(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions.back().locref.refId == controlStruct->main_exit)))) {
 					//TODO also check for empty blocks
 					if (expr.subExpressions.size() > 1) {
 						printIndent(indent); printf("else {\n");
@@ -728,7 +763,7 @@ namespace holodec{
 					if (expr.subExpressions.size() > 1) {
 						printIndent(indent); printf("}\n");
 					}
-				}
+				//}
 			}
 		}
 		else if (expr.type != SSAExprType::eReturn) {
@@ -977,7 +1012,7 @@ namespace holodec{
 		analyzeStructure(g_struct, 1);
 		consolidateBranchLoops(&g_struct);
 		setParentStructs(&g_struct);
-		//g_struct.print(1);
+		g_struct.print(1);
 
 
 		arguments.clear();
