@@ -721,7 +721,7 @@ namespace holodec {
 		if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific and need the operation for it's meaning
 			return false;
 		}
-		if (EXPR_IS_TRANSPARENT(expr.type) && (replaceArg.valueoffset || !isCopy)) {//ignore transparent nodes if the valueoffset is not 0, because we don't want changes there
+		if (EXPR_IS_TRANSPARENT(expr.type) && (replaceArg.valueoffset || !isCopy || replaceArg.isConst())) {//ignore transparent nodes if the valueoffset is not 0, because we don't want changes there
 			return false;
 		}
 		return true;//otherwise can be replaced
