@@ -156,7 +156,7 @@ namespace holodec {
 			if (arg.size < 0) {
 				puts(" ");
 			}
-			arg.valueoffset = (arg.valueoffset / (1 << offset)) + (valueoffset / (1 << arg.offset));
+			arg.valueoffset += valueoffset;
 			arg.offset += offset;
 			*this = arg;
 		}

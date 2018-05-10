@@ -519,7 +519,6 @@ namespace holodec {
 				for (SSAArgument& arg : appendExpr.subExpressions) {
 					if (offset == refArg.offset && arg.size == refArg.size) {
 						SSAArgument newArg = SSAArgument::replace(refArg, arg);
-						newArg.offset -= offset;
 						return ssaRep->replaceArg(assignExpr, newArg) != 0;
 					}
 					offset += arg.size;
