@@ -134,8 +134,12 @@ namespace holodec {
 		.ssaType(0, 0, SSAExprType::eAppend)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 
-			//TODO the appends seem to not be simplified correctly and sometimes even completely removed
+			return false;
+		})
+		.ssaType(0, 0, SSAExprType::eAppend)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 
+			//TODO the appends seem to not be simplified correctly and sometimes even completely removed
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
 			bool subAppends = false;
 
@@ -514,8 +518,8 @@ namespace holodec {
 				uint32_t offset = 0;
 				for (SSAArgument& arg : appendExpr.subExpressions) {
 					if (offset == refArg.offset && arg.size == refArg.size) {
-						SSAArgument newArg = refArg;
-						newArg.replace(arg);
+						SSAArgument newArg = SSAArgument::replace(refArg, arg);
+						newArg.offset -= offset;
 						return ssaRep->replaceArg(assignExpr, newArg) != 0;
 					}
 					offset += arg.size;
@@ -563,11 +567,13 @@ namespace holodec {
 				if (arg.isConst()) {
 					if (arg.type == SSAArgType::eUInt) {
 						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
-						return ssaRep->replaceArg(expr, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size)) != 0;
+						SSAArgument newarg = SSAArgument::replace(arg, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
+						return ssaRep->replaceArg(expr, newarg) != 0;
 					}
 					else if (arg.type == SSAArgType::eSInt) {
 						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
-						return ssaRep->replaceArg(expr, SSAArgument::createSVal(arg.sval >> arg.offset, arg.size)) != 0;
+						SSAArgument newarg = SSAArgument::replace(arg, SSAArgument::createSVal(arg.sval >> arg.offset, arg.size));
+						return ssaRep->replaceArg(expr, newarg) != 0;
 					}
 				}
 				return ssaRep->replaceArg(expr, arg) != 0;

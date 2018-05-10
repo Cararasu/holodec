@@ -160,6 +160,10 @@ namespace holodec {
 			arg.offset += offset;
 			*this = arg;
 		}
+		static SSAArgument replace(SSAArgument basearg, SSAArgument arg) {
+			basearg.replace(arg);
+			return basearg;
+		}
 		void set(SSAArgument arg) {
 			if (arg.size < 0) {
 				puts(" ");

@@ -81,7 +81,7 @@ namespace holodec {
 			}
 			
 			while(lowerbound <= upperbound) {// binary seach
-				HId middle = lowerbound + ((upperbound - lowerbound) / 2);
+				HId middle = (HId)(lowerbound + ((upperbound - lowerbound) / 2));
 				HId middleId = list[middle].id;
 				if(middleId == id)
 					return &(list[middle]);
