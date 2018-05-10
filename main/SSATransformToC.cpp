@@ -325,6 +325,22 @@ namespace holodec{
 		}
 		return nullptr;
 	}
+	bool SSATransformToC::resolveArgVariable(SSAExpression& expr) {
+		auto it = argumentIds.find(expr.id);
+		if (it != argumentIds.end()) {
+			printf("arg%d", it->second);
+			return true;
+		}
+		else if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
+			printf("var%d", uExprs->id);
+			return true;
+		}
+		else if (resolveIds.find(expr.id) != resolveIds.end()) {
+			printf("tmp%d", expr.id);
+			return true;
+		}
+		return false;
+	}
 	void SSATransformToC::resolveArgWithoutOffset(SSAArgument& arg) {
 		switch (arg.type) {
 		case SSAArgType::eUndef:
@@ -354,17 +370,7 @@ namespace holodec{
 			if (nonZeroOffset)
 				printf("(");
 
-			auto it = argumentIds.find(subExpr.id);
-			if (it != argumentIds.end()) {
-				printf("arg%d", it->second);
-			}
-			else if (UnifiedExprs* uExprs = getUnifiedExpr(subExpr.uniqueId)) {
-				printf("var%d", uExprs->id);
-			}
-			else if (resolveIds.find(subExpr.id) != resolveIds.end()) {
-				printf("tmp%d", subExpr.id);
-			}
-			else {
+			if (!resolveArgVariable(subExpr)) {
 				resolveExpression(subExpr);
 			}
 			if (nonZeroOffset)
@@ -568,7 +574,8 @@ namespace holodec{
 				SSAExpression& refExpr = function->ssaRep.expressions[id];
 				if (refExpr.type == SSAExprType::eOutput && refExpr.location == SSALocation::eReg) {
 					printExprType(refExpr);
-					printf("tmp%d <- %s, ", refExpr.id, arch->getRegister(refExpr.locref.refId)->name.cstr());
+					resolveArgVariable(refExpr);
+					printf(" <- %s, ", arch->getRegister(refExpr.locref.refId)->name.cstr());
 				}
 			}
 			printf("Call ");
@@ -650,18 +657,8 @@ namespace holodec{
 		resolveIds.insert(expr.id);
 		printIndent(indent);
 		if (expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type)) {
-			auto it = argumentIds.find(expr.id);
-			if (it != argumentIds.end()) {
-				printExprType(expr);
-				printf("arg%d = ", it->second);
-			} else if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
-				printExprType(expr);
-				printf("var%d = ", uExprs->id);
-			}
-			else if (resolveIds.find(expr.id) != resolveIds.end()) {
-				printExprType(expr);
-				printf("tmp%d = ", expr.id);
-			}
+			resolveArgVariable(expr);
+			printf(" = ");
 		}
 		return resolveExpression(expr);
 	}

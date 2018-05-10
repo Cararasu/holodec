@@ -94,5 +94,21 @@ namespace holodec {
 		entrypoints.push_back (id);
 		return true;
 	}
+	void Binary::recalculateCallingHierarchy() {
+		for (Function* func : functions) {
+			func->funcsCallee.clear();
+			func->funcsCaller.clear();
+		}
+		for (Function* func : functions) {
+			for (SSAExpression& expr : func->ssaRep.expressions) {
+				if (expr.type == SSAExprType::eCall && expr.subExpressions[0].type == SSAArgType::eUInt) {
+					func->funcsCaller.insert(expr.subExpressions[0].uval);
+					Function* calledFunction = this->getFunctionByAddr(expr.subExpressions[0].uval);
+					if (calledFunction)
+						calledFunction->funcsCallee.insert(func->baseaddr);
+				}
+			}
+		}
+	}
 
 }

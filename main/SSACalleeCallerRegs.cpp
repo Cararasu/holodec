@@ -96,17 +96,14 @@ namespace holodec{
 				}
 			}
 		}
-		for (StringRef& ref : this->volatileRegs) {
-			arch->getRegister(ref);//sets the id of the ref
-			printf("RemoveShit %d\n", ref.refId);
-		}
 		return false;
 		//this is dangerous
 		//remove non used by caller is probably better
 		bool changed = false;
 		for (SSAExpression& expr : ssaRep->expressions) {
 			if (expr.type == SSAExprType::eReturn) {
-				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end();) {
+				//first argument is the return argument so skip it
+				for (auto it = expr.subExpressions.begin() + 1; it != expr.subExpressions.end();) {
 					if (it->location == SSALocation::eReg) {
 						bool removed = false;
 						for (StringRef& ref : volatileRegs) {

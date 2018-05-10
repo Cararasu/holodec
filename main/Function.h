@@ -92,6 +92,12 @@ namespace holodec {
 		HList<MemoryState> mem_states;
 		bool parsed = false;
 
+		void reset() {
+			reg_states.clear();
+			mem_states.clear();
+			parsed = false;
+		}
+
 		RegisterState* getRegisterState(HId regId) {
 			for (RegisterState& regState : reg_states) {
 				if (regState.regId == regId)
@@ -131,8 +137,10 @@ namespace holodec {
 		
 
 		FuncRegState regStates;
-		HUniqueList<uint64_t> funcsCalled;
-		HList<uint64_t> funcsCall;
+		FuncRegState usedRegStates;
+
+		HUniqueList<uint64_t> funcsCallee;
+		HUniqueList<uint64_t> funcsCaller;
 		
 		HIdList<DisAsmBasicBlock> basicblocks;
 		HIdList<JumpTable> jumptables;

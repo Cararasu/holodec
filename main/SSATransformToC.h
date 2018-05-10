@@ -73,6 +73,7 @@ namespace holodec {
 		void printControlStruct(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 
 		bool printExpression(SSAExpression& expression, uint32_t indent);
+		bool resolveArgVariable(SSAExpression& expr);
 		void resolveArgs(SSAExpression& expression, const char* delimiter = ", ");
 		void resolveArgWithoutOffset(SSAArgument& arg);
 		void resolveArg(SSAArgument& arg);

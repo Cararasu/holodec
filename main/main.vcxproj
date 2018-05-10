@@ -63,6 +63,7 @@
     <ClCompile Include="SSAGen.cpp" />
     <ClCompile Include="SSAPeepholeOptimizer.cpp" />
     <ClCompile Include="SSAPhiNodeGenerator.cpp" />
+    <ClCompile Include="SSAReverseRegUsageAnalyzer.cpp" />
     <ClCompile Include="SSATransformer.cpp" />
     <ClCompile Include="SSATransformToC.cpp" />
     <ClCompile Include="Stack.cpp" />
@@ -112,6 +113,7 @@
     <ClInclude Include="SSAGen.h" />
     <ClInclude Include="SSAPeepholeOptimizer.h" />
     <ClInclude Include="SSAPhiNodeGenerator.h" />
+    <ClInclude Include="SSAReverseRegUsageAnalyzer.h" />
     <ClInclude Include="SSATransformer.h" />
     <ClInclude Include="SSATransformToC.h" />
     <ClInclude Include="Stack.h" />

@@ -11,28 +11,42 @@ namespace holodec {
 		function->regStates.mem_states.clear();
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type == SSAExprType::eReturn) {
-				for (SSAArgument& arg : expr.subExpressions) {
-					if (arg.type == SSAArgType::eId) {
-						SSAExpression& reffedExpr = function->ssaRep.expressions[arg.ssaId];
-						if (reffedExpr.type == SSAExprType::eInput && arg.location == SSALocation::eReg) {
-							Register* reg = arch->getRegister(arg.locref.refId);
+				for (auto argIt = expr.subExpressions.begin() + 1; argIt != expr.subExpressions.end(); ++argIt) {
+					if (argIt->type == SSAArgType::eId) {
+						SSAExpression& referencedExpr = function->ssaRep.expressions[argIt->ssaId];
+						if (referencedExpr.type == SSAExprType::eInput && argIt->location == SSALocation::eReg) {
+							Register* reg = arch->getRegister(argIt->locref.refId);
 							RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
-							state->arithChange = arg.valueoffset;
+							state->arithChange = argIt->valueoffset;
 							continue;
 						}
-						if (reffedExpr.type == SSAExprType::eInput && arg.location == SSALocation::eMem) {
+						if (referencedExpr.type == SSAExprType::eInput && argIt->location == SSALocation::eMem) {
 							continue;
 						}
 					}
-					if (arg.location == SSALocation::eReg) {
-						Register* reg = arch->getRegister(arg.locref.refId);
-						RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
-						state->flags |= UsageFlags::eWrite;
+					if (argIt->location == SSALocation::eReg) {
+						RegisterState* state = function->usedRegStates.getRegisterState(argIt->locref.refId);//reverse check if the argument is used outside in another function
+						if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
+							argIt = expr.subExpressions.erase(argIt) - 1;
+							applied = true;
+						}
+						else {
+							Register* reg = arch->getRegister(argIt->locref.refId);
+							RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
+							state->flags |= UsageFlags::eWrite;
+						}
 					}
-					else if (arg.location == SSALocation::eMem) {
-						Memory* mem = arch->getMemory(arg.locref.refId);
-						MemoryState* state = function->regStates.getNewMemoryState(mem->id);
-						state->flags |= UsageFlags::eWrite;
+					else if (argIt->location == SSALocation::eMem) {
+						MemoryState* state = function->usedRegStates.getMemoryState(argIt->locref.refId);//reverse check if the argument is used outside in another function
+						if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
+							argIt = expr.subExpressions.erase(argIt) - 1;
+							applied = true;
+						}
+						else {
+							Memory* mem = arch->getMemory(argIt->locref.refId);
+							MemoryState* state = function->regStates.getNewMemoryState(mem->id);
+							state->flags |= UsageFlags::eWrite;
+						}
 					}
 				}
 			}
@@ -54,25 +68,26 @@ namespace holodec {
 				Function* callFunc = binary->getFunctionByAddr(expr.subExpressions[0].uval);
 				if (!(callFunc && callFunc->regStates.parsed))
 					continue;
-				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end(); ++it) {
-					if (it->location == SSALocation::eReg) {
-						Register* reg = arch->getRegister(it->locref.refId);
+				//first argument is the call destination so skip it
+				for (auto argIt = expr.subExpressions.begin() + 1; argIt != expr.subExpressions.end(); ++argIt) {
+					if (argIt->location == SSALocation::eReg) {
+						Register* reg = arch->getRegister(argIt->locref.refId);
 						if (!reg)
 							continue;
 						RegisterState* state = callFunc->regStates.getRegisterState(reg->parentRef.refId);
 						if (!state || !state->flags.contains(UsageFlags::eRead)) {
-							it = expr.subExpressions.erase(it) - 1;
+							argIt = expr.subExpressions.erase(argIt) - 1;//the minus 1 works because we start of at the second argument
 							applied = true;
 							continue;
 						}
 					}
-					else if (it->location == SSALocation::eMem) {
-						Memory* mem = arch->getMemory(it->locref.refId);
+					else if (argIt->location == SSALocation::eMem) {
+						Memory* mem = arch->getMemory(argIt->locref.refId);
 						if (!mem)
 							continue;
 						MemoryState* state = callFunc->regStates.getMemoryState(mem->id);
 						if (!state || !state->flags.contains(UsageFlags::eRead)) {
-							it = expr.subExpressions.erase(it) - 1;
+							argIt = expr.subExpressions.erase(argIt) - 1;//the minus 1 works because we start of at the second argument
 							applied = true;
 							continue;
 						}

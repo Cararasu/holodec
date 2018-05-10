@@ -168,6 +168,9 @@
     <ClCompile Include="SSAAppendSimplifier.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="SSAReverseRegUsageAnalyzer.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Architecture.h">
@@ -309,6 +312,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="SSAAppendSimplifier.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="SSAReverseRegUsageAnalyzer.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

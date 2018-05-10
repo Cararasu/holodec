@@ -174,6 +174,8 @@ namespace holodec {
 		DynamicLibrary* getDynamicLibrary (HString string);
 		DynamicLibrary* getDynamicLibrary (HId id);
 
+		void recalculateCallingHierarchy();
+
 		bool addEntrypoint (HId name);
 
 		void print (int indent = 0) {

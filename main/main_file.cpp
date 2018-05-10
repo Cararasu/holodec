@@ -16,6 +16,7 @@
 #include "SSACallingConvApplier.h"
 #include "SSADCETransformer.h"
 #include "SSACalleeCallerRegs.h"
+#include "SSAReverseRegUsageAnalyzer.h"
 #include "HIdList.h"
 #include "SSAPeepholeOptimizer.h"
 #include "SSATransformToC.h"
@@ -83,6 +84,9 @@ extern Architecture holox86::x86architecture;
 
 int main (int argc, const char** argv) {
 
+
+
+
 	g_logger.log<LogLevel::eInfo> ("Init X86\n");
 
 	if (argc < 2) {
@@ -144,6 +148,7 @@ int main (int argc, const char** argv) {
 			Function* newfunction = new Function();
 			newfunction->symbolref = sym->id;
 			newfunction->baseaddr = sym->vaddr;
+			newfunction->exported = false;
 			newfunction->addrToAnalyze.insert (sym->vaddr);
 			binary->functions.push_back (newfunction);
 		}
@@ -155,19 +160,18 @@ int main (int argc, const char** argv) {
 			if (!func->addrToAnalyze.empty()) {
 				func_analyzer->analyzeFunction (func);
 				funcAnalyzed = true;
-				if (!func->funcsCalled.empty()) {
-					for (uint64_t addr : func->funcsCalled) {
-						if (binary->findSymbol (addr, &SymbolType::symfunc) == nullptr) {
-							char buffer[100];
-							snprintf (buffer, 100, "func_0x%" PRIx64 "", addr);
-							Symbol* symbol = new Symbol ({0, buffer, &SymbolType::symfunc, 0, addr, 0});
-							binary->addSymbol (symbol);
-							Function* newfunction = new Function();
-							newfunction->symbolref = symbol->id;
-							newfunction->baseaddr = symbol->vaddr;
-							newfunction->addrToAnalyze.insert(symbol->vaddr);
-							binary->functions.push_back (newfunction);
-						}
+				for (uint64_t addr : func->funcsCaller) {
+					if (binary->findSymbol (addr, &SymbolType::symfunc) == nullptr) {
+						char buffer[100];
+						snprintf (buffer, 100, "func_0x%" PRIx64 "", addr);
+						Symbol* symbol = new Symbol ({0, buffer, &SymbolType::symfunc, 0, addr, 0});
+						binary->addSymbol (symbol);
+						Function* newfunction = new Function();
+						newfunction->symbolref = symbol->id;
+						newfunction->baseaddr = symbol->vaddr;
+						newfunction->exported = false;
+						newfunction->addrToAnalyze.insert(symbol->vaddr);
+						binary->functions.push_back (newfunction);
 					}
 				}
 				break;
@@ -179,19 +183,38 @@ int main (int argc, const char** argv) {
 
 	std::vector<StringRef> volatileRegisters = { "cf" , "zf" , "nf" , "vf" , "sf" , "hf" , "tf" , "if" };
 
-	std::vector<SSATransformer*> transformers = {
+	std::vector<SSATransformer*> starttransformers = {
 		new SSAAddressToBlockTransformer(),//0
 		new SSAPhiNodeGenerator(),//1
+	};
+	std::vector<SSATransformer*> pretransformers = {
+		new SSAReverseRegUsageAnalyzer()
+	};
+	std::vector<SSATransformer*> transformers = {
 		new SSAPeepholeOptimizer(),//2
 		new SSADCETransformer(),//3
 		new SSAApplyRegRef(),//4
 		new SSAAppendSimplifier(),//5
 		new SSACalleeCallerRegs(volatileRegisters),//6
+	};
+	std::vector<SSATransformer*> endtransformers = {
 		new SSATransformToC(),//7
 	};
 
+	for (SSATransformer* transform : starttransformers) {
+		if (transform)
+			transform->arch = binary->arch;
+	}
+	for (SSATransformer* transform : pretransformers) {
+		if (transform)
+			transform->arch = binary->arch;
+	}
 	for (SSATransformer* transform : transformers) {
-		if(transform)
+		if (transform)
+			transform->arch = binary->arch;
+	}
+	for (SSATransformer* transform : endtransformers) {
+		if (transform)
 			transform->arch = binary->arch;
 	}
 
@@ -210,8 +233,10 @@ int main (int argc, const char** argv) {
 	//for (uint64_t addr : funcs) {
 	//	Function* func = binary->getFunctionByAddr(addr);
 		if (func) {
-			transformers[0]->doTransformation(binary, func);
-			transformers[1]->doTransformation(binary, func);
+			for (SSATransformer* transform : starttransformers) {
+				if (transform)
+					transform->doTransformation(binary, func);
+			}
 			/*if (!func->ssaRep.checkIntegrity()) {
 				func->print(binary->arch);
 				assert(false);
@@ -219,12 +244,26 @@ int main (int argc, const char** argv) {
 			func->ssaRep.recalcRefCounts();
 		}
 	}
+
+	binary->recalculateCallingHierarchy();
+
 	bool funcChanged = false;
 	do {
 		printf("---------------------\n");
 		printf("Run Transformations\n");
 		printf("---------------------\n");
 		funcChanged = false;
+
+		for (Function* func : binary->functions) {
+			//reset some states maybe move to some other function or class
+			func->usedRegStates.reset();
+		}
+		for (Function* func : binary->functions) {
+			for (SSATransformer* transform : pretransformers) {
+				if (transform)
+					transform->doTransformation(binary, func);
+			}
+		}
 
 		for (Function* func : binary->functions) {
 		//for (uint64_t addr : funcs) {
@@ -244,11 +283,11 @@ int main (int argc, const char** argv) {
 					}*/
 					if (func->baseaddr == 0x0)
 						func->printSimple(binary->arch);
-					applied |= transformers[2]->doTransformation(binary, func);
-					applied |= transformers[3]->doTransformation(binary, func);
-					applied |= transformers[4]->doTransformation(binary, func);
-					applied |= transformers[5]->doTransformation(binary, func);
-					funcChanged |= transformers[6]->doTransformation(binary, func);
+
+					for (SSATransformer* transform : transformers) {
+						if (transform)
+							applied |= transform->doTransformation(binary, func);
+					}
 					funcChanged |= applied;
 				} while (applied);
 				func->ssaRep.recalcRefCounts();
@@ -264,7 +303,10 @@ int main (int argc, const char** argv) {
 		if (func) {
 			func->ssaRep.recalcRefCounts();
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
-			transformers[7]->doTransformation(binary, func);
+			for (SSATransformer* transform : endtransformers) {
+				if (transform)
+					transform->doTransformation(binary, func);
+			}
 		}
 	}
 
@@ -272,7 +314,7 @@ int main (int argc, const char** argv) {
 	for (int i = 0; i < 8; i++) {
 		func->ssaRep.bbs.emplace_back();
 	}
-
+	 
 #define PATH(function, from, to) function->ssaRep.bbs[from].outBlocks.insert(to);function->ssaRep.bbs[to].inBlocks.insert(from);
 
 	SSAExpression retexpr;

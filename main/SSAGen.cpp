@@ -807,7 +807,7 @@ namespace holodec {
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
 
 				if (expression.subExpressions[0].type == SSAArgType::eUInt) {
-					function->funcsCalled.insert (expression.subExpressions[0].uval);
+					function->funcsCaller.insert (expression.subExpressions[0].uval);
 				}
 
 				for (Register& reg : arch->registers) {

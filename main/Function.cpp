@@ -24,12 +24,26 @@ void holodec::Function::print(holodec::Architecture* arch, int indent) {
 	printIndent(indent + 1);
 	printf("Calling Functions: ");
 
-	for (uint64_t addr : funcsCalled) {
+	for (uint64_t addr : funcsCaller) {
+		printf("0x%" PRIx64 ", ", addr);
+	}
+	printf("\n");
+	printIndent(indent + 1);
+	printf("Called from Functions: ");
+
+	for (uint64_t addr : funcsCallee) {
 		printf("0x%" PRIx64 ", ", addr);
 	}
 	printf("\n");
 
+	printIndent(indent);
+	puts("Changed RegisterState");
 	regStates.print(arch, indent + 1);
+
+	printIndent(indent);
+	puts("Used RegisterState");
+	usedRegStates.print(arch, indent + 1);
+
 	for (DisAsmBasicBlock& bb : basicblocks) {
 		bb.print(arch, indent + 1);
 	}
@@ -48,8 +62,6 @@ void holodec::Function::printSimple(holodec::Architecture* arch, int indent) {
 }
 
 void holodec::FuncRegState::print(holodec::Architecture* arch, int indent) {
-	printIndent(indent);
-	puts("RegisterState");
 	for (RegisterState& regState : reg_states) {
 		printIndent(indent + 1);
 		printf("%s ", arch->getRegister(regState.regId)->name.cstr());
