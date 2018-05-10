@@ -7,7 +7,7 @@ namespace holodec{
 	void printExprType(SSAExpression& expr) {
 		switch (expr.exprtype) {
 		case SSAType::eUnknown:
-			printf("Unkn ");
+			printf("Unkn%d ", expr.size);
 			break;
 		case SSAType::eInt:
 			printf("int%d_t ", expr.size);
@@ -19,10 +19,25 @@ namespace holodec{
 			printf("float%d_t ", expr.size);
 			break;
 		case SSAType::ePc:
-			printf("pc ");
+			printf("pc%d ", expr.size);
 			break;
 		case SSAType::eMemaccess:
-			printf("mem ");
+			printf("mem%d ", expr.size);
+			break;
+		}
+
+	}
+	void printArgType(SSAArgument& arg) {
+		switch (arg.type) {
+		case SSAArgType::eSInt:
+			printf("int%d_t ", arg.size);
+			break;
+		case SSAArgType::eFloat:
+			printf("float%d_t ", arg.size);
+			break;
+		default:
+		case SSAArgType::eUInt:
+			printf("uint%d_t ", arg.size);
 			break;
 		}
 
@@ -359,13 +374,9 @@ namespace holodec{
 			SSAExpression& subExpr = function->ssaRep.expressions[arg.ssaId];
 			bool nonZeroOffset = (arg.offset != 0), nonFullSize = (arg.offset + arg.size != subExpr.size);
 			if (nonFullSize) {
-				printf("(");
-				if (subExpr.exprtype == SSAType::eFloat)
-					printf("(float_%d) ", arg.size);
-				else if (subExpr.exprtype == SSAType::eUInt)
-					printf("(uint%d_t) ", arg.size);
-				else if (subExpr.exprtype == SSAType::eInt)
-					printf("(int%d_t) ", arg.size);
+				printf("((");
+				printExprType(subExpr);
+				printf(")");
 			}
 			if (nonZeroOffset)
 				printf("(");
@@ -397,7 +408,9 @@ namespace holodec{
 			printf("[%d]", arg.valueoffset);
 		}
 		else {
-			printf("mem(uint%d_t, ", size);
+			printf("mem(");
+			printArgType(arg);
+			printf(", ");
 			resolveArg(arg);
 			printf(")");
 		}
@@ -524,14 +537,9 @@ namespace holodec{
 			resolveArgs(expr);
 		}break;
 		case SSAExprType::eExtend: {
-			if (expr.exprtype == SSAType::eFloat)
-				printf("(float_%d)", expr.size);
-			else if (expr.exprtype == SSAType::eInt)
-				printf("(int%d_t)", expr.size);
-			else if (expr.exprtype == SSAType::eUInt)
-				printf("(uint%d_t)", expr.size);
-			else
-				printf("extend%d", expr.size);
+			printf("(");
+			printExprType(expr);
+			printf(")");
 			resolveArgs(expr);
 		}break;
 		case SSAExprType::eAppend: {
@@ -633,7 +641,9 @@ namespace holodec{
 			SSAArgument& ptrArg = expr.subExpressions[1];
 			SSAArgument& valueArg = expr.subExpressions[2];
 
-			printf("%s[uint%d_t, ", arch->getMemory(memArg.locref.refId)->name.cstr(), ptrArg.size);
+			printf("%s[", arch->getMemory(memArg.locref.refId)->name.cstr());
+			printArgType(valueArg);
+			printf(", ");
 			resolveArg(ptrArg);
 			printf("] = ");
 			resolveArg(valueArg);
@@ -642,7 +652,9 @@ namespace holodec{
 			SSAArgument& memArg = expr.subExpressions[0];
 			SSAArgument& ptrArg = expr.subExpressions[1];
 
-			printf("%s[uint%d_t, ", arch->getMemory(memArg.locref.refId)->name.cstr(), expr.size);
+			printf("%s[", arch->getMemory(memArg.locref.refId)->name.cstr());
+			printExprType(expr);
+			printf(", ");
 			resolveArg(ptrArg);
 			printf("]");
 		}break;
@@ -657,6 +669,7 @@ namespace holodec{
 		resolveIds.insert(expr.id);
 		printIndent(indent);
 		if (expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type)) {
+			printExprType(expr);
 			resolveArgVariable(expr);
 			printf(" = ");
 		}
