@@ -3,7 +3,7 @@
   <Project Name="main" Path="main/main.project" Active="Yes"/>
   <Project Name="VulkanTest" Path="../Vulkan/VulkanTest.project" Active="No"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="no">
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>
       <Project Name="main" ConfigName="Debug"/>
       <Project Name="main" ConfigName="Debug"/>
@@ -14,7 +14,7 @@
       <Project Name="VulkanTest" ConfigName="Release"/>
       <Project Name="main" ConfigName="Release"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Debug Windows" Selected="yes">
+    <WorkspaceConfiguration Name="Debug Windows" Selected="no">
       <Environment/>
       <Project Name="VulkanTest" ConfigName="Debug Windows"/>
       <Project Name="main" ConfigName="Debug VC17"/>

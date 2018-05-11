@@ -2,7 +2,7 @@
 <CodeLite_Project Name="main" Version="10.0.0" InternalType="Console">
   <Plugins>
     <Plugin Name="qmake">
-      <![CDATA[00030001N0005Debug0000000000000001N0010Debug VC170000000000000001N0013Debug Windows000000000000]]>
+      <![CDATA[00040001N0005Debug0000000000000001N0010Debug VC170000000000000001N0013Debug Windows0000000000000001N0007Release000000000000]]>
     </Plugin>
   </Plugins>
   <Description/>
@@ -78,14 +78,18 @@
       <File Name="Architecture.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="SSATransformers">
+      <File Name="SSACalleeCallerRegs.h"/>
+      <File Name="SSACalleeCallerRegs.cpp"/>
+      <File Name="SSAAppendSimplifier.h"/>
+      <File Name="SSAAppendSimplifier.cpp"/>
+      <File Name="SSAReverseRegUsageAnalyzer.h"/>
+      <File Name="SSAReverseRegUsageAnalyzer.cpp"/>
       <File Name="SSAPhiNodeGenerator.h"/>
       <File Name="SSAPhiNodeGenerator.cpp"/>
       <File Name="SSAPeepholeOptimizer.h"/>
       <File Name="SSAPeepholeOptimizer.cpp"/>
       <File Name="SSACallingConvApplier.h"/>
       <File Name="SSACallingConvApplier.cpp"/>
-      <File Name="SSAAssignmentSimplifier.h"/>
-      <File Name="SSAAssignmentSimplifier.cpp"/>
       <File Name="SSAAddressToBlockTransformer.cpp"/>
       <File Name="SSAAddressToBlockTransformer.h"/>
       <File Name="SSATransformToC.h"/>
