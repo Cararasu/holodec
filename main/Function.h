@@ -55,7 +55,7 @@ namespace holodec {
 		HId jumptable;
 
 		uint64_t addr;
-		uint32_t size;
+		uint64_t size;
 
 		void print(Architecture* arch, int indent = 0) {
 			printIndent(indent);

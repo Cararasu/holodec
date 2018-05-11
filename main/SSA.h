@@ -156,7 +156,7 @@ namespace holodec {
 			if (arg.size < 0) {
 				puts(" ");
 			}
-			arg.valueoffset += valueoffset;
+			arg.valueoffset += valueoffset << arg.offset;
 			arg.offset += offset;
 			*this = arg;
 		}
@@ -331,7 +331,7 @@ namespace holodec {
 		return ! (lhs == rhs);
 	}
 	
-	struct SSARepresentation;
+	class SSARepresentation;
 
 	struct SSAExpression {
 		HId id = 0;

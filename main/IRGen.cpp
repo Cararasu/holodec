@@ -191,7 +191,7 @@ namespace holodec {
 				expression.subExpressions.push_back (arg);
 				expression.subExpressions.push_back (offset);
 				expression.subExpressions.push_back (size);
-				expression.size = size.uval;
+				expression.size = static_cast<uint32_t>(size.uval);
 				IRArgument arg = IRArgument::createIRId (arch->addIrExpr (expression), expression.size);
 				return arg;
 			}
@@ -200,14 +200,14 @@ namespace holodec {
 		}
 		return arg;
 	}
-	int64_t IRParser::parseNumberIndex () {
+	uint32_t IRParser::parseNumberIndex () {
 		size_t x = index;
 		if (parseCharacter ('[')) {
 			int64_t number;
 			if (!parseNumber (&number))
 				return 0;
 			if (parseCharacter (']')) {
-				return number;
+				return static_cast<uint32_t>(number);
 			}
 			printParseFailure ("']'");
 			return 0;
@@ -293,7 +293,7 @@ namespace holodec {
 				case '5':case '6':case '7':case '8':case '9':
 					int64_t size;
 					if (parseNumber(&size))
-						expr->size = size;
+						expr->size = static_cast<uint32_t>(size);
 					continue;
 				default:
 					break;
@@ -318,12 +318,12 @@ namespace holodec {
 					int64_t size;
 					if (parseNumber(&size)) {
 						if (arg->size >= size) {
-							arg->size = size;
+							arg->size = static_cast<uint32_t>(size);
 						}
 						else {
 							IRExpression expression;
 							expression.type = IR_EXPR_EXTEND;
-							expression.size = size;
+							expression.size = static_cast<uint32_t>(size);
 							expression.exprtype = SSAType::eUInt;
 							expression.subExpressions = {*arg, IRArgument::createUVal(expression.size, arch->bitbase * arch->bytebase)};
 							*arg = IRArgument::createIRId(arch->addIrExpr(expression), expression.size);

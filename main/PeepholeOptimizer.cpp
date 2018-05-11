@@ -262,7 +262,7 @@ namespace holodec {
 					if (baseit + 1 == it && consecutive_arg(*baseit, *it)) {
 						SSAArgument arg = *baseit;
 						arg.size = it->offset - baseit->offset;
-						arg.valueoffset += it->valueoffset * (1 << baseit->size);
+						arg.valueoffset += it->valueoffset * (static_cast<uint64_t>(1) << baseit->size);
 						it = expr.insertArgument(ssaRep, expr.removeArguments(ssaRep, baseit, it + 1), arg);//replace range with arg
 						replaced = true;
 						continue;
@@ -417,7 +417,7 @@ namespace holodec {
 
 			assert(combine1.size == combine2.size);
 
-			uint64_t firstsize = firstAdd.size;
+			uint32_t firstsize = firstAdd.size;
 			firstAdd.size += secondAdd.size;
 
 			SSAArgument addArg = SSAArgument::createId(firstAdd.id, firstsize);
@@ -475,7 +475,7 @@ namespace holodec {
 
 			assert(combine1.size == combine2.size);
 
-			uint64_t firstsize = firstSub.size;
+			uint32_t firstsize = firstSub.size;
 			firstSub.size += secondSub.size;
 
 			SSAArgument addArg = SSAArgument::createId(firstSub.id, firstsize);
@@ -514,6 +514,8 @@ namespace holodec {
 			SSAExpression& assignExpr = ssaRep->expressions[context->expressionsMatched[0]];
 			SSAExpression& appendExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAArgument& refArg = assignExpr.subExpressions[0];
+			if (refArg.valueoffset)
+				return false;
 			if (!(refArg.offset == 0 && refArg.size == appendExpr.size)) {
 				uint32_t offset = 0;
 				for (SSAArgument& arg : appendExpr.subExpressions) {

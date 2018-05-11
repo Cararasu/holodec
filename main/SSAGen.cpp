@@ -335,7 +335,7 @@ namespace holodec {
 					if (expr->type == SSAExprType::eLabel && expr->subExpressions.size() > 0 && expr->subExpressions[0].type == SSAArgType::eUInt && expr->subExpressions[0].uval == addr) {
 						printf ("Split SSA 0x%" PRIx64 "\n", addr);
 						HId oldId = bb.id;
-						HId newEndAddr = bb.endaddr;
+						uint64_t newEndAddr = bb.endaddr;
 						bb.endaddr = addr;
 						HList<HId> exprsOfNewBlock (it, bb.exprIds.end());
 						bb.exprIds.erase (it, bb.exprIds.end());
@@ -670,7 +670,7 @@ namespace holodec {
 				}break;
 				default:
 					dstArg.print (arch);
-					printf ("Invalid Type for Assignment 0x%" PRIx64 "\n", dstArg.type);
+					printf ("Invalid Type for Assignment 0x%x\n", dstArg.type);
 					assert (false);
 					break;
 				}
@@ -909,7 +909,7 @@ namespace holodec {
 
 				IRArgument arg = parseConstExpression (irExpr->subExpressions[1], &arguments);
 				assert (arg && arg.type == IR_ARGTYPE_UINT);
-				expression.size = arg.uval;
+				expression.size = static_cast<uint32_t>(arg.uval);
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
 			}
 			case IR_EXPR_SPLIT: {
@@ -918,8 +918,8 @@ namespace holodec {
 				IRArgument offset = parseExpression(irExpr->subExpressions[1]);
 				IRArgument size = parseExpression(irExpr->subExpressions[2]);
 				assert(offset.type == IR_ARGTYPE_UINT && size.type == IR_ARGTYPE_UINT);
-				arg.offset = offset.uval;
-				arg.size = size.uval;
+				arg.offset = static_cast<uint32_t>(offset.uval);
+				arg.size = static_cast<uint32_t>(size.uval);
 				
 				SSAExpression expression;
 				expression.type = SSAExprType::eAssign;
@@ -981,7 +981,7 @@ namespace holodec {
 				assert (memarg.location == SSALocation::eMem);
 				IRArgument arg = parseConstExpression(irExpr->subExpressions[2], &arguments);
 				assert(arg.type == IR_ARGTYPE_UINT);
-				expression.size = arg.uval * arch->bitbase;
+				expression.size = static_cast<uint32_t>(arg.uval * arch->bitbase);
 				expression.subExpressions = {
 					memarg,
 					parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[1]))
@@ -1062,7 +1062,7 @@ namespace holodec {
 					SSAExpression expression;
 					expression.type = SSAExprType::eLoad;
 					expression.exprtype = SSAType::eUInt;
-					expression.size = sizeadjust.uval * stack->wordbitsize;
+					expression.size = static_cast<uint32_t>(sizeadjust.uval * stack->wordbitsize);
 					expression.subExpressions = {
 						SSAArgument::createMem(mem),
 						SSAArgument::createReg(reg)
@@ -1220,7 +1220,7 @@ namespace holodec {
 
 				uint32_t size;
 				if (irExpr->subExpressions.size() == 1 && irExpr->subExpressions[0].type == IR_ARGTYPE_UINT)
-					size = irExpr->subExpressions[0].uval;
+					size = static_cast<uint32_t>(irExpr->subExpressions[0].uval);
 				else
 					size = ssaRepresentation->expressions[lastOp].size;
 

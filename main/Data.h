@@ -42,13 +42,13 @@ namespace holodec {
 				uint64_t value = 0;
 				switch (endianess) {
 				case Endianess::eBig: {
-					for (int i = 0; i < wordsize; i++) {
+					for (uint64_t i = 0; i < wordsize; i++) {
 						value = (value << 8) | data[multIndex + i];
 					}
 				}break;
 				case Endianess::eLittle:{
-					for (int i = wordsize - 1; i >= 0; i--) {
-						value = (value << 8) | data[multIndex + i];
+					for (uint64_t i = 0; i < wordsize; i++) {
+						value = value | (data[multIndex + i] << (i * 8));
 					}
 				}break;
 				}

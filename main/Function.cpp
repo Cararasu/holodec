@@ -20,7 +20,7 @@ void holodec::Instruction::print(Architecture* arch, int indent) {
 
 void holodec::Function::print(holodec::Architecture* arch, int indent) {
 	printIndent(indent);
-	printf("Printing Function 0x%x\n", baseaddr);
+	printf("Printing Function 0x%" PRIx64 "\n", baseaddr);
 	printIndent(indent + 1);
 	printf("Calling Functions: ");
 
@@ -52,7 +52,7 @@ void holodec::Function::print(holodec::Architecture* arch, int indent) {
 }
 void holodec::Function::printSimple(holodec::Architecture* arch, int indent) {
 	printIndent(indent);
-	printf("Printing Function 0x%x simple\n", baseaddr);
+	printf("Printing Function 0x%" PRIx64 " simple\n", baseaddr);
 
 	for (DisAsmBasicBlock& bb : basicblocks) {
 		bb.printSimple(arch, indent + 1);
@@ -70,9 +70,9 @@ void holodec::FuncRegState::print(holodec::Architecture* arch, int indent) {
 		}
 		else {
 			if (regState.arithChange > 0)
-				printf("Arith + %d, ", regState.arithChange);
+				printf("Arith + %" PRId64 ", ", regState.arithChange);
 			else if (regState.arithChange < 0)
-				printf("Arith - %d, ", regState.arithChange*-1);
+				printf("Arith - %" PRId64 ", ", regState.arithChange*-1);
 		}
 		if (regState.flags.contains(UsageFlags::eRead)) {
 			printf("Read, ");

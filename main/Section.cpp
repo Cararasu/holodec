@@ -40,7 +40,7 @@ holodec::Section* holodec::Section::getSection (HString name){
 
 void holodec::Symbol::print(int indent) {
 	printIndent (indent);
-	printf ("Symbol %s \t%x-%x\n", name.cstr(), vaddr, vaddr + size);
+	printf ("Symbol %s \t%" PRIx64 "-%" PRIx64 "\n", name.cstr(), vaddr, vaddr + size);
 	printIndent (indent);
 	printf ("Type: %s\n",symboltype->name.cstr());
 }

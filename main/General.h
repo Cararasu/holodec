@@ -18,7 +18,7 @@
 
 namespace holodec {
 
-	typedef uint32_t HId;
+	typedef HoloId HId;
 
 	template <typename T>
 	using HList = std::vector<T>;

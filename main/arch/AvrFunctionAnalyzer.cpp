@@ -53,8 +53,8 @@ namespace holoavr{
 		instr->size = 1;
 		instr->addr = addr;
 
-		uint16_t firstbytes = binary->getVData(addr);
-		uint16_t secbytes = binary->getVData(addr + 1);
+		uint16_t firstbytes = static_cast<uint16_t>(binary->getVData(addr));
+		uint16_t secbytes = static_cast<uint16_t>(binary->getVData(addr + 1));
 
 		if ((firstbytes & 0xFE00) == 0x9400) {//one reg instr
 			switch (firstbytes & 0x000F) {
@@ -768,14 +768,14 @@ namespace holoavr{
 	}
 
 	bool AVRFunctionAnalyzer::analyzeInsts(size_t addr) {
-		printf("Disassembling at position 0x%x\n", addr);
+		printf("Disassembling at position 0x%" PRIx64 "\n", addr);
 
 
 		do {
 			Instruction instruction;
 
 			if (!parseInstruction(&instruction, binary, addr, arch)) {
-				printf("Cannot disassemble at Addr 0x%x,\n", addr);
+				printf("Cannot disassemble at Addr 0x%" PRIx64 ",\n", addr);
 				return false;
 			}
 

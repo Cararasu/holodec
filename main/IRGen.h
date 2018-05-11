@@ -52,7 +52,7 @@ namespace holodec {
 		bool parseCharacter (char character);
 		void skipWhitespaces();
 		bool parseStringIndex (IRExpression* expression);
-		int64_t parseNumberIndex ();
+		uint32_t parseNumberIndex ();
 		bool parseNumber (int64_t* num);
 
 		void printParseFailure (const char*);

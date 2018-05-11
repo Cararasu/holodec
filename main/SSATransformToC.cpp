@@ -234,7 +234,7 @@ namespace holodec{
 			created = true;
 			createdStruct.type = ControlStructType::BRANCH;
 			createdStruct.parent_struct = &controlStruct;
-			createdStruct.input_blocks.insert(basicBlock->id).first->count = basicBlock->inBlocks.size();
+			createdStruct.input_blocks.insert(basicBlock->id).first->count = static_cast<uint32_t>(basicBlock->inBlocks.size());
 			createdStruct.contained_blocks.insert(basicBlock->id);
 			for (auto it = basicBlock->outBlocks.begin(); it != basicBlock->outBlocks.end(); ++it) {
 				createdStruct.exit_blocks.insert(*it).first->count++;
@@ -244,7 +244,7 @@ namespace holodec{
 			created = true;
 			createdStruct.type = ControlStructType::SEQUENCE;
 			createdStruct.parent_struct = &controlStruct;
-			createdStruct.input_blocks.insert(basicBlock->id).first->count = basicBlock->inBlocks.size();
+			createdStruct.input_blocks.insert(basicBlock->id).first->count = static_cast<uint32_t>(basicBlock->inBlocks.size());
 			createdStruct.contained_blocks.insert(basicBlock->id);
 
 			SSABB* tBB = basicBlock;
@@ -356,64 +356,48 @@ namespace holodec{
 		}
 		return false;
 	}
-	void SSATransformToC::resolveArgWithoutOffset(SSAArgument& arg) {
+	void SSATransformToC::resolveArg(SSAArgument& arg) {
+		bool nonZeroOffset = (arg.offset != 0);
+
+		SSAExpression* subExpr = arg.type == SSAArgType::eId ? &function->ssaRep.expressions[arg.ssaId] : nullptr;
+		bool nonFullSize = subExpr && (arg.offset + arg.size != subExpr->size);
+		if (nonFullSize) {
+			printf("(");
+			printExprType(*subExpr);
+			printf(")");
+		}
+		if (nonZeroOffset)
+			printf("(");
+
 		switch (arg.type) {
 		case SSAArgType::eUndef:
 			printf("undef");
 			break;
 		case SSAArgType::eSInt:
-			printf("%d", arg.sval);
+			printf("%" PRId64, arg.sval);
 			break;
 		case SSAArgType::eUInt:
-			printf("0x%x", arg.uval);
+			printf("0x%" PRIx64, arg.uval);
 			break;
 		case SSAArgType::eFloat:
 			printf("%f", arg.fval);
 			break;
 		case SSAArgType::eId: {
-			SSAExpression& subExpr = function->ssaRep.expressions[arg.ssaId];
-			bool nonZeroOffset = (arg.offset != 0), nonFullSize = (arg.offset + arg.size != subExpr.size);
-			if (nonFullSize) {
-				printf("((");
-				printExprType(subExpr);
-				printf(")");
+			if (!resolveArgVariable(*subExpr)) {
+				resolveExpression(*subExpr);
 			}
-			if (nonZeroOffset)
-				printf("(");
-
-			if (!resolveArgVariable(subExpr)) {
-				resolveExpression(subExpr);
-			}
-			if (nonZeroOffset)
-				printf(" >> %d)", arg.offset);
-			if (nonFullSize)
-				printf(")");
 		}break;
 		case SSAArgType::eOther:
 			break;
 		}
-	}
-	void SSATransformToC::resolveArg(SSAArgument& arg) {
-		resolveArgWithoutOffset(arg);
-		if(arg.valueoffset > 0){
-			printf(" + %d ", arg.valueoffset);
-		}else if(arg.valueoffset < 0){
-			printf(" - %d ", arg.valueoffset * -1);
+		if (arg.valueoffset > 0) {
+			printf(" + %" PRId64 " ", arg.valueoffset);
 		}
-	}
-	void SSATransformToC::resolveMemArg(SSAArgument& arg, uint32_t size) {
-		uint32_t bytesize = arch->bitToByte(size);
-		if (bytesize == 1) {
-			resolveArgWithoutOffset(arg);
-			printf("[%d]", arg.valueoffset);
+		else if (arg.valueoffset < 0) {
+			printf(" - %" PRId64 " ", arg.valueoffset * -1);
 		}
-		else {
-			printf("mem(");
-			printArgType(arg);
-			printf(", ");
-			resolveArg(arg);
-			printf(")");
-		}
+		if (nonZeroOffset)
+			printf(" >> %" PRId32 ")", arg.offset);
 	}
 	bool SSATransformToC::resolveExpression(SSAExpression& expr) {
 
@@ -1022,7 +1006,6 @@ namespace holodec{
 		analyzeStructure(g_struct, 1);
 		consolidateBranchLoops(&g_struct);
 		setParentStructs(&g_struct);
-		g_struct.print(1);
 
 
 		arguments.clear();
@@ -1039,7 +1022,7 @@ namespace holodec{
 					if (expr.location == SSALocation::eReg) {
 						CArgument arg = { 0, expr.id, { binary->arch->getRegister(expr.locref.refId)->name.cstr(), expr.locref.refId } };
 						arguments.push_back(arg);
-						argumentIds.insert(std::make_pair(expr.id, arguments.size()));
+						argumentIds.insert(std::make_pair(expr.id, static_cast<HId>(arguments.size())));
 					}
 				}
 			}

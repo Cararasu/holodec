@@ -35,7 +35,7 @@ extern "C" {
 	HRegister* arch_get_register (HArchitecture* arch, uint64_t index) {
 		return reinterpret_cast<HRegister*> (&reinterpret_cast<holodec::Architecture*> (arch)->registers.list[index]);
 	}
-	HRegister* arch_get_register_by_id (HArchitecture* arch, uint32_t index) {
+	HRegister* arch_get_register_by_id (HArchitecture* arch, HoloId index) {
 		return reinterpret_cast<HRegister*> (&reinterpret_cast<holodec::Architecture*> (arch)->registers[index]);
 	}
 	uint64_t arch_get_regcount (HArchitecture* arch) {
@@ -45,28 +45,28 @@ extern "C" {
 	HStack* arch_get_stack (HArchitecture* arch, uint64_t index) {
 		return reinterpret_cast<HStack*> (&reinterpret_cast<holodec::Architecture*> (arch)->stacks.list[index]);
 	}
-	HStack* arch_get_stack_by_id (HArchitecture* arch, uint32_t index) {
+	HStack* arch_get_stack_by_id (HArchitecture* arch, HoloId index) {
 		return reinterpret_cast<HStack*> (&reinterpret_cast<holodec::Architecture*> (arch)->stacks[index]);
 	}
 	uint64_t arch_get_stackcount (HArchitecture* arch) {
 		return reinterpret_cast<holodec::Architecture*> (arch)->stacks.size();
 	}
 
-	HCallingConvention* arch_get_cc (HArchitecture* arch, uint64_t index) {
+	HCallingConvention* arch_get_cc (HArchitecture* arch, uint32_t index) {
 		return reinterpret_cast<HCallingConvention*> (&reinterpret_cast<holodec::Architecture*> (arch)->callingconventions.list[index]);
 	}
-	HCallingConvention* arch_get_cc_by_id (HArchitecture* arch, uint32_t index) {
+	HCallingConvention* arch_get_cc_by_id (HArchitecture* arch, HoloId index) {
 		return reinterpret_cast<HCallingConvention*> (&reinterpret_cast<holodec::Architecture*> (arch)->callingconventions[index]);
 	}
 	uint64_t arch_get_cccount (HArchitecture* arch) {
 		return reinterpret_cast<holodec::Architecture*> (arch)->callingconventions.size();
 	}
 
-	HInstrDefinition* arch_get_instrdef (HArchitecture* arch, uint64_t index) {
+	HInstrDefinition* arch_get_instrdef (HArchitecture* arch, HoloId index) {
 		holodec::Architecture* a = reinterpret_cast<holodec::Architecture*> (arch);
 		return reinterpret_cast<HInstrDefinition*> (&a->instrdefs[a->instrIds[index]]);
 	}
-	HInstrDefinition* arch_get_instrdef_by_id (HArchitecture* arch, uint32_t index) {
+	HInstrDefinition* arch_get_instrdef_by_id (HArchitecture* arch, HoloId index) {
 		return reinterpret_cast<HInstrDefinition*> (&reinterpret_cast<holodec::Architecture*> (arch)->instrdefs.at (index));
 	}
 	uint64_t arch_get_instrdefcount (HArchitecture* arch) {
@@ -78,7 +78,7 @@ extern "C" {
 		auto it = reinterpret_cast<holodec::SSARepresentation*> (rep)->bbs.list.begin();
 		return reinterpret_cast<HSSABB*> (&* (it + index));
 	}
-	HSSABB* ssa_get_block_by_id (HSSARepresentation* rep, HId id) {
+	HSSABB* ssa_get_block_by_id (HSSARepresentation* rep, HoloId id) {
 		return reinterpret_cast<HSSABB*> (reinterpret_cast<holodec::SSARepresentation*> (rep)->bbs.get (id));
 	}
 
@@ -90,7 +90,7 @@ extern "C" {
 		auto it = reinterpret_cast<holodec::SSARepresentation*> (rep)->expressions.list.begin();
 		return reinterpret_cast<HSSAExpression*> (&* (it + index));
 	}
-	HSSAExpression* ssa_get_expr_by_id (HSSARepresentation* rep, HId id) {
+	HSSAExpression* ssa_get_expr_by_id (HSSARepresentation* rep, HoloId id) {
 		return reinterpret_cast<HSSAExpression*> (reinterpret_cast<holodec::SSARepresentation*> (rep)->expressions.get (id));
 	}
 	uint64_t ssa_get_exprcount (HSSARepresentation* rep) {

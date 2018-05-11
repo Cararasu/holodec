@@ -10,7 +10,7 @@ namespace holodec {
 	struct SSARegDef{
 		HId ssaId;
 		HId regId, parentId;
-		uint64_t offset, size;
+		uint32_t offset, size;
 	};
 	struct SSAMemDef{
 		HId ssaId;

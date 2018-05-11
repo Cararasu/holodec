@@ -8,7 +8,7 @@
 
 namespace holoihex {
 
-	uint64_t charToInt(uint8_t c) {
+	uint8_t charToInt(uint8_t c) {
 		if (c >= '0' && c <= '9')
 			return c - '0';
 		else if (c >= 'a' && c <= 'f')
@@ -19,14 +19,14 @@ namespace holoihex {
 			assert(false);
 		return -1;
 	}
-	inline uint64_t parse8BitHex (holodec::File* file, size_t index) {
+	inline uint8_t parse8BitHex (holodec::File* file, size_t index) {
 		return charToInt(file->data[index]) << 4 | charToInt(file->data[index + 1]);
 	}
-	inline uint64_t parse16BitHex (holodec::File* file, size_t index) {
-		return parse8BitHex(file, index) << 8 | parse8BitHex(file, index + 2);
+	inline uint16_t parse16BitHex (holodec::File* file, size_t index) {
+		return static_cast<uint16_t>(parse8BitHex(file, index)) << 8 | static_cast<uint16_t>(parse8BitHex(file, index + 2));
 	}
-	inline uint64_t parse32BitHex (holodec::File* file, size_t index) {
-		return parse16BitHex(file, index) << 16 | parse16BitHex(file, index + 4);
+	inline uint32_t parse32BitHex (holodec::File* file, size_t index) {
+		return static_cast<uint32_t>(parse16BitHex(file, index)) << 16 | static_cast<uint32_t>(parse16BitHex(file, index + 4));
 	}
 
 	bool IHexBinaryAnalyzer::canAnalyze(holodec::File* file) {

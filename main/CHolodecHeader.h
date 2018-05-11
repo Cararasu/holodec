@@ -15,7 +15,7 @@ extern "C" {
 
 #define EXPR_HAS_SIDEEFFECT(type) ((uint64_t)(type) & (SSA_EXPR_CONTROL_FLOW | SSA_EXPR_MEMWRITE))
 
-typedef uint32_t HId;
+typedef uint32_t HoloId;
 
 enum HRegTrackType {
 	REG_TRACK_TRACKED = 0,
@@ -200,8 +200,8 @@ enum HSSAType {
 };
 
 typedef struct {
-	HId refId;
-	HId index;
+	HoloId refId;
+	HoloId index;
 } HReference;
 
 

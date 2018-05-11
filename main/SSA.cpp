@@ -172,7 +172,7 @@ namespace holodec {
 				printf(" /   ");
 				break;
 			case SSAOpType::eMod:
-				printf(" %   ");
+				printf(" %%   ");
 				break;
 			case SSAOpType::eAnd:
 				printf(" &&  ");
@@ -304,7 +304,7 @@ namespace holodec {
 			printf("                ");
 			break;
 		}
-		printf("Ref: %2.2" PRId64 " UId: %4.4" PRIx64 " Block: %2.2" PRId32 " | %" PRId32 " = ", refs.size(), uniqueId, blockId, id);
+		printf("Ref: %2" PRId64 " UId: %4" PRIx32 " Block: %2" PRId32 " | %4" PRId32 " = ", refs.size(), uniqueId, blockId, id);
 		for (SSAArgument& arg : subExpressions) {
 			arg.print(arch);
 			printf(", ");
@@ -387,7 +387,7 @@ namespace holodec {
 				printf(" /   ");
 				break;
 			case SSAOpType::eMod:
-				printf(" %   ");
+				printf(" %%   ");
 				break;
 			case SSAOpType::eAnd:
 				printf(" &&  ");
@@ -552,9 +552,9 @@ namespace holodec {
 		}
 		if (valueoffset) {
 			if (valueoffset >= 0)
-				printf("+ %d ", valueoffset);
+				printf("+ %" PRId64 " ", valueoffset);
 			else
-				printf("- %d ", valueoffset * -1);
+				printf("- %" PRId64 " ", valueoffset * -1);
 		}
 
 		switch (location) {
@@ -596,18 +596,18 @@ namespace holodec {
 			printf("%f ", fval);
 			break;
 		case SSAArgType::eId:
-			printf("SSA: %d ", ssaId);
+			printf("SSA: %" PRId32 " ", ssaId);
 			break;
 		case SSAArgType::eOther:
 			break;
 		default:
-			printf("Unknown Argtype %x ", type);
+			printf("Unknown Argtype %d ", type);
 		}
 		if (valueoffset) {
 			if (valueoffset >= 0)
-				printf("+ %d ", valueoffset);
+				printf("+ %" PRId64 " ", valueoffset);
 			else
-				printf("- %d ", valueoffset * -1);
+				printf("- %" PRId64 " ", valueoffset * -1);
 		}
 
 		switch (location) {

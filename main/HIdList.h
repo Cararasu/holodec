@@ -151,7 +151,7 @@ namespace holodec {
 			}
 			
 			while(lowerbound <= upperbound) {// binary seach
-				int middle = lowerbound + ((upperbound - lowerbound) / 2);
+				size_t middle = lowerbound + ((upperbound - lowerbound) / 2);
 				HId middleId = list[middle]->id;
 				if(middleId == id)
 					return &(list[middle]);
@@ -252,7 +252,7 @@ namespace holodec {
 		}
 
 		HId push_back (T& ele) {
-			ele.id = list.size() + 1;
+			ele.id = static_cast<HId>(list.size()) + 1;
 			list.push_back (ele);
 			return ele.id;
 		}
@@ -267,8 +267,8 @@ namespace holodec {
 				while(!rit->id && fit < rit) --rit;
 				if(fit == rit) break;
 				
-				HId id = std::distance(list.begin(), rit) + 1;
-				HId newId = std::distance(list.begin(), fit) + 1;
+				HId id = static_cast<HId>(std::distance(list.begin(), rit) + 1);
+				HId newId = static_cast<HId>(std::distance(list.begin(), fit) + 1);
 				if(replacer)
 					replacer(id, newId);
 				*fit = *rit;

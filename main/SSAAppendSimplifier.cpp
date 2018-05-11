@@ -33,7 +33,7 @@ namespace holodec {
 				}
 			}
 		}
-		printf("Replaced %" PRId64 "\n", replaced);
+		printf("Replaced %" PRId32 "\n", replaced);
 
 		return replaced != 0;
 	}
