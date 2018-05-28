@@ -417,29 +417,35 @@ namespace holodec {
 
 			assert(combine1.size == combine2.size);
 
-			uint32_t firstsize = firstAdd.size;
-			firstAdd.size += secondAdd.size;
+			if (ssaRep->isNotUsedBefore(firstAdd, secondAdd)) {
+				uint32_t firstsize = firstAdd.size;
+				firstAdd.size += secondAdd.size;
 
-			SSAArgument addArg = SSAArgument::createId(firstAdd.id, firstsize);
+				SSAArgument addArg = SSAArgument::createId(firstAdd.id, firstsize);
 
-			SSAArgument splitArg1 = addArg;
-			splitArg1.size = firstsize;
-			splitArg1.offset = 0;
+				SSAArgument splitArg1 = addArg;
+				splitArg1.size = firstsize;
+				splitArg1.offset = 0;
 
-			SSAArgument splitArg2 = addArg;
-			splitArg2.size = secondAdd.size;
-			splitArg2.offset = firstsize;
+				SSAArgument splitArg2 = addArg;
+				splitArg2.size = secondAdd.size;
+				splitArg2.offset = firstsize;
 
-			//Expression references invalidated
-			SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondAdd.id), combine1.size);
-			SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
+				//Expression references invalidated
+				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondAdd.id), combine1.size);
+				SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
 
-			//set arguments of second arg
-			ssaRep->expressions[context->expressionsMatched[2]].subExpressions = { combine1Arg, combine2Arg };
+				//set arguments of second arg
+				ssaRep->expressions[context->expressionsMatched[2]].subExpressions = { combine1Arg, combine2Arg };
 
-			ssaRep->replaceAllArgs(ssaRep->expressions[context->expressionsMatched[2]], splitArg1);
-			ssaRep->replaceAllArgs(ssaRep->expressions[context->expressionsMatched[0]], splitArg2);
-			return true;
+				ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[2]], splitArg1);
+				ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], splitArg2);
+
+				return true;
+			}
+			else {
+				return false;
+			}
 		})
 		.ssaType(0, 0, SSAOpType::eSub)
 		.ssaType(1, 3, SSAFlagType::eC)

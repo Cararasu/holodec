@@ -810,7 +810,7 @@ namespace holodec{
 			resolveBranchExpr(controlStruct, function->ssaRep.expressions[function->ssaRep.bbs[controlStruct->head_block].exprIds.back()], printed, indent);
 		} break;
 		case ControlStructType::LOOP: {
-			printIndent(indent); printf("while(true) {\n");
+			printIndent(indent); printf("loop {\n");
 			ControlStruct* subStruct = getStructFromHead(controlStruct, controlStruct->head_block);
 			if (subStruct)
 				printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent + 1);

@@ -457,6 +457,9 @@ namespace holodec {
 		HId addBefore(SSAExpression* expr, HId ssaId);
 		HId addAfter(SSAExpression* expr, HId ssaId);
 
+		bool isNotUsedBefore(SSAExpression& firstExpr, SSAExpression& secondExpr);
+		bool areArgsNotDefedBefore(SSAExpression& firstExpr, SSAExpression& secondExpr);
+
 		HList<HId>::iterator removeExpr(HList<HId>& ids, HList<HId>::iterator it);
 		void removeExpr(HId ssaId);
 

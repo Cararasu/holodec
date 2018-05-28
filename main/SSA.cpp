@@ -1006,6 +1006,54 @@ namespace holodec {
 			}
 		}
 	}
+	/*
+		Is the first argument used before the second
+	*/
+	bool SSARepresentation::isNotUsedBefore(SSAExpression& firstExpr, SSAExpression& secondExpr) {
+		if (firstExpr.blockId != secondExpr.blockId)
+			return false;
+		SSABB& bb = this->bbs[firstExpr.blockId];
+		auto firstit = bb.exprIds.begin();
+		for (; firstit != bb.exprIds.end() && *firstit == firstExpr.id; firstit++);
+		auto secit = bb.exprIds.begin();
+		for (; secit != bb.exprIds.end() && *secit == secondExpr.id; secit++);
+		if (firstit > secit || firstit == bb.exprIds.end() || secit == bb.exprIds.end())
+			return false;
+		if (firstit == secit)
+			return true;
+		for (auto it = firstit + 1; it != secit; it++) {
+			SSAExpression& expr = expressions[*it];
+			for (SSAArgument& arg : expr.subExpressions) {
+				if (arg.type == SSAArgType::eId && arg.ssaId == *firstit)
+					return false;
+			}
+		}
+		return true;
+	}
+	/*
+		Are the args from the second argument defined between the first and the second
+	*/
+	bool SSARepresentation::areArgsNotDefedBefore(SSAExpression& firstExpr, SSAExpression& secondExpr) {
+		if (firstExpr.blockId != secondExpr.blockId)
+			return false;
+		SSABB& bb = this->bbs[firstExpr.blockId];
+		auto firstit = bb.exprIds.begin();
+		for (; firstit != bb.exprIds.end() && *firstit == firstExpr.id; firstit++);
+		auto secit = bb.exprIds.begin();
+		for (; secit != bb.exprIds.end() && *secit == secondExpr.id; secit++);
+		if (firstit > secit || firstit == bb.exprIds.end() || secit == bb.exprIds.end())
+			return false;
+		if (firstit == secit)
+			return true;
+		SSAExpression& secexpr = expressions[*secit];
+		for (auto it = firstit + 1; it != secit; it++) {
+			for (SSAArgument& arg : secexpr.subExpressions) {
+				if (arg.type == SSAArgType::eId && arg.ssaId == *it)
+					return false;
+			}
+		}
+		return true;
+	}
 
 
 	void SSARepresentation::print(Architecture* arch, int indent) {
