@@ -186,6 +186,7 @@ int main (int argc, const char** argv) {
 	std::vector<SSATransformer*> starttransformers = {
 		new SSAAddressToBlockTransformer(),//0
 		new SSAPhiNodeGenerator(),//1
+		new SSAPhiNodeGenerator(),//1
 	};
 	std::vector<SSATransformer*> pretransformers = {
 		new SSAReverseRegUsageAnalyzer()
@@ -236,6 +237,7 @@ int main (int argc, const char** argv) {
 			for (SSATransformer* transform : starttransformers) {
 				if (transform)
 					transform->doTransformation(binary, func);
+				func->printSimple(binary->arch);
 			}
 			/*if (!func->ssaRep.checkIntegrity()) {
 				func->print(binary->arch);

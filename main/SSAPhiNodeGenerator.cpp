@@ -239,6 +239,20 @@ namespace holodec {
 		bbwrappers.clear();
 		bbwrappers.resize(function->ssaRep.bbs.size());
 		for (size_t i = 0; i < function->ssaRep.bbs.list.size(); i++) {
+			for (auto it = function->ssaRep.bbs.list[i].exprIds.begin(); it != function->ssaRep.bbs.list[i].exprIds.end(); ) {
+				HId id = *it;
+				SSAExpression& expr = function->ssaRep.expressions[id];
+				if (expr.type == SSAExprType::ePhi) {
+					it = function->ssaRep.removeExpr(function->ssaRep.bbs.list[i].exprIds, it);
+					continue;
+				}
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.location == SSALocation::eReg || arg.location == SSALocation::eMem) {
+						arg.ssaId = 0;
+					}
+				}
+				++it;
+			}
 			bbwrappers[i].ssaBB = &function->ssaRep.bbs.list[i];
 		}
 		for (BasicBlockWrapper& bbwrapper : bbwrappers) {//iterate Blocks
