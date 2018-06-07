@@ -390,12 +390,6 @@ namespace holodec{
 		case SSAArgType::eOther:
 			break;
 		}
-		if (arg.valueoffset > 0) {
-			printf(" + %" PRId64 " ", arg.valueoffset);
-		}
-		else if (arg.valueoffset < 0) {
-			printf(" - %" PRId64 " ", arg.valueoffset * -1);
-		}
 		if (nonZeroOffset)
 			printf(" >> %" PRId32 ")", arg.offset);
 	}

@@ -4,23 +4,60 @@
 
 namespace holodec {
 
+	bool SSAApplyRegRef::getRegisterState(Register* reg, int64_t* arithchange, SSAArgument* arg) {
+		SSAExpression& referencedExpr = function->ssaRep.expressions[arg->ssaId];
+		if (referencedExpr.type == SSAExprType::eInput && arg->location == SSALocation::eReg) {
+			*arithchange = 0;
+			return true;
+		}
+		if (referencedExpr.type == SSAExprType::eOp && (referencedExpr.opType == SSAOpType::eAdd || referencedExpr.opType == SSAOpType::eSub)) {
+			SSAArgument* idArg = nullptr;
+			int64_t change = 0;
+			for (SSAArgument& onearg : referencedExpr.subExpressions) {
+				if (onearg.type == SSAArgType::eId) {
+					if (idArg)
+						return false;
+					idArg = &onearg;
+				}
+				if (referencedExpr.opType == SSAOpType::eAdd) {
+					if (onearg.type == SSAArgType::eUInt)
+						change += onearg.uval;
+					else if (onearg.type == SSAArgType::eSInt)
+						change += onearg.sval;
+				}
+				else if(referencedExpr.opType == SSAOpType::eSub){
+					if (onearg.type == SSAArgType::eUInt)
+						change -= onearg.uval;
+					else if (onearg.type == SSAArgType::eSInt)
+						change -= onearg.sval;
+				}
+			}
+			if (idArg) {
+				*arithchange += change;
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		return false;
+	}
+
 
 	bool SSAApplyRegRef::doTransformation(Binary* binary, Function* function) {// results of interprocedural liveness analysis
 		bool applied = false;
+		this->function = function;
 		function->regStates.reg_states.clear();
 		function->regStates.mem_states.clear();
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type == SSAExprType::eReturn) {
 				for (auto argIt = expr.subExpressions.begin() + 1; argIt != expr.subExpressions.end(); ++argIt) {
 					if (argIt->type == SSAArgType::eId) {
-						SSAExpression& referencedExpr = function->ssaRep.expressions[argIt->ssaId];
-						if (referencedExpr.type == SSAExprType::eInput && argIt->location == SSALocation::eReg) {
-							Register* reg = arch->getRegister(argIt->locref.refId);
+						Register* reg = arch->getRegister(argIt->locref.refId);
+						int64_t change = 0;
+						if (getRegisterState(reg, &change, &*argIt)) {
 							RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
-							state->arithChange = argIt->valueoffset;
-							continue;
-						}
-						if (referencedExpr.type == SSAExprType::eInput && argIt->location == SSALocation::eMem) {
+							state->arithChange = change;
 							continue;
 						}
 					}
@@ -113,7 +150,11 @@ namespace holodec {
 							if (!state->flags.contains(UsageFlags::eWrite)) {//if the register was not written to ther is no change or just an arithmetic one
 								expr.type = SSAExprType::eAssign;
 								expr.removeArgument(&function->ssaRep, expr.subExpressions.begin());
-								expr.subExpressions[0].valueoffset += state->arithChange;
+								if (state->arithChange) {
+									expr.type = SSAExprType::eOp;
+									expr.opType = SSAOpType::eAdd;
+									expr.addArgument(&function->ssaRep, SSAArgument::createSVal(state->arithChange, arch->bitbase * arch->bytebase, 0));
+								}
 								applied = true;
 							}
 							else if (!state->flags.contains(UsageFlags::eRead)) {//if the register was written to but not read, we remove the input as a second argument

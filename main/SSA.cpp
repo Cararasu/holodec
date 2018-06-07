@@ -550,12 +550,6 @@ namespace holodec {
 		default:
 			printf("Unknown Argtype %x ", type);
 		}
-		if (valueoffset) {
-			if (valueoffset >= 0)
-				printf("+ %" PRId64 " ", valueoffset);
-			else
-				printf("- %" PRId64 " ", valueoffset * -1);
-		}
 
 		switch (location) {
 		case SSALocation::eReg:
@@ -602,12 +596,6 @@ namespace holodec {
 			break;
 		default:
 			printf("Unknown Argtype %d ", type);
-		}
-		if (valueoffset) {
-			if (valueoffset >= 0)
-				printf("+ %" PRId64 " ", valueoffset);
-			else
-				printf("- %" PRId64 " ", valueoffset * -1);
 		}
 
 		switch (location) {
@@ -721,7 +709,7 @@ namespace holodec {
 		if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific and need the operation for it's meaning
 			return false;
 		}
-		if (EXPR_IS_TRANSPARENT(expr.type) && (replaceArg.valueoffset || !isCopy || replaceArg.isConst())) {//ignore transparent nodes if the valueoffset is not 0, because we don't want changes there
+		if (EXPR_IS_TRANSPARENT(expr.type) && (!isCopy || replaceArg.isConst())) {
 			return false;
 		}
 		return true;//otherwise can be replaced

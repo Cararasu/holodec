@@ -20,7 +20,7 @@ namespace holodec{
 			return true;
 		}
 		else if (expr->type == SSAExprType::eStore) {
-			if (expr->subExpressions[1].type == SSAArgType::eId && expr->subExpressions[1].ssaId == ptrArg.ssaId && expr->subExpressions[1].valueoffset == ptrArg.valueoffset) {
+			if (expr->subExpressions[1].type == SSAArgType::eId && expr->subExpressions[1].ssaId == ptrArg.ssaId) {
 				//TODO check if the ptrArg is a stack???
 				return isInput(arg.replace(expr->subExpressions[2]), outoffset, exprvisited, retArg);
 			}
@@ -92,7 +92,6 @@ namespace holodec{
 					retArg.print();
 					printf("%s ----> %d\n", reg->name.cstr(), retArg.ssaId);
 					arg.ssaId = retArg.ssaId;
-					arg.valueoffset = retArg.valueoffset;
 				}
 			}
 		}

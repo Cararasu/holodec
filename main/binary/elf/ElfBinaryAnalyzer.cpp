@@ -103,7 +103,6 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 	if (!parseSectionHeaderTable())
 		return false;
 
-
 	//handle entry and exit points
 	{
 		uint32_t entrypoint = getValue<uint32_t>(file, 0x18, binary->endianess);

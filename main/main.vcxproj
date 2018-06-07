@@ -175,14 +175,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\llvm\llvm\llvm\include;..\..\llvm\llvm\tools\clang\include;..\cpython\Include;..\capstone\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\radare2\include;..\radare2\msvc;..\cpython\Include;..\capstone\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\..\llvm\llvm\llvm\include;..\..\llvm\llvm\tools\clang\include;..\cpython\Include;..\capstone\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\radare2\include;..\radare2\msvc;..\cpython\Include;..\capstone\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -213,8 +213,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\llvm\build-vc17\Release\lib;..\capstone\msvc\x64\Debug;..\cpython\PCbuild\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>capstone.lib;libclang.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\radare2\winlib64;..\capstone\msvc\x64\Debug;..\cpython\PCbuild\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>capstone.lib;Ws2_32.Lib;libr_anal.a;libr_asm.a;libr_bin.a;libr_bp.a;libr_config.a;libr_cons.a;libr_core.a;libr_crypto.a;libr_debug.a;libr_egg.a;libr_flag.a;libr_fs.a;libr_hash.a;libr_io.a;libr_lang.a;libr_magic.a;libr_parse.a;libr_reg.a;libr_search.a;libr_shlr.a;libr_socket.a;libr_syscall.a;libr_util.a;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -252,8 +252,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>capstone.lib;libclang.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\llvm\build-vc17\Release\lib;..\capstone\msvc\x64\Debug;..\cpython\PCbuild\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>capstone.lib;Ws2_32.Lib;libr_anal.a;libr_asm.a;libr_bin.a;libr_bp.a;libr_config.a;libr_cons.a;libr_core.a;libr_crypto.a;libr_debug.a;libr_egg.a;libr_flag.a;libr_fs.a;libr_hash.a;libr_io.a;libr_lang.a;libr_magic.a;libr_parse.a;libr_reg.a;libr_search.a;libr_shlr.a;libr_socket.a;libr_syscall.a;libr_util.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\radare2\winlib64;..\capstone\msvc\x64\Debug;..\cpython\PCbuild\win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

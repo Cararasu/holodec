@@ -249,6 +249,7 @@ namespace holodec {
 				for (SSAArgument& arg : expr.subExpressions) {
 					if (arg.location == SSALocation::eReg || arg.location == SSALocation::eMem) {
 						arg.ssaId = 0;
+						arg.offset = 0;
 					}
 				}
 				++it;

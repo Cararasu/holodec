@@ -8,17 +8,15 @@ namespace holodec {
 
 	struct CalleeArgument {
 		HId ssaId = 0;
-		int64_t valueoffset = 0;
 		uint32_t offset = 0, size = 0;
 
 		CalleeArgument() {}
-		CalleeArgument(SSAArgument& arg) : ssaId(arg.ssaId), valueoffset(arg.valueoffset), offset(arg.offset), size(arg.size) {}
-		CalleeArgument(CalleeArgument& arg) : ssaId(arg.ssaId), valueoffset(arg.valueoffset), offset(arg.offset), size(arg.size) {}
-		CalleeArgument(const CalleeArgument&& arg) : ssaId(arg.ssaId), valueoffset(arg.valueoffset), offset(arg.offset), size(arg.size) {}
+		CalleeArgument(SSAArgument& arg) : ssaId(arg.ssaId), offset(arg.offset), size(arg.size) {}
+		CalleeArgument(CalleeArgument& arg) : ssaId(arg.ssaId), offset(arg.offset), size(arg.size) {}
+		CalleeArgument(const CalleeArgument&& arg) : ssaId(arg.ssaId), offset(arg.offset), size(arg.size) {}
 
 		CalleeArgument& operator=(CalleeArgument arg) {
 			ssaId = arg.ssaId;
-			valueoffset = arg.valueoffset;
 			offset = arg.offset;
 			size = arg.size;
 			return *this;
@@ -31,14 +29,14 @@ namespace holodec {
 		}
 
 		bool equals(SSAArgument& arg) {
-			return arg.type == SSAArgType::eId && ssaId == arg.ssaId && valueoffset == arg.valueoffset;
+			return arg.type == SSAArgType::eId && ssaId == arg.ssaId;
 		}
 		void print() {
-			printf("SSA: %" PRId32 " + %" PRId64 " [%" PRId32 ",%" PRId32 "]\n", ssaId, valueoffset, offset, size);
+			printf("SSA: %" PRId32 "[%" PRId32 ",%" PRId32 "]\n", ssaId, offset, size);
 		}
 	};
 	inline bool operator==(CalleeArgument& lhs, CalleeArgument& rhs) {
-		return lhs.ssaId == rhs.ssaId && lhs.valueoffset == rhs.valueoffset;
+		return lhs.ssaId == rhs.ssaId;
 	}
 
 	class SSACalleeCallerRegs : public SSATransformer {

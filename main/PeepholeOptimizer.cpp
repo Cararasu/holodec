@@ -133,7 +133,7 @@ namespace holodec {
 		})*/
 		.ssaType(0, 0, SSAExprType::eAppend)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-
+			//welp
 			return false;
 		})
 		.ssaType(0, 0, SSAExprType::eAppend)
@@ -156,7 +156,6 @@ namespace holodec {
 				}
 				subAppends = true;
 				uint32_t offset = it->offset;
-				int64_t valueOffset = it->valueoffset;
 				assert(it->offset + it->size <= subExpr.size);
 				uint32_t offsetlimit = it->offset + it->size;
 				it = expr.removeArgument(ssaRep, it);
@@ -166,12 +165,10 @@ namespace holodec {
 						break;
 					if (offset < innerOffset + innerIt->size) {
 						SSAArgument innerArg = *innerIt;
-
 						if (innerOffset < offset)
 							innerArg.offset += offset - innerOffset;
 						if (offsetlimit < innerOffset + innerIt->size)
 							innerArg.size -= (innerOffset + innerIt->size) - offsetlimit;
-						innerArg.valueoffset += valueOffset;
 						it = expr.insertArgument(ssaRep, it, innerArg);
 					}
 					innerOffset += innerIt->size;
@@ -227,7 +224,7 @@ namespace holodec {
 							if (firstPtrArg.type == secPtrArg.type) {
 								switch (firstPtrArg.type) {
 								case SSAArgType::eUInt: {
-									if ((firstPtrArg.uval + 1 == secPtrArg.uval && firstPtrArg.valueoffset == secPtrArg.valueoffset) || (firstPtrArg.uval == secPtrArg.uval && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset)) {
+									if (firstPtrArg.uval + 1 == secPtrArg.uval || firstPtrArg.uval == secPtrArg.uval) {
 										SSAArgument newSecArg = *it;
 										newSecArg.offset += firstExpr.size;
 										newSecArg.ssaId = baseit->ssaId;
@@ -236,7 +233,7 @@ namespace holodec {
 									}
 								}break;
 								case SSAArgType::eId: {
-									if (firstPtrArg.ssaId == secPtrArg.ssaId && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset) {
+									if (firstPtrArg.ssaId == secPtrArg.ssaId) {
 										SSAArgument newSecArg = *it;
 										newSecArg.offset += firstExpr.size;
 										newSecArg.ssaId = baseit->ssaId;
@@ -262,7 +259,6 @@ namespace holodec {
 					if (baseit + 1 == it && consecutive_arg(*baseit, *it)) {
 						SSAArgument arg = *baseit;
 						arg.size = it->offset - baseit->offset;
-						arg.valueoffset += it->valueoffset * (static_cast<uint64_t>(1) << baseit->size);
 						it = expr.insertArgument(ssaRep, expr.removeArguments(ssaRep, baseit, it + 1), arg);//replace range with arg
 						replaced = true;
 						continue;
@@ -291,7 +287,7 @@ namespace holodec {
 					if (firstPtrArg.type == secPtrArg.type) {
 						switch (firstPtrArg.type) {
 						case SSAArgType::eUInt: {
-							if ((firstPtrArg.uval + 1 == secPtrArg.uval && firstPtrArg.valueoffset == secPtrArg.valueoffset) || (firstPtrArg.uval == secPtrArg.uval && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset)) {
+							if (firstPtrArg.uval + 1 == secPtrArg.uval|| firstPtrArg.uval == secPtrArg.uval) {
 								//secExpr.size += storeExpr.size;
 								//secExpr.setArgument(ssaRep, 0, storeExpr.subExpressions[0]);
 								//secExpr.setArgument(ssaRep, 1, storeExpr.subExpressions[1]);
@@ -301,7 +297,7 @@ namespace holodec {
 							}
 						}break;
 						case SSAArgType::eId: {
-							if (firstPtrArg.ssaId == secPtrArg.ssaId && firstPtrArg.valueoffset + 1 == secPtrArg.valueoffset) {
+							if (firstPtrArg.ssaId == secPtrArg.ssaId) {
 								//storeExpr.size += secExpr.size;
 								//ssaRep->removeExpr(storeExpr);
 								fflush(stdout);
@@ -328,7 +324,7 @@ namespace holodec {
 				for (size_t i = 1; i < expr.subExpressions.size(); i += 2) {
 					//SSAArgument& blockArg = expr.subExpressions[i];
 					SSAArgument& arg = expr.subExpressions[i];
-					if (arg.type == SSAArgType::eId && arg.ssaId == expr.id && arg.valueoffset == 0)
+					if (arg.type == SSAArgType::eId && arg.ssaId == expr.id)
 						continue;
 					if (arg.type != SSAArgType::eUndef) {
 						undef = false;
@@ -346,42 +342,6 @@ namespace holodec {
 			}
 			return false;
 		})
-
-		.ssaType(0, 0, SSAOpType::eSub)
-		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-			SSAExpression& opExpr = ssaRep->expressions[context->expressionsMatched[0]];
-			if (!ssaRep->usedOnlyInFlags(opExpr) && opExpr.subExpressions.size() == 2) {
-				if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
-					SSAArgument arg = opExpr.subExpressions[0];
-					arg.valueoffset -= opExpr.subExpressions[1].uval;
-					return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
-				}
-				else if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
-					SSAArgument arg = opExpr.subExpressions[0];
-					arg.valueoffset -= opExpr.subExpressions[1].sval;
-					return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
-				}
-			}
-			return false;
-		})
-		.ssaType(0, 0, SSAOpType::eAdd)
-		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-			SSAExpression& opExpr = ssaRep->expressions[context->expressionsMatched[0]];
-			if (!ssaRep->usedOnlyInFlags(opExpr) && opExpr.subExpressions.size() == 2) {
-				if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
-					SSAArgument arg = opExpr.subExpressions[0];
-					arg.valueoffset += opExpr.subExpressions[1].uval;
-					return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
-				}
-				else if (opExpr.subExpressions[1].type == SSAArgType::eUInt) {
-					SSAArgument arg = opExpr.subExpressions[0];
-					arg.valueoffset += opExpr.subExpressions[1].sval;
-					return ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], arg) != 0;
-				}
-			}
-			return false;
-		})
-
 		.ssaType(0, 0, SSAOpType::eAdd)
 		.ssaType(1, 3, SSAFlagType::eC)
 		.ssaType(2, 1, SSAOpType::eAdd)
@@ -520,8 +480,6 @@ namespace holodec {
 			SSAExpression& assignExpr = ssaRep->expressions[context->expressionsMatched[0]];
 			SSAExpression& appendExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAArgument& refArg = assignExpr.subExpressions[0];
-			if (refArg.valueoffset)
-				return false;
 			if (!(refArg.offset == 0 && refArg.size == appendExpr.size)) {
 				uint32_t offset = 0;
 				for (SSAArgument& arg : appendExpr.subExpressions) {
@@ -607,7 +565,7 @@ namespace holodec {
 				SSAArgument& arg = *it;
 				if (arg.type == SSAArgType::eId) {
 					SSAExprType type = ssaRep->expressions[arg.ssaId].type;
-					if (arg.type == SSAArgType::eId && arg.valueoffset == 0 && type == SSAExprType::eInput) {
+					if (arg.type == SSAArgType::eId && type == SSAExprType::eInput) {
 						it = expr.removeArgument(ssaRep, it);
 						replaced = true;
 						continue;

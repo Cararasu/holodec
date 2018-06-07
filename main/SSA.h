@@ -117,7 +117,6 @@ namespace holodec {
 		//HId id = 0;
 		SSAArgType type = SSAArgType::eUndef;
 		uint32_t offset = 0, size = 0;
-		int64_t valueoffset = 0;
 		union {
 			HId ssaId;
 			ArgSInt sval;
@@ -156,7 +155,6 @@ namespace holodec {
 			if (arg.size < 0) {
 				puts(" ");
 			}
-			arg.valueoffset += valueoffset << arg.offset;
 			arg.offset += offset;
 			*this = arg;
 		}
@@ -257,7 +255,7 @@ namespace holodec {
 
 
 	inline bool operator== (SSAArgument& lhs, SSAArgument& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset && lhs.valueoffset == rhs.valueoffset && lhs.location == rhs.location && lhs.locref == rhs.locref) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset && lhs.location == rhs.location && lhs.locref == rhs.locref) {
 			switch (lhs.type) {
 			case SSAArgType::eSInt:
 				return lhs.sval == rhs.sval;
@@ -277,7 +275,7 @@ namespace holodec {
 		return false;
 	}
 	inline bool weak_equals(SSAArgument& lhs, SSAArgument& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset && lhs.valueoffset == rhs.valueoffset) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset) {
 			switch (lhs.type) {
 			case SSAArgType::eSInt:
 				return lhs.sval == rhs.sval;

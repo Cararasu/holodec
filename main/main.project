@@ -122,9 +122,6 @@
     </VirtualDirectory>
     <File Name="main_file.cpp"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Debug Windows"/>
-  <Dependencies Name="Release"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="-std=c++17" C_Options="-std=c99" Assembler="">
@@ -314,4 +311,8 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Debug VC17"/>
+  <Dependencies Name="Debug Windows"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

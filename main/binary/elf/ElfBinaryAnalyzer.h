@@ -16,7 +16,6 @@ namespace holoelf {
 	};
 	class ElfBinaryAnalyzer : public holodec::BinaryAnalyzer {
 
-		holodec::Binary* binary;
 		holodec::File* file;
 
 		struct {
