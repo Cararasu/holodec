@@ -172,32 +172,28 @@ namespace holodec {
 			return SSAArgument();
 		}
 		static inline SSAArgument createSVal (int64_t val, uint32_t size, uint32_t offset = 0) {
-			SSAArgument arg;
-			arg.type = SSAArgType::eSInt;
+			SSAArgument arg = { SSAArgType::eSInt };
 			arg.sval = val;
 			arg.size = size;
 			arg.offset = offset;
 			return arg;
 		}
 		static inline SSAArgument createUVal (uint64_t val, uint32_t size, uint32_t offset = 0) {
-			SSAArgument arg;
-			arg.type = SSAArgType::eUInt;
+			SSAArgument arg = { SSAArgType::eUInt };
 			arg.uval = val;
 			arg.size = size;
 			arg.offset = offset;
 			return arg;
 		}
 		static inline SSAArgument createDVal (double val, uint32_t size, uint32_t offset = 0) {
-			SSAArgument arg;
-			arg.type = SSAArgType::eFloat;
+			SSAArgument arg = { SSAArgType::eFloat };
 			arg.fval = val;
 			arg.size = size;
 			arg.offset = offset;
 			return arg;
 		}
 		static inline SSAArgument create(HId ssaId, uint32_t size = 0, uint32_t offset = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
-			SSAArgument arg;
-			arg.type = SSAArgType::eId;
+			SSAArgument arg = { SSAArgType::eId };
 			arg.ssaId = ssaId;
 			arg.location = location;
 			arg.locref = locref;
@@ -206,8 +202,9 @@ namespace holodec {
 			return arg;
 		}
 		static inline SSAArgument createOther(SSAArgType argType, uint32_t size = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
-			SSAArgument arg;
-			arg.type = argType;
+			SSAArgument arg = { argType };
+			if (argType > SSAArgType::eOther)
+				*((char*)0) = 12;
 			arg.location = location;
 			arg.locref = locref;
 			arg.offset = 0;
@@ -215,8 +212,7 @@ namespace holodec {
 			return arg;
 		}
 		static inline SSAArgument createUndef (SSALocation location, Reference locref, uint32_t size = 0) {
-			SSAArgument arg;
-			arg.type = SSAArgType::eUndef;
+			SSAArgument arg = { SSAArgType::eUndef };
 			arg.location = location;
 			arg.locref = locref;
 			arg.size = size;
@@ -428,7 +424,8 @@ namespace holodec {
 
 		void replaceNodes(HMap<HId,SSAArgument>* replacements);
 		uint64_t replaceAllArgs(SSAExpression& origExpr, SSAArgument replaceArg);
-		uint64_t replaceArg(SSAExpression& origExpr, SSAArgument replaceArg);
+		bool isReplaceable(SSAExpression& origExpr);
+		uint64_t replaceExpr(SSAExpression& origExpr, SSAArgument replaceArg);
 		void removeNodes(HSet<HId>* ids);
 		
 		void compress();
@@ -474,6 +471,11 @@ namespace holodec {
 		
 	};
 	
+
+	//returns the distance traveled from the ssaId
+	//if distance is 0 then the expression with id == ssaId was neither an addition or a subtraction
+	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, 
+		int64_t* arithchange/* result | the value that was added or subtracted */, SSAArgument* basearg/* result | the furthest argument we can travel to */);
 
 }
 

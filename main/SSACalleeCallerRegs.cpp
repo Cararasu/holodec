@@ -1,3 +1,5 @@
+
+
 #include "SSACalleeCallerRegs.h"
 
 namespace holodec{
@@ -41,6 +43,7 @@ namespace holodec{
 		}
 		return false;
 	}
+#pragma optimize("", off)
 	bool SSACalleeCallerRegs::isInput(CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, CalleeArgument* retArg) {
 		SSAExpression* expr = &ssaRep->expressions[arg.ssaId];
 		exprvisited.insert(expr->id);

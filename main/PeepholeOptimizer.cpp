@@ -334,10 +334,10 @@ namespace holodec {
 					}
 				}
 				if (undef) {
-					return ssaRep->replaceArg(expr, SSAArgument::createUndef(expr.location, expr.locref, expr.size)) != 0;
+					return ssaRep->replaceExpr(expr, SSAArgument::createUndef(expr.location, expr.locref, expr.size)) != 0;
 				}
 				else if (alwaysTheSame) {
-					return ssaRep->replaceArg(expr, expr.subExpressions[1]) != 0;
+					return ssaRep->replaceExpr(expr, expr.subExpressions[1]) != 0;
 				}
 			}
 			return false;
@@ -398,8 +398,8 @@ namespace holodec {
 				//set arguments of second arg
 				ssaRep->expressions[context->expressionsMatched[2]].subExpressions = { combine1Arg, combine2Arg };
 
-				ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[2]], splitArg1);
-				ssaRep->replaceArg(ssaRep->expressions[context->expressionsMatched[0]], splitArg2);
+				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[2]], splitArg1);
+				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], splitArg2);
 
 				return true;
 			}
@@ -470,7 +470,7 @@ namespace holodec {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
 			if ((expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eBXor) && expr.subExpressions.size() == 2 && expr.subExpressions[0] == expr.subExpressions[1] && !ssaRep->usedOnlyInFlags(expr)) {
 				g_peephole_logger.log<LogLevel::eDebug>("Zero-Op");
-				return ssaRep->replaceArg(expr, SSAArgument::createUVal(0, expr.size)) != 0;
+				return ssaRep->replaceExpr(expr, SSAArgument::createUVal(0, expr.size)) != 0;
 			}
 			return false;
 		})
@@ -485,12 +485,52 @@ namespace holodec {
 				for (SSAArgument& arg : appendExpr.subExpressions) {
 					if (offset == refArg.offset && arg.size == refArg.size) {
 						SSAArgument newArg = SSAArgument::replace(refArg, arg);
-						return ssaRep->replaceArg(assignExpr, newArg) != 0;
+						return ssaRep->replaceExpr(assignExpr, newArg) != 0;
 					}
 					offset += arg.size;
 				}
 			}
 			return false;
+		})
+		.ssaType(0, 0, SSAExprType::eOp)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& subexpr = ssaRep->expressions[context->expressionsMatched[0]];
+			int64_t change = 0;
+			SSAArgument basearg;
+
+			if (subexpr.opType != SSAOpType::eAdd && subexpr.opType != SSAOpType::eSub)
+				return false;
+			if (!ssaRep->isReplaceable(subexpr))
+				return false;
+			uint64_t distance = calculate_basearg_plus_offset(ssaRep, context->expressionsMatched[0], &change, &basearg);
+			if (distance < 2)// distance travelled should be at leased 2 otherwise we just duplicate values
+				return false;
+			for (SSAArgument& arg : subexpr.subExpressions) {//this would be useless
+				if (arg.type == SSAArgType::eId && arg.ssaId == basearg.ssaId) {
+					return false;
+				}
+			}
+			if (basearg.type == SSAArgType::eUndef)
+				return false;
+			if (change != 0) {
+				SSAExpression newExpr;
+				newExpr.type = SSAExprType::eOp;
+				newExpr.opType = change > 0 ? SSAOpType::eAdd : SSAOpType::eSub;
+				newExpr.exprtype = subexpr.exprtype;
+				newExpr.instrAddr = subexpr.instrAddr;
+				newExpr.subExpressions = {
+					basearg,
+					SSAArgument::createUVal(change < 0 ? change * -1 : change, arch->bitbase * arch->bytebase)
+				};
+				newExpr.size = subexpr.size;
+				SSAArgument arg = SSAArgument::createId(ssaRep->addBefore(&newExpr, subexpr.id), newExpr.size);
+				SSAExpression& reloadedsubexpr = ssaRep->expressions[context->expressionsMatched[0]];
+				uint32_t count = ssaRep->replaceExpr(reloadedsubexpr, arg);
+				return count != 0;
+			}
+			else {
+				return ssaRep->replaceExpr(subexpr, basearg) != 0;
+			}
 		})
 		.ssaType(0, 0, SSAOpType::eEq)
 		.ssaType(1, 1, SSAOpType::eSub)
@@ -533,15 +573,15 @@ namespace holodec {
 					if (arg.type == SSAArgType::eUInt) {
 						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
 						SSAArgument newarg = SSAArgument::replace(arg, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
-						return ssaRep->replaceArg(expr, newarg) != 0;
+						return ssaRep->replaceExpr(expr, newarg) != 0;
 					}
 					else if (arg.type == SSAArgType::eSInt) {
 						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
 						SSAArgument newarg = SSAArgument::replace(arg, SSAArgument::createSVal(arg.sval >> arg.offset, arg.size));
-						return ssaRep->replaceArg(expr, newarg) != 0;
+						return ssaRep->replaceExpr(expr, newarg) != 0;
 					}
 				}
-				return ssaRep->replaceArg(expr, arg) != 0;
+				return ssaRep->replaceExpr(expr, arg) != 0;
 			}
 			return false;
 		})

@@ -303,7 +303,7 @@ namespace holodec {
 		T* get (HId id) {
 			return &list[id-1];
 		}
-		T& operator[] (HId id) {
+		constexpr T& operator[] (HId id) {
 			return list[id-1];
 		}
 		void clear() {

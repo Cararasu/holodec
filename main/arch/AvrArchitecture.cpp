@@ -287,7 +287,7 @@ namespace holoavr {
 			{ 1, "=(#arg[1],#ld($pmem,#app($z,$rampz),#size(#arg[1])))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_ELPM | AVR_INSTR_INC_PTR, "elpm+",{
-			{ 1, "#seq(=(#t[1],#app($z,$rampz),1),=(#arg[1],#ld($pmem,#t[1],#size(#arg[1]))),=(#t[1],+(#t[1],1)),=($z,#t[1][0,16]),=($rampz,#t[1][16,8]))" }
+			{ 1, "#seq(=(#t[1],#app($z,$rampz)),=(#arg[1],#ld($pmem,#t[1],#size(#arg[1]))),=(#t[1],+(#t[1],1)),=($z,#t[1][0,16]),=($rampz,#t[1][16,8]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_EOR, "eor",{
 			{ 2, "#seq(=(#arg[1],#bxor(#arg[1],#arg[2])),=($vf,0),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }

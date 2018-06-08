@@ -1,4 +1,3 @@
-
 #include "SSA.h"
 #include "Architecture.h"
 
@@ -705,17 +704,26 @@ namespace holodec {
 	}
 
 
-	inline bool shouldReplaceIn(SSAExpression& expr, SSAArgument& replaceArg, bool isCopy/*if the argument copies the referencing expression or value*/) {
+	inline bool shouldReplaceIn(SSAExpression& expr, SSAArgument* replaceArg, bool isCopy/*if the argument copies the referencing expression or value*/) {
 		if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific and need the operation for it's meaning
 			return false;
 		}
-		if (EXPR_IS_TRANSPARENT(expr.type) && (!isCopy || replaceArg.isConst())) {
+		if (EXPR_IS_TRANSPARENT(expr.type) && (!isCopy || (!replaceArg || replaceArg->isConst()))) {
 			return false;
 		}
 		return true;//otherwise can be replaced
 	}
 
-	uint64_t SSARepresentation::replaceArg(SSAExpression& origExpr, SSAArgument replaceArg) {
+	bool SSARepresentation::isReplaceable(SSAExpression& origExpr) {
+		for (HId directRefId : origExpr.directRefs) {
+			SSAExpression& expr = expressions[directRefId];
+			if (shouldReplaceIn(expr, nullptr, true)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	uint64_t SSARepresentation::replaceExpr(SSAExpression& origExpr, SSAArgument replaceArg) {
 		uint64_t count = 0;
 
 		//if the argument is not the same as the expression it references then we do not replace them
@@ -726,7 +734,7 @@ namespace holodec {
 		}
 		for (HId directRefId : origExpr.directRefs) {//iterate refs
 			SSAExpression& expr = expressions[directRefId];
-			if (!shouldReplaceIn(expr, replaceArg, isCopy)) {
+			if (!shouldReplaceIn(expr, &replaceArg, isCopy)) {
 				continue;
 			}
 			if (replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
@@ -750,14 +758,14 @@ namespace holodec {
 		}
 		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
 			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
-				if (!shouldReplaceIn(expressions[*it], replaceArg, isCopy)) {
+				if (!shouldReplaceIn(expressions[*it], &replaceArg, isCopy)) {
 					it++;
 					continue;
 				}
 				it = origExpr.refs.erase(it);
 			}
 			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
-				if (!shouldReplaceIn(expressions[*it], replaceArg, isCopy)) {
+				if (!shouldReplaceIn(expressions[*it], &replaceArg, isCopy)) {
 					it++;
 					continue;
 				}
@@ -1093,4 +1101,47 @@ namespace holodec {
 			}
 		}
 	}
+	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, int64_t* arithchange, SSAArgument* basearg) {
+		SSAExpression& referencedExpr = ssaRep->expressions[ssaId];
+
+		if (referencedExpr.type == SSAExprType::eOp && (referencedExpr.opType == SSAOpType::eAdd || referencedExpr.opType == SSAOpType::eSub)) {
+			SSAArgument* idArg = nullptr;
+			int64_t change = 0;
+			for (size_t i = 0; i < referencedExpr.subExpressions.size(); ++i) {
+				SSAArgument& onearg = referencedExpr.subExpressions[i];
+				if (onearg.type == SSAArgType::eId) {
+					if (idArg)
+						return 0;
+					idArg = &onearg;
+					continue;
+				}
+				if (i == 0 || referencedExpr.opType == SSAOpType::eAdd) {
+					if (onearg.type == SSAArgType::eUInt)
+						change += onearg.uval;
+					else if (onearg.type == SSAArgType::eSInt)
+						change += onearg.sval;
+					else
+						return 0;
+				}
+				else {
+					if (onearg.type == SSAArgType::eUInt)
+						change -= onearg.uval;
+					else if (onearg.type == SSAArgType::eSInt)
+						change -= onearg.sval;
+					else
+						return 0;
+				}
+			}
+			if (idArg && !idArg->offset) {
+				*arithchange += change;
+				*basearg = *idArg;
+				return calculate_basearg_plus_offset(ssaRep, idArg->ssaId, arithchange, basearg) + 1;
+			}
+			else {
+				return 0;
+			}
+		}
+		return 0;
+	}
+
 }

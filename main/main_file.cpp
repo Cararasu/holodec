@@ -664,10 +664,10 @@ int main (int argc, const char** argv) {
 				do {
 					applied = false;
 					func->ssaRep.recalcRefCounts();
-					/*if (!func->ssaRep.checkIntegrity()) {
+					if (!func->ssaRep.checkIntegrity()) {
 						func->print(binary->arch);
 						assert(false);
-					}*/
+					}
 					if (func->baseaddr == 0x0)
 						func->print(binary->arch);
 

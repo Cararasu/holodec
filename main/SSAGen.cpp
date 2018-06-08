@@ -948,7 +948,7 @@ namespace holodec {
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
 				IRArgument sizeArg = irExpr->subExpressions[1];
 				replaceArg (sizeArg);
-				assert (sizeArg.type = IR_ARGTYPE_UINT);
+				assert (sizeArg.type == IR_ARGTYPE_UINT);
 				expression.size = sizeArg;
 				return IRArgument::createSSAId (addExpression (&expression), expression.size);
 			}
