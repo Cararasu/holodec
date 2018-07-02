@@ -10,7 +10,8 @@ namespace holodec {
 		StringRef regRef;
 	};
 	struct UnifiedExprs {
-		HId id;
+		HId id = 0;
+		HId ssaId = 0;
 		std::set<HId> occuringIds;
 	};
 	enum class ControlStructType{
@@ -73,7 +74,7 @@ namespace holodec {
 		void printControlStruct(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 
 		bool printExpression(SSAExpression& expression, uint32_t indent);
-		bool resolveArgVariable(SSAExpression& expr);
+		bool resolveArgVariable(SSAExpression& expr, bool write);
 		void resolveArgs(SSAExpression& expression, const char* delimiter = ", ");
 		void resolveArg(SSAArgument& arg);
 		bool resolveExpression(SSAExpression& expression);

@@ -340,21 +340,24 @@ namespace holodec{
 		}
 		return nullptr;
 	}
-	bool SSATransformToC::resolveArgVariable(SSAExpression& expr) {
+	bool SSATransformToC::resolveArgVariable(SSAExpression& expr, bool write) {
 		auto it = argumentIds.find(expr.id);
 		if (it != argumentIds.end()) {
 			printf("arg%d", it->second);
 			return true;
 		}
 		else if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
-			printf("var%d", uExprs->id);
-			return true;
+			if (write) {
+				printf("var%d, ", uExprs->id);
+				uExprs->ssaId = expr.id;
+			}
+			else if (uExprs->ssaId == expr.id)  {
+				printf("var%d", uExprs->id);
+				return true;
+			}
 		}
-		else if (resolveIds.find(expr.id) != resolveIds.end()) {
-			printf("tmp%d", expr.id);
-			return true;
-		}
-		return false;
+		printf("tmp%d", expr.id);
+		return true;
 	}
 	void SSATransformToC::resolveArg(SSAArgument& arg) {
 		bool nonZeroOffset = (arg.offset != 0);
@@ -383,7 +386,7 @@ namespace holodec{
 			printf("%f", arg.fval);
 			break;
 		case SSAArgType::eId: {
-			if (!resolveArgVariable(*subExpr)) {
+			if (!resolveArgVariable(*subExpr, false)) {
 				resolveExpression(*subExpr);
 			}
 		}break;
@@ -560,7 +563,7 @@ namespace holodec{
 				SSAExpression& refExpr = function->ssaRep.expressions[id];
 				if (refExpr.type == SSAExprType::eOutput && refExpr.location == SSALocation::eReg) {
 					printExprType(refExpr);
-					resolveArgVariable(refExpr);
+					resolveArgVariable(refExpr, true);
 					printf(" <- %s, ", arch->getRegister(refExpr.locref.refId)->name.cstr());
 				}
 			}
@@ -604,8 +607,10 @@ namespace holodec{
 		}break;
 
 		case SSAExprType::ePhi: {
-			printf("Phi ");
-			resolveArgs(expr);
+			resolveArgVariable(expr, true);
+			printf(" = ");
+			resolveArgVariable(expr, false);
+			printf("\n");
 		}break;
 		case SSAExprType::eAssign: {
 			resolveArg(expr.subExpressions[0]);
@@ -642,13 +647,13 @@ namespace holodec{
 		return true;
 	}
 	bool SSATransformToC::printExpression(SSAExpression& expr, uint32_t indent) {
-		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::ePhi || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch)
+		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch)
 			return false;
 		resolveIds.insert(expr.id);
 		printIndent(indent);
 		if (expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type)) {
 			printExprType(expr);
-			resolveArgVariable(expr);
+			resolveArgVariable(expr, true);
 			printf(" = ");
 		}
 		return resolveExpression(expr);
@@ -943,9 +948,11 @@ namespace holodec{
 		//function->print(binary->arch);
 		Symbol *sym = binary->getSymbol(function->symbolref);
 
-		{
+		if (sym)
+			printf("Function: %s\n", sym->name.cstr());
+
+		{//split blocks, so that they have either exactly one input ore one output
 			bool changed = false;
-			fflush(stdout);
 			do {
 				changed = false;
 				for (SSABB& bb : function->ssaRep.bbs) {
@@ -1006,8 +1013,6 @@ namespace holodec{
 		argumentIds.clear();
 		resolveIds.clear();
 		resolveBBs.clear();
-		if(sym)
-			printf("Function: %s\n", sym->name.cstr());
 		{
 			SSABB& bb = function->ssaRep.bbs[1];
 			for (HId id : bb.exprIds) {
