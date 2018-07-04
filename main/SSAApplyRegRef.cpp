@@ -7,15 +7,14 @@ namespace holodec {
 
 	bool SSAApplyRegRef::doTransformation(Binary* binary, Function* function) {// results of interprocedural liveness analysis
 		bool applied = false;
-		function->regStates.reg_states.clear();
-		function->regStates.mem_states.clear();
+		function->regStates.reset();
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type == SSAExprType::eReturn) {
 				for (auto argIt = expr.subExpressions.begin() + 1; argIt != expr.subExpressions.end(); ++argIt) {
 					if (argIt->type == SSAArgType::eId) {
 						int64_t change = 0;
 						SSAArgument basearg;
-						if (calculate_basearg_plus_offset(&function->ssaRep, argIt->ssaId, &change, &basearg) > 0) {
+						if (calculate_basearg_plus_offset(&function->ssaRep, argIt->ssaId, &change, &basearg) != 0) {
 							if (basearg.type == SSAArgType::eId) {
 								SSAExpression& baseExpr = function->ssaRep.expressions[basearg.ssaId];
 								if (baseExpr.type == SSAExprType::eInput && baseExpr.location == SSALocation::eReg && baseExpr.locref.refId == argIt->locref.refId) {
@@ -68,17 +67,18 @@ namespace holodec {
 				if (expr.subExpressions[0].type != SSAArgType::eUInt)
 					continue;
 				Function* callFunc = binary->getFunctionByAddr(expr.subExpressions[0].uval);
-				if (!(callFunc && callFunc->regStates.parsed))
+				if (!callFunc || !callFunc->regStates.parsed)
 					continue;
 				//first argument is the call destination so skip it
-				for (auto argIt = expr.subExpressions.begin() + 1; argIt != expr.subExpressions.end(); ++argIt) {
+				for (auto argIt = expr.subExpressions.begin(); argIt != expr.subExpressions.end(); ++argIt) {
 					if (argIt->location == SSALocation::eReg) {
 						Register* reg = arch->getRegister(argIt->locref.refId);
 						if (!reg)
 							continue;
 						RegisterState* state = callFunc->regStates.getRegisterState(reg->parentRef.refId);
 						if (!state || !state->flags.contains(UsageFlags::eRead)) {
-							argIt = expr.subExpressions.erase(argIt) - 1;//the minus 1 works because we start of at the second argument
+							argIt = expr.subExpressions.erase(argIt);
+							if (argIt != expr.subExpressions.begin()) argIt--;
 							applied = true;
 							continue;
 						}
@@ -89,7 +89,8 @@ namespace holodec {
 							continue;
 						MemoryState* state = callFunc->regStates.getMemoryState(mem->id);
 						if (!state || !state->flags.contains(UsageFlags::eRead)) {
-							argIt = expr.subExpressions.erase(argIt) - 1;//the minus 1 works because we start of at the second argument
+							argIt = expr.subExpressions.erase(argIt);
+							if (argIt != expr.subExpressions.begin()) argIt--;
 							applied = true;
 							continue;
 						}

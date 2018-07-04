@@ -574,12 +574,12 @@ int main (int argc, const char** argv) {
 		new SSAPhiNodeGenerator(),//1
 	};
 	std::vector<SSATransformer*> pretransformers = {
-		new SSAReverseRegUsageAnalyzer()
+		new SSAReverseRegUsageAnalyzer(),
+		new SSAApplyRegRef(),//4
 	};
 	std::vector<SSATransformer*> transformers = {
 		new SSAPeepholeOptimizer(),//2
 		new SSADCETransformer(),//3
-		new SSAApplyRegRef(),//4
 		new SSAAppendSimplifier(),//5
 		new SSACalleeCallerRegs(volatileRegisters),//6
 	};
@@ -651,6 +651,10 @@ int main (int argc, const char** argv) {
 					transform->doTransformation(binary, func);
 			}
 		}
+		for (Function* func : binary->functions) {
+			printf("Pretransform\n");
+			func->print(binary->arch);
+		}
 
 		for (Function* func : binary->functions) {
 		//for (uint64_t addr : funcs) {
@@ -664,14 +668,11 @@ int main (int argc, const char** argv) {
 				do {
 					applied = false;
 					func->ssaRep.recalcRefCounts();
-					if (!func->ssaRep.checkIntegrity()) {
-						func->print(binary->arch);
-						assert(false);
-					}
 					if (func->baseaddr == 0x0)
 						func->print(binary->arch);
 
 					for (SSATransformer* transform : transformers) {
+						func->ssaRep.recalcRefCounts();
 						if (transform)
 							applied |= transform->doTransformation(binary, func);
 					}

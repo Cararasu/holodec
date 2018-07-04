@@ -303,8 +303,6 @@ namespace holodec{
 		
 	}
 	bool SSATransformToC::shouldResolve(SSAExpression& expr) {
-		if (expr.type == SSAExprType::ePhi)//should never appear
-			return false;
 		if (expr.type == SSAExprType::eLoad)//for ordering sake until a comprehensive DFA is implemented
 			return true;
 		if (resolveIds.find(expr.id) != resolveIds.end()) {
@@ -610,7 +608,6 @@ namespace holodec{
 			resolveArgVariable(expr, true);
 			printf(" = ");
 			resolveArgVariable(expr, false);
-			printf("\n");
 		}break;
 		case SSAExprType::eAssign: {
 			resolveArg(expr.subExpressions[0]);
@@ -1085,6 +1082,7 @@ namespace holodec{
 			}
 
 		}
+		printf("\n");
 		HSet<HId> visited;
 		printControlStruct(&g_struct, function->ssaRep.bbs[1], visited, 1);
 

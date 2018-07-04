@@ -38,9 +38,12 @@ namespace holodec {
 	struct PhRuleSet {
 		std::vector<PhRuleInstance> ruleInstances;
 		bool match(Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr) {
-			for (PhRuleInstance& inst : ruleInstances)
-				if (inst.match(arch, ssaRep, expr))
+
+			for (PhRuleInstance& inst : ruleInstances) {
+				if (inst.match(arch, ssaRep, expr)) {
 					return true;
+				}
+			}
 			return false;
 		}
 	};

@@ -823,21 +823,33 @@ namespace holodec {
 		for (SSAExpression& expr : expressions) {
 			if (expr.id) {
 				for (SSAArgument& arg : expr.subExpressions) {
-					if (arg.type == SSAArgType::eId && !(arg.ssaId > 0 && arg.ssaId <= expressions.size()))
+					if (arg.type == SSAArgType::eId && !(arg.ssaId > 0 && arg.ssaId <= expressions.size())) {
+						fprintf(stderr, "Invalid ssaId in arg from Expression %d\n", expr.id);
 						return false;
-					if (arg.type == SSAArgType::eId && !expressions[arg.ssaId].id)
+					}
+					if (arg.type == SSAArgType::eId && !expressions[arg.ssaId].id) {
+						fprintf(stderr, "ssa refers to deleted Expression %d in arg from Expression %d\n", arg.ssaId, expr.id);
 						return false;
-					if (arg.type == SSAArgType::eId && expressions[arg.ssaId].size < arg.offset + arg.size)
+					}
+					if (arg.type == SSAArgType::eId && expressions[arg.ssaId].size < arg.offset + arg.size){
+						fprintf(stderr, "Size of arg is bigger than Expression %d in arg from Expression %d\n", arg.ssaId, expr.id);
 						return false;
+					}
 				}
-				if (!expr.blockId)
+				if (!expr.blockId){
+					fprintf(stderr, "Invalid Blockid in Expression %d\n", expr.id);
 					return false;
+				}
 				for (HId& id : expr.refs)
-					if (!(id && id <= expressions.size() && expressions[id].id))
+					if (!(id && id <= expressions.size() && expressions[id].id)){
+						fprintf(stderr, "Invalid ssaId in ref from Expression %d\n", expr.id);
 						return false;
+					}
 				for (HId& id : expr.directRefs)
-					if (!(id && id <= expressions.size() && expressions[id].id))
+					if (!(id && id <= expressions.size() && expressions[id].id)){
+						fprintf(stderr, "Invalid ssaId in directRef from Expression %d\n", expr.id);
 						return false;
+					}
 			}
 		}
 		return true;
