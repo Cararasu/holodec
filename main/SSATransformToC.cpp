@@ -10,13 +10,13 @@ namespace holodec{
 			printf("Unkn%d ", expr.size);
 			break;
 		case SSAType::eInt:
-			printf("int%d_t ", expr.size);
+			printf("s%d ", expr.size);
 			break;
 		case SSAType::eUInt:
-			printf("uint%d_t ", expr.size);
+			printf("u%d ", expr.size);
 			break;
 		case SSAType::eFloat:
-			printf("float%d_t ", expr.size);
+			printf("f%d ", expr.size);
 			break;
 		case SSAType::ePc:
 			printf("pc%d ", expr.size);
@@ -30,14 +30,14 @@ namespace holodec{
 	void printArgType(SSAArgument& arg) {
 		switch (arg.type) {
 		case SSAArgType::eSInt:
-			printf("int%d_t ", arg.size);
+			printf("s%d ", arg.size);
 			break;
 		case SSAArgType::eFloat:
-			printf("float%d_t ", arg.size);
+			printf("f%d ", arg.size);
 			break;
 		default:
 		case SSAArgType::eUInt:
-			printf("uint%d_t ", arg.size);
+			printf("u%d ", arg.size);
 			break;
 		}
 

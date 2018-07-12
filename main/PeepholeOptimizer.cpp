@@ -245,13 +245,11 @@ namespace holodec {
 
 					SSAArgument replacedsecarg = SSAArgument::createId(firstExpr.id, lastit->size, it->size);
 
-					//TODO calculate difference between firstPtrArg and secPtrArg and it should be firstExpr.size / arch->bitbase
 					if (firstPtrArg.type == secPtrArg.type) {
 						if (firstPtrArg.type == SSAArgType::eUInt){
 							if ((firstPtrArg.uval + difference) == secPtrArg.uval) {
 								//make load bigger
 								firstExpr.size = std::max(firstExpr.size, (it->size + lastit->size));
-								//it->set(replacedsecarg);
 								replaced |= ssaRep->replaceExpr(secExpr, replacedsecarg) != 0;
 							}
 						}
@@ -262,13 +260,7 @@ namespace holodec {
 								if (difference == diff) {
 									//make load bigger
 									firstExpr.size = std::max(firstExpr.size, (it->size + lastit->size));
-									//it->set(replacedsecarg);
 									replaced |= ssaRep->replaceExpr(secExpr, replacedsecarg) != 0;
-								}
-								else {
-									ssaRep->print(arch);
-									fflush(stdout);
-									printf("");
 								}
 							}
 						}
