@@ -173,12 +173,13 @@ namespace holodec {
 			}
 			return subAppends;
 		})
-		/*
+		
 		.ssaType(0, 0, SSAExprType::eAppend)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
 
 			if (expr.subExpressions.size() == 2 && expr.subExpressions[1].type == SSAArgType::eUInt && expr.subExpressions[1].uval == 0) {
+				//if second parameter is a 0
 				expr.type = SSAExprType::eExtend;
 				expr.exprtype = SSAType::eUInt;
 				expr.removeArgument(ssaRep, expr.subExpressions.end() - 1);
@@ -187,70 +188,86 @@ namespace holodec {
 			}
 			bool replaced = false;
 			if (expr.subExpressions.size() > 1) {
-				for (auto it = expr.subExpressions.begin() + 1; it != expr.subExpressions.end(); ) {
-					auto lastit = expr.subExpressions.begin();
-					if (it->isConst() && it->type == lastit->type) {
-						switch (it->type) {
-						case SSAArgType::eSInt:
-							lastit->sval |= (it->sval >> lastit->offset) << lastit->size;
-							break;
-						case SSAArgType::eUInt:
-							lastit->uval |= (it->uval >> lastit->offset) << lastit->size;
-							break;
-						default:
-							++it;
-							continue;
-						}
+				auto lastit = expr.subExpressions.begin();
+				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end(); ) {
+					if (it == expr.subExpressions.begin()) {
+						lastit = it++;
+						continue;
+					}
+					if (it->isConst() && it->type == lastit->type && it->type == SSAArgType::eUInt) {
+						lastit->uval |= (it->uval >> lastit->offset) << lastit->size;
 						lastit->size += it->size;
 						it = expr.removeArgument(ssaRep, it);
 						continue;
 					}
-					++it;
+					lastit = it++;
 				}
 			}
 			if (expr.subExpressions.size() > 1) {
-				auto baseit = expr.subExpressions.begin();
+				auto lastit = expr.subExpressions.begin();
 				for (auto it = expr.subExpressions.begin() + 1; it != expr.subExpressions.end(); ) {
-					auto lastit = expr.subExpressions.begin();
-					if (baseit + 1 == it && it->type == SSAArgType::eId && it->location != SSALocation::eMem && baseit->type == SSAArgType::eId && baseit->location != SSALocation::eMem) {
-						SSAExpression& firstExpr = ssaRep->expressions[baseit->ssaId];
-						SSAExpression& secExpr = ssaRep->expressions[it->ssaId];
-
-						if (firstExpr.type == SSAExprType::eLoad && secExpr.type == SSAExprType::eLoad && firstExpr.subExpressions[0].ssaId == secExpr.subExpressions[0].ssaId) {
-							SSAArgument& firstPtrArg = firstExpr.subExpressions[1];
-							SSAArgument& secPtrArg = secExpr.subExpressions[1];
-							if (firstPtrArg.type == secPtrArg.type) {
-								switch (firstPtrArg.type) {
-								case SSAArgType::eUInt: {
-									if (firstPtrArg.uval + 1 == secPtrArg.uval || firstPtrArg.uval == secPtrArg.uval) {
-										SSAArgument newSecArg = *it;
-										newSecArg.offset += firstExpr.size;
-										newSecArg.ssaId = baseit->ssaId;
-										firstExpr.size += secExpr.size;
-										ssaRep->replaceAllArgs(secExpr, newSecArg);
-									}
-								}break;
-								case SSAArgType::eId: {
-									if (firstPtrArg.ssaId == secPtrArg.ssaId) {
-										SSAArgument newSecArg = *it;
-										newSecArg.offset += firstExpr.size;
-										newSecArg.ssaId = baseit->ssaId;
-										firstExpr.size += secExpr.size;
-										ssaRep->replaceAllArgs(secExpr, newSecArg);
-									}
-								}break;
-								default:
-									break;
-								}
-							}
-						}
+					//the mem location shouldn't happen but still...
+					if (it->type != SSAArgType::eId || 
+						it->location == SSALocation::eMem || 
+						lastit->type != SSAArgType::eId || 
+						lastit->location == SSALocation::eMem ||
+						it->offset || lastit->offset) {
+						lastit = it++;
+						continue;
 					}
-					baseit = it;
-					it++;
+					SSAExpression& firstExpr = ssaRep->expressions[lastit->ssaId];
+					SSAExpression& secExpr = ssaRep->expressions[it->ssaId];
+					//both are not load
+					if (firstExpr.type != SSAExprType::eLoad || secExpr.type != SSAExprType::eLoad) {
+						lastit = it++;
+						continue;
+					}
+
+					SSAArgument& firstMemArg = firstExpr.subExpressions[0];
+					SSAArgument& secMemArg = secExpr.subExpressions[0];
+					//we load from different memories
+					if (firstMemArg.type != SSAArgType::eId || secMemArg.type != SSAArgType::eId ||
+						firstMemArg.location != SSALocation::eMem || secMemArg.location != SSALocation::eMem ||
+						firstMemArg.locref.refId != secMemArg.locref.refId ) {
+						lastit = it++;
+						continue;
+					}
+					Memory* mem = arch->getMemory(firstMemArg.locref.refId);
+					if (!mem || (firstExpr.size % (mem->wordsize * arch->bitbase)) != 0) {
+						lastit = it++;
+						continue;
+					}
+
+					uint64_t difference = firstExpr.size / (mem->wordsize * arch->bitbase);
+
+					SSAArgument& firstPtrArg = firstExpr.subExpressions[1];
+					SSAArgument& secPtrArg = secExpr.subExpressions[1];
+
+					//TODO calculate difference between firstPtrArg and secPtrArg and it should be firstExpr.size / arch->bitbase
+					if (firstPtrArg.type == secPtrArg.type) {
+						switch (firstPtrArg.type) {
+						case SSAArgType::eId: {
+							SSAExpression& firstPtrExpr = ssaRep->expressions[firstPtrArg.ssaId];
+							SSAExpression& secPtrExpr = ssaRep->expressions[secPtrArg.ssaId];
+						}break;
+						case SSAArgType::eUInt: {
+							if ((firstPtrArg.uval + difference) == secPtrArg.uval) {
+								if (firstExpr.size < (it->size + lastit->size)) {
+									firstExpr.size = (it->size + lastit->size);
+								}
+								it->set(SSAArgument::createId(firstExpr.id, lastit->size, it->size));
+								replaced |= ssaRep->replaceExpr(secExpr, SSAArgument::createId(firstExpr.id, lastit->size, it->size)) != 0;
+							}
+						}break;
+						}
+
+					}
+					lastit = it++;
 				}
 			}
 			assert(expr.subExpressions.size());
 			if (expr.subExpressions.size() > 1) {
+				//compress same ids together
 				auto baseit = expr.subExpressions.begin();
 				for (auto it = baseit; it != expr.subExpressions.end();) {
 					//if ssaId does not change and offset fits
@@ -273,7 +290,8 @@ namespace holodec {
 				return true;
 			}
 			return replaced;
-		})*/
+		})
+		/* Probably remove
 		.ssaType(0, 0, SSAExprType::eStore)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& storeExpr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -309,7 +327,7 @@ namespace holodec {
 			}
 
 			return false;
-		})
+		})*/
 
 		.ssaType(0, 0, SSAExprType::ePhi)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
@@ -376,18 +394,18 @@ namespace holodec {
 			assert(combine1.size == combine2.size);
 
 			if (ssaRep->isNotUsedBefore(firstAdd, secondAdd)) {
-				uint32_t firstsize = firstAdd.size;
-				firstAdd.size += secondAdd.size;
+				uint32_t secsize = secondAdd.size;
+				secondAdd.size += firstAdd.size;
 
-				SSAArgument addArg = SSAArgument::createId(firstAdd.id, firstsize);
+				SSAArgument addArg = SSAArgument::createId(secondAdd.id, 0);
 
 				SSAArgument splitArg1 = addArg;
-				splitArg1.size = firstsize;
+				splitArg1.size = firstAdd.size;
 				splitArg1.offset = 0;
 
 				SSAArgument splitArg2 = addArg;
-				splitArg2.size = secondAdd.size;
-				splitArg2.offset = firstsize;
+				splitArg2.size = secsize;
+				splitArg2.offset = firstAdd.size;
 
 				//Expression references invalidated
 				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondAdd.id), combine1.size);
@@ -420,8 +438,8 @@ namespace holodec {
 
 			SSAExpression combine1;
 			combine1.type = SSAExprType::eAppend;
-			combine1.exprtype = firstSub.exprtype;
-			combine1.instrAddr = firstSub.instrAddr;
+			combine1.exprtype = secondSub.exprtype;
+			combine1.instrAddr = secondSub.instrAddr;
 			combine1.subExpressions = {
 				firstSub.subExpressions[0],
 				secondSub.subExpressions[0]
@@ -430,8 +448,8 @@ namespace holodec {
 
 			SSAExpression combine2;
 			combine2.type = SSAExprType::eAppend;
-			combine2.exprtype = firstSub.exprtype;
-			combine2.instrAddr = firstSub.instrAddr;
+			combine2.exprtype = secondSub.exprtype;
+			combine2.instrAddr = secondSub.instrAddr;
 			combine2.subExpressions = {
 				firstSub.subExpressions[1],
 				secondSub.subExpressions[1]
@@ -441,18 +459,18 @@ namespace holodec {
 			assert(combine1.size == combine2.size);
 
 			if (ssaRep->isNotUsedBefore(firstSub, secondSub)) {
-				uint32_t firstsize = firstSub.size;
-				firstSub.size += secondSub.size;
+				uint32_t secsize = secondSub.size;
+				secondSub.size += firstSub.size;
 
-				SSAArgument addArg = SSAArgument::createId(firstSub.id, firstsize);
+				SSAArgument addArg = SSAArgument::createId(secondSub.id, 0);
 
 				SSAArgument splitArg1 = addArg;
-				splitArg1.size = firstsize;
+				splitArg1.size = firstSub.size;
 				splitArg1.offset = 0;
 
 				SSAArgument splitArg2 = addArg;
-				splitArg2.size = secondSub.size;
-				splitArg2.offset = firstsize;
+				splitArg2.size = secsize;
+				splitArg2.offset = firstSub.size;
 
 				//Expression references invalidated
 				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondSub.id), combine1.size);
@@ -569,6 +587,26 @@ namespace holodec {
 					}
 				}
 				return ssaRep->replaceExpr(expr, arg) != 0;
+			}
+			return false;
+		})
+			//TODO fix
+			//TODO append(x[0,8], x[8,8])
+		.ssaType(0, 0, SSAExprType::eAssign)
+		.ssaType(1, 1, SSAExprType::eAppend)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& assignExpr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAExpression& appendExpr = ssaRep->expressions[context->expressionsMatched[1]];
+			SSAArgument& refArg = assignExpr.subExpressions[0];
+			if (!(refArg.offset == 0 && refArg.size == appendExpr.size)) {
+				uint32_t offset = 0;
+				for (SSAArgument& arg : appendExpr.subExpressions) {
+					if (offset == refArg.offset && arg.size == refArg.size) {
+						SSAArgument newArg = SSAArgument::replace(refArg, arg);
+						return ssaRep->replaceExpr(assignExpr, newArg) != 0;
+					}
+					offset += arg.size;
+				}
 			}
 			return false;
 		})

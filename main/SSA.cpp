@@ -777,8 +777,8 @@ namespace holodec {
 	void SSARepresentation::removeNodes (HSet<HId>* ids) {
 		for (SSABB& bb : bbs) {
 			for (auto it = bb.exprIds.begin(); it != bb.exprIds.end();) {
-				if (ids->find (*it) != ids->end())
-					it = removeExpr (bb.exprIds, it);
+				if (ids->find(*it) != ids->end())
+					it = removeExpr(bb.exprIds, it);
 				else
 					++it;
 			}
@@ -788,6 +788,21 @@ namespace holodec {
 	void SSARepresentation::compress() {
 
 		std::map<HId, HId> replacements;
+
+		for (SSAExpression& expr : expressions) {
+			for (auto it = expr.refs.begin(); it != expr.refs.end();) {
+				if (!expressions[*it].id)
+					it = expr.refs.erase(it);
+				else
+					it++;
+			}
+			for (auto it = expr.directRefs.begin(); it != expr.directRefs.end();) {
+				if (!expressions[*it].id)
+					it = expr.directRefs.erase(it);
+				else
+					it++;
+			}
+		}
 
 		expressions.shrink ([&replacements] (HId oldId, HId newId) {
 			replacements[oldId] = newId;
@@ -805,6 +820,18 @@ namespace holodec {
 						if (it != replacements.end()) {
 							arg.ssaId = it->second;
 						}
+					}
+				}
+				for (HId& ref : expr.refs) {
+					auto it = replacements.find(ref);
+					if (it != replacements.end()) {
+						ref = it->second;
+					}
+				}
+				for (HId& ref : expr.directRefs) {
+					auto it = replacements.find(ref);
+					if (it != replacements.end()) {
+						ref = it->second;
 					}
 				}
 			}

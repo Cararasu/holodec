@@ -340,6 +340,8 @@ namespace holodec{
 	}
 	bool SSATransformToC::resolveArgVariable(SSAExpression& expr, bool write) {
 		auto it = argumentIds.find(expr.id);
+		if (!shouldResolve(expr))
+			return false;
 		if (it != argumentIds.end()) {
 			printf("arg%d", it->second);
 			return true;
@@ -1088,6 +1090,11 @@ namespace holodec{
 
 		printIndent(1);
 		printf("}\n");
+		for (HId id : resolveIds) {
+			printf("%d, ", id);
+		}
+		printf("}\n");
+
 
 		return false;
 	}

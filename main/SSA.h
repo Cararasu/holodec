@@ -163,9 +163,6 @@ namespace holodec {
 			return basearg;
 		}
 		void set(SSAArgument arg) {
-			if (arg.size < 0) {
-				puts(" ");
-			}
 			*this = arg;
 		}
 		static inline SSAArgument create() {

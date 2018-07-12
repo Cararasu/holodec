@@ -672,7 +672,15 @@ int main (int argc, const char** argv) {
 						func->print(binary->arch);
 
 					for (SSATransformer* transform : transformers) {
-						func->ssaRep.recalcRefCounts();
+						if (!func->ssaRep.checkIntegrity()) {
+							func->print(binary->arch);
+							for (int i = 0; i < transformers.size(); i++) {
+								if (transform == transformers[i])
+									printf("%d\n", i);
+							}
+							fflush(stdout);
+							*(char*)0 = 12;
+						}
 						if (transform)
 							applied |= transform->doTransformation(binary, func);
 					}

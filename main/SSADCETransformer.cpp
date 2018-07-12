@@ -17,7 +17,7 @@ namespace holodec {
 		do {
 			HSet<HId> toRemove;
 			for (auto it = function->ssaRep.expressions.begin(); it != function->ssaRep.expressions.end();++it){
-				if(!it->id || EXPR_HAS_SIDEEFFECT(it->type) || !it->refs.empty())
+				if(!it->id || EXPR_HAS_SIDEEFFECT(it->type) || !it->directRefs.empty())
 					continue;
 				toRemove.insert(it->id);
 			}
