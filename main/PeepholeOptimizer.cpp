@@ -233,34 +233,45 @@ namespace holodec {
 						continue;
 					}
 					Memory* mem = arch->getMemory(firstMemArg.locref.refId);
-					if (!mem || (firstExpr.size % (mem->wordsize * arch->bitbase)) != 0) {
+					if (!mem || (it->size % (mem->wordsize * arch->bitbase)) != 0) {
 						lastit = it++;
 						continue;
 					}
 
-					uint64_t difference = firstExpr.size / (mem->wordsize * arch->bitbase);
+					uint64_t difference = it->size / (mem->wordsize * arch->bitbase);
 
 					SSAArgument& firstPtrArg = firstExpr.subExpressions[1];
 					SSAArgument& secPtrArg = secExpr.subExpressions[1];
 
+					SSAArgument replacedsecarg = SSAArgument::createId(firstExpr.id, lastit->size, it->size);
+
 					//TODO calculate difference between firstPtrArg and secPtrArg and it should be firstExpr.size / arch->bitbase
 					if (firstPtrArg.type == secPtrArg.type) {
-						switch (firstPtrArg.type) {
-						case SSAArgType::eId: {
-							SSAExpression& firstPtrExpr = ssaRep->expressions[firstPtrArg.ssaId];
-							SSAExpression& secPtrExpr = ssaRep->expressions[secPtrArg.ssaId];
-						}break;
-						case SSAArgType::eUInt: {
+						if (firstPtrArg.type == SSAArgType::eUInt){
 							if ((firstPtrArg.uval + difference) == secPtrArg.uval) {
-								if (firstExpr.size < (it->size + lastit->size)) {
-									firstExpr.size = (it->size + lastit->size);
-								}
-								it->set(SSAArgument::createId(firstExpr.id, lastit->size, it->size));
-								replaced |= ssaRep->replaceExpr(secExpr, SSAArgument::createId(firstExpr.id, lastit->size, it->size)) != 0;
+								//make load bigger
+								firstExpr.size = std::max(firstExpr.size, (it->size + lastit->size));
+								//it->set(replacedsecarg);
+								replaced |= ssaRep->replaceExpr(secExpr, replacedsecarg) != 0;
 							}
-						}break;
 						}
-
+						else if (firstPtrArg.type == SSAArgType::eId) {
+							int64_t diff;
+							if (firstPtrArg.size == secPtrArg.size && firstPtrArg.offset == secPtrArg.offset &&
+								calculante_difference(ssaRep, firstPtrArg.ssaId, secPtrArg.ssaId, &diff)) {
+								if (difference == diff) {
+									//make load bigger
+									firstExpr.size = std::max(firstExpr.size, (it->size + lastit->size));
+									//it->set(replacedsecarg);
+									replaced |= ssaRep->replaceExpr(secExpr, replacedsecarg) != 0;
+								}
+								else {
+									ssaRep->print(arch);
+									fflush(stdout);
+									printf("");
+								}
+							}
+						}
 					}
 					lastit = it++;
 				}

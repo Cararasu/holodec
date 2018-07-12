@@ -200,8 +200,6 @@ namespace holodec {
 		}
 		static inline SSAArgument createOther(SSAArgType argType, uint32_t size = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
 			SSAArgument arg = { argType };
-			if (argType > SSAArgType::eOther)
-				*((char*)0) = 12;
 			arg.location = location;
 			arg.locref = locref;
 			arg.offset = 0;
@@ -468,6 +466,8 @@ namespace holodec {
 		
 	};
 	
+
+	bool calculante_difference(SSARepresentation* ssaRep, HId firstid, HId secid, int64_t* change);
 
 	//returns the distance traveled from the ssaId
 	//if distance is 0 then the expression with id == ssaId was neither an addition or a subtraction

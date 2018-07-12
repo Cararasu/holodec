@@ -23,6 +23,7 @@ namespace holodec {
 					copy.print(arch);
 					printf("New SSA ----------------------------------------------\n");
 					function->ssaRep.print(arch);
+					fflush(stdout);
 					*((char*)0) = 12;
 				}
 				applied = true;

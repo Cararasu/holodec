@@ -1183,4 +1183,18 @@ namespace holodec {
 		return 0;
 	}
 
+	bool calculante_difference(SSARepresentation* ssaRep, HId firstid, HId secid, int64_t* change) {
+		SSAArgument basearg1;
+		int64_t change1 = 0;
+		SSAArgument basearg2;
+		int64_t change2 = 0;
+		calculate_basearg_plus_offset(ssaRep, firstid, &change1, &basearg1);
+		calculate_basearg_plus_offset(ssaRep, secid, &change2, &basearg2);
+		if (basearg1 == basearg2) {
+			*change = change2 - change1;
+			return true;
+		}
+		return false;
+	}
+
 }

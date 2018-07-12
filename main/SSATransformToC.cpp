@@ -607,8 +607,6 @@ namespace holodec{
 		}break;
 
 		case SSAExprType::ePhi: {
-			resolveArgVariable(expr, true);
-			printf(" = ");
 			resolveArgVariable(expr, false);
 		}break;
 		case SSAExprType::eAssign: {
