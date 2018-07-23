@@ -229,7 +229,7 @@ namespace holodec {
 		
 		void label(){
 			for(size_t i = 0; i < list.size();++i){
-				list[i].id = i + 1;
+				list[i].id = static_cast<HId>(i + 1);
 			}
 		}
 	public:

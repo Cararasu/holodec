@@ -9,15 +9,13 @@
 #include "Register.h"
 #include "Stack.h"
 #include "Memory.h"
+#include "SSA.h"
 #include "CHolodecHeader.h"
 
 namespace holodec {
 
 	struct Architecture;
 
-	typedef int64_t ArgSInt;
-	typedef uint64_t ArgUInt;
-	typedef double ArgFloat;
 	struct ArgStck {
 		HId id;//id of the stack
 		HId index;//index into the stack or 0 for whole stack
@@ -28,30 +26,13 @@ namespace holodec {
 	bool inline operator!=(ArgStck& lhs, ArgStck& rhs){
 		return !(lhs == rhs);
 	}
-	struct Reference{
-		HId refId;
-		HId index;
-		
-		explicit operator bool(){
-			return (bool)refId;
-		}
-		explicit operator HReference(){
-			return {refId, index};
-		}
-		bool operator !(){
-			return !refId;
-		}
-	};
-	inline bool operator==(Reference& lhs, Reference& rhs){
-		return lhs.refId == rhs.refId && lhs.index == rhs.index;
-	}
 	
 	struct ArgMem { //segment::[base + index*scale + disp]
 		HId segment;
 		HId base;
 		HId index;
-		ArgSInt scale;
-		ArgSInt disp;
+		int64_t scale;
+		int64_t disp;
 	};
 	bool inline operator==(ArgMem& lhs, ArgMem& rhs){
 		return lhs.segment == rhs.segment && lhs.base == rhs.base && lhs.index == rhs.index && lhs.scale == rhs.scale && lhs.disp == rhs.disp;
@@ -64,9 +45,7 @@ namespace holodec {
 		IR_ARGTYPE_REG,
 		IR_ARGTYPE_STACK,
 		IR_ARGTYPE_MEM,
-		IR_ARGTYPE_SINT,
-		IR_ARGTYPE_UINT,
-		IR_ARGTYPE_FLOAT,
+		IR_ARGTYPE_VALUE,
 
 		IR_ARGTYPE_ID,
 		IR_ARGTYPE_SSAID,
@@ -77,10 +56,11 @@ namespace holodec {
 	};
 	struct IRArgument {
 		IRArgTypes type = IR_ARGTYPE_UNKN;
+		SSAType argtype = SSAType::eUnknown;
 		union {
-			ArgSInt sval;
-			ArgUInt uval;
-			ArgFloat fval;
+			int64_t sval;
+			uint64_t uval;
+			double fval;
 			ArgMem mem;
 			Reference ref;
 		};
@@ -93,33 +73,39 @@ namespace holodec {
 			return type != IR_ARGTYPE_UNKN;
 		}
 		bool isConst() {
-			return type == IR_ARGTYPE_SINT || type == IR_ARGTYPE_UINT || type == IR_ARGTYPE_FLOAT;
+			return type == IR_ARGTYPE_VALUE;
+		}
+		bool isConst(SSAType argtype) {
+			return type == IR_ARGTYPE_VALUE && this->argtype == argtype;
 		}
 		static inline IRArgument create() {
 			return IRArgument();
 		}
-		static inline IRArgument createIVal (int64_t val, uint32_t size) {
+		static inline IRArgument createSVal (int64_t val, uint32_t size) {
 			IRArgument arg;
-			arg.type = IR_ARGTYPE_SINT;
+			arg.type = IR_ARGTYPE_VALUE;
+			arg.argtype = SSAType::eInt;
 			arg.sval = val;
 			arg.size = size;
 			return arg;
 		}
 		static inline IRArgument createUVal (uint64_t val, uint32_t size) {
 			IRArgument arg;
-			arg.type = IR_ARGTYPE_UINT;
+			arg.type = IR_ARGTYPE_VALUE;
+			arg.argtype = SSAType::eUInt;
 			arg.uval = val;
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument createDVal (double val, uint32_t size) {
+		static inline IRArgument createFVal (double val, uint32_t size) {
 			IRArgument arg;
-			arg.type = IR_ARGTYPE_FLOAT;
+			arg.type = IR_ARGTYPE_VALUE;
+			arg.argtype = SSAType::eFloat;
 			arg.fval = val;
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument createMemOp (Register* segment, Register* base, Register* index, ArgSInt scale, ArgSInt disp, uint32_t size) {
+		static inline IRArgument createMemOp (Register* segment, Register* base, Register* index, int64_t scale, int64_t disp, uint32_t size) {
 			IRArgument arg;
 			arg.type = IR_ARGTYPE_MEMOP;
 			arg.mem.segment = segment ? segment->id : 0;
@@ -162,16 +148,20 @@ namespace holodec {
 
 
 	inline bool operator== (IRArgument& lhs, IRArgument& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset) {
+		if (lhs.type == rhs.type && lhs.argtype == rhs.argtype && lhs.size == rhs.size && lhs.offset == rhs.offset) {
 			switch (lhs.type) {
 			case IR_ARGTYPE_IP:
 				return true;
-			case IR_ARGTYPE_SINT:
-				return lhs.sval == rhs.sval;
-			case IR_ARGTYPE_UINT:
-				return lhs.uval == rhs.uval;
-			case IR_ARGTYPE_FLOAT:
-				return lhs.fval == rhs.fval;
+			case IR_ARGTYPE_VALUE:
+				switch (lhs.argtype) {
+				case SSAType::eInt:
+					return lhs.sval == rhs.sval;
+				case SSAType::eUInt:
+					return lhs.uval == rhs.uval;
+				case SSAType::eFloat:
+					return lhs.fval == rhs.fval;
+				}
+				return false;
 			case IR_ARGTYPE_REG:
 			case IR_ARGTYPE_STACK:
 			case IR_ARGTYPE_MEM:

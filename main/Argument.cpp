@@ -23,18 +23,21 @@ namespace holodec {
 		case IR_ARGTYPE_MEM: 
 			printf("Memory %s", arch->getMemory(ref.refId)->name.cstr());
 			break;
-		case IR_ARGTYPE_SINT:
-			if(sval < 0)
-				printf ("-0x%" PRIx64 "", -sval);
-			else
-				printf ("0x%" PRIx64 "", sval);
-			break;
-		case IR_ARGTYPE_UINT:
-			printf ("0x%" PRIx64, uval);
-			break;
-		case IR_ARGTYPE_FLOAT:
-			printf ("%f", fval);
-			break;
+		case IR_ARGTYPE_VALUE:
+			switch (argtype) {
+			case SSAType::eInt:
+				if (sval < 0)
+					printf("-0x%" PRIx64 "", -sval);
+				else
+					printf("0x%" PRIx64 "", sval);
+				break;
+			case SSAType::eUInt:
+				printf("0x%" PRIx64, uval);
+				break;
+			case SSAType::eFloat:
+				printf("%f", fval);
+				break;
+			}
 		case IR_ARGTYPE_ID:
 			printf ("IR %d", ref.refId);
 			break;

@@ -64,7 +64,7 @@ namespace holodec {
 				}
 			}
 			else if (expr.type == SSAExprType::eCall) {
-				if (expr.subExpressions[0].type != SSAArgType::eUInt)
+				if (!expr.subExpressions[0].isConst(SSAType::eUInt))
 					continue;
 				Function* callFunc = binary->getFunctionByAddr(expr.subExpressions[0].uval);
 				if (!callFunc || !callFunc->regStates.parsed)
@@ -101,7 +101,7 @@ namespace holodec {
 				if (expr.subExpressions[0].type != SSAArgType::eId || expr.location != SSALocation::eReg)
 					continue;
 				SSAExpression& callExpr = function->ssaRep.expressions[expr.subExpressions[0].ssaId];
-				if (callExpr.subExpressions[0].type != SSAArgType::eUInt)
+				if (!callExpr.subExpressions[0].isConst(SSAType::eUInt))
 					continue;
 				Function* callFunc = binary->getFunctionByAddr(callExpr.subExpressions[0].uval);
 				if (!(callFunc && callFunc->regStates.parsed))
@@ -135,7 +135,7 @@ namespace holodec {
 				if (expr.subExpressions[0].type != SSAArgType::eId || expr.location != SSALocation::eMem)
 					continue;
 				SSAExpression& callExpr = function->ssaRep.expressions[expr.subExpressions[0].ssaId];
-				if (callExpr.subExpressions[0].type != SSAArgType::eUInt)
+				if (!callExpr.subExpressions[0].isConst(SSAType::eUInt))
 					continue;
 				Function* callFunc = binary->getFunctionByAddr(callExpr.subExpressions[0].uval);
 				if (!(callFunc && callFunc->regStates.parsed))

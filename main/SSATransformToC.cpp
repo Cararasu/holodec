@@ -28,15 +28,15 @@ namespace holodec{
 
 	}
 	void printArgType(SSAArgument& arg) {
-		switch (arg.type) {
-		case SSAArgType::eSInt:
+		switch (arg.argtype) {
+		case SSAType::eInt:
 			printf("s%d ", arg.size);
 			break;
-		case SSAArgType::eFloat:
+		case SSAType::eFloat:
 			printf("f%d ", arg.size);
 			break;
 		default:
-		case SSAArgType::eUInt:
+		case SSAType::eUInt:
 			printf("u%d ", arg.size);
 			break;
 		}
@@ -376,14 +376,18 @@ namespace holodec{
 		case SSAArgType::eUndef:
 			printf("undef");
 			break;
-		case SSAArgType::eSInt:
-			printf("%" PRId64, arg.sval);
-			break;
-		case SSAArgType::eUInt:
-			printf("0x%" PRIx64, arg.uval);
-			break;
-		case SSAArgType::eFloat:
-			printf("%f", arg.fval);
+		case SSAArgType::eValue:
+			switch (arg.argtype) {
+			case SSAType::eInt:
+				printf("%" PRId64, arg.sval);
+				break;
+			case SSAType::eUInt:
+				printf("0x%" PRIx64, arg.uval);
+				break;
+			case SSAType::eFloat:
+				printf("%f", arg.fval);
+				break;
+			}
 			break;
 		case SSAArgType::eId: {
 			if (!resolveArgVariable(*subExpr, false)) {
@@ -1080,7 +1084,6 @@ namespace holodec{
 					resolveIds.insert(expr.id);
 				}
 			}
-
 		}
 		printf("\n");
 		HSet<HId> visited;
@@ -1091,10 +1094,8 @@ namespace holodec{
 		for (HId id : resolveIds) {
 			printf("%d, ", id);
 		}
-		printf("}\n");
-
+		printf("\n");
 
 		return false;
 	}
 }
-

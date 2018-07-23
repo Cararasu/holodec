@@ -101,7 +101,7 @@ namespace holodec {
 		}
 		for (Function* func : functions) {
 			for (SSAExpression& expr : func->ssaRep.expressions) {
-				if (expr.type == SSAExprType::eCall && expr.subExpressions[0].type == SSAArgType::eUInt) {
+				if (expr.type == SSAExprType::eCall && expr.subExpressions[0].isConst(SSAType::eUInt)) {
 					func->funcsCaller.insert(expr.subExpressions[0].uval);
 					Function* calledFunction = this->getFunctionByAddr(expr.subExpressions[0].uval);
 					if (calledFunction)

@@ -15,7 +15,7 @@ namespace holodec {
 	bool SSAReverseRegUsageAnalyzer::doTransformation(Binary* binary, Function* function) {
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type == SSAExprType::eCall) {
-				if (expr.subExpressions[0].type == SSAArgType::eUInt) {
+				if (expr.subExpressions[0].isConst(SSAType::eUInt)) {
 					Function* callingFunc = binary->getFunctionByAddr(expr.subExpressions[0].uval);
 					if (callingFunc) {
 						for (SSAArgument& arg : expr.subExpressions) {
@@ -31,7 +31,7 @@ namespace holodec {
 			} else if (expr.type == SSAExprType::eOutput && expr.location == SSALocation::eReg) {
 				if (expr.subExpressions[0].type == SSAArgType::eId) {
 					SSAExpression& callExpr = function->ssaRep.expressions[expr.subExpressions[0].ssaId];
-					if (callExpr.subExpressions[0].type == SSAArgType::eUInt) {
+					if (callExpr.subExpressions[0].isConst(SSAType::eUInt)) {
 						Function* callingFunc = binary->getFunctionByAddr(callExpr.subExpressions[0].uval);
 						if (callingFunc) {
 							//if reg or mem then it is read after the function is completed

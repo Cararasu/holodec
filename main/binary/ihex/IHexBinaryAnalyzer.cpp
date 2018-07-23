@@ -45,9 +45,9 @@ namespace holoihex {
 		binary->bytebase = 1;
 		binary->endianess = holodec::Endianess::eLittle;
 
-		holodec::MemoryArea* area = new holodec::MemoryArea();
-		area->endianess = holodec::Endianess::eLittle;
-		area->wordsize = 2;
+		holodec::MemorySpace* memSpace = new holodec::MemorySpace();
+		memSpace->endianess = holodec::Endianess::eLittle;
+		memSpace->wordsize = 2;
 
 		bool reachedfinal = false;
 		uint64_t index = 0;
@@ -58,15 +58,15 @@ namespace holoihex {
 			switch (type) {
 			case 0x00: {
 				holodec::DataSegment* appendSegment = nullptr;
-				for (holodec::DataSegment* dataSegment : area->dataSegments) {
+				for (holodec::DataSegment* dataSegment : memSpace->dataSegments) {
 					if (dataSegment->offset + dataSegment->data.size() == offset) {
 						appendSegment = dataSegment;
 						break;
 					}
 				}
 				if (!appendSegment) {
-					area->dataSegments.push_back(new holodec::DataSegment());
-					appendSegment = area->dataSegments.back();
+					memSpace->dataSegments.push_back(new holodec::DataSegment());
+					appendSegment = memSpace->dataSegments.back();
 					appendSegment->data.resize(size);
 					appendSegment->offset = offset;
 				}
@@ -87,11 +87,11 @@ namespace holoihex {
 
 				binary->arch = holodec::Main::g_main->getArchitecture("avr");
 
-				binary->defaultArea = area;
+				binary->defaultMemSpace = memSpace;
 
 				holodec::Memory* mem = binary->arch->getMemory("pmem");
 				assert(mem);
-				binary->memoryAreas.emplace(mem->id, area);
+				binary->memorySpaces.emplace(mem->id, memSpace);
 
 				holodec::Symbol* sym = binary->findSymbol(0, &holodec::SymbolType::symfunc);
 				if (!sym) {

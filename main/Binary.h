@@ -16,7 +16,7 @@
 
 namespace holodec {
 
-	struct MemoryArea {
+	struct MemorySpace {
 		StringRef name;
 		HList<DataSegment*> dataSegments;
 		uint64_t wordsize = 1;
@@ -72,7 +72,7 @@ namespace holodec {
 	};
 	struct Binary {
 		HString name;
-		MemoryArea* defaultArea;
+		MemorySpace* defaultMemSpace;
 
 		HList<HId> entrypoints;
 		HIdPtrList<Function*> functions;
@@ -81,7 +81,7 @@ namespace holodec {
 		HIdPtrList<Symbol*> symbols;
 		HIdPtrList<Section*> sections;
 
-		HMap<HId, MemoryArea*> memoryAreas;
+		HMap<HId, MemorySpace*> memorySpaces;
 
 		size_t bitbase;
 		size_t bytebase;
@@ -92,10 +92,10 @@ namespace holodec {
 		virtual ~Binary();
 
 		const uint8_t* getVDataPtr(size_t addr) {
-			return defaultArea->getVDataPtr(addr);
+			return defaultMemSpace->getVDataPtr(addr);
 		}
 		const uint8_t* getVDataPtr(HId memorySegmentId, size_t addr) {
-			for (std::pair<HId, MemoryArea*> entry : memoryAreas) {
+			for (std::pair<HId, MemorySpace*> entry : memorySpaces) {
 				if (entry.first == memorySegmentId) {
 					return entry.second->getVDataPtr(addr);
 				}
@@ -104,11 +104,11 @@ namespace holodec {
 		}
 		const uint64_t getVData(size_t addr, size_t bytesize = 1) {
 			assert(bytesize > 0 && bytesize <= sizeof(uint64_t));
-			return defaultArea->getVData(addr);
+			return defaultMemSpace->getVData(addr);
 		}
 		const uint64_t getVData(HId memorySegmentId, size_t addr) {
-			memoryAreas.at(memorySegmentId);
-			for (std::pair<HId, MemoryArea*> entry : memoryAreas) {
+			memorySpaces.at(memorySegmentId);
+			for (std::pair<HId, MemorySpace*> entry : memorySpaces) {
 				if (entry.first == memorySegmentId) {
 					return entry.second->getVData(addr);
 				}
@@ -116,10 +116,10 @@ namespace holodec {
 			return 0;
 		}
 		DataSegment* getDataSegment(size_t addr) {
-			return defaultArea->getDataSegment(addr);
+			return defaultMemSpace->getDataSegment(addr);
 		}
 		DataSegment* getDataSegment(HId memorySegmentId, size_t addr) {
-			for (std::pair<HId, MemoryArea*> entry : memoryAreas) {
+			for (std::pair<HId, MemorySpace*> entry : memorySpaces) {
 				if (entry.first == memorySegmentId) {
 					return entry.second->getDataSegment(addr);
 				}
@@ -183,12 +183,12 @@ namespace holodec {
 			printf ("Printing Binary %s\n", name.cstr());
 			printIndent(indent);
 			printf("Printing Mapped Memories\n");
-			for (std::pair<HId, MemoryArea*> area : memoryAreas) {
+			for (std::pair<HId, MemorySpace*> memSpace : memorySpaces) {
 				printIndent(indent + 1);
-				printf("Memory-Area %s\n", arch->getMemory(area.first)->name.cstr());
-				for (DataSegment* segment : area.second->dataSegments) {
+				printf("Memory-Area %s\n", arch->getMemory(memSpace.first)->name.cstr());
+				for (DataSegment* segment : memSpace.second->dataSegments) {
 					printIndent(indent + 2);
-					printf("Block: 0x%" PRIx64 " - 0x%" PRIx64 "\n", segment->offset, segment->offset + (segment->data.size() / area.second->wordsize));
+					printf("Block: 0x%" PRIx64 " - 0x%" PRIx64 "\n", segment->offset, segment->offset + (segment->data.size() / memSpace.second->wordsize));
 					printIndent(indent + 2);
 					printf("Size: 0x%zx\n", segment->data.size());
 				}

@@ -529,17 +529,21 @@ namespace holodec {
 		case SSAArgType::eUndef:
 			printf("Undef");
 			break;
-		case SSAArgType::eSInt:
-			if (sval < 0)
-				printf("-0x%" PRIx64 " ", -sval);
-			else
-				printf("0x%" PRIx64 " ", sval);
-			break;
-		case SSAArgType::eUInt:
-			printf("0x%" PRIx64 " ", uval);
-			break;
-		case SSAArgType::eFloat:
-			printf("%f ", fval);
+		case SSAArgType::eValue:
+			switch (argtype) {
+			case SSAType::eInt:
+				if (sval < 0)
+					printf("-0x%" PRIx64 " ", -sval);
+				else
+					printf("0x%" PRIx64 " ", sval);
+				break;
+			case SSAType::eUInt:
+				printf("0x%" PRIx64 " ", uval);
+				break;
+			case SSAType::eFloat:
+				printf("%f ", fval);
+				break;
+			}
 			break;
 		case SSAArgType::eId:
 			printf("SSA: %d ", ssaId);
@@ -569,24 +573,39 @@ namespace holodec {
 		case SSALocation::eNone:
 			break;
 		}
-		if (offset || size) printf("S[%d,%d]", offset, size);
+
+		switch (argtype) {
+		case SSAType::eInt:
+			printf("s[%d,%d]", offset, size);
+			break;
+		case SSAType::eUInt:
+			printf("u[%d,%d]", offset, size);
+			break;
+		case SSAType::eFloat:
+			printf("f[%d,%d]", offset, size);
+			break;
+		}
 	}
 	void SSAArgument::printSimple(Architecture* arch) {
 		switch (type) {
 		case SSAArgType::eUndef:
 			printf("Undef");
 			break;
-		case SSAArgType::eSInt:
-			if (sval < 0)
-				printf("-0x%" PRIx64 " ", -sval);
-			else
-				printf("0x%" PRIx64 " ", sval);
-			break;
-		case SSAArgType::eUInt:
-			printf("0x%" PRIx64 " ", uval);
-			break;
-		case SSAArgType::eFloat:
-			printf("%f ", fval);
+		case SSAArgType::eValue:
+			switch (argtype) {
+			case SSAType::eInt:
+				if (sval < 0)
+					printf("-0x%" PRIx64 " ", -sval);
+				else
+					printf("0x%" PRIx64 " ", sval);
+				break;
+			case SSAType::eUInt:
+				printf("0x%" PRIx64 " ", uval);
+				break;
+			case SSAType::eFloat:
+				printf("%f ", fval);
+				break;
+			}
 			break;
 		case SSAArgType::eId:
 			printf("SSA: %" PRId32 " ", ssaId);
@@ -608,6 +627,17 @@ namespace holodec {
 			printf("Block %d ", locref.refId);
 			break;
 		case SSALocation::eNone:
+			break;
+		}
+		switch (argtype) {
+		case SSAType::eInt:
+			printf("s[%d,%d]", offset, size);
+			break;
+		case SSAType::eUInt:
+			printf("u[%d,%d]", offset, size);
+			break;
+		case SSAType::eFloat:
+			printf("f[%d,%d]", offset, size);
 			break;
 		}
 	}
@@ -935,16 +965,16 @@ namespace holodec {
 	}
 	bool SSARepresentation::calcConstValue(SSAArgument argument, uint64_t* result) {
 		if (argument.isConst()) {
-			switch (argument.type) {
-			case SSAArgType::eSInt:
-				*result = static_cast<uint64_t>(argument.sval);
-				return true;
-			case SSAArgType::eUInt:
+			switch (argument.argtype) {
+			//case SSAType::eSInt:
+			//	*result = static_cast<uint64_t>(argument.sval);
+			//	return true;
+			case SSAType::eUInt:
 				*result = argument.uval;
 				return true;
-			case SSAArgType::eFloat:
-				*result = static_cast<uint64_t>(argument.fval);
-				return true;
+			//case SSAType::eFloat:
+			//	*result = static_cast<uint64_t>(argument.fval);
+			//	return true;
 			default:
 				return false;
 			}
@@ -1155,18 +1185,22 @@ namespace holodec {
 					continue;
 				}
 				if (i == 0 || referencedExpr.opType == SSAOpType::eAdd) {
-					if (onearg.type == SSAArgType::eUInt)
+					if (onearg.type != SSAArgType::eValue)
+						return 0;
+					if (onearg.argtype == SSAType::eUInt)
 						change += onearg.uval;
-					else if (onearg.type == SSAArgType::eSInt)
+					else if (onearg.argtype == SSAType::eInt)
 						change += onearg.sval;
 					else
 						return 0;
 				}
 				else {
-					if (onearg.type == SSAArgType::eUInt)
-						change -= onearg.uval;
-					else if (onearg.type == SSAArgType::eSInt)
-						change -= onearg.sval;
+					if (onearg.type != SSAArgType::eValue)
+						return 0;
+					if (onearg.argtype == SSAType::eUInt)
+						change = onearg.uval;
+					else if (onearg.argtype == SSAType::eInt)
+						change = onearg.sval;
 					else
 						return 0;
 				}

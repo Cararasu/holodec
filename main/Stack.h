@@ -26,7 +26,7 @@ namespace holodec {
 		uint32_t wordbitsize;
 		StringRef backingMem;
 		StringRef trackingReg;
-		HList<StringRef> backingRegs;
+		HList<StringRef> backingRegs;	
 		
 		void relabel (HIdGenerator* gen, std::function<void (HId, HId) > replacer = nullptr);
 	};

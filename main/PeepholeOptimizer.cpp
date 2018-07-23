@@ -178,7 +178,7 @@ namespace holodec {
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
 
-			if (expr.subExpressions.size() == 2 && expr.subExpressions[1].type == SSAArgType::eUInt && expr.subExpressions[1].uval == 0) {
+			if (expr.subExpressions.size() == 2 && expr.subExpressions[1].isConst(SSAType::eUInt) && expr.subExpressions[1].uval == 0) {
 				//if second parameter is a 0
 				expr.type = SSAExprType::eExtend;
 				expr.exprtype = SSAType::eUInt;
@@ -194,7 +194,7 @@ namespace holodec {
 						lastit = it++;
 						continue;
 					}
-					if (it->isConst() && it->type == lastit->type && it->type == SSAArgType::eUInt) {
+					if (it->isConst() && it->type == lastit->type && it->isConst(SSAType::eUInt)) {
 						lastit->uval |= (it->uval >> lastit->offset) << lastit->size;
 						lastit->size += it->size;
 						it = expr.removeArgument(ssaRep, it);
@@ -243,10 +243,10 @@ namespace holodec {
 					SSAArgument& firstPtrArg = firstExpr.subExpressions[1];
 					SSAArgument& secPtrArg = secExpr.subExpressions[1];
 
-					SSAArgument replacedsecarg = SSAArgument::createId(firstExpr.id, lastit->size, it->size);
+					SSAArgument replacedsecarg = SSAArgument::createId(firstExpr.id, SSAType::eUInt, lastit->size, it->size);
 
 					if (firstPtrArg.type == secPtrArg.type) {
-						if (firstPtrArg.type == SSAArgType::eUInt){
+						if (firstPtrArg.isConst(SSAType::eUInt)){
 							if ((firstPtrArg.uval + difference) == secPtrArg.uval) {
 								//make load bigger
 								firstExpr.size = std::max(firstExpr.size, (it->size + lastit->size));
@@ -333,7 +333,7 @@ namespace holodec {
 		})*/
 
 		.ssaType(0, 0, SSAExprType::ePhi)
-		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) -> bool {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
 			if (expr.type == SSAExprType::ePhi && expr.subExpressions.size()) {
 				bool undef = true;
@@ -353,7 +353,7 @@ namespace holodec {
 					}
 				}
 				if (undef) {
-					return ssaRep->replaceExpr(expr, SSAArgument::createUndef(expr.location, expr.locref, expr.size)) != 0;
+					return ssaRep->replaceExpr(expr, SSAArgument::createUndef(SSAType::eUInt, expr.location, expr.locref, expr.size)) != 0;
 				}
 				else if (alwaysTheSame) {
 					return ssaRep->replaceExpr(expr, expr.subExpressions[1]) != 0;
@@ -368,7 +368,9 @@ namespace holodec {
 			SSAExpression& firstAdd = ssaRep->expressions[context->expressionsMatched[2]];
 			SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
-			if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || carryExpr.subExpressions[0].offset + carryExpr.subExpressions[0].size != firstAdd.size)
+			if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || 
+				carryExpr.subExpressions[0].offset + carryExpr.subExpressions[0].size != firstAdd.size ||
+				firstAdd.exprtype == secondAdd.exprtype)
 				return false;
 			//TODO check if arguments of secondAdd are before firstAdd
 			//and replace firstAdd not secondAdd
@@ -400,7 +402,7 @@ namespace holodec {
 				uint32_t secsize = secondAdd.size;
 				secondAdd.size += firstAdd.size;
 
-				SSAArgument addArg = SSAArgument::createId(secondAdd.id, 0);
+				SSAArgument addArg = SSAArgument::createId(secondAdd.id, firstAdd.exprtype, 0);
 
 				SSAArgument splitArg1 = addArg;
 				splitArg1.size = firstAdd.size;
@@ -411,8 +413,8 @@ namespace holodec {
 				splitArg2.offset = firstAdd.size;
 
 				//Expression references invalidated
-				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondAdd.id), combine1.size);
-				SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
+				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondAdd.id), secondAdd.exprtype, combine1.size);
+				SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), secondAdd.exprtype, combine2.size);
 
 				//set arguments of second arg
 				ssaRep->expressions[context->expressionsMatched[0]].subExpressions = { combine1Arg, combine2Arg };
@@ -465,7 +467,7 @@ namespace holodec {
 				uint32_t secsize = secondSub.size;
 				secondSub.size += firstSub.size;
 
-				SSAArgument addArg = SSAArgument::createId(secondSub.id, 0);
+				SSAArgument addArg = SSAArgument::createId(secondSub.id, secondSub.exprtype, 0);
 
 				SSAArgument splitArg1 = addArg;
 				splitArg1.size = firstSub.size;
@@ -476,8 +478,8 @@ namespace holodec {
 				splitArg2.offset = firstSub.size;
 
 				//Expression references invalidated
-				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondSub.id), combine1.size);
-				SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), combine2.size);
+				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secondSub.id), secondSub.exprtype, combine1.size);
+				SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addAfter(&combine2, combine1Arg.ssaId), secondSub.exprtype, combine2.size);
 
 				//set arguments of second arg
 				ssaRep->expressions[context->expressionsMatched[0]].subExpressions = { combine1Arg, combine2Arg };
@@ -531,7 +533,7 @@ namespace holodec {
 					SSAArgument::createUVal(change < 0 ? change * -1 : change, arch->bitbase * arch->bytebase)
 				};
 				newExpr.size = subexpr.size;
-				SSAArgument arg = SSAArgument::createId(ssaRep->addBefore(&newExpr, subexpr.id), newExpr.size);
+				SSAArgument arg = SSAArgument::createId(ssaRep->addBefore(&newExpr, subexpr.id), SSAType::eUInt, newExpr.size);
 				SSAExpression& reloadedsubexpr = ssaRep->expressions[context->expressionsMatched[0]];
 				uint32_t count = ssaRep->replaceExpr(reloadedsubexpr, arg);
 				return count != 0;
@@ -547,8 +549,8 @@ namespace holodec {
 			SSAExpression& expr2 = ssaRep->expressions[context->expressionsMatched[0]];
 			if (expr1.subExpressions.size() == 2 &&
 				expr2.subExpressions.size() == 2 &&
-				((expr2.subExpressions[1].type == SSAArgType::eUInt && expr2.subExpressions[1].uval == 0) ||
-				(expr2.subExpressions[1].type == SSAArgType::eSInt && expr2.subExpressions[1].sval == 0))) {
+				((expr2.subExpressions[1].isConst(SSAType::eUInt) && expr2.subExpressions[1].uval == 0) ||
+				(expr2.subExpressions[1].isConst(SSAType::eInt) && expr2.subExpressions[1].sval == 0))) {
 				g_peephole_logger.log<LogLevel::eDebug>("Eq %d - Sub %d ", context->expressionsMatched[0], context->expressionsMatched[1]);
 
 				expr2.setAllArguments(ssaRep, expr1.subExpressions);
@@ -578,15 +580,8 @@ namespace holodec {
 			SSAArgument& arg = expr.subExpressions[0];
 			if (expr.directRefs.size()) {
 				if (arg.isConst()) {
-					if (arg.type == SSAArgType::eUInt) {
-						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
-						SSAArgument newarg = SSAArgument::replace(arg, SSAArgument::createUVal(arg.uval >> arg.offset, arg.size));
-						return ssaRep->replaceExpr(expr, newarg) != 0;
-					}
-					else if (arg.type == SSAArgType::eSInt) {
-						g_peephole_logger.log<LogLevel::eDebug>("Replace Const Assigns");
-						SSAArgument newarg = SSAArgument::replace(arg, SSAArgument::createSVal(arg.sval >> arg.offset, arg.size));
-						return ssaRep->replaceExpr(expr, newarg) != 0;
+					if (arg.argtype == expr.exprtype) {
+						return ssaRep->replaceExpr(expr, arg) != 0;
 					}
 				}
 				return ssaRep->replaceExpr(expr, arg) != 0;
@@ -672,7 +667,7 @@ namespace holodec {
 		.ssaType(0, 0, SSAExprType::eUndef)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
-			ssaRep->replaceAllArgs(expr, SSAArgument::createUndef(expr.location, expr.locref, expr.size));
+			ssaRep->replaceAllArgs(expr, SSAArgument::createUndef(SSAType::eUInt, expr.location, expr.locref, expr.size));
 			g_peephole_logger.log<LogLevel::eDebug>("Replace Undefs");
 			return true;
 		});

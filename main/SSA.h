@@ -5,8 +5,8 @@
 
 #include "Stack.h"
 #include "Register.h"
-#include "Argument.h"
 #include "General.h"
+#include "Memory.h"
 #include "HIdList.h"
 #include "CHolodecHeader.h"
 
@@ -106,22 +106,37 @@ namespace holodec {
 	
 	enum class SSAArgType{
 		eUndef = SSA_ARGTYPE_UNDEF,
-		eSInt = SSA_ARGTYPE_SINT,
-		eUInt = SSA_ARGTYPE_UINT,
-		eFloat = SSA_ARGTYPE_FLOAT,
+		eValue = SSA_ARGTYPE_VALUE,
 		eId = SSA_ARGTYPE_ID,
 		eOther = SSA_ARGTYPE_OTHER,
 	};
+	struct Reference {
+		HId refId;
+		HId index;
+
+		explicit operator bool() {
+			return (bool)refId;
+		}
+		explicit operator HReference() {
+			return { refId, index };
+		}
+		bool operator !() {
+			return !refId;
+		}
+	};
+	inline bool operator==(Reference& lhs, Reference& rhs) {
+		return lhs.refId == rhs.refId && lhs.index == rhs.index;
+	}
 	
 	struct SSAArgument {
-		//HId id = 0;
 		SSAArgType type = SSAArgType::eUndef;
+		SSAType argtype = SSAType::eUnknown;
 		uint32_t offset = 0, size = 0;
 		union {
 			HId ssaId;
-			ArgSInt sval;
-			ArgUInt uval;
-			ArgFloat fval;
+			int64_t sval;
+			uint64_t uval;
+			double fval;
 		};
 		SSALocation location = SSALocation::eNone;
 		Reference locref = {0, 0};
@@ -134,15 +149,20 @@ namespace holodec {
 			return type == SSAArgType::eUndef;
 		}
 		bool isConst() {
-			return type == SSAArgType::eSInt || type == SSAArgType::eUInt || type == SSAArgType::eFloat;
+			return type == SSAArgType::eValue;
+		}
+		bool isConst(SSAType ssatype) {
+			return type == SSAArgType::eValue && argtype == ssatype;
 		}
 		bool isValue(uint32_t val){
-			if(type == SSAArgType::eSInt){
+			if (type != SSAArgType::eValue)
+				return false;
+			if(argtype == SSAType::eInt){
 				return sval == val;
-			}else if(type == SSAArgType::eUInt){
+			}else if(argtype == SSAType::eUInt){
 				return uval == val;
-			}else if(type == SSAArgType::eFloat){
-				return fval == (ArgFloat)val;
+			}else if(argtype == SSAType::eFloat){
+				return fval == (double)val;
 			}
 			return false;
 		}
@@ -151,6 +171,7 @@ namespace holodec {
 				arg.location = location;
 				arg.locref = locref;
 			}
+			arg.argtype = argtype;
 			arg.size = size;
 			if (arg.size < 0) {
 				puts(" ");
@@ -169,28 +190,28 @@ namespace holodec {
 			return SSAArgument();
 		}
 		static inline SSAArgument createSVal (int64_t val, uint32_t size, uint32_t offset = 0) {
-			SSAArgument arg = { SSAArgType::eSInt };
+			SSAArgument arg = { SSAArgType::eValue, SSAType::eInt };
 			arg.sval = val;
 			arg.size = size;
 			arg.offset = offset;
 			return arg;
 		}
 		static inline SSAArgument createUVal (uint64_t val, uint32_t size, uint32_t offset = 0) {
-			SSAArgument arg = { SSAArgType::eUInt };
+			SSAArgument arg = { SSAArgType::eValue, SSAType::eUInt };
 			arg.uval = val;
 			arg.size = size;
 			arg.offset = offset;
 			return arg;
 		}
-		static inline SSAArgument createDVal (double val, uint32_t size, uint32_t offset = 0) {
-			SSAArgument arg = { SSAArgType::eFloat };
+		static inline SSAArgument createFVal (double val, uint32_t size, uint32_t offset = 0) {
+			SSAArgument arg = { SSAArgType::eValue, SSAType::eFloat };
 			arg.fval = val;
 			arg.size = size;
 			arg.offset = offset;
 			return arg;
 		}
-		static inline SSAArgument create(HId ssaId, uint32_t size = 0, uint32_t offset = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
-			SSAArgument arg = { SSAArgType::eId };
+		static inline SSAArgument create(HId ssaId, SSAType ssatype, uint32_t size = 0, uint32_t offset = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
+			SSAArgument arg = { SSAArgType::eId, ssatype };
 			arg.ssaId = ssaId;
 			arg.location = location;
 			arg.locref = locref;
@@ -198,46 +219,46 @@ namespace holodec {
 			arg.offset = offset;
 			return arg;
 		}
-		static inline SSAArgument createOther(SSAArgType argType, uint32_t size = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
-			SSAArgument arg = { argType };
+		static inline SSAArgument createOther(SSAArgType argType, SSAType ssatype, uint32_t size = 0, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
+			SSAArgument arg = { argType, ssatype };
 			arg.location = location;
 			arg.locref = locref;
 			arg.offset = 0;
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument createUndef (SSALocation location, Reference locref, uint32_t size = 0) {
-			SSAArgument arg = { SSAArgType::eUndef };
+		static inline SSAArgument createUndef (SSAType ssatype, SSALocation location, Reference locref, uint32_t size = 0) {
+			SSAArgument arg = { SSAArgType::eUndef, ssatype };
 			arg.location = location;
 			arg.locref = locref;
 			arg.size = size;
 			return arg;
 		}
-		static inline SSAArgument createId(HId ssaId, uint32_t size, uint32_t offset = 0) {
+		static inline SSAArgument createId(HId ssaId, SSAType ssatype, uint32_t size, uint32_t offset = 0) {
 			assert(ssaId);
 			assert(size > 0);
-			return create(ssaId, size, offset, SSALocation::eNone, { 0, 0 });
+			return create(ssaId, ssatype, size, offset, SSALocation::eNone, { 0, 0 });
 		}
-		static inline SSAArgument createReg(Register* reg, HId ssaId = 0, uint32_t offset = 0) {
-			return create(ssaId, reg->size - offset, offset, SSALocation::eReg, { reg->id, 0 });
+		static inline SSAArgument createReg(Register* reg, SSAType ssatype, HId ssaId = 0, uint32_t offset = 0) {
+			return create(ssaId, ssatype, reg->size - offset, offset, SSALocation::eReg, { reg->id, 0 });
 		}
-		static inline SSAArgument createReg (Reference ref, uint32_t size, uint32_t offset, HId ssaId = 0) {
-			return create(ssaId, size, offset, SSALocation::eReg, ref);
+		static inline SSAArgument createReg (Reference ref, SSAType ssatype, uint32_t size, uint32_t offset, HId ssaId = 0) {
+			return create(ssaId, ssatype, size, offset, SSALocation::eReg, ref);
 		}
 		static inline SSAArgument createMem(Memory* mem, HId ssaId = 0) {
-			return  create(ssaId, 0, 0, SSALocation::eMem, {mem->id, 0});
+			return  create(ssaId, SSAType::eUnknown, 0, 0, SSALocation::eMem, {mem->id, 0});
 		}
 		static inline SSAArgument createMem (HId memId, HId ssaId = 0) {
-			return  create(ssaId, 0, 0, SSALocation::eMem, {memId, 0});
+			return  create(ssaId, SSAType::eUnknown, 0, 0, SSALocation::eMem, {memId, 0});
 		}
 		static inline SSAArgument createStck(Stack* stack, HId index = 0) {
-			return  createOther(SSAArgType::eOther, 0, SSALocation::eStack, { stack->id, index });
+			return  createOther(SSAArgType::eOther, SSAType::eUnknown, 0, SSALocation::eStack, { stack->id, index });
 		}
 		static inline SSAArgument createStck (Reference ref) {
-			return createOther(SSAArgType::eOther, 0, SSALocation::eStack, ref);
+			return createOther(SSAArgType::eOther, SSAType::eUnknown, 0, SSALocation::eStack, ref);
 		}
 		static inline SSAArgument createBlock (HId blockId) {
-			return createOther(SSAArgType::eOther, 0, SSALocation::eBlock, {blockId, 0});
+			return createOther(SSAArgType::eOther, SSAType::eUnknown, 0, SSALocation::eBlock, {blockId, 0});
 		}
 
 		void print(Architecture* arch);
@@ -246,14 +267,19 @@ namespace holodec {
 
 
 	inline bool operator== (SSAArgument& lhs, SSAArgument& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset && lhs.location == rhs.location && lhs.locref == rhs.locref) {
+		if (lhs.type == rhs.type && lhs.argtype == rhs.argtype && lhs.size == rhs.size && lhs.offset == rhs.offset && lhs.location == rhs.location && lhs.locref == rhs.locref) {
 			switch (lhs.type) {
-			case SSAArgType::eSInt:
-				return lhs.sval == rhs.sval;
-			case SSAArgType::eUInt:
-				return lhs.uval == rhs.uval;
-			case SSAArgType::eFloat:
-				return lhs.fval == rhs.fval;
+			case SSAArgType::eValue:
+				switch (lhs.argtype) {
+				case SSAType::eInt:
+					return lhs.sval == rhs.sval;
+				case SSAType::eUInt:
+					return lhs.uval == rhs.uval;
+				case SSAType::eFloat:
+					return lhs.fval == rhs.fval;
+				default:
+					return false;
+				}
 			case SSAArgType::eId:
 				return lhs.ssaId == rhs.ssaId;
 			case SSAArgType::eOther:
@@ -266,14 +292,19 @@ namespace holodec {
 		return false;
 	}
 	inline bool weak_equals(SSAArgument& lhs, SSAArgument& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.offset == rhs.offset) {
+		if (lhs.type == rhs.type && lhs.argtype == rhs.argtype && lhs.size == rhs.size && lhs.offset == rhs.offset) {
 			switch (lhs.type) {
-			case SSAArgType::eSInt:
-				return lhs.sval == rhs.sval;
-			case SSAArgType::eUInt:
-				return lhs.uval == rhs.uval;
-			case SSAArgType::eFloat:
-				return lhs.fval == rhs.fval;
+			case SSAArgType::eValue:
+				switch (lhs.argtype) {
+				case SSAType::eInt:
+					return lhs.sval == rhs.sval;
+				case SSAType::eUInt:
+					return lhs.uval == rhs.uval;
+				case SSAType::eFloat:
+					return lhs.fval == rhs.fval;
+				default:
+					return false;
+				}
 			case SSAArgType::eId:
 				return lhs.ssaId == rhs.ssaId;
 			case SSAArgType::eOther:
@@ -287,14 +318,20 @@ namespace holodec {
 	}
 	inline bool consecutive_arg(SSAArgument& lhs, SSAArgument& rhs) {
 
-		if (lhs.type == rhs.type && lhs.size + lhs.offset == rhs.offset) {
+		if (lhs.type == rhs.type && lhs.argtype == rhs.argtype && lhs.size + lhs.offset == rhs.offset) {
 			switch (lhs.type) {
-			case SSAArgType::eSInt:
-				return lhs.sval == rhs.sval;
-			case SSAArgType::eUInt:
-				return lhs.uval == rhs.uval;
-			case SSAArgType::eFloat:
-				return lhs.fval == rhs.fval;
+			case SSAArgType::eValue:
+				switch (lhs.argtype) {
+				case SSAType::eInt:
+					return lhs.sval == rhs.sval;
+				case SSAType::eUInt:
+					return lhs.uval == rhs.uval;
+				case SSAType::eFloat:
+					return lhs.fval == rhs.fval;
+				default:
+					return false;
+				}
+				return false;
 			case SSAArgType::eId:
 				return lhs.ssaId == rhs.ssaId;
 			case SSAArgType::eOther:
