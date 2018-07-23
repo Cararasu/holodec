@@ -6,9 +6,6 @@ namespace holodec{
 
 	void printExprType(SSAExpression& expr) {
 		switch (expr.exprtype) {
-		case SSAType::eUnknown:
-			printf("Unkn%d ", expr.size);
-			break;
 		case SSAType::eInt:
 			printf("s%d ", expr.size);
 			break;

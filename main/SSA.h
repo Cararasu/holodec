@@ -83,9 +83,8 @@ namespace holodec {
 		eRol = SSA_OP_ROL,
 	};
 	enum class SSAType {
-		eUnknown = SSA_TYPE_UNKNOWN,
-		eInt = SSA_TYPE_INT,
 		eUInt = SSA_TYPE_UINT,
+		eInt = SSA_TYPE_INT,
 		eFloat = SSA_TYPE_FLOAT,
 		ePc = SSA_TYPE_PC,
 		eMemaccess = SSA_TYPE_MEMACCESS,
@@ -130,7 +129,7 @@ namespace holodec {
 	
 	struct SSAArgument {
 		SSAArgType type = SSAArgType::eUndef;
-		SSAType argtype = SSAType::eUnknown;
+		SSAType argtype = SSAType::eUInt;
 		uint32_t offset = 0, size = 0;
 		union {
 			HId ssaId;
@@ -171,7 +170,21 @@ namespace holodec {
 				arg.location = location;
 				arg.locref = locref;
 			}
-			arg.argtype = argtype;
+			if (arg.type == SSAArgType::eValue && arg.argtype != argtype) {//convert the value
+				if (arg.argtype == SSAType::eFloat && argtype == SSAType::eInt)
+					arg.sval = static_cast<int64_t>(arg.fval);
+				else if (arg.argtype == SSAType::eFloat && argtype == SSAType::eUInt)
+					arg.uval = static_cast<uint64_t>(arg.fval);
+				else if (arg.argtype == SSAType::eInt && argtype == SSAType::eFloat)
+					arg.fval = static_cast<double>(arg.sval);
+				else if (arg.argtype == SSAType::eInt && argtype == SSAType::eUInt)
+					arg.uval = static_cast<uint64_t>(arg.sval);
+				else if (arg.argtype == SSAType::eUInt && argtype == SSAType::eFloat)
+					arg.fval = static_cast<double>(arg.uval);
+				else if (arg.argtype == SSAType::eUInt && argtype == SSAType::eInt)
+					arg.sval = static_cast<int64_t>(arg.uval);
+			}
+			arg.argtype = argtype;//keep the type
 			arg.size = size;
 			if (arg.size < 0) {
 				puts(" ");
@@ -246,19 +259,19 @@ namespace holodec {
 			return create(ssaId, ssatype, size, offset, SSALocation::eReg, ref);
 		}
 		static inline SSAArgument createMem(Memory* mem, HId ssaId = 0) {
-			return  create(ssaId, SSAType::eUnknown, 0, 0, SSALocation::eMem, {mem->id, 0});
+			return  create(ssaId, SSAType::eUInt, 0, 0, SSALocation::eMem, {mem->id, 0});
 		}
 		static inline SSAArgument createMem (HId memId, HId ssaId = 0) {
-			return  create(ssaId, SSAType::eUnknown, 0, 0, SSALocation::eMem, {memId, 0});
+			return  create(ssaId, SSAType::eUInt, 0, 0, SSALocation::eMem, {memId, 0});
 		}
 		static inline SSAArgument createStck(Stack* stack, HId index = 0) {
-			return  createOther(SSAArgType::eOther, SSAType::eUnknown, 0, SSALocation::eStack, { stack->id, index });
+			return  createOther(SSAArgType::eOther, SSAType::eUInt, 0, SSALocation::eStack, { stack->id, index });
 		}
 		static inline SSAArgument createStck (Reference ref) {
-			return createOther(SSAArgType::eOther, SSAType::eUnknown, 0, SSALocation::eStack, ref);
+			return createOther(SSAArgType::eOther, SSAType::eUInt, 0, SSALocation::eStack, ref);
 		}
 		static inline SSAArgument createBlock (HId blockId) {
-			return createOther(SSAArgType::eOther, SSAType::eUnknown, 0, SSALocation::eBlock, {blockId, 0});
+			return createOther(SSAArgType::eOther, SSAType::eUInt, 0, SSALocation::eBlock, {blockId, 0});
 		}
 
 		void print(Architecture* arch);
@@ -365,7 +378,7 @@ namespace holodec {
 		HId blockId = 0;
 		SSAExprType type = SSAExprType::eInvalid;
 		uint32_t size = 0;
-		SSAType exprtype = SSAType::eUnknown;
+		SSAType exprtype = SSAType::eUInt;
 		union { //64 bit
 			SSAFlagType flagType;
 			SSAOpType opType;

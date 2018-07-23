@@ -8,9 +8,7 @@ namespace holodec {
 	IRParser::IRParser (Architecture* arch) : arch (arch) {
 		IRExpression expression;
 		{
-			expression.exprtype = SSAType::eUnknown;
-			expression.type = IR_EXPR_UNDEF;
-			expressionmap.insert (std::make_pair ("undef", expression));
+			expression.exprtype = SSAType::eUInt;
 			expression.type = IR_EXPR_SEQUENCE;
 			expressionmap.insert (std::make_pair ("seq", expression));
 			expression.type = IR_EXPR_TRAP;
@@ -31,12 +29,14 @@ namespace holodec {
 			expressionmap.insert (std::make_pair ("if", expression));
 			expression.type = IR_EXPR_REP;
 			expressionmap.insert (std::make_pair ("rep", expression));
-			expression.type = IR_EXPR_ASSIGN;
-			expressionmap.insert (std::make_pair ("assign", expression));
 		}
 
 		{
 			expression.exprtype = SSAType::eUInt;
+			expression.type = IR_EXPR_ASSIGN;
+			expressionmap.insert(std::make_pair("assign", expression));
+			expression.type = IR_EXPR_UNDEF;
+			expressionmap.insert(std::make_pair("undef", expression));
 			{
 				expression.type = IR_EXPR_FLAG;
 				expression.size = arch->bitbase;
@@ -163,9 +163,6 @@ namespace holodec {
 		pushback();
 		return false;
 	}
-	struct IndexStruct {
-		SSAType type = SSAType::eUnknown;
-	};
 	IRArgument IRParser::parseIndex (IRArgument arg) {
 		if (parseCharacter ('[')) {
 			char buffer[100];

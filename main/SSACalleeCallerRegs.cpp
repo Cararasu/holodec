@@ -50,9 +50,8 @@ namespace holodec{
 			return false;
 		if (expr->type == SSAExprType::eAppend) {
 			uint32_t poffset = outoffset;
-			HId id = 0;
 			for (SSAArgument& argIt : expr->subExpressions) {
-				if (!isInput(arg.replace(argIt), poffset, exprvisited, retArg)) {
+				if (argIt.type != SSAArgType::eId || !isInput(arg.replace(argIt), poffset, exprvisited, retArg)) {
 					return false;
 				}
 				poffset += argIt.size;
@@ -77,7 +76,7 @@ namespace holodec{
 		printf("Resolving Callee-saved-Registers in Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 
 		ssaRep = &function->ssaRep;
-
+		ssaRep->checkIntegrity();
 		for (SSAExpression& expr : ssaRep->expressions) {
 			if (expr.type != SSAExprType::eReturn)
 				continue;

@@ -24,6 +24,8 @@ namespace holodec {
 
 		CalleeArgument replace(CalleeArgument arg) {
 			CalleeArgument retArg = arg;
+			printf("SSAId %d\n", retArg.ssaId);
+			fflush(stdout);
 			retArg.offset += offset;
 			return retArg;
 		}

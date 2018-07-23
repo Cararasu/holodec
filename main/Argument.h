@@ -56,7 +56,7 @@ namespace holodec {
 	};
 	struct IRArgument {
 		IRArgTypes type = IR_ARGTYPE_UNKN;
-		SSAType argtype = SSAType::eUnknown;
+		SSAType argtype = SSAType::eUInt;
 		union {
 			int64_t sval;
 			uint64_t uval;

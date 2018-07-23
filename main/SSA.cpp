@@ -105,9 +105,6 @@ namespace holodec {
 		printf("0x%" PRIx64 ":", instrAddr);
 
 		switch (this->exprtype) {
-		case SSAType::eUnknown:
-			printf(" unkn");
-			break;
 		case SSAType::eInt:
 			printf("  int");
 			break;
@@ -320,9 +317,6 @@ namespace holodec {
 		printIndent(indent);
 
 		switch (this->exprtype) {
-		case SSAType::eUnknown:
-			printf(" unkn");
-			break;
 		case SSAType::eInt:
 			printf("  int");
 			break;

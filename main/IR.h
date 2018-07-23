@@ -59,7 +59,7 @@ namespace holodec {
 		HId id;
 		IRExprType type = IR_EXPR_INVALID;
 		uint32_t size = 0;
-		SSAType exprtype = SSAType::eUnknown;
+		SSAType exprtype = SSAType::eUInt;
 		struct { //196 bit
 			union { //64 bit
 				SSAFlagType flagType;
