@@ -526,8 +526,8 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 		{X86_INS_MOVSX, "movsx", {{2, "=(#arg[1],#ext[s](#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov, InstructionType::eExtend},
 		{X86_INS_MOVZX, "movzx", {{2, "=(#arg[1],#ext(#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov, InstructionType::eExtend},
 
-		{X86_INS_ADD, "add", {{2, "#seq(+(#arg[1][0,4],#arg[2][0,4]),=($af,#c),=(#arg[1],+(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
-		{X86_INS_ADC, "adc", {{2, "#seq(+(#arg[1][0,4],#arg[2][0,4],$cf),=($af,#c),=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADD, "add", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($af,#c(4)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADC, "adc", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($af,#c(4)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
 
 		{X86_INS_SUB, "sub", {{2, "#seq(-(#arg[1][0,4],#arg[2][0,4]),=($af,#c),=(#arg[1],-(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
 		{X86_INS_SBB, "sbb", {{2, "#seq(-(#arg[1][0,4],#arg[2][0,4],$cf),=($af,#c),=(#arg[1],-(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},

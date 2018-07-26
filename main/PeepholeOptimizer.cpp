@@ -535,7 +535,7 @@ namespace holodec {
 				newExpr.size = subexpr.size;
 				SSAArgument arg = SSAArgument::createId(ssaRep->addBefore(&newExpr, subexpr.id), SSAType::eUInt, newExpr.size);
 				SSAExpression& reloadedsubexpr = ssaRep->expressions[context->expressionsMatched[0]];
-				uint32_t count = ssaRep->replaceExpr(reloadedsubexpr, arg);
+				uint64_t count = ssaRep->replaceExpr(reloadedsubexpr, arg);
 				return count != 0;
 			}
 			else {

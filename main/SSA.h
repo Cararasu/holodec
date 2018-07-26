@@ -98,14 +98,13 @@ namespace holodec {
 	enum class SSALocation{
 		eNone = SSA_LOCATION_NONE,
 		eReg = SSA_LOCATION_REG,
-		eStack = SSA_LOCATION_STACK,
 		eMem = SSA_LOCATION_MEM,
-		eBlock = SSA_LOCATION_BLOCK,
 	};
 	
 	enum class SSAArgType{
 		eUndef = SSA_ARGTYPE_UNDEF,
 		eValue = SSA_ARGTYPE_VALUE,
+		eBlock = SSA_ARGTYPE_BLOCK,
 		eId = SSA_ARGTYPE_ID,
 		eOther = SSA_ARGTYPE_OTHER,
 	};
@@ -264,14 +263,11 @@ namespace holodec {
 		static inline SSAArgument createMem (HId memId, HId ssaId = 0) {
 			return  create(ssaId, SSAType::eUInt, 0, 0, SSALocation::eMem, {memId, 0});
 		}
-		static inline SSAArgument createStck(Stack* stack, HId index = 0) {
-			return  createOther(SSAArgType::eOther, SSAType::eUInt, 0, SSALocation::eStack, { stack->id, index });
-		}
-		static inline SSAArgument createStck (Reference ref) {
-			return createOther(SSAArgType::eOther, SSAType::eUInt, 0, SSALocation::eStack, ref);
-		}
 		static inline SSAArgument createBlock (HId blockId) {
-			return createOther(SSAArgType::eOther, SSAType::eUInt, 0, SSALocation::eBlock, {blockId, 0});
+			return createOther(SSAArgType::eBlock, SSAType::eUInt, blockId);
+			SSAArgument arg = { SSAArgType::eBlock, SSAType::eUInt };
+			arg.ssaId = blockId;
+			return arg;
 		}
 
 		void print(Architecture* arch);

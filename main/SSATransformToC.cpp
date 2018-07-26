@@ -682,31 +682,31 @@ namespace holodec{
 	}
 
 	void SSATransformToC::resolveBlockArgument(ControlStruct* controlStruct, SSAArgument& arg, std::set<HId>& printed, uint32_t indent) {
-		if (arg.type == SSAArgType::eOther && arg.location == SSALocation::eBlock) {
-			if (arg.locref.refId != controlStruct->main_exit) {
-				if (controlStruct->contained_blocks.find(arg.locref.refId) == controlStruct->contained_blocks.end()) {
-					if (controlStruct->main_exit != arg.locref.refId) {
-						if (!resolveEscapeLoop(controlStruct, arg.locref.refId, indent)) {
-							printIndent(indent); printf("goto L%d\n", arg.locref.refId);
+		if (arg.type == SSAArgType::eBlock) {
+			if (arg.ssaId != controlStruct->main_exit) {
+				if (controlStruct->contained_blocks.find(arg.ssaId) == controlStruct->contained_blocks.end()) {
+					if (controlStruct->main_exit != arg.ssaId) {
+						if (!resolveEscapeLoop(controlStruct, arg.ssaId, indent)) {
+							printIndent(indent); printf("goto L%d\n", arg.ssaId);
 						}
 					}
 				}
 				else {
-					ControlStruct* subStruct = getStructFromHead(controlStruct, arg.locref.refId);
+					ControlStruct* subStruct = getStructFromHead(controlStruct, arg.ssaId);
 					if (subStruct)
 						printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent);
-					else if (controlStruct->main_exit != arg.locref.refId)  {
-						resolveEscapeLoop(controlStruct, arg.locref.refId, indent);
-						printIndent(indent); printf("goto L%d\n", arg.locref.refId);
+					else if (controlStruct->main_exit != arg.ssaId)  {
+						resolveEscapeLoop(controlStruct, arg.ssaId, indent);
+						printIndent(indent); printf("goto L%d\n", arg.ssaId);
 					}
 					else {
-						resolveEscapeLoop(controlStruct, arg.locref.refId, indent);
+						resolveEscapeLoop(controlStruct, arg.ssaId, indent);
 						//goto to the main exit
 					}
 				}
 			}
 			else {
-				resolveEscapeLoop(controlStruct, arg.locref.refId, indent);
+				resolveEscapeLoop(controlStruct, arg.ssaId, indent);
 				//main exit
 			}
 		}
@@ -973,8 +973,8 @@ namespace holodec{
 								}
 								loopBB.outBlocks.insert(newbb.id);
 								for (SSAArgument& arg : branchExpr.subExpressions) {
-									if (arg.type == SSAArgType::eOther && arg.location == SSALocation::eBlock && arg.locref.refId == oldBlockId)
-										arg.locref.refId = newbb.id;
+									if (arg.type == SSAArgType::eBlock && arg.ssaId == oldBlockId)
+										arg.ssaId = newbb.id;
 								}
 							}
 

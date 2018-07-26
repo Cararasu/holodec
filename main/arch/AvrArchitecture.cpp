@@ -100,9 +100,9 @@ namespace holoavr {
 			{ 0, "dmem", 1 }
 		},
 		{
-			{ 0, "in" },
-			{ 0, "out" },
-			{ 0, "watchdogreset" },
+			{ 0, "in", false },
+			{ 0, "out", false },
+			{ 0, "watchdogreset", true },
 		},
 		{
 			{}

@@ -287,14 +287,8 @@ namespace holodec {
 		case SSALocation::eReg:
 			printf("Reg: %10.10s ", arch->getRegister(locref.refId)->name.cstr());
 			break;
-		case SSALocation::eStack:
-			printf("Stack: %4.4s[%.2" PRId32 "] ", arch->getStack(locref.refId)->name.cstr(), locref.index);
-			break;
 		case SSALocation::eMem:
 			printf("Mem: %10.10s ", arch->getMemory(locref.refId)->name.cstr());
-			break;
-		case SSALocation::eBlock:
-			printf("Block: %.4" PRId32 "     ", locref.refId);
 			break;
 		case SSALocation::eNone:
 			printf("                ");
@@ -500,14 +494,8 @@ namespace holodec {
 		case SSALocation::eReg:
 			printf("Reg: %s ", arch->getRegister(locref.refId)->name.cstr());
 			break;
-		case SSALocation::eStack:
-			printf("Stack: %s[%" PRId32 "] ", arch->getStack(locref.refId)->name.cstr(), locref.index);
-			break;
 		case SSALocation::eMem:
 			printf("Mem: %s ", arch->getMemory(locref.refId)->name.cstr());
-			break;
-		case SSALocation::eBlock:
-			printf("Block: %" PRId32 " ", locref.refId);
 			break;
 		case SSALocation::eNone:
 			break;
@@ -542,6 +530,9 @@ namespace holodec {
 		case SSAArgType::eId:
 			printf("SSA: %d ", ssaId);
 			break;
+		case SSAArgType::eBlock:
+			printf("Block: %" PRId32 " ", ssaId);
+			break;
 		case SSAArgType::eOther:
 			break;
 		default:
@@ -555,14 +546,8 @@ namespace holodec {
 			else
 				printf("No Reg Def ");
 			break;
-		case SSALocation::eStack:
-			printf("Stack-%s[%d] ", arch->getStack(locref.refId)->name.cstr(), locref.index);
-			break;
 		case SSALocation::eMem:
 			printf("Memory %s ", arch->getMemory(locref.refId)->name.cstr());
-			break;
-		case SSALocation::eBlock:
-			printf("Block %d ", locref.refId);
 			break;
 		case SSALocation::eNone:
 			break;
@@ -604,6 +589,9 @@ namespace holodec {
 		case SSAArgType::eId:
 			printf("SSA: %" PRId32 " ", ssaId);
 			break;
+		case SSAArgType::eBlock:
+			printf("Block: %" PRId32 " ", ssaId);
+			break;
 		case SSAArgType::eOther:
 			break;
 		default:
@@ -611,14 +599,8 @@ namespace holodec {
 		}
 
 		switch (location) {
-		case SSALocation::eStack:
-			printf("Stack-%s[%d] ", arch->getStack(locref.refId)->name.cstr(), locref.index);
-			break;
 		case SSALocation::eMem:
 			printf("Memory %s ", arch->getMemory(locref.refId)->name.cstr());
-			break;
-		case SSALocation::eBlock:
-			printf("Block %d ", locref.refId);
 			break;
 		case SSALocation::eNone:
 			break;

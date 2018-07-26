@@ -19,7 +19,7 @@ namespace holodec {
 			}
 		}
 		else {
-			if (arg.type == SSAArgType::eOther && arg.location != SSALocation::eBlock) {
+			if (arg.type != SSAArgType::eBlock) {
 				SSAExpression& loadExpr = function->ssaRep.expressions[arg.ssaId];
 				if (loadExpr.type == SSAExprType::eLoad) {
 					uint64_t baseaddr;

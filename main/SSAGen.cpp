@@ -389,8 +389,6 @@ namespace holodec {
 			return SSAArgument::create();
 		case IR_ARGTYPE_MEM:
 			return SSAArgument::createMem (arg.ref.refId);
-		case IR_ARGTYPE_STACK:
-			return SSAArgument::createStck (arg.ref);
 		case IR_ARGTYPE_REG:
 			return SSAArgument::createReg (arg.ref, arg.argtype, arg.size, arg.offset);
 		default:
@@ -535,10 +533,11 @@ namespace holodec {
 						addUpdateRegExpressions (arg.ref.refId, addExpression (&expression));
 						break;
 					case IR_ARGTYPE_STACK:
-						expression.location = SSALocation::eStack;
-						expression.locref = arg.ref;
-						expression.size = arg.size;
-						addExpression (&expression);
+						assert(false);
+						//expression.location = SSALocation::eStack;
+						//expression.locref = arg.ref;
+						//expression.size = arg.size;
+						//addExpression (&expression);
 						break;
 					case IR_ARGTYPE_TMP:
 						for (auto it = tmpdefs.begin(); it != tmpdefs.end(); ++it) {
@@ -579,10 +578,13 @@ namespace holodec {
 								addUpdateRegExpressions (dstArg.ref.refId, srcArg.ref.refId);//can relocate ssaExpr
 								return arg;
 							} else if (dstArg.type == IR_ARGTYPE_STACK) {
+								assert(false);
+								/*
 								ssaExpr->location = SSALocation::eStack;
 								ssaExpr->locref = dstArg.ref;
 								ssaExpr->size = dstArg.size;
-								return IRArgument::createSSAId (srcArg.ref.refId, ssaExpr->size * arch->bitbase);
+								return IRArgument::createSSAId (srcArg.ref.refId, ssaExpr->size * arch->bitbase);*/
+								return IRArgument::create();
 							}
 						}
 					}
@@ -649,9 +651,13 @@ namespace holodec {
 					return IRArgument::createSSAId (ssaId, expression.size);
 				}
 				case IR_ARGTYPE_STACK: {
+					/*
 					expression.location = SSALocation::eStack;
 					expression.locref = dstArg.ref;
 					expression.size = dstArg.size;
+					*/
+					assert(false);
+					return IRArgument::create();
 				}break;
 				case IR_ARGTYPE_SSAID: {//assign to no particular thing, needed for recursive with write-parameter as tmp
 					IRArgument* arg = &irExpr->subExpressions[0];
@@ -898,6 +904,7 @@ namespace holodec {
 				for (size_t i = 0; i < subexpressioncount; i++) {
 					expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[i])));
 				}
+				//TODO if sideeffects are set add all arguments and outputs...
 				expression.builtinId = irExpr->mod.builtinId;
 				expression.size = arch->bytebase * arch->bitbase;
 				return IRArgument::createSSAId(addExpression(&expression), expression.size);

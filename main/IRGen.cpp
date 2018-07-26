@@ -212,30 +212,31 @@ namespace holodec {
 	bool IRParser::parseProcFlags(IRExpression* expr) {
 		size_t x = index;
 		if (parseCharacter('[')) {
-			while (true) {
-				switch (peek()) {
-				case 'u':
+			char buffer[100];
+			if (parseIdentifier(buffer, 100)) {
+				if (strcmp(buffer, "u") == 0) {
 					expr->exprtype = SSAType::eUInt;
-					consume(1);
-					continue;
-				case 's':
-					expr->exprtype = SSAType::eInt;
-					consume(1);
-					continue;
-				case 'f':
-					expr->exprtype = SSAType::eFloat;
-					consume(1);
-					continue;
-				case '0':case '1':case '2':case '3':case '4':
-				case '5':case '6':case '7':case '8':case '9':
-					int64_t size;
-					if (parseNumber(&size))
-						expr->size = static_cast<uint32_t>(size);
-					continue;
-				default:
-					break;
 				}
-				break;
+				else if (strcmp(buffer, "s") == 0) {
+					expr->exprtype = SSAType::eInt;
+				}
+				else if (strcmp(buffer, "f") == 0) {
+					expr->exprtype = SSAType::eFloat;
+				}
+				else {
+					printParseFailure("identifier");
+				}
+				if (!parseCharacter(',')) {
+					if (!parseCharacter(']')) {
+						printParseFailure("']'");
+						return false;
+					}
+					return true;
+				}
+			}	
+			int64_t size;
+			if (parseNumber(&size)) {
+				expr->size = static_cast<uint32_t>(size);
 			}
 			if (!parseCharacter(']')) {
 				printParseFailure("']'");

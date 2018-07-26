@@ -9,7 +9,7 @@ namespace holodec{
 		exprvisited.insert(expr->id);
 		if (expr->type == SSAExprType::ePhi) {
 			for (SSAArgument& exprArg : expr->subExpressions) {
-				if (exprArg.type == SSAArgType::eOther && exprArg.location == SSALocation::eBlock)
+				if (exprArg.type == SSAArgType::eBlock)
 					continue;
 				if (exprArg.type != SSAArgType::eId || exprArg.location != SSALocation::eMem)
 					return false;
@@ -70,7 +70,7 @@ namespace holodec{
 		}
 		return false;
 	}
-	bool SSACalleeCallerRegs::doTransformation(Binary* binary,Function* function) {// interprocedural liveness analysis for callee saved registers
+	bool SSACalleeCallerRegs::doTransformation(Binary* binary, Function* function) {// interprocedural liveness analysis for callee saved registers
 
 		//function->print(arch);
 		printf("Resolving Callee-saved-Registers in Function at Address 0x%" PRIx64 "\n", function->baseaddr);
