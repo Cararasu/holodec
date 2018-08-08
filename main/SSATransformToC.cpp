@@ -262,20 +262,20 @@ namespace holodec{
 			while (changed && createdStruct.exit_blocks.size() > 1) {
 				changed = false;
 				for (auto it = createdStruct.exit_blocks.begin(); it != createdStruct.exit_blocks.end(); ++it) {
-					if (createdStruct.contained_blocks.find(it->blockId) != createdStruct.contained_blocks.end()) {
+					if (createdStruct.contained_blocks.find(it->blockId) != createdStruct.contained_blocks.end()) {//exit block is not in contained blocks
 						continue;
 					}
-					if (controlStruct.contained_blocks.find(it->blockId) == controlStruct.contained_blocks.end()) {
+					if (controlStruct.contained_blocks.find(it->blockId) == controlStruct.contained_blocks.end()) {//exit block is in parent contained blocks
 						continue;
 					}
 					SSABB* basicBlock = &function->ssaRep.bbs[it->blockId];
 					bool noHead = false;
-					for (HId id : basicBlock->inBlocks) {
+					for (HId id : basicBlock->inBlocks) {//if one input is not in the contained blocks
 						if (createdStruct.contained_blocks.find(id) == createdStruct.contained_blocks.end()) {
 							noHead |= true;
 						}
 					}
-					if (!noHead) {	
+					if (!noHead) {
 						changed = true;
 						uint32_t count = it->count;
 						it = createdStruct.exit_blocks.erase(it);
@@ -319,8 +319,6 @@ namespace holodec{
 		printf("(");
 		for (size_t i = 0; i < expr.subExpressions.size(); i++) {
 			SSAArgument& arg = expr.subExpressions[i];
-			if (arg.type == SSAArgType::eOther)
-				continue;
 			resolveArg(arg);
 			if(i + 1 != expr.subExpressions.size())
 				printf("%s", delimiter);
@@ -391,8 +389,6 @@ namespace holodec{
 				resolveExpression(*subExpr);
 			}
 		}break;
-		case SSAArgType::eOther:
-			break;
 		}
 		if (nonZeroOffset)
 			printf(" >> %" PRId32 ")", arg.offset);
@@ -612,10 +608,6 @@ namespace holodec{
 		}break;
 		case SSAExprType::eAssign: {
 			resolveArg(expr.subExpressions[0]);
-		}break;
-		case SSAExprType::eMemAccess: {
-			printf("MemAccess ");
-			resolveArgs(expr);
 		}break;
 		case SSAExprType::eStore: {
 			SSAArgument& memArg = expr.subExpressions[0];

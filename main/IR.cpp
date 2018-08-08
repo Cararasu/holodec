@@ -34,9 +34,6 @@ namespace holodec {
 		case IR_EXPR_JMP://jump depending on value
 			printf ("Jmp");
 			break;
-		case IR_EXPR_CJMP://jump depending on value
-			printf ("C_Jmp");
-			break;
 		case IR_EXPR_OP:
 			printf ("Op");
 			break;

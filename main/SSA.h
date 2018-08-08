@@ -48,7 +48,6 @@ namespace holodec {
 
 		eBranch		= SSA_EXPR_BRANCH,
 
-		eMemAccess	= SSA_EXPR_MEMACCESS,
 		eStore		= SSA_EXPR_STORE,
 		eLoad		= SSA_EXPR_LOAD,
 
@@ -106,7 +105,6 @@ namespace holodec {
 		eValue = SSA_ARGTYPE_VALUE,
 		eBlock = SSA_ARGTYPE_BLOCK,
 		eId = SSA_ARGTYPE_ID,
-		eOther = SSA_ARGTYPE_OTHER,
 	};
 	struct Reference {
 		HId refId;
@@ -264,7 +262,6 @@ namespace holodec {
 			return  create(ssaId, SSAType::eUInt, 0, 0, SSALocation::eMem, {memId, 0});
 		}
 		static inline SSAArgument createBlock (HId blockId) {
-			return createOther(SSAArgType::eBlock, SSAType::eUInt, blockId);
 			SSAArgument arg = { SSAArgType::eBlock, SSAType::eUInt };
 			arg.ssaId = blockId;
 			return arg;
@@ -291,8 +288,6 @@ namespace holodec {
 				}
 			case SSAArgType::eId:
 				return lhs.ssaId == rhs.ssaId;
-			case SSAArgType::eOther:
-				return true;
 			default:
 				return false;
 			}
@@ -316,8 +311,6 @@ namespace holodec {
 				}
 			case SSAArgType::eId:
 				return lhs.ssaId == rhs.ssaId;
-			case SSAArgType::eOther:
-				return true;
 			default:
 				return false;
 			}
@@ -343,8 +336,6 @@ namespace holodec {
 				return false;
 			case SSAArgType::eId:
 				return lhs.ssaId == rhs.ssaId;
-			case SSAArgType::eOther:
-				return true;
 			default:
 				return false;
 			}

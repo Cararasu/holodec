@@ -19,8 +19,6 @@ namespace holodec {
 			expressionmap.insert (std::make_pair ("call", expression));
 			expression.type = IR_EXPR_JMP;
 			expressionmap.insert (std::make_pair ("jmp", expression));
-			expression.type = IR_EXPR_CJMP;
-			expressionmap.insert (std::make_pair ("cjmp", expression));
 			expression.type = IR_EXPR_RETURN;
 			expressionmap.insert (std::make_pair ("ret", expression));
 			expression.type = IR_EXPR_NOP;

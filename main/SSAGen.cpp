@@ -743,23 +743,7 @@ namespace holodec {
 				expression.type = SSAExprType::eBranch;
 				expression.exprtype = SSAType::ePc;
 				expression.size = arch->bytebase * arch->bitbase;
-
-				assert (subexpressioncount == 1);
-				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
-
-				if(expression.subExpressions[0].isConst(SSAType::eUInt))
-					function->addrToAnalyze.insert(expression.subExpressions[0].uval);
-
-				endOfBlock = true;
-				fallthrough = false;
-				return IRArgument::createSSAId (addExpression (&expression), expression.size);
-			}
-			case IR_EXPR_CJMP: {
-				SSAExpression expression;
-				expression.type = SSAExprType::eBranch;
-				expression.exprtype = SSAType::ePc;
-				expression.size = arch->bytebase * arch->bitbase;
-				assert (subexpressioncount % 2 == 1);
+				assert(subexpressioncount % 2 == 1);
 				for (size_t i = 1; i < irExpr->subExpressions.size(); i += 2) {
 					expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[i - 1])));
 					expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[i])));
@@ -769,7 +753,7 @@ namespace holodec {
 					function->addrToAnalyze.insert(expression.subExpressions[0].uval);
 
 				endOfBlock = true;
-				return IRArgument::createSSAId (addExpression (&expression), expression.size);
+				return IRArgument::createSSAId(addExpression(&expression), expression.size);
 			}
 			case IR_EXPR_OP: {
 				SSAExpression expression;
@@ -786,7 +770,7 @@ namespace holodec {
 						size = arg.size;
 					else
 						assert(arg.size && size >= arg.size);
-					assert(!(!arg.isConst() && arg.type != SSAArgType::eOther && arg.size == 0));
+					assert(!(!arg.isConst() && arg.size == 0));
 					expression.subExpressions.push_back (arg);
 				}
 				switch (expression.opType) {

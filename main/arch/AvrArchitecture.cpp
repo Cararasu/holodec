@@ -117,7 +117,7 @@ namespace holoavr {
 			{ 3, "#and(==(#bsize(#arg[1]),#bsize(#arg[2])),==(+(#bsize(#arg[1]),#bsize(#arg[2])),#bsize(#arg[3])))", "#seq(=(#t[1],+(#app(#arg[1],#arg[2]),#arg[3])),=(#arg[1],#t[1][0,8]),=(#arg[2],#t[1][8,8]),=($vf,#o),=($cf,#c),=($hf,#c(4)),=($zf,==(#t[1],0)),=($nf,<[s](#t[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eAdd },
 		{ AVR_INSTR_AND, "and",{
-			{ 2, "#and(==(#bsize(#arg[1]),#bsize(#arg[2])))", "#seq(=(#arg[1],#and(#arg[1],#arg[2])),=($vf,0),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
+			{ 2, "#and(==(#bsize(#arg[1]),#bsize(#arg[2])))", "#seq(=(#arg[1],#band(#arg[1],#arg[2])),=($vf,0),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eAnd },
 		{ AVR_INSTR_ASR, "asr",{
 			{ 1, "#seq(=($cf,#arg[1][0]),#div[s](#arg[1],2),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,<>($nf,$cf)),=($sf,<>($nf,$vf)))" }
@@ -139,81 +139,81 @@ namespace holoavr {
 			{ 2, "=($tf,<>(#band(#arg[1],#shl(1[8],#arg[2])),0[8]))" }
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRBC, "brbc",{
-			{ 3, "==(0,#arg[1])", "#cjmp(#arg[2],#not($cf),#arg[3])" },
-			{ 3, "==(1,#arg[1])", "#cjmp(#arg[2],#not($zf),#arg[3])" },
-			{ 3, "==(2,#arg[1])", "#cjmp(#arg[2],#not($nf),#arg[3])" },
-			{ 3, "==(3,#arg[1])", "#cjmp(#arg[2],#not($vf),#arg[3])" },
-			{ 3, "==(4,#arg[1])", "#cjmp(#arg[2],#not($sf),#arg[3])" },
-			{ 3, "==(5,#arg[1])", "#cjmp(#arg[2],#not($hf),#arg[3])" },
-			{ 3, "==(6,#arg[1])", "#cjmp(#arg[2],#not($tf),#arg[3])" },
-			{ 3, "==(7,#arg[1])", "#cjmp(#arg[2],#not($if),#arg[3])" },
+			{ 3, "==(0,#arg[1])", "#jmp(#arg[2],#not($cf),#arg[3])" },
+			{ 3, "==(1,#arg[1])", "#jmp(#arg[2],#not($zf),#arg[3])" },
+			{ 3, "==(2,#arg[1])", "#jmp(#arg[2],#not($nf),#arg[3])" },
+			{ 3, "==(3,#arg[1])", "#jmp(#arg[2],#not($vf),#arg[3])" },
+			{ 3, "==(4,#arg[1])", "#jmp(#arg[2],#not($sf),#arg[3])" },
+			{ 3, "==(5,#arg[1])", "#jmp(#arg[2],#not($hf),#arg[3])" },
+			{ 3, "==(6,#arg[1])", "#jmp(#arg[2],#not($tf),#arg[3])" },
+			{ 3, "==(7,#arg[1])", "#jmp(#arg[2],#not($if),#arg[3])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRBS, "brbs",{
-			{ 3, "==(0,#arg[1])", "#cjmp(#arg[2],$cf,#arg[3])" },
-			{ 3, "==(1,#arg[1])", "#cjmp(#arg[2],$zf,#arg[3])" },
-			{ 3, "==(2,#arg[1])", "#cjmp(#arg[2],$nf,#arg[3])" },
-			{ 3, "==(3,#arg[1])", "#cjmp(#arg[2],$vf,#arg[3])" },
-			{ 3, "==(4,#arg[1])", "#cjmp(#arg[2],$sf,#arg[3])" },
-			{ 3, "==(5,#arg[1])", "#cjmp(#arg[2],$hf,#arg[3])" },
-			{ 3, "==(6,#arg[1])", "#cjmp(#arg[2],$tf,#arg[3])" },
-			{ 3, "==(7,#arg[1])", "#cjmp(#arg[2],$if,#arg[3])" },
+			{ 3, "==(0,#arg[1])", "#jmp(#arg[2],$cf,#arg[3])" },
+			{ 3, "==(1,#arg[1])", "#jmp(#arg[2],$zf,#arg[3])" },
+			{ 3, "==(2,#arg[1])", "#jmp(#arg[2],$nf,#arg[3])" },
+			{ 3, "==(3,#arg[1])", "#jmp(#arg[2],$vf,#arg[3])" },
+			{ 3, "==(4,#arg[1])", "#jmp(#arg[2],$sf,#arg[3])" },
+			{ 3, "==(5,#arg[1])", "#jmp(#arg[2],$hf,#arg[3])" },
+			{ 3, "==(6,#arg[1])", "#jmp(#arg[2],$tf,#arg[3])" },
+			{ 3, "==(7,#arg[1])", "#jmp(#arg[2],$if,#arg[3])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRCC, "brcc",{
-			{ 2, "#cjmp(#arg[1],#not($cf),#arg[2])" },
+			{ 2, "#jmp(#arg[1],#not($cf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRCS, "brcs",{
-			{ 2, "#cjmp(#arg[1],$cf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$cf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BREAK, "break",{
 			{ 2, "#trap" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BREQ, "breq",{
-			{ 2, "#cjmp(#arg[1],$zf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$zf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRGE, "brge",{
-			{ 2, "#cjmp(#arg[1],#not($sf),#arg[2])" },
+			{ 2, "#jmp(#arg[1],#not($sf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRHC, "brhc",{
-			{ 2, "#cjmp(#arg[1],#not($hf),#arg[2])" },
+			{ 2, "#jmp(#arg[1],#not($hf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRHS, "brhs",{
-			{ 2, "#cjmp(#arg[1],$hf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$hf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRID, "brid",{
-			{ 2, "#cjmp(#arg[1],#not($hf),#arg[2])" },
+			{ 2, "#jmp(#arg[1],#not($hf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRIE, "brie",{
-			{ 2, "#cjmp(#arg[1],$hf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$hf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRLO, "brlo",{
-			{ 2, "#cjmp(#arg[1],$cf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$cf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRLT, "brlt",{
-			{ 2, "#cjmp(#arg[1],$sf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$sf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRMI, "brmi",{
-			{ 2, "#cjmp(#arg[1],$nf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$nf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRNE, "brne",{
-			{ 2, "#cjmp(#arg[1],#not($zf),#arg[2])" },
+			{ 2, "#jmp(#arg[1],#not($zf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRPL, "brpl",{
-			{ 2, "#cjmp(#arg[1],$nf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$nf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRSH, "brsh",{
-			{ 2, "#cjmp(#arg[1],#not($cf),#arg[2])" },
+			{ 2, "#jmp(#arg[1],#not($cf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRTC, "brtc",{
-			{ 2, "#cjmp(#arg[1],#not($tf),#arg[2])" },
+			{ 2, "#jmp(#arg[1],#not($tf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRTS, "brts",{
-			{ 2, "#cjmp(#arg[1],$tf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$tf,#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRVC, "bvc",{
-			{ 2, "#cjmp(#arg[1],#not($vf),#arg[2])" },
+			{ 2, "#jmp(#arg[1],#not($vf),#arg[2])" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_BRVS, "brvs",{
-			{ 2, "#cjmp(#arg[1],$vf,#arg[2])" },
+			{ 2, "#jmp(#arg[1],$vf,#arg[2])" },
 		}, InstructionType::eShr },
 
 		{ AVR_INSTR_BSET, "bset",{
@@ -343,10 +343,10 @@ namespace holoavr {
 			{ 1, "#seq(=(#t[1],#ld($dmem,$z,1)),#st($dmem,$z,<>(#arg[1],#t[1])),=(#arg[1],#t[1]))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LAS, "las",{
-			{ 1, "#seq(=(#t[1],#ld($dmem,$z,1)),#st($dmem,$z,#or(#arg[1],#t[1])),=(#arg[1],#t[1]))" }
+			{ 1, "#seq(=(#t[1],#ld($dmem,$z,1)),#st($dmem,$z,#bor(#arg[1],#t[1])),=(#arg[1],#t[1]))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LAC, "lac",{
-			{ 1, "#seq(=(#t[1],#ld($dmem,$z,1)),#st($dmem,$z,#and(-(255,#arg[1]),#t[1])),=(#arg[1],#t[1]))" }
+			{ 1, "#seq(=(#t[1],#ld($dmem,$z,1)),#st($dmem,$z,#band(-(255,#arg[1]),#t[1])),=(#arg[1],#t[1]))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_LDI, "ldi",{
 			{ 2, "=(#arg[1],#arg[2])" }
@@ -394,7 +394,7 @@ namespace holoavr {
 		{ AVR_INSTR_NOP, "nop",{ { "#nop" } }, InstructionType::eNop },
 
 		{ AVR_INSTR_OR, "or",{
-			{ 2, "#seq(=(#arg[1],#or(#arg[1],#arg[2])),=($cf,#c),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,0),=($sf,<>($nf,$vf)))" }
+			{ 2, "#seq(=(#arg[1],#bor(#arg[1],#arg[2])),=($cf,#c),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,0),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eOr },
 
 		{ AVR_INSTR_OUT, "out",{
@@ -445,20 +445,20 @@ namespace holoavr {
 			{ 2, "#seq(#rec[in](#t[1],#arg[1]),$out(#arg[1],#or(#t[1]),#shl(1,#arg[2])))" }
 		}, InstructionType::eSub },
 		{ AVR_INSTR_SBIC, "sbic",{
-			{ 4, "#seq(#rec[in](#t[1],#arg[1]),#cjmp(#arg[3],==(#or(#t[1],#shl(1,#arg[2])),0),#arg[4]))" }
+			{ 4, "#seq(#rec[in](#t[1],#arg[1]),#jmp(#arg[3],==(#or(#t[1],#shl(1,#arg[2])),0),#arg[4]))" }
 		}, InstructionType::eSub },
 		{ AVR_INSTR_SBIS, "sbis",{
-			{ 4, "#seq(#rec[in](#t[1],#arg[1]),#cjmp(#arg[3],<>(#or(#t[1],#shl(1,#arg[2])),0),#arg[4]))" }
+			{ 4, "#seq(#rec[in](#t[1],#arg[1]),#jmp(#arg[3],<>(#or(#t[1],#shl(1,#arg[2])),0),#arg[4]))" }
 		}, InstructionType::eSub },
 
 		{ AVR_INSTR_SBR, "sbr",{
 			{ 3, "#rec[or](#arg[1],#shl(1,#arg[2]))" }
 		}, InstructionType::eOr },
 		{ AVR_INSTR_SBRC, "sbrc",{
-			{ 4, "#cjmp(#arg[3],==(#or(#arg[1],#shl(1,#arg[2])),0),#arg[4])" }
+			{ 4, "#jmp(#arg[3],==(#or(#arg[1],#shl(1,#arg[2])),0),#arg[4])" }
 		}, InstructionType::eJmp },
 		{ AVR_INSTR_SBRS, "sbrs",{
-			{ 4, "#cjmp(#arg[3],<>(#or(#arg[1],#shl(1,#arg[2])),0),#arg[4])" }
+			{ 4, "#jmp(#arg[3],<>(#or(#arg[1],#shl(1,#arg[2])),0),#arg[4])" }
 		}, InstructionType::eJmp },
 
 		{ AVR_INSTR_SEC, "sec",{

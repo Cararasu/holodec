@@ -97,8 +97,8 @@ namespace holodec {
 
 		builder = peephole_optimizer->ruleSet;
 		builder
-			.ssaType(0, 0, SSAExprType::eExtend)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+		.ssaType(0, 0, SSAExprType::eExtend)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
 			if (expr.directRefs.size() && expr.subExpressions[0].isConst()) {
 				expr.subExpressions[0].size = expr.size;

@@ -185,21 +185,21 @@ int main (int argc, const char** argv) {
 	std::vector<StringRef> volatileRegisters = { "cf" , "zf" , "nf" , "vf" , "sf" , "hf" , "tf" , "if" };
 
 	std::vector<SSATransformer*> starttransformers = {
-		new SSAAddressToBlockTransformer(),//0
-		new SSAPhiNodeGenerator(),//1 this can be repeated as often as possible
+		new SSAAddressToBlockTransformer(),
+		new SSAPhiNodeGenerator(),//this can be repeated as often as possible
 	};
 	std::vector<SSATransformer*> pretransformers = {
 		new SSAReverseRegUsageAnalyzer(),
-		new SSAApplyRegRef(),//4
+		new SSAApplyRegRef(),
 	};
 	std::vector<SSATransformer*> transformers = {
-		new SSAPeepholeOptimizer(),//2
-		new SSADCETransformer(),//3
-		new SSAAppendSimplifier(),//5
-		new SSACalleeCallerRegs(volatileRegisters),//6
+		new SSAPeepholeOptimizer(),
+		new SSADCETransformer(),
+		//new SSAAppendSimplifier(),
+		new SSACalleeCallerRegs(volatileRegisters),
 	};
 	std::vector<SSATransformer*> endtransformers = {
-		new SSATransformToC(),//7
+		new SSATransformToC(),
 	};
 
 	for (SSATransformer* transform : starttransformers) {

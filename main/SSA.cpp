@@ -256,9 +256,6 @@ namespace holodec {
 		case SSAExprType::eCast:
 			printf("Cast   ");
 			break;
-		case SSAExprType::eMemAccess:
-			printf("MemAcc ");
-			break;
 		case SSAExprType::eStore:
 			printf("Store  ");
 			break;
@@ -462,9 +459,6 @@ namespace holodec {
 		case SSAExprType::eCast:
 			printf("Cast   ");
 			break;
-		case SSAExprType::eMemAccess:
-			printf("MemAcc ");
-			break;
 		case SSAExprType::eStore:
 			printf("Store  ");
 			break;
@@ -533,8 +527,6 @@ namespace holodec {
 		case SSAArgType::eBlock:
 			printf("Block: %" PRId32 " ", ssaId);
 			break;
-		case SSAArgType::eOther:
-			break;
 		default:
 			printf("Unknown Argtype %x ", type);
 		}
@@ -591,8 +583,6 @@ namespace holodec {
 			break;
 		case SSAArgType::eBlock:
 			printf("Block: %" PRId32 " ", ssaId);
-			break;
-		case SSAArgType::eOther:
 			break;
 		default:
 			printf("Unknown Argtype %d ", type);
