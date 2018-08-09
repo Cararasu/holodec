@@ -29,7 +29,6 @@ namespace holodec {
 		eLoadAddr	= SSA_EXPR_LOADADDR,
 		eFlag		= SSA_EXPR_FLAG,
 		eBuiltin	= SSA_EXPR_BUILTIN,
-		eExtend		= SSA_EXPR_EXTEND,
 		eAppend		= SSA_EXPR_APPEND,
 		eCast		= SSA_EXPR_CAST,
 		

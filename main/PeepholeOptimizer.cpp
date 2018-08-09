@@ -97,10 +97,10 @@ namespace holodec {
 
 		builder = peephole_optimizer->ruleSet;
 		builder
-		.ssaType(0, 0, SSAExprType::eExtend)
+		.ssaType(0, 0, SSAExprType::eCast)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
-			if (expr.directRefs.size() && expr.subExpressions[0].isConst()) {
+			if (expr.directRefs.size() && expr.subExpressions[0].isConst(expr.exprtype)) {
 				expr.subExpressions[0].size = expr.size;
 				ssaRep->replaceAllArgs(expr, expr.subExpressions[0]);
 				return true;
@@ -180,8 +180,9 @@ namespace holodec {
 
 			if (expr.subExpressions.size() == 2 && expr.subExpressions[1].isConst(SSAType::eUInt) && expr.subExpressions[1].uval == 0) {
 				//if second parameter is a 0
-				expr.type = SSAExprType::eExtend;
+				expr.type = SSAExprType::eCast;
 				expr.exprtype = SSAType::eUInt;
+				expr.subExpressions[0].argtype = SSAType::eUInt;
 				expr.removeArgument(ssaRep, expr.subExpressions.end() - 1);
 				g_peephole_logger.log<LogLevel::eDebug>("Replace Appends with Extend");
 				return true;

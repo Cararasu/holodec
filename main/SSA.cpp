@@ -247,9 +247,6 @@ namespace holodec {
 		case SSAExprType::eBuiltin:
 			printf("Builtin");
 			break;
-		case SSAExprType::eExtend:
-			printf("Extend ");
-			break;
 		case SSAExprType::eAppend:
 			printf("Append ");
 			break;
@@ -449,9 +446,6 @@ namespace holodec {
 			break;
 		case SSAExprType::eBuiltin:
 			printf("Builtin");
-			break;
-		case SSAExprType::eExtend:
-			printf("Extend ");
 			break;
 		case SSAExprType::eAppend:
 			printf("Append ");

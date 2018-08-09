@@ -514,12 +514,6 @@ namespace holodec{
 			printf("%s ", arch->getBuiltin(expr.builtinId)->name.cstr());
 			resolveArgs(expr);
 		}break;
-		case SSAExprType::eExtend: {
-			printf("(");
-			printExprType(expr);
-			printf(")");
-			resolveArgs(expr);
-		}break;
 		case SSAExprType::eAppend: {
 			printf("(");
 			uint32_t offset = 0;
@@ -535,13 +529,9 @@ namespace holodec{
 			printf(")");
 		}break;
 		case SSAExprType::eCast: {
-			if (expr.exprtype == SSAType::eFloat)
-				printf("F");
-			else if (expr.exprtype == SSAType::eInt)
-				printf("S");
-			else if (expr.exprtype == SSAType::eUInt)
-				printf("U");
-			printf("Cast%d ", expr.size);
+			printf("Cast[");
+			printExprType(expr);
+			printf("]");
 			resolveArgs(expr);
 		}break;
 

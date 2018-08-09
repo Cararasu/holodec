@@ -245,7 +245,6 @@ namespace holodec {
 		expression.type = SSAExprType::eLabel;
 		expression.exprtype = SSAType::ePc;
 		expression.size = arch->bytebase * arch->bitbase;
-		expression.subExpressions.push_back (SSAArgument::createUVal (address, arch->bytebase * arch->bitbase));
 		addExpression (&expression);
 	}
 	SSABB* SSAGen::getBlock (HId blockId) {
@@ -329,7 +328,7 @@ namespace holodec {
 				for (auto it = bb.exprIds.begin(); it != bb.exprIds.end(); ++it) {
 					SSAExpression* expr = ssaRepresentation->expressions.get (*it);
 					assert (expr);
-					if (expr->type == SSAExprType::eLabel && expr->subExpressions.size() > 0 && expr->subExpressions[0].isConst(SSAType::eUInt) && expr->subExpressions[0].uval == addr) {
+					if (expr->type == SSAExprType::eLabel && expr->instrAddr == addr) {
 						printf ("Split SSA 0x%" PRIx64 "\n", addr);
 						HId oldId = bb.id;
 						uint64_t newEndAddr = bb.endaddr;
@@ -422,7 +421,8 @@ namespace holodec {
 			else if (baseReg->clearParentOnWrite) {
 				assert(baseReg->offset == 0);
 				if (!baseReg->offset) {
-					updateExpression.type = SSAExprType::eExtend;
+					updateExpression.type = SSAExprType::eCast;
+					updateExpression.subExpressions[0].argtype = SSAType::eUInt;
 					updateExpression.subExpressions.push_back(SSAArgument::createId(ssaId, SSAType::eUInt, parentReg->size));
 				}
 				else {
@@ -896,10 +896,10 @@ namespace holodec {
 			case IR_EXPR_EXTEND: {
 				assert (subexpressioncount == 2);
 				SSAExpression expression;
-				expression.type = SSAExprType::eExtend;
+				expression.type = SSAExprType::eCast;
 				expression.exprtype = irExpr->exprtype;
 				expression.subExpressions.push_back (parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[0])));
-
+				expression.subExpressions[0].argtype = irExpr->exprtype;
 				IRArgument arg = parseConstExpression (irExpr->subExpressions[1], &arguments);
 				assert (arg && arg.isConst() && arg.argtype == SSAType::eUInt);
 				expression.size = static_cast<uint32_t>(arg.uval);
