@@ -173,7 +173,46 @@ namespace holodec {
 			}
 			return subAppends;
 		})
-		
+		.ssaType(0, 0, SSAExprType::eAppend)
+		.ssaType(1, 1, SSAExprType::eLoad)
+		.ssaType(1, 2, SSAExprType::eLoad)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression&  appendexpr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAExpression&  load1 = ssaRep->expressions[context->expressionsMatched[1]];
+			SSAExpression&  load2 = ssaRep->expressions[context->expressionsMatched[2]];
+
+			if (load1.id == load2.id)
+				return false;
+			if (load1.subExpressions[1].size % arch->bitbase != 0)
+				return false;
+			if (load1.subExpressions[0].ssaId != load2.subExpressions[0].ssaId)
+				return false;
+			if (appendexpr.subExpressions[0].offset != 0 || appendexpr.subExpressions[1].offset != 0)
+				return false;
+
+			int64_t diff;
+			if (
+				(load1.subExpressions[1].isConst(SSAType::eUInt) && load2.subExpressions[1].isConst(SSAType::eUInt) &&
+				(load1.subExpressions[1].uval + (appendexpr.subExpressions[0].size / arch->bitbase)) == load2.subExpressions[1].uval)
+				||
+				(load1.subExpressions[1].type == SSAArgType::eId && load2.subExpressions[1].type == SSAArgType::eId &&
+					calculante_difference(ssaRep, load1.subExpressions[1].ssaId, load2.subExpressions[1].ssaId, &diff) && diff == (appendexpr.subExpressions[0].size / arch->bitbase))
+				){
+				SSAExpression expr = load1;
+				expr.size += load2.size;
+				HId newId = ssaRep->addAfter(&expr, load2.id);
+				SSAArgument arg1 = ssaRep->expressions[context->expressionsMatched[0]].subExpressions[0];
+				SSAArgument arg2 = ssaRep->expressions[context->expressionsMatched[0]].subExpressions[1];
+				arg1.ssaId = newId;
+				arg2.ssaId = newId;
+				arg2.offset += arg1.size;
+				appendexpr.setArgument(ssaRep, 0, arg1);
+				appendexpr.setArgument(ssaRep, 1, arg2);
+				fflush(stdout);
+				return true;
+			}
+			return false;
+		})
 		.ssaType(0, 0, SSAExprType::eAppend)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			SSAExpression&  expr = ssaRep->expressions[context->expressionsMatched[0]];
