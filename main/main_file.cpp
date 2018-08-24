@@ -318,15 +318,15 @@ int main (int argc, const char** argv) {
 			}
 		}
 	}
-	 
+	/*
 #define PATH(function, from, to) function->ssaRep.bbs[from].outBlocks.insert(to);function->ssaRep.bbs[to].inBlocks.insert(from);
 
 	SSAExpression retexpr;
 	retexpr.type = SSAExprType::eReturn;
 	SSAExpression expr;
 	expr.type = SSAExprType::eBranch;
-	Function* func;
 
+	Function* func;
 	func = new Function();
 	for (int i = 0; i < 8; i++) {
 		func->ssaRep.bbs.emplace_back();
@@ -407,6 +407,6 @@ int main (int argc, const char** argv) {
 	delete func;
 
 #undef PATH
-
+*/
 	return 0;
 }

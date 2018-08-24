@@ -18,6 +18,8 @@ namespace holodec {
 		SSARepresentation copy = function->ssaRep;
 		for (size_t i = 0; i < function->ssaRep.expressions.size();) {
 			if (function->ssaRep.expressions.list[i].id && phOpt->ruleSet.match(arch, &function->ssaRep, &function->ssaRep.expressions.list[i])) {
+				//function->ssaRep.print(arch);
+				//fflush(stdout);
 				if (!function->ssaRep.checkIntegrity()) {
 					printf("Old SSA ----------------------------------------------\n");
 					copy.print(arch);

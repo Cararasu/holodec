@@ -24,21 +24,6 @@ namespace holodec{
 		}
 
 	}
-	void printArgType(SSAArgument& arg) {
-		switch (arg.argtype) {
-		case SSAType::eInt:
-			printf("s%d ", arg.size);
-			break;
-		case SSAType::eFloat:
-			printf("f%d ", arg.size);
-			break;
-		default:
-		case SSAType::eUInt:
-			printf("u%d ", arg.size);
-			break;
-		}
-
-	}
 	void ControlStruct::print(int indent) {
 		printIndent(indent);
 		switch (type) {
@@ -355,34 +340,12 @@ namespace holodec{
 		return true;
 	}
 	void SSATransformToC::resolveArg(SSAArgument& arg) {
-		bool nonZeroOffset = (arg.offset != 0);
 
 		SSAExpression* subExpr = arg.type == SSAArgType::eId ? &function->ssaRep.expressions[arg.ssaId] : nullptr;
-		bool nonFullSize = subExpr && (arg.offset + arg.size != subExpr->size);
-		if (nonFullSize) {
-			printf("(");
-			printExprType(*subExpr);
-			printf(")");
-		}
-		if (nonZeroOffset)
-			printf("(");
 
 		switch (arg.type) {
 		case SSAArgType::eUndef:
 			printf("undef");
-			break;
-		case SSAArgType::eValue:
-			switch (arg.argtype) {
-			case SSAType::eInt:
-				printf("%" PRId64, arg.sval);
-				break;
-			case SSAType::eUInt:
-				printf("0x%" PRIx64, arg.uval);
-				break;
-			case SSAType::eFloat:
-				printf("%f", arg.fval);
-				break;
-			}
 			break;
 		case SSAArgType::eId: {
 			if (!resolveArgVariable(*subExpr, false)) {
@@ -390,15 +353,13 @@ namespace holodec{
 			}
 		}break;
 		}
-		if (nonZeroOffset)
-			printf(" >> %" PRId32 ")", arg.offset);
 	}
 	bool SSATransformToC::resolveExpression(SSAExpression& expr) {
 
 		if (expr.type == SSAExprType::eBranch)
 			return false;
 
-		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
+		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type))
 			printf("(");
 		switch (expr.type) {
 		case SSAExprType::eInvalid:
@@ -506,6 +467,7 @@ namespace holodec{
 				printf("Underflow");
 				break;
 			}
+			printf("-%d", expr.flagbit);
 			printf("(");
 			resolveArg(expr.subExpressions[0]);
 			printf(")");
@@ -513,6 +475,22 @@ namespace holodec{
 		case SSAExprType::eBuiltin:{
 			printf("%s ", arch->getBuiltin(expr.builtinId)->name.cstr());
 			resolveArgs(expr);
+		}break;
+		case SSAExprType::eSplit: {
+			if (expr.offset) {
+				printf("(");
+			}
+			SSAExpression& subexpr = function->ssaRep.expressions[expr.subExpressions[0].ssaId];
+			if (expr.size == subexpr.size) {
+				resolveArg(expr.subExpressions[0]);
+			}
+			else {
+				printExprType(expr);
+				resolveArg(expr.subExpressions[0]);
+			}
+			if (expr.offset) {
+				printf(" >> %d)", expr.offset);
+			}
 		}break;
 		case SSAExprType::eAppend: {
 			printf("(");
@@ -522,7 +500,7 @@ namespace holodec{
 				resolveArg(arg);
 				if(offset)
 					printf(" << %d", offset);
-				offset += arg.size;
+				offset += function->ssaRep.expressions[arg.ssaId].size;
 				if (i + 1 != expr.subExpressions.size())
 					printf(" | ");
 			}
@@ -533,6 +511,19 @@ namespace holodec{
 			printExprType(expr);
 			printf("]");
 			resolveArgs(expr);
+		}break;
+		case SSAExprType::eValue: {
+			switch (expr.exprtype) {
+			case SSAType::eUInt:
+				printf("0x%lx", expr.uval);
+				break;
+			case SSAType::eInt:
+				printf("%ld", expr.sval);
+				break;
+			case SSAType::eFloat:
+				printf("0x%f", expr.fval);
+				break;
+			}
 		}break;
 
 		case SSAExprType::eInput:
@@ -603,9 +594,9 @@ namespace holodec{
 			SSAArgument& memArg = expr.subExpressions[0];
 			SSAArgument& ptrArg = expr.subExpressions[1];
 			SSAArgument& valueArg = expr.subExpressions[2];
-
+			SSAExpression* valexpr = find_baseexpr(&function->ssaRep, valueArg);
 			printf("%s[", arch->getMemory(memArg.locref.refId)->name.cstr());
-			printArgType(valueArg);
+			printExprType(*valexpr);
 			printf(", ");
 			resolveArg(ptrArg);
 			printf("] = ");
@@ -622,7 +613,7 @@ namespace holodec{
 			printf("]");
 		}break;
 		}
-		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
+		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type))
 			printf(")");
 		return true;
 	}
@@ -631,7 +622,7 @@ namespace holodec{
 			return false;
 		resolveIds.insert(expr.id);
 		printIndent(indent);
-		if (expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type)) {
+		if (expr.type != SSAExprType::eCall && expr.type != SSAExprType::eStore && !EXPR_HAS_SIDEEFFECT(expr.type)) {
 			printExprType(expr);
 			resolveArgVariable(expr, true);
 			printf(" = ");

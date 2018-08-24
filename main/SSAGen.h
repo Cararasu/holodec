@@ -27,7 +27,7 @@ namespace holodec {
 		SSABB* activeblock = nullptr;
 
 		Function* function = nullptr;
-		SSARepresentation* ssaRepresentation = nullptr;
+		SSARepresentation* ssaRep = nullptr;
 
 		HList<SSATmpDef> tmpdefs;
 
@@ -39,6 +39,17 @@ namespace holodec {
 		void setupForInstr();
 
 		HId splitBasicBlock (uint64_t addr);
+		SSAArgument readReg(Register* reg);
+		SSAArgument readReg(HId regid);
+		SSAArgument createSplit(SSAArgument arg, uint32_t size, uint32_t offset, SSALocation loc = SSALocation::eNone, Reference locref = { 0, 0 });
+		SSAArgument createAssign(SSAArgument arg, uint32_t size, SSALocation loc = SSALocation::eNone, Reference locref = {0, 0});
+
+		SSAArgument createUVal(uint64_t val, uint32_t size, SSALocation loc = SSALocation::eNone, Reference locref = { 0, 0 });
+		SSAArgument createSVal(int64_t val, uint32_t size, SSALocation loc = SSALocation::eNone, Reference locref = { 0, 0 });
+		SSAArgument createFVal(double val, uint32_t size, SSALocation loc = SSALocation::eNone, Reference locref = { 0, 0 });
+		uint32_t getSize(SSAArgument arg) {
+			return ssaRep->expressions[arg.ssaId].size;
+		}
 
 		IRArgument parseMemArgToExpr(IRArgument mem);
 		void replaceArg (IRArgument& arg);

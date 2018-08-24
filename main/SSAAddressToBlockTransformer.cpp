@@ -8,9 +8,10 @@
 namespace holodec {
 
 	bool SSAAddressToBlockTransformer::resolveDstTarget(SSABB& block, SSAExpression& expr, SSAArgument& arg) {
-		if (arg.isConst(SSAType::eUInt)) {
+		SSAExpression* dstExpr = find_baseexpr(&function->ssaRep, arg);
+		if (dstExpr->isConst(SSAType::eUInt)) {
 			for (SSABB& bb : function->ssaRep.bbs) {
-				if (bb.startaddr == arg.uval) {
+				if (bb.startaddr == dstExpr->uval) {
 					arg = SSAArgument::createBlock(bb.id);
 					block.outBlocks.insert(bb.id);
 					bb.inBlocks.insert(block.id);

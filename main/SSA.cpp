@@ -12,7 +12,7 @@ namespace holodec {
 		}
 		subExpressions.push_back(arg);
 	}
-	void SSAExpression::setArgument(SSARepresentation* rep, int index, SSAArgument arg) {
+	void SSAExpression::setArgument(SSARepresentation* rep, size_t index, SSAArgument arg) {
 		setArgument(rep, subExpressions.begin() + index, arg);
 	}
 	void SSAExpression::setArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg) {
@@ -30,6 +30,10 @@ namespace holodec {
 			expr.directRefs.push_back(id);
 		}
 		it->set(arg);
+	}
+	size_t SSAExpression::removeArgument(SSARepresentation* rep, size_t index) {
+		removeArgument(rep, subExpressions.begin() + index);
+		return index;
 	}
 	HList<SSAArgument>::iterator SSAExpression::removeArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it) {
 		if (it->type == SSAArgType::eId) {//remove ref
@@ -57,13 +61,17 @@ namespace holodec {
 		}
 		return subExpressions.erase(beginit, endit);
 	}
+	size_t SSAExpression::insertArgument(SSARepresentation* rep, size_t index, SSAArgument arg){
+		insertArgument(rep, subExpressions.begin() + index, arg);
+		return index + 1;
+	}
 	HList<SSAArgument>::iterator SSAExpression::insertArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg) {
 		if (arg.type == SSAArgType::eId) {//remove ref
 			rep->expressions[arg.ssaId].directRefs.push_back(id);
 		}
 		return subExpressions.insert(it, arg) + 1;
 	}
-	void SSAExpression::replaceArgument(SSARepresentation* rep, int index, SSAArgument arg) {
+	size_t SSAExpression::replaceArgument(SSARepresentation* rep, size_t index, SSAArgument arg) {
 		if (subExpressions[index].type == SSAArgType::eId) {//remove ref
 			SSAExpression& expr = rep->expressions[subExpressions[index].ssaId];
 			for (auto it = expr.directRefs.begin(); it != expr.directRefs.end(); ++it) {
@@ -78,6 +86,7 @@ namespace holodec {
 			expr.directRefs.push_back(id);
 		}
 		subExpressions[index].replace(arg);
+		return index;
 	}
 	void SSAExpression::setAllArguments(SSARepresentation* rep, HList<SSAArgument> args) {
 		for (SSAArgument& arg : subExpressions) {//remove refs
@@ -142,6 +151,19 @@ namespace holodec {
 			break;
 		case SSAExprType::ePhi:
 			printf("Phi    ");
+			break;
+		case SSAExprType::eValue:
+			switch (exprtype) {
+			case SSAType::eFloat:
+				printf("%7.7f", fval);
+				break;
+			case SSAType::eUInt:
+				printf("%7.7ld", uval);
+				break;
+			case SSAType::eInt:
+				printf("%7.7ld", sval);
+				break;
+			}
 			break;
 		case SSAExprType::eAssign:
 			printf("Assign ");
@@ -246,6 +268,9 @@ namespace holodec {
 			break;
 		case SSAExprType::eBuiltin:
 			printf("Builtin");
+			break;
+		case SSAExprType::eSplit:
+			printf("Split %d", offset);
 			break;
 		case SSAExprType::eAppend:
 			printf("Append ");
@@ -499,22 +524,6 @@ namespace holodec {
 		case SSAArgType::eUndef:
 			printf("Undef");
 			break;
-		case SSAArgType::eValue:
-			switch (argtype) {
-			case SSAType::eInt:
-				if (sval < 0)
-					printf("-0x%" PRIx64 " ", -sval);
-				else
-					printf("0x%" PRIx64 " ", sval);
-				break;
-			case SSAType::eUInt:
-				printf("0x%" PRIx64 " ", uval);
-				break;
-			case SSAType::eFloat:
-				printf("%f ", fval);
-				break;
-			}
-			break;
 		case SSAArgType::eId:
 			printf("SSA: %d ", ssaId);
 			break;
@@ -539,38 +548,11 @@ namespace holodec {
 			break;
 		}
 
-		switch (argtype) {
-		case SSAType::eInt:
-			printf("s[%d,%d]", offset, size);
-			break;
-		case SSAType::eUInt:
-			printf("u[%d,%d]", offset, size);
-			break;
-		case SSAType::eFloat:
-			printf("f[%d,%d]", offset, size);
-			break;
-		}
 	}
 	void SSAArgument::printSimple(Architecture* arch) {
 		switch (type) {
 		case SSAArgType::eUndef:
 			printf("Undef");
-			break;
-		case SSAArgType::eValue:
-			switch (argtype) {
-			case SSAType::eInt:
-				if (sval < 0)
-					printf("-0x%" PRIx64 " ", -sval);
-				else
-					printf("0x%" PRIx64 " ", sval);
-				break;
-			case SSAType::eUInt:
-				printf("0x%" PRIx64 " ", uval);
-				break;
-			case SSAType::eFloat:
-				printf("%f ", fval);
-				break;
-			}
 			break;
 		case SSAArgType::eId:
 			printf("SSA: %" PRId32 " ", ssaId);
@@ -587,17 +569,6 @@ namespace holodec {
 			printf("Memory %s ", arch->getMemory(locref.refId)->name.cstr());
 			break;
 		case SSALocation::eNone:
-			break;
-		}
-		switch (argtype) {
-		case SSAType::eInt:
-			printf("s[%d,%d]", offset, size);
-			break;
-		case SSAType::eUInt:
-			printf("u[%d,%d]", offset, size);
-			break;
-		case SSAType::eFloat:
-			printf("f[%d,%d]", offset, size);
 			break;
 		}
 	}
@@ -694,11 +665,8 @@ namespace holodec {
 	}
 
 
-	inline bool shouldReplaceIn(SSAExpression& expr, SSAArgument* replaceArg, bool isCopy/*if the argument copies the referencing expression or value*/) {
+	inline bool shouldReplaceIn(SSAExpression& expr, SSAArgument* replaceArg) {
 		if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific and need the operation for it's meaning
-			return false;
-		}
-		if (EXPR_IS_TRANSPARENT(expr.type) && (!isCopy || (!replaceArg || replaceArg->isConst()))) {
 			return false;
 		}
 		return true;//otherwise can be replaced
@@ -707,7 +675,7 @@ namespace holodec {
 	bool SSARepresentation::isReplaceable(SSAExpression& origExpr) {
 		for (HId directRefId : origExpr.directRefs) {
 			SSAExpression& expr = expressions[directRefId];
-			if (shouldReplaceIn(expr, nullptr, true)) {
+			if (shouldReplaceIn(expr, nullptr)) {
 				return true;
 			}
 		}
@@ -716,15 +684,9 @@ namespace holodec {
 	uint64_t SSARepresentation::replaceExpr(SSAExpression& origExpr, SSAArgument replaceArg) {
 		uint64_t count = 0;
 
-		//if the argument is not the same as the expression it references then we do not replace them
-		bool isCopy = (replaceArg.offset == 0);
-		if (replaceArg.type == SSAArgType::eId) {
-			SSAExpression& expr = expressions[replaceArg.ssaId];
-			isCopy = isCopy && (expr.size == (replaceArg.offset + replaceArg.size));
-		}
 		for (HId directRefId : origExpr.directRefs) {//iterate refs
 			SSAExpression& expr = expressions[directRefId];
-			if (!shouldReplaceIn(expr, &replaceArg, isCopy)) {
+			if (!shouldReplaceIn(expr, &replaceArg)) {
 				continue;
 			}
 			if (replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
@@ -748,14 +710,14 @@ namespace holodec {
 		}
 		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
 			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
-				if (!shouldReplaceIn(expressions[*it], &replaceArg, isCopy)) {
+				if (!shouldReplaceIn(expressions[*it], &replaceArg)) {
 					it++;
 					continue;
 				}
 				it = origExpr.refs.erase(it);
 			}
 			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
-				if (!shouldReplaceIn(expressions[*it], &replaceArg, isCopy)) {
+				if (!shouldReplaceIn(expressions[*it], &replaceArg)) {
 					it++;
 					continue;
 				}
@@ -848,10 +810,6 @@ namespace holodec {
 						fprintf(stderr, "ssa refers to deleted Expression %d in arg from Expression %d\n", arg.ssaId, expr.id);
 						return false;
 					}
-					if (arg.type == SSAArgType::eId && expressions[arg.ssaId].size < arg.offset + arg.size){
-						fprintf(stderr, "Size of arg is bigger than Expression %d in arg from Expression %d\n", arg.ssaId, expr.id);
-						return false;
-					}
 				}
 				if (!expr.blockId){
 					fprintf(stderr, "Invalid Blockid in Expression %d\n", expr.id);
@@ -924,22 +882,7 @@ namespace holodec {
 		}
 	}
 	bool SSARepresentation::calcConstValue(SSAArgument argument, uint64_t* result) {
-		if (argument.isConst()) {
-			switch (argument.argtype) {
-			//case SSAType::eSInt:
-			//	*result = static_cast<uint64_t>(argument.sval);
-			//	return true;
-			case SSAType::eUInt:
-				*result = argument.uval;
-				return true;
-			//case SSAType::eFloat:
-			//	*result = static_cast<uint64_t>(argument.fval);
-			//	return true;
-			default:
-				return false;
-			}
-		}
-		else if (argument.type == SSAArgType::eId) {
+		if (argument.type == SSAArgType::eId) {
 			SSAExpression& expr = expressions[argument.ssaId];
 			switch (expr.type) {
 			case SSAExprType::eLoadAddr:
@@ -951,6 +894,16 @@ namespace holodec {
 					*result = base + (index * disp) + offset;
 					return true;
 				}
+			case SSAExprType::eValue: {
+				switch (expr.exprtype) {
+				case SSAType::eUInt:
+					*result = expr.uval;
+					return true;
+				}
+			}
+			case SSAExprType::eAssign: {
+				return calcConstValue(expr.subExpressions[0], result);
+			}
 			}
 		}
 		return false;
@@ -1130,45 +1083,51 @@ namespace holodec {
 			}
 		}
 	}
-	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, int64_t* arithchange, SSAArgument* basearg) {
+	HId calculante_base_expr(SSARepresentation* ssaRep, SSAArgument arg) {
+		SSAExpression* expr = &ssaRep->expressions[arg.ssaId];
+		while(expr->type == SSAExprType::eAssign)
+			expr = &ssaRep->expressions[expr->subExpressions[0].ssaId];
+		return expr->id;
+	}
+	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, int64_t* arithchange, HId* baseExprId) {
 		SSAExpression& referencedExpr = ssaRep->expressions[ssaId];
 
 		if (referencedExpr.type == SSAExprType::eOp && (referencedExpr.opType == SSAOpType::eAdd || referencedExpr.opType == SSAOpType::eSub)) {
-			SSAArgument* idArg = nullptr;
+			SSAExpression* idExpr = nullptr;
 			int64_t change = 0;
 			for (size_t i = 0; i < referencedExpr.subExpressions.size(); ++i) {
-				SSAArgument& onearg = referencedExpr.subExpressions[i];
-				if (onearg.type == SSAArgType::eId) {
-					if (idArg)
+				SSAExpression& expr = ssaRep->expressions[calculante_base_expr(ssaRep, referencedExpr.subExpressions[i])];
+				if (expr.type != SSAExprType::eValue) {
+					if (idExpr)
 						return 0;
-					idArg = &onearg;
+					idExpr = &expr;
 					continue;
 				}
 				if (i == 0 || referencedExpr.opType == SSAOpType::eAdd) {
-					if (onearg.type != SSAArgType::eValue)
+					if (expr.type != SSAExprType::eValue)
 						return 0;
-					if (onearg.argtype == SSAType::eUInt)
-						change += onearg.uval;
-					else if (onearg.argtype == SSAType::eInt)
-						change += onearg.sval;
+					if (expr.exprtype == SSAType::eUInt)
+						change += expr.uval;
+					else if (expr.exprtype == SSAType::eInt)
+						change += expr.sval;
 					else
 						return 0;
 				}
 				else {
-					if (onearg.type != SSAArgType::eValue)
+					if (expr.type != SSAExprType::eValue)
 						return 0;
-					if (onearg.argtype == SSAType::eUInt)
-						change = onearg.uval;
-					else if (onearg.argtype == SSAType::eInt)
-						change = onearg.sval;
+					if (expr.exprtype == SSAType::eUInt)
+						change = expr.uval;
+					else if (expr.exprtype == SSAType::eInt)
+						change = expr.sval;
 					else
 						return 0;
 				}
 			}
-			if (idArg && !idArg->offset) {
+			if (idExpr) {
 				*arithchange += change;
-				*basearg = *idArg;
-				return calculate_basearg_plus_offset(ssaRep, idArg->ssaId, arithchange, basearg) + 1;
+				*baseExprId = idExpr->id;
+				return calculate_basearg_plus_offset(ssaRep, idExpr->id, arithchange, baseExprId) + 1;
 			}
 			else {
 				return 0;
@@ -1177,10 +1136,20 @@ namespace holodec {
 		return 0;
 	}
 
+	SSAExpression* find_baseexpr(SSARepresentation* ssaRep, SSAArgument arg) {
+		SSAExpression* expr = &ssaRep->expressions[arg.ssaId];
+		while (expr->type == SSAExprType::eAssign) expr = &ssaRep->expressions[expr->subExpressions[0].ssaId];
+		return expr;
+	}
+	HId find_basearg(SSARepresentation* ssaRep, SSAArgument arg) {
+		SSAExpression* expr = &ssaRep->expressions[arg.ssaId];
+		while (expr->type == SSAExprType::eAssign) expr = &ssaRep->expressions[expr->subExpressions[0].ssaId];
+		return expr->id;
+	}
 	bool calculante_difference(SSARepresentation* ssaRep, HId firstid, HId secid, int64_t* change) {
-		SSAArgument basearg1;
+		HId basearg1;
 		int64_t change1 = 0;
-		SSAArgument basearg2;
+		HId basearg2;
 		int64_t change2 = 0;
 		calculate_basearg_plus_offset(ssaRep, firstid, &change1, &basearg1);
 		calculate_basearg_plus_offset(ssaRep, secid, &change2, &basearg2);

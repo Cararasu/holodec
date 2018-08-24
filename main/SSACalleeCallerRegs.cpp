@@ -54,7 +54,7 @@ namespace holodec{
 				if (argIt.type != SSAArgType::eId || !isInput(arg.replace(argIt), poffset, exprvisited, retArg)) {
 					return false;
 				}
-				poffset += argIt.size;
+				poffset += ssaRep->expressions[argIt.ssaId].size;
 			}
 			return true;
 		}

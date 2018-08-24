@@ -81,13 +81,13 @@ namespace holodec {
 		while (true) {
 			for (SSARegDef& def : wrapper->outputs) {
 				if (def.regId == reg->id) {
-					return SSAArgument::createId(def.ssaId, SSAType::eUInt, reg->size);
+					return SSAArgument::createId(def.ssaId);
 					break;
 				}
 			}
 			for (SSARegDef& def : wrapper->outputs) {
 				if ((def.parentId == (HId)reg->parentRef) && ((def.offset <= reg->offset) && ((reg->offset + reg->size) <= (def.offset + def.size)))) {
-					return SSAArgument::createReg(reg, SSAType::eUInt, def.ssaId, reg->offset - def.offset);
+					return SSAArgument::createReg(reg, def.ssaId);
 				}
 			}
 			if (wrapper->ssaBB->inBlocks.size() != 1)
@@ -112,7 +112,7 @@ namespace holodec {
 			function->ssaRep.expressions[id].subExpressions.push_back(SSAArgument::createBlock(bbId));
 			function->ssaRep.expressions[id].subExpressions.push_back(getSSAId(getWrapper(bbId), parent_reg));
 		}
-		return SSAArgument::createReg(parent_reg, SSAType::eUInt, id);
+		return SSAArgument::createReg(parent_reg, id);
 	}
 	SSAArgument SSAPhiNodeGenerator::getSSAId(BasicBlockWrapper* wrapper, Memory* mem) {
 
@@ -148,12 +148,12 @@ namespace holodec {
 
 		for (SSARegDef& def : defs) {
 			if (def.regId == reg->id) {
-				return SSAArgument::createId(def.ssaId, SSAType::eUInt, reg->size);
+				return SSAArgument::createId(def.ssaId);
 			}
 		}
 		for (SSARegDef& def : defs) {
 			if ((def.parentId == (HId)reg->parentRef) && ((def.offset <= reg->offset) && ((reg->offset + reg->size) <= (def.offset + def.size)))) {
-				return SSAArgument::createReg(reg, SSAType::eUInt, def.ssaId, reg->offset - def.offset);
+				return SSAArgument::createReg(reg, def.ssaId);
 			}
 		}
 		if (wrapper->ssaBB->inBlocks.size() == 1) {
@@ -188,7 +188,7 @@ namespace holodec {
 			function->ssaRep.expressions[id].subExpressions.push_back(SSAArgument::createBlock(bbId));
 			function->ssaRep.expressions[id].subExpressions.push_back(getSSAId(getWrapper(bbId), parent_reg));
 		}
-		return SSAArgument::createReg(parent_reg, SSAType::eUInt, id);
+		return SSAArgument::createReg(parent_reg, id);
 	}
 	SSAArgument SSAPhiNodeGenerator::getSSAId(BasicBlockWrapper* wrapper, HList<SSAMemDef>& defs, Memory* mem) {
 
@@ -249,7 +249,6 @@ namespace holodec {
 				for (SSAArgument& arg : expr.subExpressions) {
 					if (arg.location == SSALocation::eReg || arg.location == SSALocation::eMem) {
 						arg.ssaId = 0;
-						arg.offset = 0;
 					}
 				}
 				++it;

@@ -11,7 +11,7 @@ namespace holodec {
 		uint32_t offset = 0, size = 0;
 
 		CalleeArgument() {}
-		CalleeArgument(SSAArgument& arg) : ssaId(arg.ssaId), offset(arg.offset), size(arg.size) {}
+		CalleeArgument(SSAArgument& arg) : ssaId(arg.ssaId) {}
 		CalleeArgument(CalleeArgument& arg) : ssaId(arg.ssaId), offset(arg.offset), size(arg.size) {}
 		CalleeArgument(const CalleeArgument&& arg) : ssaId(arg.ssaId), offset(arg.offset), size(arg.size) {}
 

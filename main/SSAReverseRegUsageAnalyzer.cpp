@@ -3,20 +3,19 @@
 namespace holodec {
 
 
-	SSAReverseRegUsageAnalyzer::SSAReverseRegUsageAnalyzer()
-	{
+	SSAReverseRegUsageAnalyzer::SSAReverseRegUsageAnalyzer(){
 	}
 
 
-	SSAReverseRegUsageAnalyzer::~SSAReverseRegUsageAnalyzer()
-	{
+	SSAReverseRegUsageAnalyzer::~SSAReverseRegUsageAnalyzer(){
 	}
 
 	bool SSAReverseRegUsageAnalyzer::doTransformation(Binary* binary, Function* function) {
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type == SSAExprType::eCall) {
-				if (expr.subExpressions[0].isConst(SSAType::eUInt)) {
-					Function* callingFunc = binary->getFunctionByAddr(expr.subExpressions[0].uval);
+				SSAExpression* dstExpr = find_baseexpr(&function->ssaRep, expr.subExpressions[0]);
+				if (dstExpr->isConst(SSAType::eUInt)) {
+					Function* callingFunc = binary->getFunctionByAddr(dstExpr->uval);
 					if (callingFunc) {
 						for (SSAArgument& arg : expr.subExpressions) {
 							//if reg or mem and it is not an undef definition then we add a write, because the input is defined
@@ -31,8 +30,9 @@ namespace holodec {
 			} else if (expr.type == SSAExprType::eOutput && expr.location == SSALocation::eReg) {
 				if (expr.subExpressions[0].type == SSAArgType::eId) {
 					SSAExpression& callExpr = function->ssaRep.expressions[expr.subExpressions[0].ssaId];
-					if (callExpr.subExpressions[0].isConst(SSAType::eUInt)) {
-						Function* callingFunc = binary->getFunctionByAddr(callExpr.subExpressions[0].uval);
+					SSAExpression* dstExpr = find_baseexpr(&function->ssaRep, callExpr.subExpressions[0]);
+					if (dstExpr->isConst(SSAType::eUInt)) {
+						Function* callingFunc = binary->getFunctionByAddr(dstExpr->uval);
 						if (callingFunc) {
 							//if reg or mem then it is read after the function is completed
 							if (expr.location == SSALocation::eReg) {
