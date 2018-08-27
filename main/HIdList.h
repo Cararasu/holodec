@@ -70,29 +70,10 @@ namespace holodec {
 		iterator erase(iterator it){
 			return list.erase(it);
 		}
-		T* get (HId id) {
-			if(!id)
-				return nullptr;
-			size_t lowerbound = 0, upperbound = list.size();
-			if (upperbound >= id) {//optimization for quick access
-				T& val = list[id - 1];
-				if (val.id == id) //quick return
-					return &val;
-			}
-			
-			while(lowerbound <= upperbound) {// binary seach
-				HId middle = (HId)(lowerbound + ((upperbound - lowerbound) / 2));
-				HId middleId = list[middle].id;
-				if(middleId == id)
-					return &(list[middle]);
-				if(middleId < id)
-					lowerbound = middle + 1;
-				else
-					upperbound = middle - 1;
-			}
-			return nullptr;
+		constexpr T* get (HId id) {
+			return id <= list.size() || list[id - 1].id ? &list[id - 1] : nullptr;
 		}
-		T& operator[] (HId id) {
+		constexpr T& operator[] (HId id) {
 			return *get(id);
 		}
 		void clear() {

@@ -289,7 +289,7 @@ int main (int argc, const char** argv) {
 							func->print(binary->arch);
 							for (int i = 0; i < transformers.size(); i++) {
 								if (transform == transformers[i])
-									printf("%d\n", i);
+									printf("Transformation %d\n", i);
 							}
 							fflush(stdout);
 							*(char*)0 = 12;

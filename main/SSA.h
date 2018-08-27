@@ -306,6 +306,9 @@ namespace holodec {
 		bool isConst(SSAType type) {
 			return this->type == SSAExprType::eValue && exprtype == type;
 		}
+		bool isValue(uint64_t value) {
+			return type == SSAExprType::eValue && exprtype == SSAType::eUInt && uval == value;
+		}
 
 		bool operator!() {
 			return type == SSAExprType::eInvalid;
@@ -374,6 +377,7 @@ namespace holodec {
 		uint64_t replaceAllArgs(SSAExpression& origExpr, SSAArgument replaceArg);
 		bool isReplaceable(SSAExpression& origExpr);
 		uint64_t replaceExpr(SSAExpression& origExpr, SSAArgument replaceArg);
+		uint64_t replaceOpExpr(SSAExpression& origExpr, SSAArgument replaceArg, uint32_t baseoffset);
 		void removeNodes(HSet<HId>* ids);
 		
 		void compress();

@@ -618,7 +618,7 @@ namespace holodec{
 		return true;
 	}
 	bool SSATransformToC::printExpression(SSAExpression& expr, uint32_t indent) {
-		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch)
+		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch || expr.type == SSAExprType::ePhi)
 			return false;
 		resolveIds.insert(expr.id);
 		printIndent(indent);

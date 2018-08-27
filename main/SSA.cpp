@@ -665,7 +665,7 @@ namespace holodec {
 	}
 
 
-	inline bool shouldReplaceIn(SSAExpression& expr, SSAArgument* replaceArg) {
+	inline bool isFlagExpr(SSAExpression& expr, SSAArgument* replaceArg) {
 		if (expr.type == SSAExprType::eFlag) {//ignore flags because they are operation specific and need the operation for it's meaning
 			return false;
 		}
@@ -675,7 +675,7 @@ namespace holodec {
 	bool SSARepresentation::isReplaceable(SSAExpression& origExpr) {
 		for (HId directRefId : origExpr.directRefs) {
 			SSAExpression& expr = expressions[directRefId];
-			if (shouldReplaceIn(expr, nullptr)) {
+			if (isFlagExpr(expr, nullptr)) {
 				return true;
 			}
 		}
@@ -686,7 +686,7 @@ namespace holodec {
 
 		for (HId directRefId : origExpr.directRefs) {//iterate refs
 			SSAExpression& expr = expressions[directRefId];
-			if (!shouldReplaceIn(expr, &replaceArg)) {
+			if (!isFlagExpr(expr, &replaceArg)) {
 				continue;
 			}
 			if (replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
@@ -710,14 +710,60 @@ namespace holodec {
 		}
 		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
 			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
-				if (!shouldReplaceIn(expressions[*it], &replaceArg)) {
+				if (!isFlagExpr(expressions[*it], &replaceArg)) {
 					it++;
 					continue;
 				}
 				it = origExpr.refs.erase(it);
 			}
 			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
-				if (!shouldReplaceIn(expressions[*it], &replaceArg)) {
+				if (!isFlagExpr(expressions[*it], &replaceArg)) {
+					it++;
+					continue;
+				}
+				it = origExpr.directRefs.erase(it);
+			}
+		}
+		return count;
+	}
+	uint64_t SSARepresentation::replaceOpExpr(SSAExpression& origExpr, SSAArgument replaceArg, uint32_t baseoffset) {
+		uint64_t count = 0;
+
+		for (HId directRefId : origExpr.directRefs) {//iterate refs
+			SSAExpression& expr = expressions[directRefId];
+			if (!isFlagExpr(expr, &replaceArg)) {
+				expr.flagbit += baseoffset;
+				continue;
+			}
+			if (replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
+						arg.replace(replaceArg);
+						count++;
+					}
+				}
+			}
+			else {
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
+						arg.replace(replaceArg);
+						count++;
+						if (replaceArg.type == SSAArgType::eId)
+							expressions[replaceArg.ssaId].refs.push_back(directRefId);
+					}
+				}
+			}
+		}
+		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
+			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
+				if (!isFlagExpr(expressions[*it], &replaceArg)) {
+					it++;
+					continue;
+				}
+				it = origExpr.refs.erase(it);
+			}
+			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
+				if (!isFlagExpr(expressions[*it], &replaceArg)) {
 					it++;
 					continue;
 				}
@@ -992,15 +1038,16 @@ namespace holodec {
 			return false;
 		SSABB& bb = this->bbs[firstExpr.blockId];
 		auto firstit = bb.exprIds.begin();
-		for (; firstit != bb.exprIds.end() && *firstit == firstExpr.id; firstit++);
+		for (; firstit != bb.exprIds.end() && *firstit != firstExpr.id; firstit++);
 		auto secit = bb.exprIds.begin();
-		for (; secit != bb.exprIds.end() && *secit == secondExpr.id; secit++);
+		for (; secit != bb.exprIds.end() && *secit != secondExpr.id; secit++);
 		if (firstit > secit || firstit == bb.exprIds.end() || secit == bb.exprIds.end())
 			return false;
 		if (firstit == secit)
 			return true;
 		for (auto it = firstit + 1; it != secit; it++) {
 			SSAExpression& expr = expressions[*it];
+			if (expr.type == SSAExprType::eFlag) continue;
 			for (SSAArgument& arg : expr.subExpressions) {
 				if (arg.type == SSAArgType::eId && arg.ssaId == *firstit)
 					return false;
