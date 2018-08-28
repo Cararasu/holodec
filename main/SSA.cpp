@@ -863,12 +863,12 @@ namespace holodec {
 				}
 				for (HId& id : expr.refs)
 					if (!(id && id <= expressions.size() && expressions[id].id)){
-						fprintf(stderr, "Invalid ssaId in ref from Expression %d\n", expr.id);
+						fprintf(stderr, "Invalid ssaId %d in ref from Expression %d\n", id, expr.id);
 						return false;
 					}
 				for (HId& id : expr.directRefs)
 					if (!(id && id <= expressions.size() && expressions[id].id)){
-						fprintf(stderr, "Invalid ssaId in directRef from Expression %d\n", expr.id);
+						fprintf(stderr, "Invalid ssaId %d in directRef from Expression %d\n", id, expr.id);
 						return false;
 					}
 			}
@@ -1017,6 +1017,25 @@ namespace holodec {
 	HList<HId>::iterator SSARepresentation::removeExpr (HList<HId>& ids, HList<HId>::iterator it) {
 		SSAExpression& expr = expressions[*it];
 		expr.id = 0;
+		for (SSAArgument& arg : expr.subExpressions) {
+			if (arg.type == SSAArgType::eId) {
+				SSAExpression& subexpr = expressions[arg.ssaId];
+				for (auto subit = subexpr.refs.begin(); subit != subexpr.refs.end();) {
+					if (*subit == *it) {
+						subit = subexpr.refs.erase(subit);
+						continue;
+					}
+					subit++;
+				}
+				for (auto subit = subexpr.directRefs.begin(); subit != subexpr.directRefs.end();) {
+					if (*subit == *it) {
+						subit = subexpr.directRefs.erase(subit);
+						continue;
+					}
+					subit++;
+				}
+			}
+		}
 		return ids.erase (it);
 	}
 	void SSARepresentation::removeExpr (HId ssaId) {
@@ -1193,7 +1212,7 @@ namespace holodec {
 		while (expr->type == SSAExprType::eAssign) expr = &ssaRep->expressions[expr->subExpressions[0].ssaId];
 		return expr->id;
 	}
-	bool calculante_difference(SSARepresentation* ssaRep, HId firstid, HId secid, int64_t* change) {
+	bool calculate_difference(SSARepresentation* ssaRep, HId firstid, HId secid, int64_t* change) {
 		HId basearg1;
 		int64_t change1 = 0;
 		HId basearg2;

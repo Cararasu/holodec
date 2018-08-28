@@ -13,7 +13,7 @@ extern "C" {
 #define EXPR_IS_CONTROLFLOW(type) ((uint64_t)(type) & SSA_EXPR_CONTROL_FLOW)
 #define EXPR_IS_TRANSPARENT(type) ((uint64_t)(type) & SSA_EXPR_TRANSPARENT_NODE)
 
-#define EXPR_HAS_SIDEEFFECT(type) ((uint64_t)(type) & (SSA_EXPR_CONTROL_FLOW | SSA_EXPR_MEMWRITE))
+#define EXPR_HAS_SIDEEFFECT(type) ((uint64_t)(type) & (SSA_EXPR_CONTROL_FLOW))
 
 typedef uint32_t HoloId;
 

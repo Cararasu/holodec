@@ -38,6 +38,7 @@ namespace holodec {
 				printf("%f", fval);
 				break;
 			}
+			break;
 		case IR_ARGTYPE_ID:
 			printf ("IR %d", ref.refId);
 			break;

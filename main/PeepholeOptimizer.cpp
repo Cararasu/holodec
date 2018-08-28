@@ -142,7 +142,185 @@ namespace holodec {
 				}
 			}
 			return false;
-		})/*
+		})
+		.ssaType(0, 0, SSAExprType::eStore)
+		.ssaType(1, 3, SSAExprType::eSplit)
+		.ssaType(1, 1, SSAExprType::eStore)
+		.ssaType(3, 3, SSAExprType::eSplit)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression&  store1expr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAExpression&  split1expr = ssaRep->expressions[context->expressionsMatched[1]];
+			SSAExpression&  store2expr = ssaRep->expressions[context->expressionsMatched[2]];
+			SSAExpression&  split2expr = ssaRep->expressions[context->expressionsMatched[3]];
+
+			if (split1expr.subExpressions[0].ssaId != split2expr.subExpressions[0].ssaId)
+				return false;
+			int64_t change = 0;
+			if (calculate_difference(ssaRep, store1expr.subExpressions[1].ssaId, store2expr.subExpressions[1].ssaId, &change)) {
+				if (change * arch->bitbase == split1expr.size && split1expr.offset + split1expr.size == split2expr.offset) {
+					SSAExpression appendexpr;
+					appendexpr.type = SSAExprType::eAppend;
+					appendexpr.exprtype = SSAType::eUInt;
+					appendexpr.size = split1expr.size + split2expr.size;
+					appendexpr.subExpressions = { SSAArgument::createId(split1expr.id), SSAArgument::createId(split2expr.id)};
+					appendexpr.instrAddr = split2expr.instrAddr;
+
+					SSAArgument apparg = SSAArgument::createId(ssaRep->addAfter(&appendexpr, store1expr.id));
+
+					SSAExpression storeexpr = ssaRep->expressions[context->expressionsMatched[0]];
+					storeexpr.subExpressions[2] = apparg;
+
+					SSAArgument storearg = SSAArgument::createId(ssaRep->addAfter(&storeexpr, apparg.ssaId));
+
+					ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], storearg);
+					ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[2]], storearg);
+					return true;
+				}
+				else if (change * arch->bitbase == -split2expr.size && split2expr.offset + split2expr.size == split1expr.offset) {
+					SSAExpression appendexpr;
+					appendexpr.type = SSAExprType::eAppend;
+					appendexpr.exprtype = SSAType::eUInt;
+					appendexpr.size = split1expr.size + split2expr.size;
+					appendexpr.subExpressions = { SSAArgument::createId(split1expr.id), SSAArgument::createId(split2expr.id) };
+					appendexpr.instrAddr = split2expr.instrAddr;
+
+					SSAArgument apparg = SSAArgument::createId(ssaRep->addAfter(&appendexpr, store1expr.id));
+
+					SSAExpression storeexpr = ssaRep->expressions[context->expressionsMatched[2]];
+					storeexpr.subExpressions[2] = apparg;
+
+					SSAArgument storearg = SSAArgument::createId(ssaRep->addAfter(&storeexpr, apparg.ssaId));
+
+					ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], storearg);
+					ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[2]], storearg);
+					return true;
+				}
+			}
+			return false;
+		})
+		//pattern for signed lower
+		.ssaType(0, 0, SSAOpType::eNe)
+		.ssaType(1, 1, SSAOpType::eLower)
+		.ssaType(1, 2, SSAFlagType::eO)
+		.ssaType(3, 1, SSAOpType::eSub)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression&  neexpr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAExpression&  lexpr = ssaRep->expressions[context->expressionsMatched[1]];
+			SSAExpression&  oexpr = ssaRep->expressions[context->expressionsMatched[2]];
+			SSAExpression&  subexpr = ssaRep->expressions[context->expressionsMatched[3]];
+
+			if (!ssaRep->isReplaceable(neexpr))
+				return false;
+
+			if (lexpr.subExpressions.size() != 2 || subexpr.subExpressions.size() != 2) {
+				return false;
+			}
+			SSAExpression* baseexpr = nullptr;
+			if (ssaRep->expressions[lexpr.subExpressions[0].ssaId].isValue(0)) {
+				baseexpr = &ssaRep->expressions[lexpr.subExpressions[1].ssaId];
+			}
+			else if (ssaRep->expressions[lexpr.subExpressions[1].ssaId].isValue(0)) {
+				baseexpr = &ssaRep->expressions[lexpr.subExpressions[0].ssaId];
+			}
+			if (!baseexpr) {
+				return false;
+			}
+
+			if (baseexpr->type == SSAExprType::eSplit) {
+				if (baseexpr->offset + baseexpr->size != subexpr.size)
+					return false;
+				baseexpr = &ssaRep->expressions[baseexpr->subExpressions[0].ssaId];
+			}
+			if (baseexpr->id != subexpr.id)
+				return false;
+
+			SSAExpression lowerexpression = subexpr;
+			lowerexpression.opType = SSAOpType::eLower;
+			lowerexpression.exprtype = lexpr.exprtype;
+
+
+			//This is made to replace SF != ZF patterns but for multibyte subtracts it may produce weird results
+			ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
+
+			return true;
+		})
+			//pattern for signed greater equals
+			.ssaType(0, 0, SSAOpType::eEq)
+			.ssaType(1, 1, SSAOpType::eLower)
+			.ssaType(1, 2, SSAFlagType::eO)
+			.ssaType(3, 1, SSAOpType::eSub)
+			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression&  eqexpr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAExpression&  lexpr = ssaRep->expressions[context->expressionsMatched[1]];
+			SSAExpression&  oexpr = ssaRep->expressions[context->expressionsMatched[2]];
+			SSAExpression&  subexpr = ssaRep->expressions[context->expressionsMatched[3]];
+
+			if (!ssaRep->isReplaceable(eqexpr))
+				return false;
+
+			if (lexpr.subExpressions.size() != 2 || subexpr.subExpressions.size() != 2) {
+				return false;
+			}
+			SSAExpression* baseexpr = nullptr;
+			if (ssaRep->expressions[eqexpr.subExpressions[0].ssaId].isValue(0)) {
+				baseexpr = &ssaRep->expressions[eqexpr.subExpressions[1].ssaId];
+			}
+			else if (ssaRep->expressions[eqexpr.subExpressions[1].ssaId].isValue(0)) {
+				baseexpr = &ssaRep->expressions[eqexpr.subExpressions[0].ssaId];
+			}
+			if (!baseexpr) {
+				return false;
+			}
+
+			if (baseexpr->type == SSAExprType::eSplit) {
+				if (baseexpr->offset + baseexpr->size != subexpr.size)
+					return false;
+				baseexpr = &ssaRep->expressions[baseexpr->subExpressions[0].ssaId];
+			}
+			if (baseexpr->id != subexpr.id)
+				return false;
+
+			SSAExpression lowerexpression = subexpr;
+			lowerexpression.opType = SSAOpType::eGe;
+			lowerexpression.exprtype = lexpr.exprtype;
+
+
+			//This is made to replace SF != ZF patterns but for multibyte subtracts it may produce weird results
+			ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
+
+			return true;
+		})
+		//Pattern for unsigned lower
+		.ssaType(0, 0, SSAFlagType::eC)
+		.ssaType(1, 1, SSAOpType::eSub)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression&  cexpr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAExpression&  subexpr = ssaRep->expressions[context->expressionsMatched[1]];
+
+			if (!ssaRep->isReplaceable(cexpr))
+				return false;
+
+			if (subexpr.subExpressions.size() != 2) {
+				return false;
+			}
+
+			SSAExpression lowerexpression = subexpr;
+			lowerexpression.opType = SSAOpType::eLower;
+			lowerexpression.exprtype = subexpr.exprtype;
+
+			ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
+
+			return true;
+		})
+		//Pattern for unsigned greater equals
+		.ssaType(0, 0, SSAOpType::eEq)
+		.ssaType(1, 1, SSAFlagType::eC)
+		.ssaType(1, 2, SSAOpType::eEq)
+		.ssaType(2, 1, SSAOpType::eSub)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			return false;
+		})
+			/*
 		.ssaType(0, 0, SSAExprType::eAppend)
 		.ssaType(1, 1, SSAExprType::eLoad)
 		.ssaType(1, 2, SSAExprType::eLoad)
@@ -166,7 +344,7 @@ namespace holodec {
 				(loadaddr1->uval + (load1.size / arch->bitbase)) == loadaddr2->uval)
 				||
 				(load1.subExpressions[1].type == SSAArgType::eId && load2.subExpressions[1].type == SSAArgType::eId &&
-					calculante_difference(ssaRep, load1.subExpressions[1].ssaId, load2.subExpressions[1].ssaId, &diff) && diff == (load1.size / arch->bitbase))
+					calculate_difference(ssaRep, load1.subExpressions[1].ssaId, load2.subExpressions[1].ssaId, &diff) && diff == (load1.size / arch->bitbase))
 				) {
 				SSAExpression splitexpr1;
 				splitexpr1.type = SSAExprType::eSplit;
@@ -206,7 +384,7 @@ namespace holodec {
 				SSAExpression& secparam = ssaRep->expressions[secondAdd.subExpressions[0].ssaId];
 				if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
 					int64_t change;
-					if (calculante_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
+					if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
 						return false;
 					}
 				}
@@ -223,7 +401,7 @@ namespace holodec {
 				SSAExpression& secparam = ssaRep->expressions[secondAdd.subExpressions[0].ssaId];
 				if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
 					int64_t change;
-					if (calculante_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
+					if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
 						return false;
 					}
 				}
@@ -262,7 +440,6 @@ namespace holodec {
 
 			if (combine1.size == combine2.size && firstAdd.size == carryExpr.flagbit && ssaRep->isNotUsedBefore(firstAdd, secondAdd)) {
 				uint32_t secsize = secondAdd.size;
-				secondAdd.size += firstAdd.size;
 
 				SSAArgument addArg = SSAArgument::createId(secondAdd.id);
 
@@ -282,6 +459,8 @@ namespace holodec {
 				split2.instrAddr = firstAdd.instrAddr;
 				split2.size = secondAdd.size;
 				split2.offset = firstAdd.size;
+
+				secondAdd.size += firstAdd.size;
 
 				//Expression references invalidated
 				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secId));
@@ -320,7 +499,7 @@ namespace holodec {
 				SSAExpression& secparam = ssaRep->expressions[secondAdd.subExpressions[0].ssaId];
 				if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
 					int64_t change;
-					if (calculante_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
+					if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
 						return false;
 					}
 				}
@@ -337,7 +516,7 @@ namespace holodec {
 				SSAExpression& secparam = ssaRep->expressions[secondAdd.subExpressions[0].ssaId];
 				if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
 					int64_t change;
-					if (calculante_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
+					if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
 						return false;
 					}
 				}
@@ -609,12 +788,13 @@ namespace holodec {
 					uint64_t difference = lastexpr->size / (mem->wordsize * arch->bitbase);
 
 					int64_t diff;
-					if (calculante_difference(ssaRep, lastexpr->subExpressions[1].ssaId, thisexpr->subExpressions[1].ssaId, &diff) && difference == diff) {
+					if (calculate_difference(ssaRep, lastexpr->subExpressions[1].ssaId, thisexpr->subExpressions[1].ssaId, &diff) && difference == diff) {
 						SSAExpression newexpr;
 						newexpr.type = SSAExprType::eLoad;
 						newexpr.exprtype = SSAType::eUInt;
 						newexpr.size = thisexpr->size + lastexpr->size;
 						newexpr.subExpressions = lastexpr->subExpressions;
+						newexpr.instrAddr = lastexpr->instrAddr;
 
 						index = ssaRep->expressions[exprId].removeArgument(ssaRep, index);
 						ssaRep->expressions[exprId].setArgument(ssaRep, index - 1, SSAArgument::createId(ssaRep->addAfter(&newexpr, thisexpr->id)));

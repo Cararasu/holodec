@@ -426,7 +426,7 @@ namespace holodec {
 
 	SSAExpression* find_baseexpr(SSARepresentation* ssaRep, SSAArgument arg);
 	HId find_basearg(SSARepresentation* ssaRep, SSAArgument arg);
-	bool calculante_difference(SSARepresentation* ssaRep, HId firstid, HId secid, int64_t* change);
+	bool calculate_difference(SSARepresentation* ssaRep, HId firstid, HId secid, int64_t* change);
 
 	//returns the distance traveled from the ssaId
 	//if distance is 0 then the expression with id == ssaId was neither an addition or a subtraction

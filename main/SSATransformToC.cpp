@@ -293,7 +293,7 @@ namespace holodec{
 		if (expr.refs.size() > 1) {
 			return true;
 		}
-		if (EXPR_HAS_SIDEEFFECT(expr.type)) {
+		if (EXPR_HAS_SIDEEFFECT(expr.type) || expr.type == SSAExprType::eStore) {
 			return true;
 		}
 		return false;
