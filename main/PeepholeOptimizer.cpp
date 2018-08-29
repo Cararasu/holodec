@@ -255,10 +255,7 @@ namespace holodec {
 			SSAExpression&  oexpr = ssaRep->expressions[context->expressionsMatched[2]];
 			SSAExpression&  subexpr = ssaRep->expressions[context->expressionsMatched[3]];
 
-			if (!ssaRep->isReplaceable(eqexpr))
-				return false;
-
-			if (lexpr.subExpressions.size() != 2 || subexpr.subExpressions.size() != 2) {
+			if (!ssaRep->isReplaceable(eqexpr) || lexpr.subExpressions.size() != 2 || subexpr.subExpressions.size() != 2) {
 				return false;
 			}
 			SSAExpression* baseexpr = nullptr;
@@ -268,10 +265,11 @@ namespace holodec {
 			else if (ssaRep->expressions[eqexpr.subExpressions[1].ssaId].isValue(0)) {
 				baseexpr = &ssaRep->expressions[eqexpr.subExpressions[0].ssaId];
 			}
-			if (!baseexpr) {
+			else {
 				return false;
 			}
-
+			//TODO here it should be checked that the sign does not change if we look at the whole value instead of only a part
+			//maybe add a flag for types if that is possible
 			if (baseexpr->type == SSAExprType::eSplit) {
 				if (baseexpr->offset + baseexpr->size != subexpr.size)
 					return false;
@@ -283,7 +281,6 @@ namespace holodec {
 			SSAExpression lowerexpression = subexpr;
 			lowerexpression.opType = SSAOpType::eGe;
 			lowerexpression.exprtype = lexpr.exprtype;
-
 
 			//This is made to replace SF != ZF patterns but for multibyte subtracts it may produce weird results
 			ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
@@ -297,16 +294,12 @@ namespace holodec {
 			SSAExpression&  cexpr = ssaRep->expressions[context->expressionsMatched[0]];
 			SSAExpression&  subexpr = ssaRep->expressions[context->expressionsMatched[1]];
 
-			if (!ssaRep->isReplaceable(cexpr))
+			if (!ssaRep->isReplaceable(cexpr) || subexpr.subExpressions.size() != 2 || subexpr.exprtype != SSAType::eUInt)
 				return false;
-
-			if (subexpr.subExpressions.size() != 2) {
-				return false;
-			}
 
 			SSAExpression lowerexpression = subexpr;
 			lowerexpression.opType = SSAOpType::eLower;
-			lowerexpression.exprtype = subexpr.exprtype;
+			lowerexpression.exprtype = SSAType::eUInt;
 
 			ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
 
@@ -314,9 +307,8 @@ namespace holodec {
 		})
 		//Pattern for unsigned greater equals
 		.ssaType(0, 0, SSAOpType::eEq)
-		.ssaType(1, 1, SSAFlagType::eC)
+		.ssaType(1, 1, SSAOpType::eLower)
 		.ssaType(1, 2, SSAOpType::eEq)
-		.ssaType(2, 1, SSAOpType::eSub)
 		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 			return false;
 		})
@@ -378,105 +370,21 @@ namespace holodec {
 			if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 ||
 				firstAdd.exprtype != secondAdd.exprtype)
 				return false;
-			
-			{
-				SSAExpression& firstparam = ssaRep->expressions[firstAdd.subExpressions[0].ssaId];
-				SSAExpression& secparam = ssaRep->expressions[secondAdd.subExpressions[0].ssaId];
-				if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
-					int64_t change;
-					if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
-						return false;
-					}
-				}
-				else {
-					uint32_t offsetfirst, offsetsecond;
-					offsetfirst = firstparam.type == SSAExprType::eSplit ? firstparam.offset : 0;
-					offsetsecond = secparam.type == SSAExprType::eSplit ? secparam.offset : 0;
-					if (offsetsecond - offsetfirst != firstparam.size)
-						return false;
-				}
-			}
-			{
-				SSAExpression& firstparam = ssaRep->expressions[firstAdd.subExpressions[0].ssaId];
-				SSAExpression& secparam = ssaRep->expressions[secondAdd.subExpressions[0].ssaId];
-				if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
-					int64_t change;
-					if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
-						return false;
-					}
-				}
-				else {
-					uint32_t offsetfirst, offsetsecond;
-					offsetfirst = firstparam.type == SSAExprType::eSplit ? firstparam.offset : 0;
-					offsetsecond = secparam.type == SSAExprType::eSplit ? secparam.offset : 0;
-					if (offsetsecond - offsetfirst != firstparam.size)
-						return false;
-				}
-			}
 
-			//TODO check if arguments of secondAdd are before firstAdd
-			//and replace firstAdd not secondAdd
+			if (!consequtive_exprs(arch, ssaRep, firstAdd.subExpressions[0].ssaId, secondAdd.subExpressions[0].ssaId))
+				return false;
+			if (!consequtive_exprs(arch, ssaRep, firstAdd.subExpressions[1].ssaId, secondAdd.subExpressions[1].ssaId))
+				return false;
+
 			g_peephole_logger.log<LogLevel::eDebug>("Replace Add - Carry Add");
 
-			SSAExpression combine1;
-			combine1.type = SSAExprType::eAppend;
-			combine1.exprtype = firstAdd.exprtype;
-			combine1.instrAddr = firstAdd.instrAddr;
-			combine1.subExpressions = {
-				firstAdd.subExpressions[0],
-				secondAdd.subExpressions[0]
-			};
-			combine1.size = firstAdd.size + secondAdd.size;
+			if (firstAdd.size == carryExpr.flagbit && ssaRep->isNotUsedBefore(firstAdd, secondAdd)) {
 
-			SSAExpression combine2;
-			combine2.type = SSAExprType::eAppend;
-			combine2.exprtype = firstAdd.exprtype;
-			combine2.instrAddr = firstAdd.instrAddr;
-			combine2.subExpressions = {
-				firstAdd.subExpressions[1],
-				secondAdd.subExpressions[1]
-			};
-			combine2.size = firstAdd.size + secondAdd.size;
+				HId exprsToReplace[2] = { firstAdd.id, secondAdd.id };
+				SSAArgument firstargss[2] = { firstAdd.subExpressions[0], secondAdd.subExpressions[0] };
+				SSAArgument secargss[2] = { firstAdd.subExpressions[1], secondAdd.subExpressions[1] };
 
-			if (combine1.size == combine2.size && firstAdd.size == carryExpr.flagbit && ssaRep->isNotUsedBefore(firstAdd, secondAdd)) {
-				uint32_t secsize = secondAdd.size;
-
-				SSAArgument addArg = SSAArgument::createId(secondAdd.id);
-
-				HId secId = secondAdd.id;
-				uint32_t firstsize = firstAdd.size;
-
-				SSAExpression split1;
-				split1.type = SSAExprType::eSplit;
-				split1.exprtype = firstAdd.exprtype;
-				split1.instrAddr = firstAdd.instrAddr;
-				split1.size = firstAdd.size;
-				split1.offset = 0;
-
-				SSAExpression split2;
-				split2.type = SSAExprType::eSplit;
-				split2.exprtype = firstAdd.exprtype;
-				split2.instrAddr = firstAdd.instrAddr;
-				split2.size = secondAdd.size;
-				split2.offset = firstAdd.size;
-
-				secondAdd.size += firstAdd.size;
-
-				//Expression references invalidated
-				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secId));
-				SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addBefore(&combine2, secId));
-
-				SSAArgument split1Arg = SSAArgument::createId(ssaRep->addAfter(&split1, secId));
-				SSAArgument split2Arg = SSAArgument::createId(ssaRep->addAfter(&split2, secId));
-
-				//set arguments of second arg
-				ssaRep->expressions[context->expressionsMatched[0]].setAllArguments(ssaRep, { combine1Arg, combine2Arg });
-
-				ssaRep->replaceOpExpr(ssaRep->expressions[context->expressionsMatched[2]], split1Arg, firstsize);
-				ssaRep->replaceOpExpr(ssaRep->expressions[context->expressionsMatched[0]], split2Arg, firstsize);
-
-				ssaRep->expressions[split1Arg.ssaId].setAllArguments(ssaRep, { SSAArgument::createId(secId) });
-				ssaRep->expressions[split2Arg.ssaId].setAllArguments(ssaRep, { SSAArgument::createId(secId) });
+				combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, secondAdd, secondAdd.instrAddr);
 				return true;
 			}
 			else {
@@ -490,113 +398,51 @@ namespace holodec {
 			SSAExpression& firstAdd = ssaRep->expressions[context->expressionsMatched[2]];
 			SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
-			if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 ||
-				firstAdd.exprtype != secondAdd.exprtype)
+			if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || firstAdd.exprtype != secondAdd.exprtype)
+				return false;
+			if (!consequtive_exprs(arch, ssaRep, firstAdd.subExpressions[0].ssaId, secondAdd.subExpressions[0].ssaId))
+				return false;
+			if (!consequtive_exprs(arch, ssaRep, firstAdd.subExpressions[1].ssaId, secondAdd.subExpressions[1].ssaId))
 				return false;
 
-			{
-				SSAExpression& firstparam = ssaRep->expressions[firstAdd.subExpressions[0].ssaId];
-				SSAExpression& secparam = ssaRep->expressions[secondAdd.subExpressions[0].ssaId];
-				if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
-					int64_t change;
-					if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
-						return false;
-					}
-				}
-				else {
-					uint32_t offsetfirst, offsetsecond;
-					offsetfirst = firstparam.type == SSAExprType::eSplit ? firstparam.offset : 0;
-					offsetsecond = secparam.type == SSAExprType::eSplit ? secparam.offset : 0;
-					if (offsetsecond - offsetfirst != firstparam.size)
-						return false;
-				}
-			}
-			{
-				SSAExpression& firstparam = ssaRep->expressions[firstAdd.subExpressions[0].ssaId];
-				SSAExpression& secparam = ssaRep->expressions[secondAdd.subExpressions[0].ssaId];
-				if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
-					int64_t change;
-					if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
-						return false;
-					}
-				}
-				else {
-					uint32_t offsetfirst, offsetsecond;
-					offsetfirst = firstparam.type == SSAExprType::eSplit ? firstparam.offset : 0;
-					offsetsecond = secparam.type == SSAExprType::eSplit ? secparam.offset : 0;
-					if (offsetsecond - offsetfirst != firstparam.size)
-						return false;
-				}
-			}
+			g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry Sub");
 
-			//TODO check if arguments of secondAdd are before firstAdd
-			//and replace firstAdd not secondAdd
-			g_peephole_logger.log<LogLevel::eDebug>("Replace Add - Carry Add");
+			if (firstAdd.size == carryExpr.flagbit && ssaRep->isNotUsedBefore(firstAdd, secondAdd)) {
+				HId exprsToReplace[2] = { firstAdd.id, secondAdd.id };
+				SSAArgument firstargss[2] = { firstAdd.subExpressions[0], secondAdd.subExpressions[0] };
+				SSAArgument secargss[2] = { firstAdd.subExpressions[1], secondAdd.subExpressions[1] };
 
-			SSAExpression combine1;
-			combine1.type = SSAExprType::eAppend;
-			combine1.exprtype = firstAdd.exprtype;
-			combine1.instrAddr = firstAdd.instrAddr;
-			combine1.subExpressions = {
-				firstAdd.subExpressions[0],
-				secondAdd.subExpressions[0]
-			};
-			combine1.size = firstAdd.size + secondAdd.size;
-
-			SSAExpression combine2;
-			combine2.type = SSAExprType::eAppend;
-			combine2.exprtype = firstAdd.exprtype;
-			combine2.instrAddr = firstAdd.instrAddr;
-			combine2.subExpressions = {
-				firstAdd.subExpressions[1],
-				secondAdd.subExpressions[1]
-			};
-			combine2.size = firstAdd.size + secondAdd.size;
-
-			if (combine1.size == combine2.size && firstAdd.size == carryExpr.flagbit && ssaRep->isNotUsedBefore(firstAdd, secondAdd)) {
-				uint32_t secsize = secondAdd.size;
-
-				SSAArgument addArg = SSAArgument::createId(secondAdd.id);
-
-				HId secId = secondAdd.id;
-				uint32_t firstsize = firstAdd.size;
-
-				SSAExpression split1;
-				split1.type = SSAExprType::eSplit;
-				split1.exprtype = firstAdd.exprtype;
-				split1.instrAddr = firstAdd.instrAddr;
-				split1.size = firstAdd.size;
-				split1.offset = 0;
-
-				SSAExpression split2;
-				split2.type = SSAExprType::eSplit;
-				split2.exprtype = firstAdd.exprtype;
-				split2.instrAddr = firstAdd.instrAddr;
-				split2.size = secondAdd.size;
-				split2.offset = firstAdd.size;
-
-				secondAdd.size += firstAdd.size;
-
-				//Expression references invalidated
-				SSAArgument combine1Arg = SSAArgument::createId(ssaRep->addBefore(&combine1, secId));
-				SSAArgument combine2Arg = SSAArgument::createId(ssaRep->addBefore(&combine2, secId));
-
-				SSAArgument split1Arg = SSAArgument::createId(ssaRep->addAfter(&split1, secId));
-				SSAArgument split2Arg = SSAArgument::createId(ssaRep->addAfter(&split2, secId));
-
-				//set arguments of second arg
-				ssaRep->expressions[context->expressionsMatched[0]].setAllArguments(ssaRep, { combine1Arg, combine2Arg });
-
-				ssaRep->replaceOpExpr(ssaRep->expressions[context->expressionsMatched[2]], split1Arg, firstsize);
-				ssaRep->replaceOpExpr(ssaRep->expressions[context->expressionsMatched[0]], split2Arg, firstsize);
-
-				ssaRep->expressions[split1Arg.ssaId].setAllArguments(ssaRep, { SSAArgument::createId(secId) });
-				ssaRep->expressions[split2Arg.ssaId].setAllArguments(ssaRep, { SSAArgument::createId(secId) });
+				combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, secondAdd, secondAdd.instrAddr);
 				return true;
 			}
 			else {
 				return false;
 			}
+		})
+		//This appears because of a different rule that compresses carry(sub(x,y)) to lower(x,y)
+		.ssaType(0, 0, SSAOpType::eSub)
+		.ssaType(1, 3, SSAOpType::eLower)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& lowerExpr = ssaRep->expressions[context->expressionsMatched[1]];
+			SSAExpression& subOp = ssaRep->expressions[context->expressionsMatched[0]];
+			if (!subOp.directRefs.size() || lowerExpr.subExpressions.size() != 2 || subOp.subExpressions.size() != 3 || lowerExpr.exprtype != subOp.exprtype)
+				return false;
+			if (!consequtive_exprs(arch, ssaRep, lowerExpr.subExpressions[0].ssaId, subOp.subExpressions[0].ssaId))
+				return false;
+			if (!consequtive_exprs(arch, ssaRep, lowerExpr.subExpressions[1].ssaId, subOp.subExpressions[1].ssaId))
+				return false;
+
+			g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry Sub");
+
+			if (lowerExpr.size == subOp.size && ssaRep->isNotUsedBefore(lowerExpr, subOp)) {
+				HId exprsToReplace[2] = { lowerExpr.id, subOp.id };
+				SSAArgument firstargss[2] = { lowerExpr.subExpressions[0], subOp.subExpressions[0] };
+				SSAArgument secargss[2] = { lowerExpr.subExpressions[1], subOp.subExpressions[1] };
+
+				combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, subOp, subOp.instrAddr);
+				return true;
+			}
+			return false;
 		})
 		.ssaType(0, 0, SSAExprType::eSplit)
 		.ssaType(1, 1, SSAExprType::eAppend)

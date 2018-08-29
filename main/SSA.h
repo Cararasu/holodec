@@ -377,7 +377,7 @@ namespace holodec {
 		uint64_t replaceAllArgs(SSAExpression& origExpr, SSAArgument replaceArg);
 		bool isReplaceable(SSAExpression& origExpr);
 		uint64_t replaceExpr(SSAExpression& origExpr, SSAArgument replaceArg);
-		uint64_t replaceOpExpr(SSAExpression& origExpr, SSAArgument replaceArg, uint32_t baseoffset);
+		uint64_t replaceOpExpr(SSAExpression& origExpr, SSAArgument replaceArg, SSAArgument opArg, uint32_t baseoffset);
 		void removeNodes(HSet<HId>* ids);
 		
 		void compress();
@@ -433,6 +433,13 @@ namespace holodec {
 	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, 
 		int64_t* arithchange/* result | the value that was added or subtracted */, HId* baseExprId/* result | the furthest argument we can travel to */);
 
+	void combine_operations(SSARepresentation* ssaRep, HId* exprsToReplace, SSAArgument* firstargss, SSAArgument* secargss, uint32_t count, SSAExpression expr, uint64_t instrAddr);
+
+	//checks if the expressions refer to the same expressions just split so they are laid out consecutive
+	//or they refer to load expressions that are consequitve in memory
+	bool consequtive_exprs(Architecture* arch, SSARepresentation* ssaRep, HId expr1, HId expr2);
 }
+
+
 
 #endif //SSA_H

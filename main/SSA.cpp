@@ -726,12 +726,13 @@ namespace holodec {
 		}
 		return count;
 	}
-	uint64_t SSARepresentation::replaceOpExpr(SSAExpression& origExpr, SSAArgument replaceArg, uint32_t baseoffset) {
+	uint64_t SSARepresentation::replaceOpExpr(SSAExpression& origExpr, SSAArgument replaceArg, SSAArgument opArg, uint32_t baseoffset) {
 		uint64_t count = 0;
 
 		for (HId directRefId : origExpr.directRefs) {//iterate refs
 			SSAExpression& expr = expressions[directRefId];
 			if (!isFlagExpr(expr, &replaceArg)) {
+				expr.subExpressions[0].replace(opArg);
 				expr.flagbit += baseoffset;
 				continue;
 			}
@@ -1224,6 +1225,80 @@ namespace holodec {
 			return true;
 		}
 		return false;
+	}
+
+
+	void combine_operations(SSARepresentation* ssaRep, HId* exprsToReplace, SSAArgument* firstargss, SSAArgument* secargss, uint32_t count, SSAExpression expr, uint64_t instrAddr) {
+
+		uint32_t size = 0;
+		for (uint32_t i = 0; i < count; i++) {
+			size += ssaRep->expressions[exprsToReplace[i]].size;
+		}
+
+		SSAExpression combine1;
+		combine1.type = SSAExprType::eAppend;
+		combine1.exprtype = SSAType::eUInt;
+		combine1.instrAddr = instrAddr;
+		combine1.subExpressions.resize(count);
+		for (uint32_t i = 0; i < count; i++) {
+			combine1.subExpressions[i] = firstargss[i];
+		}
+		combine1.size = size;
+
+		SSAExpression combine2;
+		combine2.type = SSAExprType::eAppend;
+		combine2.exprtype = SSAType::eUInt;
+		combine2.instrAddr = instrAddr;
+		combine2.subExpressions.resize(count);
+		for (uint32_t i = 0; i < count; i++) {
+			combine2.subExpressions[i] = secargss[i];
+		}
+		combine2.size = size;
+
+		HId lastexprid = exprsToReplace[count - 1];
+
+		SSAArgument combine1arg = SSAArgument::createId(ssaRep->addBefore(&combine1, lastexprid));
+		SSAArgument combine2arg = SSAArgument::createId(ssaRep->addBefore(&combine2, lastexprid));
+
+		expr.subExpressions = { combine1arg , combine2arg };
+		expr.size = size;
+
+		SSAArgument opexpr = SSAArgument::createId(ssaRep->addBefore(&expr, lastexprid));
+
+		uint32_t offset = 0;
+		for (uint32_t i = 0; i < count; i++) {
+			HId id = exprsToReplace[i];
+			SSAExpression split;
+			split.type = SSAExprType::eSplit;
+			split.exprtype = SSAType::eUInt;
+			split.instrAddr = instrAddr;
+			split.size = ssaRep->expressions[id].size;
+			split.subExpressions = { opexpr };
+			split.offset = offset;
+
+			ssaRep->replaceOpExpr(ssaRep->expressions[exprsToReplace[i]], SSAArgument::createId(ssaRep->addBefore(&split, lastexprid)), opexpr, offset);
+
+			offset += ssaRep->expressions[id].size;
+		}
+
+	}
+	bool consequtive_exprs(Architecture* arch, SSARepresentation* ssaRep, HId expr1, HId expr2) {
+		SSAExpression& firstparam = ssaRep->expressions[expr1];
+		SSAExpression& secparam = ssaRep->expressions[expr2];
+		if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
+			int64_t change;
+			if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
+				return false;
+			}
+		}
+		else {
+			uint32_t offsetfirst, offsetsecond;
+			offsetfirst = firstparam.type == SSAExprType::eSplit ? firstparam.offset : 0;
+			offsetsecond = secparam.type == SSAExprType::eSplit ? secparam.offset : 0;
+			if (offsetsecond - offsetfirst != firstparam.size)
+				return false;
+		}
+		return true;
 	}
 
 }
