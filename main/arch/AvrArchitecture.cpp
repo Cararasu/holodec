@@ -411,20 +411,20 @@ namespace holoavr {
 		}, InstructionType::eIO },
 
 		{ AVR_INSTR_POP, "pop",{
-			{ 1, "=(#arg[1],#pop($stack,#size(#arg[1])))" }
+			{ 1, "#seq(=(#arg[1],#ld($dmem,+($sp,1),#size(#arg[1]))),=($sp,+($sp,#size(#arg[1]))))" }
 		}, InstructionType::ePop },
 		{ AVR_INSTR_PUSH, "push",{
-			{ 1, "#push($stack,#arg[1])" }
+			{ 1, "#seq(=($sp,-($sp,#size(#arg[1]))),#st($dmem,+($sp,1),#arg[1]))" }
 		}, InstructionType::ePush },
 
 		{ AVR_INSTR_RCALL, "rcall",{
 			{ 1, "#seq(#push($stack,#ip),#call(#arg[1]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_RET, "ret",{
-			{ 0, "#seq(#ret(#pop($stack,#size(#ip))))" }
+			{ 0, "#seq(=(#t[1],#ld($dmem,+($sp,1),3)),=($sp,+($sp,3)),#ret(#t[1]))" }
 		}, InstructionType::eRet },
 		{ AVR_INSTR_RETI, "reti",{
-			{ 0, "#seq(#pop($stack,#ip),=($if,1),#ret(#pop($stack,#size(#ip))))" }
+			{ 0, "#seq(=($if,1),#rec[ret]())" }
 		}, InstructionType::eRet },
 		{ AVR_INSTR_RJMP, "rjmp",{
 			{ 1, "#jmp(#arg[1])" }

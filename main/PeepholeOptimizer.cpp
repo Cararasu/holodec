@@ -367,10 +367,8 @@ namespace holodec {
 			SSAExpression& firstAdd = ssaRep->expressions[context->expressionsMatched[2]];
 			SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
 			SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
-			if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 ||
-				firstAdd.exprtype != secondAdd.exprtype)
+			if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || firstAdd.exprtype != secondAdd.exprtype)
 				return false;
-
 			if (!consequtive_exprs(arch, ssaRep, firstAdd.subExpressions[0].ssaId, secondAdd.subExpressions[0].ssaId))
 				return false;
 			if (!consequtive_exprs(arch, ssaRep, firstAdd.subExpressions[1].ssaId, secondAdd.subExpressions[1].ssaId))
@@ -387,9 +385,7 @@ namespace holodec {
 				combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, secondAdd, secondAdd.instrAddr);
 				return true;
 			}
-			else {
-				return false;
-			}
+			return false;
 		})
 		.ssaType(0, 0, SSAOpType::eSub)
 		.ssaType(1, 3, SSAFlagType::eC)
@@ -415,9 +411,7 @@ namespace holodec {
 				combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, secondAdd, secondAdd.instrAddr);
 				return true;
 			}
-			else {
-				return false;
-			}
+			return false;
 		})
 		//This appears because of a different rule that compresses carry(sub(x,y)) to lower(x,y)
 		.ssaType(0, 0, SSAOpType::eSub)
@@ -464,7 +458,6 @@ namespace holodec {
 				}
 				offset += subexpr.size;
 			}
-
 			return false;
 		})
 		.ssaType(0, 0, SSAExprType::eOp)
@@ -551,7 +544,7 @@ namespace holodec {
 				}
 				uint32_t offset = splitExpr->offset;
 				uint32_t offsetlimit = splitExpr->offset + splitExpr->size;
-				assert(splitExpr->offset + splitExpr->size <= subExpr.size);
+				assert(splitExpr->offset + splitExpr->size <= appExpr->size);
 				expr->removeArgument(ssaRep, index);
 				uint32_t innerOffset = 0;
 				for (size_t innerIndex = 0; innerIndex < appExpr->subExpressions.size(); innerIndex++) {
@@ -602,6 +595,7 @@ namespace holodec {
 				}
 			}
 			bool replaced = false;
+			//combine multiple values in an append
 			for (size_t index = 1; index < expr->subExpressions.size();) {
 				SSAExpression* thisexpr = &ssaRep->expressions[expr->subExpressions[index].ssaId];
 				SSAExpression* lastexpr = &ssaRep->expressions[expr->subExpressions[index - 1].ssaId];
@@ -620,7 +614,7 @@ namespace holodec {
 				}
 				index++;
 			}
-
+			//combine multiple loads in an append
 			for (size_t index = 1; index < expr->subExpressions.size(); ) {
 				SSAExpression* thisexpr = &ssaRep->expressions[expr->subExpressions[index].ssaId];
 				SSAExpression* lastexpr = &ssaRep->expressions[expr->subExpressions[index - 1].ssaId];

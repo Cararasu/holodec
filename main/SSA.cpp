@@ -158,10 +158,10 @@ namespace holodec {
 				printf("%7.7f", fval);
 				break;
 			case SSAType::eUInt:
-				printf("%7.7ld", uval);
+				printf("%7.7" PRId64, uval);
 				break;
 			case SSAType::eInt:
-				printf("%7.7ld", sval);
+				printf("%7.7"  PRIu64, sval);
 				break;
 			}
 			break;
@@ -1184,9 +1184,9 @@ namespace holodec {
 					if (expr.type != SSAExprType::eValue)
 						return 0;
 					if (expr.exprtype == SSAType::eUInt)
-						change = expr.uval;
+						change -= expr.uval;
 					else if (expr.exprtype == SSAType::eInt)
-						change = expr.sval;
+						change -= expr.sval;
 					else
 						return 0;
 				}
@@ -1205,7 +1205,7 @@ namespace holodec {
 
 	SSAExpression* find_baseexpr(SSARepresentation* ssaRep, SSAArgument arg) {
 		SSAExpression* expr = &ssaRep->expressions[arg.ssaId];
-		while (expr->type == SSAExprType::eAssign) expr = &ssaRep->expressions[expr->subExpressions[0].ssaId];
+		while (expr->type == SSAExprType::eAssign && expr->subExpressions[0].ssaId) expr = &ssaRep->expressions[expr->subExpressions[0].ssaId];
 		return expr;
 	}
 	HId find_basearg(SSARepresentation* ssaRep, SSAArgument arg) {
@@ -1285,7 +1285,7 @@ namespace holodec {
 	bool consequtive_exprs(Architecture* arch, SSARepresentation* ssaRep, HId expr1, HId expr2) {
 		SSAExpression& firstparam = ssaRep->expressions[expr1];
 		SSAExpression& secparam = ssaRep->expressions[expr2];
-		if (firstparam.type == SSAExprType::eLoad && firstparam.type == SSAExprType::eLoad) {
+		if (firstparam.type == SSAExprType::eLoad && secparam.type == SSAExprType::eLoad) {
 			int64_t change;
 			if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
 				return false;

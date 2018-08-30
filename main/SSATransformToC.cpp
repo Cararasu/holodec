@@ -312,6 +312,7 @@ namespace holodec{
 	}
 	UnifiedExprs* SSATransformToC::getUnifiedExpr(HId uId) {
 		for (UnifiedExprs& exprs : unifiedExprs) {
+			if (!exprs.id) continue;
 			if (exprs.occuringIds.find(uId) != exprs.occuringIds.end()) {
 				return &exprs;
 			}
@@ -618,8 +619,15 @@ namespace holodec{
 		return true;
 	}
 	bool SSATransformToC::printExpression(SSAExpression& expr, uint32_t indent) {
-		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch || expr.type == SSAExprType::ePhi)
+		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch)
 			return false;
+		if (expr.type == SSAExprType::ePhi) {
+			UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
+			if (uExprs) {
+				uExprs->ssaId = expr.id;
+				return false;
+			}
+		}
 		resolveIds.insert(expr.id);
 		printIndent(indent);
 		if (expr.type != SSAExprType::eCall && expr.type != SSAExprType::eStore && !EXPR_HAS_SIDEEFFECT(expr.type)) {
@@ -1029,7 +1037,7 @@ namespace holodec{
 							SSAExpression& argExpr = function->ssaRep.expressions[arg.ssaId];
 							if (argExpr.type == SSAExprType::ePhi) {
 								for (auto it = unifiedExprs.begin(); it != unifiedExprs.end();) {
-									if (it->id != foundId && it->occuringIds.find(expr.uniqueId) != it->occuringIds.end()) {
+									if (it->id && it->id != foundId && it->occuringIds.find(argExpr.uniqueId) != it->occuringIds.end()) {
 										unifiedExprs.get(foundId)->occuringIds.insert(it->occuringIds.begin(), it->occuringIds.end());
 										it = unifiedExprs.erase(it);
 										continue;

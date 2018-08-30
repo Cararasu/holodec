@@ -31,6 +31,9 @@ namespace holodec {
 
 		HList<SSATmpDef> tmpdefs;
 
+		HSet<uint64_t> addrToAnalyze;
+		HSet<uint64_t> functionsToAnalyze;
+
 		SSAGen (Architecture* arch);
 		~SSAGen();
 

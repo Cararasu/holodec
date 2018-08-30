@@ -497,8 +497,8 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 				{2, "#seq(=($zf,==(#app($rax,$rdx),#arg[1])),?($zf,=(#arg[1],#app($rbx,$rcx)),#seq(=($rax,#arg[1][0,64]),=($rdx,#arg[1][64,64]))))"}
 			}, InstructionType::eXchg, InstructionType::eUnknown
 		},
-		{X86_INS_PUSH, "push", {{1, "#push($stack,#arg[1])"}}, InstructionType::ePush},
-		{X86_INS_POP, "pop", {{1, "=(#arg[1],#pop($stack,#size(#arg[1])))"}}, InstructionType::ePop},
+		{X86_INS_PUSH, "push", {{1, "#seq(=($rsp,-($rsp,#size(#arg[1]))),#st($mem,+($rsp,1),#arg[1]))"}}, InstructionType::ePush},
+		{X86_INS_POP, "pop", {{1, "#seq(=(#arg[1],#ld($mem,+($rsp,1),#size(#arg[1]))),=($rsp,+($rsp,#size(#arg[1]))))"}}, InstructionType::ePop},
 
 		{X86_INS_PUSHAW, "pushad", {{1, "#seq(=(#t[1],$esp),#rec[push]($eax),#rec[push]($ecx),#rec[push]($edx),#rec[push]($edx),#rec[push]($ebx),#rec[push](#t[1]),#rec[push]($ebp),#rec[push]($esi),#rec[push]($edi))"}}, InstructionType::ePush},
 		{X86_INS_PUSHAL, "pusha", {{1, "#seq(=(#t[1],$sp),#rec[push]($ax),#rec[push]($cx),#rec[push]($dx),#rec[push]($dx),#rec[push]($bx),#rec[push](#t[1]),#rec[push]($bp),#rec[push]($si),#rec[push]($di))"}}, InstructionType::ePush},

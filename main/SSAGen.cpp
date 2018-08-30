@@ -834,8 +834,8 @@ namespace holodec {
 					else if (!size)
 						size = getSize(arg);
 					else
-						assert(!arg.ssaId || size >= ssaRep->expressions[arg.ssaid].size);
-					assert(!(!arg.isConst() && arg.size == 0));
+						assert(!arg.ssaId || size >= ssaRep->expressions[arg.ssaId].size);
+					assert(!(!ssaRep->expressions[arg.ssaId].isConst() && getSize(arg) == 0));
 					expression.subExpressions.push_back (arg);
 				}
 				switch (expression.opType) {
@@ -866,7 +866,7 @@ namespace holodec {
 				{
 					SSAExpression* dstexpr = find_baseexpr(ssaRep, expression.subExpressions[0]);
 					if (dstexpr->type == SSAExprType::eValue && dstexpr->exprtype == SSAType::eUInt)
-						function->addrToAnalyze.insert(dstexpr->uval);
+						function->funcsCaller.insert(dstexpr->uval);
 				}
 
 				for (Register& reg : arch->registers) {

@@ -68,7 +68,8 @@ namespace holodec {
 			return list.back();
 		}
 		iterator erase(iterator it){
-			return list.erase(it);
+			it->id = 0;
+			return it;
 		}
 		constexpr T* get (HId id) {
 			return id <= list.size() || list[id - 1].id ? &list[id - 1] : nullptr;

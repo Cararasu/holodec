@@ -157,7 +157,8 @@ int main (int argc, const char** argv) {
 	bool funcAnalyzed;
 	do {
 		funcAnalyzed = false;
-		for (Function* func : binary->functions) {
+		for (size_t i = 0; i < binary->functions.list.size(); i++) {
+			Function* func = binary->functions.list[i];
 			if (!func->addrToAnalyze.empty()) {
 				func_analyzer->analyzeFunction (func);
 				funcAnalyzed = true;

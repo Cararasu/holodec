@@ -134,7 +134,6 @@ namespace holodec {
 		//the start-address of the function
 		uint64_t baseaddr;
 		bool exported;
-		
 
 		FuncRegState regStates;
 		FuncRegState usedRegStates;
