@@ -106,6 +106,11 @@ namespace holoavr{
 					instr->instrdef = arch->getInstrDef(AVR_INSTR_EICALL);
 					return true;
 				}
+				else if (firstbytes == 0x95C8) {//lpm R0, Z
+					instr->operands.push_back(IRArgument::createReg(arch->getRegister("r0")));
+					instr->instrdef = arch->getInstrDef(AVR_INSTR_LPM | AVR_INSTR_INC_PTR);
+					return true;
+				}
 				else if((firstbytes & 0xFF0F) == 0x9408) {
 					uint16_t bit = (firstbytes & 0x70) >> 4;
 					if (firstbytes & 0x080) {//clear sreg
@@ -623,12 +628,6 @@ namespace holoavr{
 					return false;
 				}
 			}
-			return true;
-		}
-		else if (firstbytes == 0x95C8) {//lpm R0, Z
-			instr->operands.push_back(IRArgument::createReg(arch->getRegister("r0")));
-			instr->instrdef = arch->getInstrDef(AVR_INSTR_LPM | AVR_INSTR_INC_PTR);
-			instr->operands.push_back(IRArgument::createReg(arch->getRegister("z")));
 			return true;
 		}
 		else if ((firstbytes & 0xF808) == 0xF800) {//one reg instr

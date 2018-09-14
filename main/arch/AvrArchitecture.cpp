@@ -320,7 +320,7 @@ namespace holoavr {
 			{ 2, "=(#arg[1],$in(#arg[2]))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_INC, "inc",{
-			{ 2, "#seq(=(#t[1],$cf),#rec[add](#arg[1],1),=($cf,#t[1]))" }
+			{ 1, "#seq(=(#t[1],$cf),#rec[add](#arg[1],1),=($cf,#t[1]))" }
 		}, InstructionType::eAdd },
 		{ AVR_INSTR_JMP, "jmp",{
 			{ 1, "#jmp(#arg[1])" }

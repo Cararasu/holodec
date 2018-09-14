@@ -279,8 +279,8 @@ bool holoelf::ElfBinaryAnalyzer::parseFileHeader() {
 	//Architecture flag
 	switch (file->data[4]) {
 	case 0x01:
-		binary->bitbase = 4;
-		binary->bytebase = 8;
+		binary->bitbase = 8;
+		binary->bytebase = 4;
 		break;
 	case 0x02:
 		binary->bitbase = 8;
@@ -354,6 +354,9 @@ bool holoelf::ElfBinaryAnalyzer::parseFileHeader() {
 	switch (elf_is) {
 	case ELF_IS_X86:
 		binary->arch = holodec::Main::g_main->getArchitecture("x86");
+		break;
+	case ELF_IS_AVR:
+		binary->arch = holodec::Main::g_main->getArchitecture("avr");
 		break;
 	default:
 		break;

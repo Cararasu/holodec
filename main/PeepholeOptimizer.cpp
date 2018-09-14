@@ -548,7 +548,7 @@ namespace holodec {
 				expr->removeArgument(ssaRep, index);
 				uint32_t innerOffset = 0;
 				for (size_t innerIndex = 0; innerIndex < appExpr->subExpressions.size(); innerIndex++) {
-					SSAArgument innerArg = expr->subExpressions[innerIndex];
+					SSAArgument innerArg = appExpr->subExpressions[innerIndex];
 					SSAExpression& innerExpr = ssaRep->expressions[innerArg.ssaId];
 					if (innerOffset >= offsetlimit)
 						break;
