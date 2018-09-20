@@ -285,6 +285,8 @@ namespace holodec{
 		
 	}
 	bool SSATransformToC::shouldResolve(SSAExpression& expr) {
+		resolveIds.insert(expr.id);
+		return true;
 		if (expr.type == SSAExprType::eLoad)//for ordering sake until a comprehensive DFA is implemented
 			return true;
 		if (resolveIds.find(expr.id) != resolveIds.end()) {
@@ -330,7 +332,6 @@ namespace holodec{
 		else if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
 			if (write) {
 				printf("var%d, ", uExprs->id);
-				uExprs->ssaId = expr.id;
 			}
 			else if (uExprs->ssaId == expr.id)  {
 				printf("var%d", uExprs->id);
@@ -372,76 +373,89 @@ namespace holodec{
 		case SSAExprType::eNop:
 			return false;
 		case SSAExprType::eOp: {
-			for (size_t i = 0; i < expr.subExpressions.size(); ++i) {
-				SSAArgument& arg = expr.subExpressions[i];
-				resolveArg(arg);
-				if (i + 1 != expr.subExpressions.size()) {
-					switch (expr.opType) {
-					case SSAOpType::eMul:
-						printf(" * ");
-						break;
-					case SSAOpType::eDiv:
-						printf(" / ");
-						break;
-					case SSAOpType::eSub:
-						printf(" - ");
-						break;
-					case SSAOpType::eAdd:
-						printf(" + ");
-						break;
-					case SSAOpType::eAnd:
-						printf(" && ");
-						break;
-					case SSAOpType::eOr:
-						printf(" || ");
-						break;
-					case SSAOpType::eEq:
-						printf(" == ");
-						break;
-					case SSAOpType::eNe:
-						printf(" != ");
-						break;
-					case SSAOpType::eLe:
-						printf(" <= ");
-						break;
-					case SSAOpType::eLower:
-						printf(" < ");
-						break;
-					case SSAOpType::eGe:
-						printf(" >= ");
-						break;
-					case SSAOpType::eGreater:
-						printf(" > ");
-						break;
-					case SSAOpType::eBAnd:
-						printf(" & ");
-						break;
-					case SSAOpType::eBOr:
-						printf(" | ");
-						break;
-					case SSAOpType::eBXor:
-						printf(" ^ ");
-						break;
-					case SSAOpType::eBNot:
-						printf(" ~ ");
-						break;
-					case SSAOpType::eShr:
-						printf(" >> ");
-						break;
-					case SSAOpType::eShl:
-						printf(" << ");
-						break;
-					case SSAOpType::eRor:
-						printf(" >>> ");
-						break;
-					case SSAOpType::eRol:
-						printf(" <<< ");
-						break;
-					default:
-						printf(" op ");
-						break;
-					}
+			if (expr.opType == SSAOpType::eNot) {
+				printf("!(");
+
+				for (size_t i = 0; i < expr.subExpressions.size(); ++i) {
+					if (i > 0)
+						printf(",");
+					SSAArgument& arg = expr.subExpressions[i];
+					resolveArg(arg);
 				}
+				printf(")");
+			}
+			else {
+				for (size_t i = 0; i < expr.subExpressions.size(); ++i) {
+					SSAArgument& arg = expr.subExpressions[i];
+					resolveArg(arg);
+					if (i + 1 != expr.subExpressions.size()) {
+						switch (expr.opType) {
+						case SSAOpType::eMul:
+							printf(" * ");
+							break;
+						case SSAOpType::eDiv:
+							printf(" / ");
+							break;
+						case SSAOpType::eSub:
+							printf(" - ");
+							break;
+						case SSAOpType::eAdd:
+							printf(" + ");
+							break;
+						case SSAOpType::eAnd:
+							printf(" && ");
+							break;
+						case SSAOpType::eOr:
+							printf(" || ");
+							break;
+						case SSAOpType::eEq:
+							printf(" == ");
+							break;
+						case SSAOpType::eNe:
+							printf(" != ");
+							break;
+						case SSAOpType::eLe:
+							printf(" <= ");
+							break;
+						case SSAOpType::eLower:
+							printf(" < ");
+							break;
+						case SSAOpType::eGe:
+							printf(" >= ");
+							break;
+						case SSAOpType::eGreater:
+							printf(" > ");
+							break;
+						case SSAOpType::eBAnd:
+							printf(" & ");
+							break;
+						case SSAOpType::eBOr:
+							printf(" | ");
+							break;
+						case SSAOpType::eBXor:
+							printf(" ^ ");
+							break;
+						case SSAOpType::eBNot:
+							printf(" ~ ");
+							break;
+						case SSAOpType::eShr:
+							printf(" >> ");
+							break;
+						case SSAOpType::eShl:
+							printf(" << ");
+							break;
+						case SSAOpType::eRor:
+							printf(" >>> ");
+							break;
+						case SSAOpType::eRol:
+							printf(" <<< ");
+							break;
+						default:
+							printf(" op ");
+							break;
+						}
+					}
+			}
 			}
 		}break;
 		case SSAExprType::eLoadAddr:
@@ -568,6 +582,10 @@ namespace holodec{
 					continue;
 				}
 				if (arg.location == SSALocation::eReg) {
+					RegisterState* state = function->usedRegStates.getRegisterState(arg.locref.refId);//reverse check if the argument is used outside in another function
+					if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
+						continue;
+					}
 					printf("%s: ", arch->getRegister(arg.locref.refId)->name.cstr());
 				}
 				resolveArg(arg);
@@ -621,21 +639,28 @@ namespace holodec{
 	bool SSATransformToC::printExpression(SSAExpression& expr, uint32_t indent) {
 		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch)
 			return false;
-		if (expr.type == SSAExprType::ePhi) {
-			UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
-			if (uExprs) {
-				uExprs->ssaId = expr.id;
-				return false;
-			}
-		}
+		UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
 		resolveIds.insert(expr.id);
 		printIndent(indent);
+		if (uExprs && expr.type != SSAExprType::ePhi) {
+			printExprType(expr);
+			resolveArgVariable(expr, true);
+			printf(" = ");
+			uExprs->ssaId = expr.id;
+			resolveArgVariable(expr, false);
+			return true;
+		}
 		if (expr.type != SSAExprType::eCall && expr.type != SSAExprType::eStore && !EXPR_HAS_SIDEEFFECT(expr.type)) {
 			printExprType(expr);
 			resolveArgVariable(expr, true);
 			printf(" = ");
 		}
-		return resolveExpression(expr);
+		bool res = resolveExpression(expr);
+		if (uExprs) {
+			uExprs->ssaId = expr.id;
+			return true;
+		}
+		return res;
 	}
 	ControlStruct* getStructFromHead(ControlStruct* controlStruct, HId headId) {
 		for (ControlStruct& subStruct : controlStruct->child_struct) {
@@ -1030,6 +1055,7 @@ namespace holodec{
 					}
 					else {
 						foundId = unifiedExprs.emplace_back();
+						unifiedExprs[foundId].occuringIds.insert(expr.uniqueId);
 					}
 
 					for (SSAArgument& arg : expr.subExpressions) {

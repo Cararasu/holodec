@@ -437,7 +437,7 @@ namespace holodec {
 
 	//checks if the expressions refer to the same expressions just split so they are laid out consecutive
 	//or they refer to load expressions that are consequitve in memory
-	bool consequtive_exprs(Architecture* arch, SSARepresentation* ssaRep, HId expr1, HId expr2);
+	bool consecutive_exprs(Architecture* arch, SSARepresentation* ssaRep, HId expr1, HId expr2);
 }
 
 

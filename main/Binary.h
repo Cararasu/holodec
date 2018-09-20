@@ -107,13 +107,7 @@ namespace holodec {
 			return defaultMemSpace->getVData(addr);
 		}
 		const uint64_t getVData(HId memorySegmentId, size_t addr) {
-			memorySpaces.at(memorySegmentId);
-			for (std::pair<HId, MemorySpace*> entry : memorySpaces) {
-				if (entry.first == memorySegmentId) {
-					return entry.second->getVData(addr);
-				}
-			}
-			return 0;
+			return memorySpaces.at(memorySegmentId)->getVData(addr);
 		}
 		DataSegment* getDataSegment(size_t addr) {
 			return defaultMemSpace->getDataSegment(addr);

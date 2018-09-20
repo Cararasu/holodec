@@ -850,7 +850,7 @@ namespace holodec {
 			if (expr.id) {
 				for (SSAArgument& arg : expr.subExpressions) {
 					if (arg.type == SSAArgType::eId && !(arg.ssaId > 0 && arg.ssaId <= expressions.size())) {
-						fprintf(stderr, "Invalid ssaId in arg from Expression %d\n", expr.id);
+						fprintf(stderr, "Invalid ssaId %d in arg from Expression %d\n", arg.ssaId, expr.id);
 						return false;
 					}
 					if (arg.type == SSAArgType::eId && !expressions[arg.ssaId].id) {
@@ -1282,10 +1282,12 @@ namespace holodec {
 		}
 
 	}
-	bool consequtive_exprs(Architecture* arch, SSARepresentation* ssaRep, HId expr1, HId expr2) {
+	bool consecutive_exprs(Architecture* arch, SSARepresentation* ssaRep, HId expr1, HId expr2) {
 		SSAExpression& firstparam = ssaRep->expressions[expr1];
 		SSAExpression& secparam = ssaRep->expressions[expr2];
-		if (firstparam.type == SSAExprType::eLoad && secparam.type == SSAExprType::eLoad) {
+		if (firstparam.isConst(SSAType::eUInt) && secparam.isConst(SSAType::eUInt)) {
+			return true;
+		}else if (firstparam.type == SSAExprType::eLoad && secparam.type == SSAExprType::eLoad) {
 			int64_t change;
 			if (calculate_difference(ssaRep, firstparam.subExpressions[1].ssaId, secparam.subExpressions[1].ssaId, &change) && change * arch->bitbase != firstparam.size) {
 				return false;

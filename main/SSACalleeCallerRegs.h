@@ -24,8 +24,6 @@ namespace holodec {
 
 		CalleeArgument replace(CalleeArgument arg) {
 			CalleeArgument retArg = arg;
-			printf("SSAId %d\n", retArg.ssaId);
-			fflush(stdout);
 			retArg.offset += offset;
 			return retArg;
 		}
@@ -44,16 +42,17 @@ namespace holodec {
 	class SSACalleeCallerRegs : public SSATransformer {
 
 		std::vector<StringRef> volatileRegs;
-		SSARepresentation* ssaRep;
 	public:
-		SSACalleeCallerRegs() :volatileRegs(), ssaRep(nullptr){}
-		SSACalleeCallerRegs(std::vector<StringRef> volatileRegs) :volatileRegs(volatileRegs), ssaRep(nullptr) {}
+		SSACalleeCallerRegs() :volatileRegs() {}
+		SSACalleeCallerRegs(std::vector<StringRef> volatileRegs) :volatileRegs(volatileRegs) {}
 
 		virtual bool doTransformation(Binary* binary, Function* function);
 	private:
-		bool isInput(CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, CalleeArgument* retArg);
+		std::set<Function*> visitedFuncs;
 
-		bool isInputMem(HId memId, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, CalleeArgument* retArg, CalleeArgument ptrArg);
+		bool isInput(Function* function, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, Register* reg, CalleeArgument* retArg);
+
+		bool isInputMem(Function* function, HId memId, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, Register* reg, CalleeArgument* retArg, CalleeArgument ptrArg);
 
 
 	};

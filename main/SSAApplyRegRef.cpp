@@ -25,6 +25,7 @@ namespace holodec {
 							}
 						}
 					}
+					/*
 					if (argIt->location == SSALocation::eReg) {
 						RegisterState* state = function->usedRegStates.getRegisterState(argIt->locref.refId);//reverse check if the argument is used outside in another function
 						if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
@@ -47,8 +48,8 @@ namespace holodec {
 							Memory* mem = arch->getMemory(argIt->locref.refId);
 							MemoryState* state = function->regStates.getNewMemoryState(mem->id);
 							state->flags |= UsageFlags::eWrite;
-						}
-					}
+						} 
+					}*/
 				}
 			}
 			else if (expr->type == SSAExprType::eInput) {

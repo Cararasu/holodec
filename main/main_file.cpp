@@ -409,5 +409,6 @@ int main (int argc, const char** argv) {
 
 #undef PATH
 */
+	fflush(stdout);
 	return 0;
 }

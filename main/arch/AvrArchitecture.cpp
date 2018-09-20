@@ -266,10 +266,10 @@ namespace holoavr {
 			{ 1, "#seq(=(#t[1],255[8]),#rec[sub](#t[1],#arg[1]),=(#arg[1],#t[1]))" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_CP, "cp",{
-			{ 2, "#seq(=(#t[1],#arg[1]),#rec[sub](#t[1],#arg[2]))" }
+			{ 2, "#seq(=(#t[1],-(#arg[1],#arg[2])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#arg[1],#arg[2])),=($nf,<[s](#t[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_CPC, "cpc",{
-			{ 2, "#seq(=(#t[1],#arg[1]),#rec[sbc](#t[1],#arg[2]))" }
+			{ 2, "#seq(=(#t[1],-(#arg[1],#arg[2],$cf)),=($zf,#and(==(#arg[1],+(#arg[2],$cf)),$zf)),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#t[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_CPSE, "cpse",{
 			{ 2, "#rec[cp](#arg[1],#arg[2])" }
