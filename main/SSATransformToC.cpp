@@ -285,17 +285,7 @@ namespace holodec{
 		
 	}
 	bool SSATransformToC::shouldResolve(SSAExpression& expr) {
-		resolveIds.insert(expr.id);
-		return true;
-		if (expr.type == SSAExprType::eLoad)//for ordering sake until a comprehensive DFA is implemented
-			return true;
 		if (resolveIds.find(expr.id) != resolveIds.end()) {
-			return true;
-		}
-		if (expr.refs.size() > 1) {
-			return true;
-		}
-		if (EXPR_HAS_SIDEEFFECT(expr.type) || expr.type == SSAExprType::eStore) {
 			return true;
 		}
 		return false;
@@ -642,12 +632,11 @@ namespace holodec{
 		UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
 		resolveIds.insert(expr.id);
 		printIndent(indent);
-		if (uExprs && expr.type != SSAExprType::ePhi) {
-			printExprType(expr);
+		if (uExprs && expr.type == SSAExprType::ePhi) {
+			printExprType(expr); 
 			resolveArgVariable(expr, true);
-			printf(" = ");
+			printf(" = var%d", uExprs->id);
 			uExprs->ssaId = expr.id;
-			resolveArgVariable(expr, false);
 			return true;
 		}
 		if (expr.type != SSAExprType::eCall && expr.type != SSAExprType::eStore && !EXPR_HAS_SIDEEFFECT(expr.type)) {
@@ -1084,9 +1073,20 @@ namespace holodec{
 					}
 				}
 
-				if (expr.type == SSAExprType::eOutput) {
+				if (expr.type == SSAExprType::ePhi)
 					resolveIds.insert(expr.id);
-				}
+				if (expr.type == SSAExprType::eInput)
+					resolveIds.insert(expr.id);
+				else if (expr.type == SSAExprType::eLoad)//for ordering sake until a comprehensive DFA is implemented
+					resolveIds.insert(expr.id);
+				else if (expr.type == SSAExprType::eStore)//for ordering sake until a comprehensive DFA is implemented
+					resolveIds.insert(expr.id);
+				else if (expr.directRefs.size() > 1)
+					resolveIds.insert(expr.id);
+				else if (expr.directRefs.size() == 1 && function->ssaRep.expressions[expr.directRefs[0]].blockId != expr.blockId)
+					resolveIds.insert(expr.id);
+				else if (EXPR_HAS_SIDEEFFECT(expr.type))
+					resolveIds.insert(expr.id);
 			}
 		}
 		printf("\n");

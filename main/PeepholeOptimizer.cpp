@@ -692,15 +692,17 @@ namespace holodec {
 					}
 				}
 				bool replaced = false;
+				uint32_t offset = 0;
 				//combine multiple values in an append
 				for (size_t index = 1; index < expr->subExpressions.size();) {
 					SSAExpression* thisexpr = &ssaRep->expressions[expr->subExpressions[index].ssaId];
 					SSAExpression* lastexpr = &ssaRep->expressions[expr->subExpressions[index - 1].ssaId];
+					offset += lastexpr->size;
 					if (thisexpr->isConst(SSAType::eUInt) && lastexpr->isConst(SSAType::eUInt) && thisexpr->size + lastexpr->size <= 64) {
 						SSAExpression newexpr;
 						newexpr.type = SSAExprType::eValue;
 						newexpr.exprtype = SSAType::eUInt;
-						newexpr.uval |= (thisexpr->uval >> lastexpr->offset) << lastexpr->size;
+						newexpr.uval = lastexpr-> uval | (thisexpr->uval << offset);
 						newexpr.size = thisexpr->size + lastexpr->size;
 
 						index = ssaRep->expressions[exprId].removeArgument(ssaRep, index);
