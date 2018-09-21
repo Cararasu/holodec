@@ -158,10 +158,10 @@ namespace holodec {
 				printf("%7.7f", fval);
 				break;
 			case SSAType::eUInt:
-				printf("%7.7" PRId64, uval);
+				printf("%7.7" PRIx64, uval);
 				break;
 			case SSAType::eInt:
-				printf("%7.7"  PRIu64, sval);
+				printf("%7.7"  PRId64, sval);
 				break;
 			}
 			break;

@@ -55,6 +55,7 @@ namespace holodec {
 		return matched;
 	}
 	bool PhRuleInstance::match(Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr) {
+		if (ssaRep->usedOnlyInFlags(*expr)) return false;
 		MatchContext context;
 		for (PhRule& rule : rules) {
 			if (!rule.matchRule(arch, ssaRep, expr, &context)){
@@ -169,6 +170,8 @@ namespace holodec {
 
 						SSAExpression storeexpr = ssaRep->expressions[context->expressionsMatched[0]];
 						storeexpr.subExpressions[2] = apparg;
+						storeexpr.refs.clear();
+						storeexpr.directRefs.clear();
 
 						SSAArgument storearg = SSAArgument::createId(ssaRep->addAfter(&storeexpr, apparg.ssaId));
 
@@ -188,6 +191,8 @@ namespace holodec {
 
 						SSAExpression storeexpr = ssaRep->expressions[context->expressionsMatched[2]];
 						storeexpr.subExpressions[2] = apparg;
+						storeexpr.refs.clear();
+						storeexpr.directRefs.clear();
 
 						SSAArgument storearg = SSAArgument::createId(ssaRep->addAfter(&storeexpr, apparg.ssaId));
 
@@ -237,7 +242,8 @@ namespace holodec {
 				SSAExpression lowerexpression = subexpr;
 				lowerexpression.opType = SSAOpType::eLower;
 				lowerexpression.exprtype = lexpr.exprtype;
-
+				lowerexpression.refs.clear();
+				lowerexpression.directRefs.clear();
 
 				//This is made to replace SF != ZF patterns but for multibyte subtracts it may produce weird results
 				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
@@ -300,6 +306,8 @@ namespace holodec {
 				SSAExpression lowerexpression = subexpr;
 				lowerexpression.opType = SSAOpType::eLower;
 				lowerexpression.exprtype = SSAType::eUInt;
+				lowerexpression.refs.clear();
+				lowerexpression.directRefs.clear();
 
 				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
 
@@ -482,6 +490,7 @@ namespace holodec {
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 				SSAExpression& notExpr = ssaRep->expressions[context->expressionsMatched[0]];
 				SSAExpression& eqExpr = ssaRep->expressions[context->expressionsMatched[1]];
+
 				SSAExpression neqExpr;
 				neqExpr.type = SSAExprType::eOp;
 				neqExpr.opType = SSAOpType::eNe;
@@ -496,6 +505,7 @@ namespace holodec {
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 				SSAExpression& notExpr = ssaRep->expressions[context->expressionsMatched[0]];
 				SSAExpression& neqExpr = ssaRep->expressions[context->expressionsMatched[1]];
+
 				SSAExpression eqExpr;
 				eqExpr.type = SSAExprType::eOp;
 				eqExpr.opType = SSAOpType::eEq;
@@ -510,6 +520,7 @@ namespace holodec {
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 				SSAExpression& lowerExpr = ssaRep->expressions[context->expressionsMatched[1]];
 				SSAExpression& subOp = ssaRep->expressions[context->expressionsMatched[0]];
+
 				if (!subOp.directRefs.size() || lowerExpr.subExpressions.size() != 2 || subOp.subExpressions.size() != 3 || lowerExpr.exprtype != subOp.exprtype)
 					return false;
 				if (!consecutive_exprs(arch, ssaRep, lowerExpr.subExpressions[0].ssaId, subOp.subExpressions[0].ssaId)) {
@@ -562,8 +573,7 @@ namespace holodec {
 				SSAExpression& subexpr = ssaRep->expressions[context->expressionsMatched[0]];
 				int64_t change = 0;
 				HId baseExprId;
-				if (ssaRep->usedOnlyInFlags(subexpr))
-					return false;
+
 				uint64_t distance = calculate_basearg_plus_offset(ssaRep, context->expressionsMatched[0], &change, &baseExprId);
 				if (distance == 0)// distance travelled should be at leased 1
 					return false;

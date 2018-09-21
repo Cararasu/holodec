@@ -313,8 +313,6 @@ namespace holodec{
 	}
 	bool SSATransformToC::resolveArgVariable(SSAExpression& expr, bool write) {
 		auto it = argumentIds.find(expr.id);
-		if (!shouldResolve(expr))
-			return false;
 		if (it != argumentIds.end()) {
 			printf("arg%d", it->second);
 			return true;
@@ -359,9 +357,11 @@ namespace holodec{
 		case SSAExprType::eLabel:
 			return false;
 		case SSAExprType::eUndef:
-			return false;
+			printf("undef");
+			break;
 		case SSAExprType::eNop:
-			return false;
+			printf("nop");
+			break;
 		case SSAExprType::eOp: {
 			if (expr.opType == SSAOpType::eNot) {
 				printf("!(");
@@ -539,7 +539,8 @@ namespace holodec{
 			}
 			break;
 		case SSAExprType::eOutput:
-			return false;
+			resolveArgVariable(expr, true);
+			break;
 
 		case SSAExprType::eCall: {
 			for (HId id : expr.directRefs) {
@@ -551,7 +552,7 @@ namespace holodec{
 				}
 			}
 			printf("Call ");
-			resolveArg(expr.subExpressions[0]);
+			resolveExpression(function->ssaRep.expressions[expr.subExpressions[0].ssaId]);
 			printf("(");
 			for (size_t i = 0; i < expr.subExpressions.size(); i++) {
 				SSAArgument& arg = expr.subExpressions[i];
@@ -757,7 +758,9 @@ namespace holodec{
 		}
 	}
 	void SSATransformToC::resolveBlock(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent) {
-		printIndent(indent); printf("Label L%d:\n", bb.id);
+		if (bb.id > 1) {
+			printIndent(indent); printf("Label L%d:\n", bb.id);
+		}
 		if (bb.inBlocks.size() > 1) {
 			//printIndent(indent); printf("Label L%d:\n", theBB->id);
 		}
@@ -942,7 +945,7 @@ namespace holodec{
 		Symbol *sym = binary->getSymbol(function->symbolref);
 
 		if (sym)
-			printf("Function: %s\n", sym->name.cstr());
+			printf("Function: %s at 0x%x\n", sym->name.cstr(), sym->vaddr);
 
 		{//split blocks, so that they have either exactly one input ore one output
 			bool changed = false;

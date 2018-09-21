@@ -47,7 +47,7 @@ namespace holoihex {
 
 		holodec::MemorySpace* memSpace = new holodec::MemorySpace();
 		memSpace->endianess = holodec::Endianess::eLittle;
-		memSpace->wordsize = 2;
+		memSpace->wordsize = 1;
 
 		bool reachedfinal = false;
 		uint64_t index = 0;
@@ -99,7 +99,7 @@ namespace holoihex {
 					sym->name = "entry";
 					sym->size = 0;
 					sym->symboltype = &holodec::SymbolType::symfunc;
-					sym->vaddr = 0x00;
+					sym->vaddr = 0x68;
 					binary->addSymbol(sym);
 				}
 				binary->addEntrypoint(sym->id);

@@ -123,6 +123,9 @@ namespace holodec {
 	inline bool operator==(Reference& lhs, Reference& rhs) {
 		return lhs.refId == rhs.refId && lhs.index == rhs.index;
 	}
+	inline bool operator!=(Reference& lhs, Reference& rhs) {
+		return lhs.refId != rhs.refId || lhs.index != rhs.index;
+	}
 	
 	struct SSAArgument {
 		SSAArgType type = SSAArgType::eUndef;
@@ -416,6 +419,9 @@ namespace holodec {
 					return false;
 			}
 			return true;
+		}
+		bool isUsed(SSAExpression& expr) {
+			return expr.directRefs.size() != 0;
 		}
 
 		void print(Architecture* arch, int indent = 0);

@@ -6,8 +6,11 @@ namespace holodec {
 
 
 	bool SSAApplyRegRef::doTransformation(Binary* binary, Function* function) {// results of interprocedural liveness analysis
+
+		printf("Applying Used Registers for Functions at Address: 0x%" PRIx64 "\n", function->baseaddr);
 		bool applied = false;
-		function->regStates.reset();
+		FuncRegState regStates;
+		FuncRegState usedRegStates;
 
 		for (size_t index = 0; index < function->ssaRep.expressions.list.size(); index++) {
 			SSAExpression* expr = &function->ssaRep.expressions.list[index];
@@ -19,7 +22,7 @@ namespace holodec {
 						if (calculate_basearg_plus_offset(&function->ssaRep, argIt->ssaId, &change, &baseExprId) != 0) {
 							SSAExpression& baseExpr = function->ssaRep.expressions[baseExprId];
 							if (baseExpr.type == SSAExprType::eInput && baseExpr.location == SSALocation::eReg && baseExpr.locref.refId == argIt->locref.refId) {
-								RegisterState* state = function->regStates.getNewRegisterState(argIt->locref.refId);
+								RegisterState* state = regStates.getNewRegisterState(argIt->locref.refId);
 								state->arithChange = change;
 								continue;
 							}
@@ -27,26 +30,26 @@ namespace holodec {
 					}
 					/*
 					if (argIt->location == SSALocation::eReg) {
-						RegisterState* state = function->usedRegStates.getRegisterState(argIt->locref.refId);//reverse check if the argument is used outside in another function
+						RegisterState* state = usedRegStates.getRegisterState(argIt->locref.refId);//reverse check if the argument is used outside in another function
 						if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
 							argIt = expr->subExpressions.erase(argIt) - 1;
 							applied = true;
 						}
 						else {
 							Register* reg = arch->getRegister(argIt->locref.refId);
-							RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
+							RegisterState* state = regStates.getNewRegisterState(reg->parentRef.refId);
 							state->flags |= UsageFlags::eWrite;
 						}
 					}
 					else if (argIt->location == SSALocation::eMem) {
-						MemoryState* state = function->usedRegStates.getMemoryState(argIt->locref.refId);//reverse check if the argument is used outside in another function
+						MemoryState* state = usedRegStates.getMemoryState(argIt->locref.refId);//reverse check if the argument is used outside in another function
 						if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
 							argIt = expr->subExpressions.erase(argIt) - 1;
 							applied = true;
 						}
 						else {
 							Memory* mem = arch->getMemory(argIt->locref.refId);
-							MemoryState* state = function->regStates.getNewMemoryState(mem->id);
+							MemoryState* state = regStates.getNewMemoryState(mem->id);
 							state->flags |= UsageFlags::eWrite;
 						} 
 					}*/
@@ -55,12 +58,12 @@ namespace holodec {
 			else if (expr->type == SSAExprType::eInput) {
 				if (expr->location == SSALocation::eReg) {
 					Register* reg = arch->getRegister(expr->locref.refId);
-					RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
+					RegisterState* state = regStates.getNewRegisterState(reg->parentRef.refId);
 					state->flags |= UsageFlags::eRead;
 				}
 				else if (expr->location == SSALocation::eMem) {
 					Memory* mem = arch->getMemory(expr->locref.refId);
-					MemoryState* state = function->regStates.getNewMemoryState(mem->id);
+					MemoryState* state = regStates.getNewMemoryState(mem->id);
 					state->flags |= UsageFlags::eRead;
 				}
 			}
@@ -78,7 +81,7 @@ namespace holodec {
 						if (!reg)
 							continue;
 						RegisterState* state = callFunc->regStates.getRegisterState(reg->parentRef.refId);
-						if (!state || !state->flags.contains(UsageFlags::eRead)) {
+						if (!state || !state->flags.contains(UsageFlags::eRead)) {//if there is no state set then neither read nor write is set
 							argIt = expr->subExpressions.erase(argIt);
 							if (argIt != expr->subExpressions.begin()) argIt--;
 							applied = true;
@@ -90,7 +93,7 @@ namespace holodec {
 						if (!mem)
 							continue;
 						MemoryState* state = callFunc->regStates.getMemoryState(mem->id);
-						if (!state || !state->flags.contains(UsageFlags::eRead)) {
+						if (!state || !state->flags.contains(UsageFlags::eRead)) {//if there is no state set then neither read nor write is set
 							argIt = expr->subExpressions.erase(argIt);
 							if (argIt != expr->subExpressions.begin()) argIt--;
 							applied = true;
@@ -170,6 +173,7 @@ namespace holodec {
 				}
 			}
 		}
+		function->regStates = regStates;
 		function->regStates.parsed = true;
 		return applied;
 	}

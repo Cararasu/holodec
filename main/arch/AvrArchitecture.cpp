@@ -96,7 +96,7 @@ namespace holoavr {
 			},
 		},
 		{
-			{ 0, "pmem", 2 },
+			{ 0, "pmem", 1 },
 			{ 0, "dmem", 1 }
 		},
 		{
@@ -305,7 +305,7 @@ namespace holoavr {
 			{ 2, "#seq(#push($stack,#ip),#call($z))" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_IJMP, "ijmp",{
-			{ 2, "#call($z)" }
+			{ 0, "#call($z)" }
 		}, InstructionType::eCall },
 		{ AVR_INSTR_IN, "in",{
 			{ 2, "==(#arg[2],52)", "=(#arg[1],$ccp)" },
@@ -502,7 +502,7 @@ namespace holoavr {
 			{ 3, "#st($dmem,+(#arg[1],#arg[2]),#arg[3])" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_ST | AVR_INSTR_INC_PTR, "st+",{
-			{ 2, "#seq(#st($dmem,#arg[1],#arg[2]),=(#arg[1],+(#arg[1],1)))" }
+			{ 2, "#seq(#st($dmem,#arg[1],#arg[2]),=(#arg[1],+(#arg[1],#size(#arg[2]))))" }
 		}, InstructionType::eLoad },
 		{ AVR_INSTR_ST | AVR_INSTR_DEC_PTR, "st-",{
 			{ 2, "#seq(=(#arg[2],-(#arg[2],1)),#st($dmem,#arg[1],#arg[2]))" }
@@ -510,7 +510,7 @@ namespace holoavr {
 
 		{ AVR_INSTR_SUB, "sub",{
 			{ 2, "#seq(=(#arg[1],-(#arg[1],#arg[2])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" },
-			{ 3, "#seq(=(#t[1],-(#app(#arg[1],#arg[2]),#arg[3])),=(#arg[1],#t[1][0,8]),=(#arg[1],#t[1][8,8]),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
+			{ 3, "#seq(=(#t[1],-(#app(#arg[1],#arg[2]),#arg[3])),=(#arg[1],#t[1][0,8]),=(#arg[1],#t[1][8,8]),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#t[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eCall },
 
 

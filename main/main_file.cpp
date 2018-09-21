@@ -282,8 +282,6 @@ int main (int argc, const char** argv) {
 				do {
 					applied = false;
 					func->ssaRep.recalcRefCounts();
-					if (func->baseaddr == 0x0)
-						func->print(binary->arch);
 
 					for (SSATransformer* transform : transformers) {
 						if (!func->ssaRep.checkIntegrity()) {
