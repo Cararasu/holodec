@@ -140,7 +140,7 @@ enum HSSAExprType {
 	SSA_EXPR_LOAD		= 0x59,
 
 };
-enum HSSAExprLocation {
+enum HSSALocation {
 	SSA_LOCATION_NONE = 0,
 	SSA_LOCATION_REG,
 	SSA_LOCATION_MEM,
@@ -196,8 +196,8 @@ enum HSSAType {
 };
 
 typedef struct {
-	HoloId refId;
-	HoloId index;
+	HSSALocation location;
+	HoloId id;
 } HReference;
 
 

@@ -12,16 +12,16 @@ namespace holodec {
 			printf ("Undef");
 			break;
 		case IR_ARGTYPE_REG:
-			if (ref.refId)
-				printf ("%s", arch->getRegister (ref.refId)->name.cstr());
+			if (ref.id)
+				printf ("%s", arch->getRegister (ref.id)->name.cstr());
 			else
 				printf ("No Reg Def");
 			break;
 		case IR_ARGTYPE_STACK:
-			printf ("Stack-%s[%d]", arch->getStack (ref.refId)->name.cstr(), ref.index);
+			printf ("Stack-%s[%d]", arch->getStack (ref.id)->name.cstr(), ref.index);
 			break;
 		case IR_ARGTYPE_MEM: 
-			printf("Memory %s", arch->getMemory(ref.refId)->name.cstr());
+			printf("Memory %s", arch->getMemory(ref.id)->name.cstr());
 			break;
 		case IR_ARGTYPE_VALUE:
 			switch (argtype) {
@@ -40,7 +40,7 @@ namespace holodec {
 			}
 			break;
 		case IR_ARGTYPE_ID:
-			printf ("IR %d", ref.refId);
+			printf ("IR %d", ref.id);
 			break;
 		case IR_ARGTYPE_SSAID:
 			printf ("SSA");
@@ -72,10 +72,10 @@ namespace holodec {
 			printf ("]");
 		}break;
 		case IR_ARGTYPE_ARG:
-			printf ("arg[%d]", ref.refId);
+			printf ("arg[%d]", ref.id);
 			break;
 		case IR_ARGTYPE_TMP:
-			printf ("tmp[%d]", ref.refId);
+			printf ("tmp[%d]", ref.id);
 			break;
 		default:
 			printf ("Unknown Argtype %x ", type);

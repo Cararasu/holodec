@@ -11,7 +11,7 @@ namespace holodec{
 			for (SSAArgument& exprArg : expr->subExpressions) {
 				if (exprArg.type == SSAArgType::eBlock)
 					continue;
-				if (exprArg.type != SSAArgType::eId || exprArg.location != SSALocation::eMem)
+				if (exprArg.type != SSAArgType::eId || !exprArg.ref.isLocation(SSALocation::eMem))
 					return false;
 				if (exprvisited.find(exprArg.ssaId) == exprvisited.end()) {
 					if (!isInputMem(function, exprArg.ssaId, arg, outoffset, exprvisited, reg, retArg, ptrArg)) {
@@ -68,22 +68,19 @@ namespace holodec{
 			return true;
 		}
 		else if (expr->type == SSAExprType::eSplit) {
-			SSAExpression* valexpr = &function->ssaRep.expressions[expr->subExpressions[1].ssaId];
-			if(valexpr->isConst(SSAType::eUInt)){
-				return isInput(function, arg.replace(expr->subExpressions[0]), outoffset - valexpr->uval, exprvisited, reg, retArg);
-			}
+			return isInput(function, arg.replace(expr->subExpressions[0]), outoffset - expr->offset, exprvisited, reg, retArg);
 		}
 		else if (expr->type == SSAExprType::eLoad) {
 			return isInputMem(function, expr->subExpressions[0].ssaId, arg, outoffset, exprvisited, reg, retArg, expr->subExpressions[1]);
 		}
 		else if (expr->type == SSAExprType::eOutput) {
-			if (expr->location == SSALocation::eReg && expr->locref.refId == reg->id) {
+			if (expr->ref.isReg(reg)) {
 				SSAExpression* callexpr = &function->ssaRep.expressions[expr->subExpressions[0].ssaId];
 				if (callexpr->type == SSAExprType::eCall) {
 					SSAExpression* valueexpr = &function->ssaRep.expressions[callexpr->subExpressions[0].ssaId];
 					if (valueexpr->isValue(function->baseaddr)) {//recursion...
 						for (auto it = callexpr->subExpressions.begin() + 1/*skip the calltarget*/; it != callexpr->subExpressions.end(); it++) {
-							if (it->location == SSALocation::eReg && it->locref.refId == expr->locref.refId) {//if it is read and returned we can assume correctness
+							if (it->ref.isReg(reg)) {//if it is read and returned we can assume correctness
 								return isInput(function, arg.replace(*it), outoffset, exprvisited, reg, retArg);
 							}
 						}
@@ -94,7 +91,7 @@ namespace holodec{
 			}
 		}
 		else if (expr->type == SSAExprType::eInput) {
-			if (expr->location == SSALocation::eReg && expr->locref.refId == reg->id) {
+			if (expr->ref.isReg(reg)) {
 				if (!retArg->ssaId)
 					*retArg = arg;
 				return *retArg == arg && arg.offset == outoffset;
@@ -102,7 +99,7 @@ namespace holodec{
 		} 
 		return false;
 	}
-	bool SSACalleeCallerRegs::isOnlyRecursive(Function* function, HId currentId, HId lastId, std::set<HId>& exprvisited, SSALocation location, Reference locref) {
+	bool SSACalleeCallerRegs::isOnlyRecursive(Function* function, HId currentId, HId lastId, std::set<HId>& exprvisited, Reference locref) {
 		if (exprvisited.find(currentId) != exprvisited.end()) return true;
 		exprvisited.insert(currentId);
 		SSAExpression* expr = &function->ssaRep.expressions[currentId];
@@ -114,26 +111,26 @@ namespace holodec{
 			for (int i = 0; i < expr->subExpressions.size(); i++) {
 				SSAArgument& arg = expr->subExpressions[i];
 				if (arg.ssaId == lastId) {
-					if (arg.location != location || arg.locref != locref)
+					if (arg.ref != locref)
 						return false;
 				}
 			}
 			return true;
 		}
 		else if (expr->type == SSAExprType::eOutput) {
-			if (expr->location != location || expr->locref != locref) {
+			if (expr->ref != locref) {
 				return true;
 			}
 			bool isrecursive = true;
 			for (HId id : expr->directRefs) { //follow expressions
-				isrecursive = isrecursive && isOnlyRecursive(function, id, currentId, exprvisited, expr->location, expr->locref);
+				isrecursive = isrecursive && isOnlyRecursive(function, id, currentId, exprvisited, expr->ref);
 			}
 			return isrecursive;
 		}
 		else if (expr->type == SSAExprType::ePhi) {
 			bool isrecursive = true;
 			for (HId id : expr->directRefs) { //follow expressions
-				isrecursive = isrecursive && isOnlyRecursive(function, id, currentId, exprvisited, expr->location, expr->locref);
+				isrecursive = isrecursive && isOnlyRecursive(function, id, currentId, exprvisited, expr->ref);
 			}
 			return isrecursive;
 		}
@@ -149,9 +146,9 @@ namespace holodec{
 				std::set<HId> visited;
 				for (int it = 0; it < expr.subExpressions.size(); it++) {
 					SSAArgument& arg = expr.subExpressions[it];
-					if (!(arg.type == SSAArgType::eId && arg.location == SSALocation::eReg))
+					if (!(arg.type == SSAArgType::eId && arg.ref.isLocation(SSALocation::eReg)))
 						continue;
-					Register* reg = arch->getRegister(arg.locref.refId);
+					Register* reg = arch->getRegister(arg.ref.id);
 					HId id = 0;
 					CalleeArgument retArg;
 
@@ -165,7 +162,7 @@ namespace holodec{
 							changed = true;
 						}
 						else {
-							changed |= expr.replaceArgument(&function->ssaRep, it, SSAArgument::createId(retArg.ssaId, SSALocation::eReg, arg.locref)) != 0;
+							changed |= expr.replaceArgument(&function->ssaRep, it, SSAArgument::createId(retArg.ssaId, arg.ref)) != 0;
 						}
 					}
 				}
@@ -176,11 +173,11 @@ namespace holodec{
 			SSAExpression* expr = &function->ssaRep.expressions[function->ssaRep.bbs[1].exprIds[i]];
 			if (expr->type == SSAExprType::eInput) {
 				HSet<HId> visited;
-				if (expr->location != SSALocation::eNone) {
+				if (!expr->ref.isLocation(SSALocation::eNone)) {
 					bool isrecursive = true;
 					for (HId id : expr->directRefs) {
 						//follow expressions
-						isrecursive = isrecursive && isOnlyRecursive(function, id, expr->id, visited, expr->location, expr->locref);
+						isrecursive = isrecursive && isOnlyRecursive(function, id, expr->id, visited, expr->ref);
 					}
 					if (isrecursive) {
 						expr->type = SSAExprType::eUndef;

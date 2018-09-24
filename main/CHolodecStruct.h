@@ -84,7 +84,7 @@ extern const struct Holodec_struct{
 		HSSAOpType (*get_expr_optype)(HSSAExpression*);
 		HId (*get_expr_builtinid)(HSSAExpression*);
 		
-		HSSAExprLocation (*get_expr_locationtype)(HSSAExpression*);
+		HSSALocation(*get_expr_locationtype)(HSSAExpression*);
 		HReference (*get_expr_locationref)(HSSAExpression*);
 		
 		uint64_t (*get_expr_instraddr)(HSSAExpression*);

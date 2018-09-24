@@ -179,7 +179,7 @@ namespace holodec {
 						ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[2]], storearg);
 						return true;
 					}
-					else if (change * arch->bitbase == -split2expr.size && split2expr.offset + split2expr.size == split1expr.offset) {
+					else if (change * arch->bitbase == split2expr.size && split2expr.offset + split2expr.size == split1expr.offset) {
 						SSAExpression appendexpr;
 						appendexpr.type = SSAExprType::eAppend;
 						appendexpr.exprtype = SSAType::eUInt;
@@ -377,10 +377,6 @@ namespace holodec {
 				SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
 				if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || firstAdd.exprtype != secondAdd.exprtype)
 					return false;
-				if (!consecutive_exprs(arch, ssaRep, firstAdd.subExpressions[0].ssaId, secondAdd.subExpressions[0].ssaId))
-					return false;
-				if (!consecutive_exprs(arch, ssaRep, firstAdd.subExpressions[1].ssaId, secondAdd.subExpressions[1].ssaId))
-					return false;
 
 				g_peephole_logger.log<LogLevel::eDebug>("Replace Add - Carry Add");
 
@@ -402,11 +398,8 @@ namespace holodec {
 				SSAExpression& firstAdd = ssaRep->expressions[context->expressionsMatched[2]];
 				SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
 				SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
-				if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || firstAdd.exprtype != secondAdd.exprtype)
-					return false;
-				if (!consecutive_exprs(arch, ssaRep, firstAdd.subExpressions[0].ssaId, secondAdd.subExpressions[0].ssaId))
-					return false;
-				if (!consecutive_exprs(arch, ssaRep, firstAdd.subExpressions[1].ssaId, secondAdd.subExpressions[1].ssaId))
+				if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || firstAdd.exprtype != secondAdd.exprtype ||
+					(firstAdd.exprtype != SSAType::eUInt || firstAdd.exprtype != SSAType::eInt))
 					return false;
 
 				g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry Sub");
@@ -523,16 +516,6 @@ namespace holodec {
 
 				if (!subOp.directRefs.size() || lowerExpr.subExpressions.size() != 2 || subOp.subExpressions.size() != 3 || lowerExpr.exprtype != subOp.exprtype)
 					return false;
-				if (!consecutive_exprs(arch, ssaRep, lowerExpr.subExpressions[0].ssaId, subOp.subExpressions[0].ssaId)) {
-					if (!ssaRep->expressions[lowerExpr.subExpressions[0].ssaId].isConst(SSAType::eUInt) || !ssaRep->expressions[subOp.subExpressions[0].ssaId].isConst(SSAType::eUInt)) {
-						return false;
-					}
-				}
-				if (!consecutive_exprs(arch, ssaRep, lowerExpr.subExpressions[1].ssaId, subOp.subExpressions[1].ssaId)) {
-					if (!ssaRep->expressions[lowerExpr.subExpressions[1].ssaId].isConst(SSAType::eUInt) || !ssaRep->expressions[subOp.subExpressions[1].ssaId].isConst(SSAType::eUInt)) {
-						return false;
-					}
-				}
 
 				g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry Sub");
 
@@ -728,8 +711,8 @@ namespace holodec {
 					SSAExpression* thisexpr = &ssaRep->expressions[expr->subExpressions[index].ssaId];
 					SSAExpression* lastexpr = &ssaRep->expressions[expr->subExpressions[index - 1].ssaId];
 					if (thisexpr->type == SSAExprType::eLoad && lastexpr->type == SSAExprType::eLoad && thisexpr->subExpressions[0].ssaId == lastexpr->subExpressions[0].ssaId) {
-						assert(thisexpr->subExpressions[0].location == SSALocation::eMem && lastexpr->subExpressions[0].location == SSALocation::eMem);
-						Memory* mem = arch->getMemory(thisexpr->subExpressions[0].locref.refId);
+						assert(thisexpr->subExpressions[0].ref.isLocation(SSALocation::eMem) && lastexpr->subExpressions[0].ref.isLocation(SSALocation::eMem));
+						Memory* mem = arch->getMemory(thisexpr->subExpressions[0].ref.id);
 						if (!mem || (thisexpr->size % (mem->wordsize * arch->bitbase)) != 0 || (lastexpr->size % (mem->wordsize * arch->bitbase)) != 0) {
 							index++;
 							continue;

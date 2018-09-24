@@ -325,14 +325,18 @@ namespace holodec{
 				printf("var%d", uExprs->id);
 				return true;
 			}
+			printf("tmp%d", expr.id);
+			return true;
 		}
-		printf("tmp%d", expr.id);
-		return true;
+		auto it2 = resolveIds.find(expr.id);
+		if (it2 != resolveIds.end()) {
+			printf("tmp%d", *it2);
+			return true;
+		}
+		return false;
 	}
 	void SSATransformToC::resolveArg(SSAArgument& arg) {
-
 		SSAExpression* subExpr = arg.type == SSAArgType::eId ? &function->ssaRep.expressions[arg.ssaId] : nullptr;
-
 		switch (arg.type) {
 		case SSAArgType::eUndef:
 			printf("undef");
@@ -385,6 +389,9 @@ namespace holodec{
 							break;
 						case SSAOpType::eDiv:
 							printf(" / ");
+							break;
+						case SSAOpType::eMod:
+							printf(" %% ");
 							break;
 						case SSAOpType::eSub:
 							printf(" - ");
@@ -520,10 +527,10 @@ namespace holodec{
 		case SSAExprType::eValue: {
 			switch (expr.exprtype) {
 			case SSAType::eUInt:
-				printf("0x%lx", expr.uval);
+				printf("0x%" PRIx64, expr.uval);
 				break;
 			case SSAType::eInt:
-				printf("%ld", expr.sval);
+				printf("%" PRId64, expr.sval);
 				break;
 			case SSAType::eFloat:
 				printf("0x%f", expr.fval);
@@ -545,10 +552,10 @@ namespace holodec{
 		case SSAExprType::eCall: {
 			for (HId id : expr.directRefs) {
 				SSAExpression& refExpr = function->ssaRep.expressions[id];
-				if (refExpr.type == SSAExprType::eOutput && refExpr.location == SSALocation::eReg) {
+				if (refExpr.type == SSAExprType::eOutput && refExpr.ref.isLocation(SSALocation::eReg)) {
 					printExprType(refExpr);
 					resolveArgVariable(refExpr, true);
-					printf(" <- %s, ", arch->getRegister(refExpr.locref.refId)->name.cstr());
+					printf(" <- %s, ", arch->getRegister(refExpr.ref.id)->name.cstr());
 				}
 			}
 			printf("Call ");
@@ -556,8 +563,8 @@ namespace holodec{
 			printf("(");
 			for (size_t i = 0; i < expr.subExpressions.size(); i++) {
 				SSAArgument& arg = expr.subExpressions[i];
-				if (arg.type == SSAArgType::eId && arg.location == SSALocation::eReg) {
-					printf("%s <- ", arch->getRegister(arg.locref.refId)->name.cstr());
+				if (arg.type == SSAArgType::eId && arg.ref.isLocation(SSALocation::eReg)) {
+					printf("%s <- ", arch->getRegister(arg.ref.id)->name.cstr());
 					resolveArg(arg);
 					printf(", ");
 				}
@@ -569,15 +576,15 @@ namespace holodec{
 			printf("(");
 			for (size_t i = 0; i < expr.subExpressions.size(); i++) {
 				SSAArgument& arg = expr.subExpressions[i];
-				if (arg.location == SSALocation::eMem) {
+				if (arg.ref.isLocation(SSALocation::eMem)) {
 					continue;
 				}
-				if (arg.location == SSALocation::eReg) {
-					RegisterState* state = function->usedRegStates.getRegisterState(arg.locref.refId);//reverse check if the argument is used outside in another function
+				if (arg.ref.isLocation(SSALocation::eReg)) {
+					RegisterState* state = function->usedRegStates.getRegisterState(arg.ref.id);//reverse check if the argument is used outside in another function
 					if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
 						continue;
 					}
-					printf("%s: ", arch->getRegister(arg.locref.refId)->name.cstr());
+					printf("%s: ", arch->getRegister(arg.ref.id)->name.cstr());
 				}
 				resolveArg(arg);
 				if (i + 1 != expr.subExpressions.size())
@@ -605,7 +612,7 @@ namespace holodec{
 			SSAArgument& ptrArg = expr.subExpressions[1];
 			SSAArgument& valueArg = expr.subExpressions[2];
 			SSAExpression* valexpr = find_baseexpr(&function->ssaRep, valueArg);
-			printf("%s[", arch->getMemory(memArg.locref.refId)->name.cstr());
+			printf("%s[", arch->getMemory(memArg.ref.id)->name.cstr());
 			printExprType(*valexpr);
 			printf(", ");
 			resolveArg(ptrArg);
@@ -616,7 +623,7 @@ namespace holodec{
 			SSAArgument& memArg = expr.subExpressions[0];
 			SSAArgument& ptrArg = expr.subExpressions[1];
 
-			printf("%s[", arch->getMemory(memArg.locref.refId)->name.cstr());
+			printf("%s[", arch->getMemory(memArg.ref.id)->name.cstr());
 			printExprType(expr);
 			printf(", ");
 			resolveArg(ptrArg);
@@ -714,7 +721,7 @@ namespace holodec{
 		if (expr.type == SSAExprType::eBranch) {
 			/*if (expr.subExpressions.size() == 3 &&
 				expr.subExpressions[0].type == SSAArgType::eOther && expr.subExpressions[0].location == SSALocation::eBlock && 
-				(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions[].locref.refId == controlStruct->main_exit))) {
+				(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions[].ref.refId == controlStruct->main_exit))) {
 				//special case where the first jump leads to the end of the branch
 				//then we invert the if and only print the original else block
 				printIndent(indent);
@@ -741,7 +748,7 @@ namespace holodec{
 					printIndent(indent); printf("}\n");
 				}
 				//if (!(expr.subExpressions.back().type == SSAArgType::eOther && expr.subExpressions.back().location == SSALocation::eBlock && 
-				//	(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions.back().locref.refId == controlStruct->main_exit)))) {
+				//	(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions.back().ref.refId == controlStruct->main_exit)))) {
 					//TODO also check for empty blocks
 					if (expr.subExpressions.size() > 1) {
 						printIndent(indent); printf("else {\n");
@@ -945,7 +952,7 @@ namespace holodec{
 		Symbol *sym = binary->getSymbol(function->symbolref);
 
 		if (sym)
-			printf("Function: %s at 0x%x\n", sym->name.cstr(), sym->vaddr);
+			printf("Function: %s at 0x%" PRIx64 "\n", sym->name.cstr(), sym->vaddr);
 
 		{//split blocks, so that they have either exactly one input ore one output
 			bool changed = false;
@@ -1014,8 +1021,8 @@ namespace holodec{
 			for (HId id : bb.exprIds) {
 				SSAExpression& expr = function->ssaRep.expressions[id];
 				if (expr.type == SSAExprType::eInput) {
-					if (expr.location == SSALocation::eReg) {
-						CArgument arg = { 0, expr.id, { binary->arch->getRegister(expr.locref.refId)->name.cstr(), expr.locref.refId } };
+					if (expr.ref.isLocation(SSALocation::eReg)) {
+						CArgument arg = { 0, expr.id, { binary->arch->getRegister(expr.ref.id)->name.cstr(), expr.ref.id } };
 						arguments.push_back(arg);
 						argumentIds.insert(std::make_pair(expr.id, static_cast<HId>(arguments.size())));
 					}
@@ -1076,9 +1083,13 @@ namespace holodec{
 					}
 				}
 
-				if (expr.type == SSAExprType::ePhi)
+				if (expr.type == SSAExprType::eValue)
+					continue;
+				else if (expr.type == SSAExprType::ePhi)
 					resolveIds.insert(expr.id);
-				if (expr.type == SSAExprType::eInput)
+				else if (expr.type == SSAExprType::eInput)
+					resolveIds.insert(expr.id);
+				else if (expr.type == SSAExprType::eOutput)
 					resolveIds.insert(expr.id);
 				else if (expr.type == SSAExprType::eLoad)//for ordering sake until a comprehensive DFA is implemented
 					resolveIds.insert(expr.id);

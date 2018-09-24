@@ -101,8 +101,7 @@ namespace holodec {
 		SSAExpression phinode;
 		phinode.type = SSAExprType::ePhi;
 		phinode.exprtype = SSAType::eUInt;
-		phinode.location = SSALocation::eReg;
-		phinode.locref = { parent_reg->id, 0 };
+		phinode.ref = parent_reg;
 		phinode.size = parent_reg->size;
 		phinode.instrAddr = wrapper->ssaBB->startaddr;
 		HId id = function->ssaRep.addAtStart(&phinode, wrapper->ssaBB);
@@ -131,8 +130,7 @@ namespace holodec {
 		SSAExpression phinode;
 		phinode.type = SSAExprType::ePhi;
 		phinode.exprtype = SSAType::eUInt;
-		phinode.location = SSALocation::eMem;
-		phinode.locref = { mem->id, 0 };
+		phinode.ref = mem;
 		phinode.size = 0;
 		phinode.instrAddr = wrapper->ssaBB->startaddr;
 		HId id = function->ssaRep.addAtStart(&phinode, wrapper->ssaBB);
@@ -167,8 +165,7 @@ namespace holodec {
 		SSAExpression phinode;
 		phinode.type = SSAExprType::ePhi;
 		phinode.exprtype = SSAType::eUInt;
-		phinode.location = SSALocation::eReg;
-		phinode.locref = { parent_reg->id, 0 };
+		phinode.ref = parent_reg;
 		phinode.size = parent_reg->size;
 		phinode.instrAddr = wrapper->ssaBB->startaddr;
 		HId id = function->ssaRep.addAtStart(&phinode, wrapper->ssaBB);
@@ -206,8 +203,7 @@ namespace holodec {
 		SSAExpression phinode;
 		phinode.type = SSAExprType::ePhi;
 		phinode.exprtype = SSAType::eUInt;
-		phinode.location = SSALocation::eMem;
-		phinode.locref = { mem->id, 0 };
+		phinode.ref = mem;
 		phinode.size = 0;
 		phinode.instrAddr = wrapper->ssaBB->startaddr;
 		HId id = function->ssaRep.addAtStart(&phinode, wrapper->ssaBB);
@@ -247,7 +243,7 @@ namespace holodec {
 					continue;
 				}
 				for (SSAArgument& arg : expr.subExpressions) {
-					if (arg.location == SSALocation::eReg || arg.location == SSALocation::eMem) {
+					if (arg.ref.isLocation(SSALocation::eReg) || arg.ref.isLocation(SSALocation::eMem)) {
 						arg.ssaId = 0;
 					}
 				}
@@ -259,12 +255,12 @@ namespace holodec {
 			for (size_t j = 0; j < bbwrapper.ssaBB->exprIds.size(); j++) {//iterate Expressions
 				HId id = bbwrapper.ssaBB->exprIds[j];
 				SSAExpression* expr = function->ssaRep.expressions.get(id);
-				switch (expr->location) {
+				switch (expr->ref.location) {
 				case SSALocation::eReg:
-					addRegDef(expr->id, arch->getRegister(expr->locref.refId), &bbwrapper.outputs, !EXPR_IS_TRANSPARENT(expr->type));
+					addRegDef(expr->id, arch->getRegister(expr->ref.id), &bbwrapper.outputs, !EXPR_IS_TRANSPARENT(expr->type));
 					break;
 				case SSALocation::eMem:
-					addMemDef(expr->id, arch->getMemory(expr->locref.refId), &bbwrapper.mem_outputs, !EXPR_IS_TRANSPARENT(expr->type));
+					addMemDef(expr->id, arch->getMemory(expr->ref.id), &bbwrapper.mem_outputs, !EXPR_IS_TRANSPARENT(expr->type));
 					break;
 				default:
 					break;
@@ -281,16 +277,16 @@ namespace holodec {
 				SSAExpression* expr = function->ssaRep.expressions.get(id);
 				for (size_t i = 0; i < expr->subExpressions.size(); i++) {
 					if (expr->subExpressions[i].type == SSAArgType::eId && !expr->subExpressions[i].ssaId) {
-						if (expr->subExpressions[i].location == SSALocation::eReg) {
-							Register* reg = arch->getRegister(expr->subExpressions[i].locref.refId);
+						if (expr->subExpressions[i].ref.isLocation(SSALocation::eReg)) {
+							Register* reg = arch->getRegister(expr->subExpressions[i].ref.id);
 							assert(reg && reg->id);
 							SSAArgument anArg = getSSAId(&bbwrapper, defs, reg);
 							assert(anArg.ssaId);
 							expr = function->ssaRep.expressions.get(id);//reload Expression
 							expr->subExpressions[i].replace(anArg);
 						}
-						else if (expr->subExpressions[i].location == SSALocation::eMem) {
-							Memory* mem = arch->getMemory(expr->subExpressions[i].locref.refId);
+						else if (expr->subExpressions[i].ref.isLocation(SSALocation::eMem)) {
+							Memory* mem = arch->getMemory(expr->subExpressions[i].ref.id);
 							assert(mem && mem->id);
 							SSAArgument anArg = getSSAId(&bbwrapper, mem_defs, mem);
 							assert(anArg.ssaId);
@@ -301,12 +297,12 @@ namespace holodec {
 							assert(false);
 					}
 				}
-				switch (expr->location) {
+				switch (expr->ref.location) {
 				case SSALocation::eReg:
-					addRegDef(expr->id, arch->getRegister(expr->locref.refId), &defs, !EXPR_IS_TRANSPARENT(expr->type));
+					addRegDef(expr->id, arch->getRegister(expr->ref.id), &defs, !EXPR_IS_TRANSPARENT(expr->type));
 					break;
 				case SSALocation::eMem:
-					addMemDef(expr->id, arch->getMemory(expr->locref.refId), &mem_defs, !EXPR_IS_TRANSPARENT(expr->type));
+					addMemDef(expr->id, arch->getMemory(expr->ref.id), &mem_defs, !EXPR_IS_TRANSPARENT(expr->type));
 					break;
 				default:
 					break;

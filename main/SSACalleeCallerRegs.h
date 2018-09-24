@@ -53,7 +53,7 @@ namespace holodec {
 		bool isInput(Function* function, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, Register* reg, CalleeArgument* retArg);
 		bool isInputMem(Function* function, HId memId, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, Register* reg, CalleeArgument* retArg, CalleeArgument ptrArg);
 
-		bool isOnlyRecursive(Function* function, HId currentId, HId lastId, std::set<HId>& exprvisited, SSALocation location, Reference locref);
+		bool isOnlyRecursive(Function* function, HId currentId, HId lastId, std::set<HId>& exprvisited, Reference locref);
 
 	};
 

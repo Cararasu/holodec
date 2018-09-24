@@ -302,12 +302,12 @@ namespace holodec {
 			}
 			break;
 		}
-		switch (location) {
+		switch (ref.location) {
 		case SSALocation::eReg:
-			printf("Reg: %10.10s ", arch->getRegister(locref.refId)->name.cstr());
+			printf("Reg: %10.10s ", arch->getRegister(ref.id)->name.cstr());
 			break;
 		case SSALocation::eMem:
-			printf("Mem: %10.10s ", arch->getMemory(locref.refId)->name.cstr());
+			printf("Mem: %10.10s ", arch->getMemory(ref.id)->name.cstr());
 			break;
 		case SSALocation::eNone:
 			printf("                ");
@@ -503,12 +503,12 @@ namespace holodec {
 			break;
 		}
 		printf("%" PRId32 " = ", id);
-		switch (location) {
+		switch (ref.location) {
 		case SSALocation::eReg:
-			printf("Reg: %s ", arch->getRegister(locref.refId)->name.cstr());
+			printf("Reg: %s ", arch->getRegister(ref.id)->name.cstr());
 			break;
 		case SSALocation::eMem:
-			printf("Mem: %s ", arch->getMemory(locref.refId)->name.cstr());
+			printf("Mem: %s ", arch->getMemory(ref.id)->name.cstr());
 			break;
 		case SSALocation::eNone:
 			break;
@@ -534,15 +534,15 @@ namespace holodec {
 			printf("Unknown Argtype %x ", type);
 		}
 
-		switch (location) {
+		switch (ref.location) {
 		case SSALocation::eReg:
-			if (locref.refId)
-				printf("Reg: %s ", arch->getRegister(locref.refId)->name.cstr());
+			if (ref.id)
+				printf("Reg: %s ", arch->getRegister(ref.id)->name.cstr());
 			else
 				printf("No Reg Def ");
 			break;
 		case SSALocation::eMem:
-			printf("Memory %s ", arch->getMemory(locref.refId)->name.cstr());
+			printf("Memory %s ", arch->getMemory(ref.id)->name.cstr());
 			break;
 		case SSALocation::eNone:
 			break;
@@ -564,9 +564,9 @@ namespace holodec {
 			printf("Unknown Argtype %d ", type);
 		}
 
-		switch (location) {
+		switch (ref.location) {
 		case SSALocation::eMem:
-			printf("Memory %s ", arch->getMemory(locref.refId)->name.cstr());
+			printf("Memory %s ", arch->getMemory(ref.id)->name.cstr());
 			break;
 		case SSALocation::eNone:
 			break;
@@ -1069,7 +1069,7 @@ namespace holodec {
 			SSAExpression& expr = expressions[*it];
 			if (expr.type == SSAExprType::eFlag) continue;
 			for (SSAArgument& arg : expr.subExpressions) {
-				if (arg.type == SSAArgType::eId && arg.ssaId == *firstit)
+				if (arg.type == SSAArgType::eId && arg.ssaId == *it)
 					return false;
 			}
 		}

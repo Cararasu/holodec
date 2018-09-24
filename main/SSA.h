@@ -107,31 +107,52 @@ namespace holodec {
 		eId = SSA_ARGTYPE_ID,
 	};
 	struct Reference {
-		HId refId;
-		HId index;
+		SSALocation location;
+		HId id;
+		Reference() : location(SSALocation::eNone), id(0) {}
+		Reference(SSALocation location, HId id) : location(location), id(id) {}
+		Reference(Register* reg) : location(SSALocation::eReg), id(reg->id) {}
+		Reference(Memory* mem) : location(SSALocation::eMem), id(mem->id) {}
 
-		explicit operator bool() {
-			return (bool)refId;
+		inline bool isLocation(SSALocation location) const {
+			return this->location == location;
 		}
-		explicit operator HReference() {
-			return { refId, index };
+		inline bool isReg(Register* reg) const {
+			return this->isLocation(SSALocation::eReg) && id == reg->id;
 		}
-		bool operator !() {
-			return !refId;
+		inline bool isMem(Memory* mem) const {
+			return this->isLocation(SSALocation::eMem) && id == mem->id;
+		}
+
+		explicit operator HReference() const {
+			switch (location) {
+			case SSALocation::eReg:
+				return { SSA_LOCATION_REG , id };
+			case SSALocation::eMem:
+				return { SSA_LOCATION_MEM , id };
+			case SSALocation::eNone:
+			default:
+				return { SSA_LOCATION_NONE , id };
+			}
+		}
+		explicit operator bool() const {
+			return location != SSALocation::eNone || !id;
+		}
+		bool operator !() const {
+			return location == SSALocation::eNone && id;
 		}
 	};
 	inline bool operator==(Reference& lhs, Reference& rhs) {
-		return lhs.refId == rhs.refId && lhs.index == rhs.index;
+		return lhs.location == rhs.location && lhs.id == rhs.id;
 	}
 	inline bool operator!=(Reference& lhs, Reference& rhs) {
-		return lhs.refId != rhs.refId || lhs.index != rhs.index;
+		return lhs.location != rhs.location ||lhs.id != rhs.id;
 	}
 	
 	struct SSAArgument {
 		SSAArgType type = SSAArgType::eUndef;
 		HId ssaId;
-		SSALocation location = SSALocation::eNone;
-		Reference locref = {0, 0};
+		Reference ref;
 
 
 		bool operator!() {
@@ -141,11 +162,10 @@ namespace holodec {
 			return type == SSAArgType::eUndef;
 		}
 		void replace(SSAArgument arg) {
-			if (location != SSALocation::eNone) {
-				arg.location = location;
-				arg.locref = locref;
+			if (!ref) {
+				ref = arg.ref;
 			}
-			*this = arg;
+			this->ssaId = arg.ssaId;
 		}
 		static SSAArgument replace(SSAArgument basearg, SSAArgument arg) {
 			basearg.replace(arg);
@@ -157,40 +177,34 @@ namespace holodec {
 		static inline SSAArgument create() {
 			return SSAArgument();
 		}
-		static inline SSAArgument create(HId ssaId, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
+		static inline SSAArgument create(HId ssaId, Reference ref = Reference()) {
 			SSAArgument arg = { SSAArgType::eId };
 			arg.ssaId = ssaId;
-			arg.location = location;
-			arg.locref = locref;
+			arg.ref = ref;
 			return arg;
 		}
-		static inline SSAArgument createOther(SSAArgType argType, SSALocation location = SSALocation::eNone, Reference locref = { 0, 0 }) {
+		static inline SSAArgument createOther(SSAArgType argType, Reference ref = Reference()) {
 			SSAArgument arg = { argType };
-			arg.location = location;
-			arg.locref = locref;
+			arg.ref = ref;
 			return arg;
 		}
-		static inline SSAArgument createUndef (SSALocation location, Reference locref) {
+		static inline SSAArgument createUndef (Reference ref) {
 			SSAArgument arg = { SSAArgType::eUndef };
-			arg.location = location;
-			arg.locref = locref;
+			arg.ref = ref;
 			return arg;
 		}
-		static inline SSAArgument createId(HId ssaId, SSALocation loc = SSALocation::eNone, Reference ref = {0, 0}) {
+		static inline SSAArgument createId(HId ssaId, Reference ref = Reference()) {
 			assert(ssaId);
-			return create(ssaId, loc, ref);
+			return create(ssaId, ref);
 		}
 		static inline SSAArgument createReg(Register* reg, HId ssaId = 0) {
-			return create(ssaId, SSALocation::eReg, { reg->id, 0 });
-		}
-		static inline SSAArgument createReg (Reference ref, HId ssaId = 0) {
-			return create(ssaId, SSALocation::eReg, ref);
+			return create(ssaId, { SSALocation::eReg, reg->id });
 		}
 		static inline SSAArgument createMem(Memory* mem, HId ssaId = 0) {
-			return  create(ssaId, SSALocation::eMem, {mem->id, 0});
+			return  create(ssaId, { SSALocation::eMem, mem->id });
 		}
 		static inline SSAArgument createMem (HId memId, HId ssaId = 0) {
-			return  create(ssaId, SSALocation::eMem, {memId, 0});
+			return  create(ssaId, { SSALocation::eMem, memId });
 		}
 		static inline SSAArgument createBlock (HId blockId) {
 			SSAArgument arg = { SSAArgType::eBlock };
@@ -204,7 +218,7 @@ namespace holodec {
 
 
 	inline bool operator== (SSAArgument& lhs, SSAArgument& rhs) {
-		if (lhs.type == rhs.type && lhs.location == rhs.location && lhs.locref == rhs.locref) {
+		if (lhs.type == rhs.type && lhs.ref == rhs.ref) {
 			switch (lhs.type) {
 			case SSAArgType::eId:
 				return lhs.ssaId == rhs.ssaId;
@@ -281,8 +295,7 @@ namespace holodec {
 			uint64_t uval;
 			double fval;
 		};
-		SSALocation location = SSALocation::eNone;
-		Reference locref = {0,0};
+		Reference ref;
 		uint64_t instrAddr = 0;
 
 		HList<HId> refs;
@@ -323,7 +336,7 @@ namespace holodec {
 		void printSimple(Architecture* arch, int indent = 0);
 	};
 	inline bool operator== (SSAExpression& lhs, SSAExpression& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype && lhs.location == rhs.location && lhs.locref.refId == rhs.locref.refId && lhs.locref.index == rhs.locref.index) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype && lhs.ref == rhs.ref) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
 				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
 					if (lhs.subExpressions[i] != rhs.subExpressions[i])

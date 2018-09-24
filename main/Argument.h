@@ -54,6 +54,11 @@ namespace holodec {
 		IR_ARGTYPE_IP,
 		IR_ARGTYPE_MEMOP,
 	};
+	struct IRReference{
+		HId id;
+		uint32_t index;
+	};
+
 	struct IRArgument {
 		IRArgTypes type = IR_ARGTYPE_UNKN;
 		SSAType argtype = SSAType::eUInt;
@@ -62,7 +67,7 @@ namespace holodec {
 			uint64_t uval;
 			double fval;
 			ArgMem mem;
-			Reference ref;
+			IRReference ref;
 		};
 		uint32_t offset = 0, size = 0;
 
@@ -116,7 +121,7 @@ namespace holodec {
 			arg.size = size;
 			return arg;
 		}
-		static inline IRArgument create (IRArgTypes type, Reference ref = {0,0}, uint32_t size = 0, uint32_t offset = 0) {
+		static inline IRArgument create (IRArgTypes type, IRReference ref = {0,0}, uint32_t size = 0, uint32_t offset = 0) {
 			IRArgument arg;
 			arg.type = type;
 			arg.ref = ref;
@@ -168,7 +173,7 @@ namespace holodec {
 			case IR_ARGTYPE_ARG:
 			case IR_ARGTYPE_TMP:
 			case IR_ARGTYPE_ID:
-				return lhs.ref.refId == rhs.ref.refId && lhs.ref.index == rhs.ref.index;
+				return lhs.ref.id == rhs.ref.id && lhs.ref.index == rhs.ref.index;
 			case IR_ARGTYPE_MEMOP:
 				return lhs.mem == rhs.mem;
 			default:

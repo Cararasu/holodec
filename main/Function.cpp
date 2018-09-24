@@ -68,12 +68,10 @@ void holodec::FuncRegState::print(holodec::Architecture* arch, int indent) {
 		if (regState.flags.contains(UsageFlags::eWrite)) {
 			printf("Write, ");
 		}
-
 		if (regState.arithChange > 0)
 			printf("Arith + %" PRId64 ", ", regState.arithChange);
 		else if (regState.arithChange < 0)
-			printf("Arith - %" PRId64 ", ", regState.arithChange*-1);
-
+			printf("Arith - %" PRId64 ", ", -regState.arithChange);
 		if (regState.flags.contains(UsageFlags::eRead)) {
 			printf("Read, ");
 		}

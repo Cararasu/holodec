@@ -32,12 +32,12 @@ namespace holodec {
 				case SSALocation::eReg: {
 					for (StringRef& regStr : cc->nonVolatileReg) {
 						Register* reg = arch->getRegister (regStr);
-						if (expr.locref.refId == reg->id) {
+						if (expr.ref.refId == reg->id) {
 							assert (expr.subExpressions[0].type == SSAArgType::eId);
 
 							expr.type = SSAExprType::eAssign;
 							for (SSAArgument& arg : callExpr->subExpressions) {
-								if (arg.location == SSALocation::eReg && arg.locref == expr.locref) {
+								if (arg.ref.isLocation(SSALocation::eReg) && arg.ref == expr.ref) {
 									expr.subExpressions[0] = arg;
 								}
 							}
@@ -45,10 +45,10 @@ namespace holodec {
 							break;
 						}
 					}
-					if (!isParam && localStackReg && expr.locref.refId == localStackReg->id && cc->callerstackadjust == CCStackAdjust::eCallee) {
+					if (!isParam && localStackReg && expr.ref.refId == localStackReg->id && cc->callerstackadjust == CCStackAdjust::eCallee) {
 						expr.type = SSAExprType::eAssign;
 						for (SSAArgument& arg : callExpr->subExpressions) {
-							if (arg.location == SSALocation::eReg && arg.locref == expr.locref) {
+							if (arg.ref.isLocation(SSALocation::eReg) && arg.ref == expr.ref) {
 								expr.subExpressions[0] = arg;
 							}
 						}
@@ -58,7 +58,7 @@ namespace holodec {
 					if (!isParam) {
 						for (CCParameter& para : cc->returns) {
 							Register* reg = arch->getRegister (para.regref);
-							if (expr.locref.refId == reg->id) {
+							if (expr.ref.refId == reg->id) {
 								expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) para.index, arch->bytebase * arch->bitbase));
 								isParam = true;
 								break;
@@ -69,7 +69,7 @@ namespace holodec {
 				break;
 				case SSALocation::eMem: {
 					for (Memory& mem : arch->memories) {
-						if (expr.locref.refId == mem.id) {
+						if (expr.ref.refId == mem.id) {
 							expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) 0, arch->bytebase * arch->bitbase));
 							isParam = true;
 						}
@@ -90,18 +90,18 @@ namespace holodec {
 					SSAArgument& arg = *it;
 					bool isParam = false;
 
-					if (arg.location == SSALocation::eReg) {
+					if (arg.ref.isLocation(SSALocation::eReg)) {
 						if (!isParam) {
 							for (CCParameter& para : cc->returns) {
 								Register* reg = arch->getRegister (para.regref);
-								if (arg.locref.refId == reg->id) {
+								if (arg.ref.refId == reg->id) {
 									//leave as arg
 									isParam = true;
 									break;
 								}
 							}
 						}
-					} else if (arg.location == SSALocation::eMem) {
+					} else if (arg.ref.isLocation(SSALocation::eMem)) {
 						isParam = true;
 					}
 					if (!isParam) {
@@ -118,13 +118,13 @@ namespace holodec {
 				case SSALocation::eReg: {
 					for (CCParameter& para : cc->parameters) {
 						Register* reg = arch->getRegister (para.regref);
-						if (expr.locref.refId == reg->id) {
+						if (expr.ref.refId == reg->id) {
 							expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) para.index, arch->bytebase * arch->bitbase));
 							isParam = true;
 							break;
 						}
 					}
-					if (!isParam && expr.locref.refId == stackreg->id) {
+					if (!isParam && expr.ref.refId == stackreg->id) {
 						expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) 0, arch->bytebase * arch->bitbase));
 						isParam = true;
 					}
@@ -132,7 +132,7 @@ namespace holodec {
 				break;
 				case SSALocation::eMem: {
 					for (Memory& mem : arch->memories) {
-						if (expr.locref.refId == mem.id) {
+						if (expr.ref.refId == mem.id) {
 							expr.subExpressions.push_back (SSAArgument::createUVal ( (uint64_t) 0, arch->bytebase * arch->bitbase));
 							isParam = true;
 						}
@@ -163,19 +163,19 @@ namespace holodec {
 					SSAArgument& arg = *it;
 					bool isParam = false;
 
-					if (arg.location == SSALocation::eMem)
+					if (arg.ref.isLocation(SSALocation::eMem))
 						isParam = true;
 					if (!isParam) {
 						for (CCParameter& para : cc->parameters) {
 							Register* reg = arch->getRegister (para.regref);
-							if (arg.locref.refId == reg->id) {
+							if (arg.ref.refId == reg->id) {
 								//leave the arg
 								isParam = true;
 								break;
 							}
 						}
 					}
-					if (!isParam && stackreg && arg.locref.refId == stackreg->id) {
+					if (!isParam && stackreg && arg.ref.refId == stackreg->id) {
 						//leave the arg
 						isParam = true;
 					}

@@ -164,11 +164,11 @@ extern "C" {
 		return reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].builtinId;
 	}
 
-	HSSAExprLocation ssa_get_expr_locationtype (HSSAExpression ssaExpr){
-		return static_cast<HSSAExprLocation>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].location);
+	HSSALocation ssa_get_expr_locationtype (HSSAExpression ssaExpr){
+		return static_cast<HSSALocation>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].ref.location);
 	}
 	HReference ssa_get_expr_locationref (HSSAExpression ssaExpr){
-		return static_cast<HReference>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].locref);
+		return static_cast<HReference>(reinterpret_cast<holodec::SSARepresentation*> (ssaExpr.ssaRep)->expressions[ssaExpr.exprId].ref);
 	}
 
 	uint64_t ssa_get_expr_instraddr (HSSAExpression ssaExpr){

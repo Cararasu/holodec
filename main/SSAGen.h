@@ -44,12 +44,12 @@ namespace holodec {
 		HId splitBasicBlock (uint64_t addr);
 		SSAArgument readReg(Register* reg);
 		SSAArgument readReg(HId regid);
-		SSAArgument createSplit(SSAArgument arg, uint32_t size, uint32_t offset, SSALocation loc = SSALocation::eNone, Reference locref = { 0, 0 });
-		SSAArgument createAssign(SSAArgument arg, uint32_t size, SSALocation loc = SSALocation::eNone, Reference locref = {0, 0});
+		SSAArgument createSplit(SSAArgument arg, uint32_t size, uint32_t offset, Reference locref = Reference());
+		SSAArgument createAssign(SSAArgument arg, uint32_t size, Reference locref = Reference());
 
-		SSAArgument createUVal(uint64_t val, uint32_t size, SSALocation loc = SSALocation::eNone, Reference locref = { 0, 0 });
-		SSAArgument createSVal(int64_t val, uint32_t size, SSALocation loc = SSALocation::eNone, Reference locref = { 0, 0 });
-		SSAArgument createFVal(double val, uint32_t size, SSALocation loc = SSALocation::eNone, Reference locref = { 0, 0 });
+		SSAArgument createUVal(uint64_t val, uint32_t size, Reference locref = Reference());
+		SSAArgument createSVal(int64_t val, uint32_t size, Reference locref = Reference());
+		SSAArgument createFVal(double val, uint32_t size, Reference locref = Reference());
 		uint32_t getSize(SSAArgument arg) {
 			return ssaRep->expressions[arg.ssaId].size;
 		}
