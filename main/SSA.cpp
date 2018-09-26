@@ -88,6 +88,23 @@ namespace holodec {
 		subExpressions[index].replace(arg);
 		return index;
 	}
+	HList<SSAArgument>::iterator SSAExpression::replaceArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg) {
+		if (it->type == SSAArgType::eId) {//remove ref
+			SSAExpression& expr = rep->expressions[it->ssaId];
+			for (auto it = expr.directRefs.begin(); it != expr.directRefs.end(); ++it) {
+				if (*it == id) {
+					expr.directRefs.erase(it);//erase only one
+					break;
+				}
+			}
+		}
+		if (arg.type == SSAArgType::eId) {//add ref
+			SSAExpression& expr = rep->expressions[arg.ssaId];
+			expr.directRefs.push_back(id);
+		}
+		it->replace(arg);
+		return it;
+	}
 	void SSAExpression::setAllArguments(SSARepresentation* rep, HList<SSAArgument> args) {
 		for (SSAArgument& arg : subExpressions) {//remove refs
 			if (arg.type == SSAArgType::eId) {

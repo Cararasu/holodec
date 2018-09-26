@@ -23,7 +23,6 @@
 #include "SSAPeepholeOptimizer.h"
 #include "SSATransformToC.h"
 #include "SSAAppendSimplifier.h"
-#include "SSAApplyRegRef.h"
 #include "PeepholeOptimizer.h"
 #include "ScriptingInterface.h"
 
@@ -183,21 +182,18 @@ int main (int argc, const char** argv) {
 
 	binary->print();
 
-	std::vector<StringRef> volatileRegisters = { "cf" , "zf" , "nf" , "vf" , "sf" , "hf" , "tf" , "if" };
-
 	std::vector<SSATransformer*> starttransformers = {
 		new SSAAddressToBlockTransformer(),
 		new SSAPhiNodeGenerator(),//this can be repeated as often as possible
 	};
 	std::vector<SSATransformer*> pretransformers = {
 		new SSAReverseRegUsageAnalyzer(),
-		new SSAApplyRegRef(),
 	};
 	std::vector<SSATransformer*> transformers = {
 		new SSAPeepholeOptimizer(),
 		new SSADCETransformer(),
 		//new SSAAppendSimplifier(),
-		new SSACalleeCallerRegs(volatileRegisters),
+		new SSACalleeCallerRegs(),
 	};
 	std::vector<SSATransformer*> endtransformers = {
 		new SSATransformToC(),

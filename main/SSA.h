@@ -314,6 +314,7 @@ namespace holodec {
 		size_t insertArgument(SSARepresentation* rep, size_t index, SSAArgument arg);
 		HList<SSAArgument>::iterator insertArgument(SSARepresentation* rep, HList<SSAArgument>::iterator it, SSAArgument arg);
 		size_t replaceArgument(SSARepresentation* rep, size_t index, SSAArgument arg);
+		HList<SSAArgument>::iterator replaceArgument(SSARepresentation* rep, HList<SSAArgument>::iterator index, SSAArgument arg);
 		void setAllArguments(SSARepresentation* rep, HList<SSAArgument> args);
 
 		bool isConst() {
