@@ -1175,34 +1175,34 @@ namespace holodec {
 	}
 	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, int64_t* arithchange, HId* baseExprId) {
 		SSAExpression& referencedExpr = ssaRep->expressions[ssaId];
-
+		*baseExprId = ssaId;
 		if (referencedExpr.type == SSAExprType::eOp && (referencedExpr.opType == SSAOpType::eAdd || referencedExpr.opType == SSAOpType::eSub)) {
 			SSAExpression* idExpr = nullptr;
 			int64_t change = 0;
 			for (size_t i = 0; i < referencedExpr.subExpressions.size(); ++i) {
 				SSAExpression& expr = ssaRep->expressions[calculante_base_expr(ssaRep, referencedExpr.subExpressions[i])];
-				if (expr.type != SSAExprType::eValue) {
+				if (!expr.isConst()) {
 					if (idExpr)
 						return 0;
 					idExpr = &expr;
 					continue;
 				}
-				if (i == 0 || referencedExpr.opType == SSAOpType::eAdd) {
-					if (expr.type != SSAExprType::eValue)
+				if (referencedExpr.opType == SSAOpType::eAdd) {
+					if (!expr.isConst())
 						return 0;
-					if (expr.exprtype == SSAType::eUInt)
+					if (expr.isConst(SSAType::eUInt))
 						change += expr.uval;
-					else if (expr.exprtype == SSAType::eInt)
+					else if (expr.isConst(SSAType::eInt))
 						change += expr.sval;
 					else
 						return 0;
 				}
-				else {
-					if (expr.type != SSAExprType::eValue)
+				else if(referencedExpr.opType == SSAOpType::eSub){
+					if (!expr.isConst() || i == 0)
 						return 0;
-					if (expr.exprtype == SSAType::eUInt)
+					if (expr.isConst(SSAType::eUInt))
 						change -= expr.uval;
-					else if (expr.exprtype == SSAType::eInt)
+					else if (expr.isConst(SSAType::eInt))
 						change -= expr.sval;
 					else
 						return 0;

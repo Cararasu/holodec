@@ -458,7 +458,7 @@ namespace holodec {
 	}
 	void SSAGen::replaceArg (IRArgument& arg) {
 		while (arg.type == IR_ARGTYPE_ARG) {
-			assert (arg.ref.refId && arg.ref.refId <= arguments.size());
+			assert (arg.ref.id && arg.ref.id <= arguments.size());
 			IRArgument& aarg = arguments[arg.ref.id - 1];
 			arg = aarg;
 		}
@@ -551,7 +551,7 @@ namespace holodec {
 			return IRArgument::createSSAId (addExpression (&expression), expression.size);
 		}
 		case IR_ARGTYPE_TMP: {
-			assert (exprId.ref.refId);
+			assert (exprId.ref.id);
 			for (SSATmpDef& def : tmpdefs) {
 				if (def.id == exprId.ref.id) {
 					return def.arg;
@@ -717,7 +717,7 @@ namespace holodec {
 					assert(arg->type == IR_ARGTYPE_ARG);
 
 					while (true) {//get argument index
-						assert(arg->ref.refId && arg->ref.refId <= arguments.size());
+						assert(arg->ref.id && arg->ref.id <= arguments.size());
 						if (arguments[arg->ref.id - 1].type != IR_ARGTYPE_ARG)
 							break;
 						arg = &arguments[arg->ref.id - 1];

@@ -118,7 +118,9 @@ namespace holodec {
 				SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
 				if (expr.type == SSAExprType::ePhi && expr.subExpressions.size()) {
 					bool undef = true;
-					SSAArgument cmpArg = expr.subExpressions[1];
+					HId baseExprId = 0;
+					int64_t change = 0;
+					calculate_basearg_plus_offset(ssaRep, expr.subExpressions[1].ssaId, &change, &baseExprId);
 					bool alwaysTheSame = true;
 
 					for (size_t i = 1; i < expr.subExpressions.size(); i += 2) {
@@ -129,7 +131,10 @@ namespace holodec {
 						if (ssaRep->expressions[arg.ssaId].type != SSAExprType::eUndef) {
 							undef = false;
 						}
-						if (!weak_equals(arg, cmpArg)) {
+						HId baseExprId2 = 0;
+						int64_t change2 = 0;
+						calculate_basearg_plus_offset(ssaRep, arg.ssaId, &change2, &baseExprId2);
+						if (baseExprId != baseExprId2 || change != change2) {
 							alwaysTheSame = false;
 						}
 					}
@@ -139,7 +144,28 @@ namespace holodec {
 						return true;
 					}
 					else if (alwaysTheSame) {
-						return ssaRep->replaceExpr(expr, expr.subExpressions[1]) != 0;
+						if(change == 0)
+							return ssaRep->replaceExpr(expr, expr.subExpressions[1]) != 0;
+						else {
+							SSAExpression valexpr;
+							valexpr.type = SSAExprType::eValue;
+							valexpr.exprtype = SSAType::eUInt;
+							valexpr.size = arch->bitbase * arch->bytebase;
+							if (change > 0) {
+								expr.type = SSAExprType::eOp;
+								expr.opType = SSAOpType::eAdd;
+								valexpr.uval = change;
+							}
+							else {
+								expr.type = SSAExprType::eOp;
+								expr.opType = SSAOpType::eSub;
+								valexpr.uval = -change;
+							}
+							HId exprId = expr.id;
+							HId newId = ssaRep->addBefore(&valexpr, expr.id);
+							ssaRep->expressions[exprId].setAllArguments(ssaRep, { SSAArgument::createId(baseExprId), SSAArgument::createId(newId) });
+							return true;
+						}
 					}
 				}
 				return false;

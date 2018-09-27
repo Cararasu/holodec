@@ -8,35 +8,33 @@ namespace holodec {
 
 	struct CalleeArgument {
 		HId ssaId = 0;
-		uint32_t offset = 0, size = 0;
+		uint32_t size = 0;
+		int64_t change = 0;
 
 		CalleeArgument() {}
 		CalleeArgument(SSAArgument& arg) : ssaId(arg.ssaId) {}
-		CalleeArgument(CalleeArgument& arg) : ssaId(arg.ssaId), offset(arg.offset), size(arg.size) {}
-		CalleeArgument(const CalleeArgument&& arg) : ssaId(arg.ssaId), offset(arg.offset), size(arg.size) {}
+		CalleeArgument(CalleeArgument& arg) : ssaId(arg.ssaId), size(arg.size), change(arg.change) {}
+		CalleeArgument(const CalleeArgument&& arg) : ssaId(arg.ssaId), size(arg.size), change(arg.change) {}
 
 		CalleeArgument& operator=(CalleeArgument arg) {
 			ssaId = arg.ssaId;
-			offset = arg.offset;
+			change = arg.change;
 			size = arg.size;
 			return *this;
 		}
 
 		CalleeArgument replace(CalleeArgument arg) {
 			CalleeArgument retArg = arg;
-			retArg.offset += offset;
+			retArg.change += change;
 			return retArg;
 		}
 
-		bool equals(SSAArgument& arg) {
-			return arg.type == SSAArgType::eId && ssaId == arg.ssaId;
-		}
 		void print() {
-			printf("SSA: %" PRId32 "[%" PRId32 ",%" PRId32 "]\n", ssaId, offset, size);
+			printf("SSA: %" PRId32 " + " PRId64 "[%" PRId32 "]\n", ssaId, change, size);
 		}
 	};
 	inline bool operator==(CalleeArgument& lhs, CalleeArgument& rhs) {
-		return lhs.ssaId == rhs.ssaId;
+		return lhs.ssaId == rhs.ssaId && lhs.change == rhs.change;
 	}
 
 	class SSACalleeCallerRegs : public SSATransformer {
@@ -49,9 +47,6 @@ namespace holodec {
 		virtual bool doTransformation(Binary* binary, Function* function);
 	private:
 		std::set<Function*> visitedFuncs;
-
-		bool isInput(Function* function, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, Register* reg, CalleeArgument* retArg);
-		bool isInputMem(Function* function, HId memId, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, Register* reg, CalleeArgument* retArg, CalleeArgument ptrArg);
 
 		bool isOnlyRecursive(Function* function, HId currentId, HId lastId, std::set<HId>& exprvisited, Reference locref);
 

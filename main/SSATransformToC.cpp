@@ -580,9 +580,11 @@ namespace holodec{
 					continue;
 				}
 				if (arg.ref.isLocation(SSALocation::eReg)) {
-					RegisterState* state = function->usedRegStates.getRegisterState(arg.ref.id);//reverse check if the argument is used outside in another function
-					if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
-						continue;
+					if (function->usedRegStates.parsed) {
+						RegisterState* state = function->usedRegStates.getRegisterState(arg.ref.id);//reverse check if the argument is used outside in another function
+						if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
+							continue;
+						}
 					}
 					printf("%s: ", arch->getRegister(arg.ref.id)->name.cstr());
 				}

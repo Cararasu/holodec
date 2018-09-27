@@ -4,17 +4,22 @@
 
 namespace holodec{
 
-	bool SSACalleeCallerRegs::isInputMem(Function* function, HId memId, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, Register* reg, CalleeArgument* retArg, CalleeArgument ptrArg) {
+	bool calc_basearg_plus_offset(Architecture* arch, Function* function, CalleeArgument arg, std::map<HId, CalleeArgument>& exprvisited, Register* reg, CalleeArgument* retArg);
+	bool calc_basearg_plus_offset_mem(Architecture* arch, Function* function, HId memId, CalleeArgument arg, std::map<HId, CalleeArgument>& exprvisited, Register* reg, CalleeArgument* retArg, HId ptrBaseExprId, int64_t ptrBaseExprChange) {
+		auto f = exprvisited.find(arg.ssaId);
+		if (f != exprvisited.end()) {
+			return f->second == arg;
+		}
 		SSAExpression* expr = &function->ssaRep.expressions[memId];
-		exprvisited.insert(expr->id);
 		if (expr->type == SSAExprType::ePhi) {
+			exprvisited.insert(std::make_pair(expr->id, arg));
 			for (SSAArgument& exprArg : expr->subExpressions) {
 				if (exprArg.type == SSAArgType::eBlock)
 					continue;
 				if (exprArg.type != SSAArgType::eId || !exprArg.ref.isLocation(SSALocation::eMem))
 					return false;
 				if (exprvisited.find(exprArg.ssaId) == exprvisited.end()) {
-					if (!isInputMem(function, exprArg.ssaId, arg, outoffset, exprvisited, reg, retArg, ptrArg)) {
+					if (!calc_basearg_plus_offset_mem(arch, function, exprArg.ssaId, arg, exprvisited, reg, retArg, ptrBaseExprId, ptrBaseExprChange)) {
 						return false;
 					}
 				}
@@ -22,81 +27,147 @@ namespace holodec{
 			return true;
 		}
 		else if (expr->type == SSAExprType::eStore) {
-			if (expr->subExpressions[1].type == SSAArgType::eId && expr->subExpressions[1].ssaId == ptrArg.ssaId) {
-				//TODO check if the ptrArg is a stack???
-				return isInput(function, arg.replace(expr->subExpressions[2]), outoffset, exprvisited, reg, retArg);
+			HId baseExprId = 0;
+			int64_t storeoffsetmin = 0, storeoffsetmax = 0;
+			int64_t ptroffsetmin = ptrBaseExprChange, ptroffsetmax = 0;
+			//an argument is passed to the function that has the same base + storechange as our pointer
+			if (calculate_basearg_plus_offset(&function->ssaRep, expr->subExpressions[1].ssaId, &storeoffsetmin, &baseExprId) != 0) {
+				return false;
 			}
-			return isInputMem(function, expr->subExpressions[0].ssaId, arg, outoffset, exprvisited, reg, retArg, ptrArg);
+			uint32_t valuesize = function->ssaRep.expressions[expr->subExpressions[1].ssaId].size;
+
+			storeoffsetmax = storeoffsetmin + ((valuesize - 1) / arch->bitbase) + 1;
+			ptroffsetmax = ptroffsetmin + ((arg.size - 1) / arch->bitbase) + 1;
+			if (baseExprId == ptrBaseExprId) {
+				//exact match
+				if (storeoffsetmin == ptroffsetmin && storeoffsetmax == ptroffsetmax) {
+					return calc_basearg_plus_offset(arch, function, arg.replace(expr->subExpressions[2]), exprvisited, reg, retArg);
+				}
+				else if (storeoffsetmin < ptroffsetmax && storeoffsetmax < ptroffsetmin) {
+					return false;
+				}
+				return false;
+			}
+			return calc_basearg_plus_offset_mem(arch, function, expr->subExpressions[0].ssaId, arg, exprvisited, reg, retArg, ptrBaseExprId, ptrBaseExprChange);
 		}
 		else if (expr->type == SSAExprType::eLoad) {
-			return isInputMem(function, expr->subExpressions[0].ssaId, arg, outoffset, exprvisited, reg, retArg, ptrArg);
+			return calc_basearg_plus_offset_mem(arch, function, expr->subExpressions[0].ssaId, arg, exprvisited, reg, retArg, ptrBaseExprId, ptrBaseExprChange);
 		}
 		else if (expr->type == SSAExprType::eMemOutput) {
 			SSAExpression* callExpr = &function->ssaRep.expressions[expr->subExpressions[0].ssaId];
 			for (SSAArgument& arg : callExpr->subExpressions) {
-				if (ptrArg.equals(arg)) {
+				int64_t change = 0;
+				HId baseExprId = 0;
+				//an argument is passed to the function that has the same base + change as our pointer
+				if (calculate_basearg_plus_offset(&function->ssaRep, expr->subExpressions[1].ssaId, &change, &baseExprId) != 0 || baseExprId == ptrBaseExprId || change == ptrBaseExprChange) {
 					return false;
 				}
 			}
-			return isInputMem(function, expr->subExpressions[1].ssaId, arg, outoffset, exprvisited, reg, retArg, ptrArg);
+			return calc_basearg_plus_offset_mem(arch, function, expr->subExpressions[1].ssaId, arg, exprvisited, reg, retArg, ptrBaseExprId, ptrBaseExprChange);
 
 		}
 		return false;
 	}
-	bool SSACalleeCallerRegs::isInput(Function* function, CalleeArgument arg, uint32_t outoffset, std::set<HId>& exprvisited, Register* reg,  CalleeArgument* retArg) {
+	bool calc_basearg_plus_offset(Architecture* arch, Function* function, CalleeArgument arg, std::map<HId, CalleeArgument>& exprvisited, Register* reg, CalleeArgument* retArg) {
+		auto f = exprvisited.find(arg.ssaId);
+		if (f != exprvisited.end()) {
+			return f->second == arg;
+		}
 		SSAExpression* expr = &function->ssaRep.expressions[arg.ssaId];
-		exprvisited.insert(expr->id);
 		if (expr->size < arg.size)
 			return false;
-		if (expr->type == SSAExprType::eAppend) {
-			uint32_t poffset = outoffset;
-			for (SSAArgument& argIt : expr->subExpressions) {
-				if (argIt.type != SSAArgType::eId || !isInput(function, arg.replace(argIt), poffset, exprvisited, reg, retArg)) {
-					return false;
-				}
-				poffset += function->ssaRep.expressions[argIt.ssaId].size;
-			}
-			return true;
-		}
-		else if (expr->type == SSAExprType::ePhi) {
+		if (expr->type == SSAExprType::ePhi) {
+			exprvisited.insert(std::make_pair(expr->id, arg));
+			bool success = true;
 			for (SSAArgument subarg : expr->subExpressions) {
 				if (subarg.type == SSAArgType::eId) {
-					if (!isInput(function, arg.replace(subarg), outoffset, exprvisited, reg, retArg))
-						return false;
+					success = calc_basearg_plus_offset(arch, function, arg.replace(subarg), exprvisited, reg, retArg) && success;
 				}
 			}
-			return true;
-		}
-		else if (expr->type == SSAExprType::eSplit) {
-			return isInput(function, arg.replace(expr->subExpressions[0]), outoffset - expr->offset, exprvisited, reg, retArg);
+			if (success) return true;
+			//otherwise it might be because of recursion so we try again
+			success = true;
+			for (SSAArgument subarg : expr->subExpressions) {
+				if (subarg.type == SSAArgType::eId) {
+					success = calc_basearg_plus_offset(arch, function, arg.replace(subarg), exprvisited, reg, retArg) && success;
+				}
+			}
+			return success;
 		}
 		else if (expr->type == SSAExprType::eLoad) {
-			return isInputMem(function, expr->subExpressions[0].ssaId, arg, outoffset, exprvisited, reg, retArg, expr->subExpressions[1]);
+			int64_t change = 0;
+			HId baseExprId = 0;
+			//the pointer has to be one of the arguments to make sure it is the stack or something working similar to the stack
+			if (calculate_basearg_plus_offset(&function->ssaRep, expr->subExpressions[1].ssaId, &change, &baseExprId) != 0) {
+				SSAExpression& baseExpr = function->ssaRep.expressions[baseExprId];
+				if (baseExpr.type == SSAExprType::eInput) {
+					return calc_basearg_plus_offset_mem(arch, function, expr->subExpressions[0].ssaId, arg, exprvisited, reg, retArg, baseExprId, change);
+				}
+			}
+			return false;
 		}
 		else if (expr->type == SSAExprType::eOutput) {
-			if (expr->ref.isReg(reg)) {
-				SSAExpression* callexpr = &function->ssaRep.expressions[expr->subExpressions[0].ssaId];
-				if (callexpr->type == SSAExprType::eCall) {
-					SSAExpression* valueexpr = &function->ssaRep.expressions[callexpr->subExpressions[0].ssaId];
-					if (valueexpr->isValue(function->baseaddr)) {//recursion...
-						for (auto it = callexpr->subExpressions.begin() + 1/*skip the calltarget*/; it != callexpr->subExpressions.end(); it++) {
-							if (it->ref.isReg(reg)) {//if it is read and returned we can assume correctness
-								return isInput(function, arg.replace(*it), outoffset, exprvisited, reg, retArg);
-							}
-						}
-						//if it is not read but only returned then we can still assume correctness
-						return true;
+			if (!expr->ref.isReg(reg)) return false;
+
+			SSAExpression* callexpr = &function->ssaRep.expressions[expr->subExpressions[0].ssaId];
+			if (callexpr->type != SSAExprType::eCall) return false;
+
+			SSAExpression* valueexpr = &function->ssaRep.expressions[callexpr->subExpressions[0].ssaId];
+			if (!valueexpr->isValue(function->baseaddr))  return false;//not a recursion...
+
+			for (auto it = callexpr->subExpressions.begin() + 1/*skip the calltarget*/; it != callexpr->subExpressions.end(); it++) {
+				if (it->ref.isReg(reg) && retArg->ssaId) {//if it is read and the return-argument is set(another path already found a solution) then we assume that argument
+					return calc_basearg_plus_offset(arch, function, arg.replace(*retArg).replace(*it), exprvisited, reg, retArg);
+				}
+			}
+			//if it is not read but only returned then it is not a callee saved register
+			return false;
+		}
+		else if (expr->type == SSAExprType::eOp) {
+			if(expr->opType == SSAOpType::eAdd || expr->opType == SSAOpType::eSub) {
+				SSAExpression* idExpr = nullptr;
+				int64_t change = 0;
+				for (size_t i = 0; i < expr->subExpressions.size(); ++i) {
+					SSAExpression& subexpr = function->ssaRep.expressions[expr->subExpressions[i].ssaId];
+					if (!subexpr.isConst()) {
+						if (idExpr)
+							return false;
+						idExpr = &subexpr;
+						continue;
 					}
+					if (expr->opType == SSAOpType::eAdd) {
+						if (!subexpr.isConst())
+							return false;
+						if (subexpr.isConst(SSAType::eUInt))
+							change += subexpr.uval;
+						else if (subexpr.isConst(SSAType::eInt))
+							change += subexpr.sval;
+						else
+							return false;
+					}
+					else if (expr->opType == SSAOpType::eSub) {
+						if (!subexpr.isConst() || i == 0)
+							return false;
+						if (subexpr.isConst(SSAType::eUInt))
+							change -= subexpr.uval;
+						else if (subexpr.isConst(SSAType::eInt))
+							change -= subexpr.sval;
+						else
+							return false;
+					}
+				}
+				if (idExpr) {
+					arg.ssaId = idExpr->id;
+					arg.change += change;
+					return calc_basearg_plus_offset(arch, function, arg, exprvisited, reg, retArg);
 				}
 			}
 		}
-		else if (expr->type == SSAExprType::eInput) {
-			if (expr->ref.isReg(reg)) {
-				if (!retArg->ssaId)
-					*retArg = arg;
-				return *retArg == arg && arg.offset == outoffset;
-			}
-		} 
+		if (expr->ref.isReg(reg)) {
+			if (!retArg->ssaId)
+				*retArg = arg;
+			return *retArg == arg;
+		}
 		return false;
 	}
 	bool SSACalleeCallerRegs::isOnlyRecursive(Function* function, HId currentId, HId lastId, std::set<HId>& exprvisited, Reference locref) {
@@ -144,7 +215,7 @@ namespace holodec{
 		bool changed = false;
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type == SSAExprType::eReturn) {
-				std::set<HId> visited;
+				std::map<HId, CalleeArgument> visited;
 				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end(); ) {
 					SSAArgument& arg = *it;
 					if (!(arg.type == SSAArgType::eId && arg.ref.isLocation(SSALocation::eReg))) {
@@ -157,41 +228,37 @@ namespace holodec{
 
 					visitedFuncs.clear();
 					visitedFuncs.insert(function);
-					bool succ = isInput(function, arg, 0, visited, reg, &retArg);
+					bool succ = calc_basearg_plus_offset(arch, function, arg, visited, reg, &retArg);
 					visited.clear();
 					if (succ) {
-						if (it->ssaId == retArg.ssaId) {
-							it = expr.removeArgument(&function->ssaRep, it);
-							changed = true;
+						if (retArg.change == 0) {
+							if (it->ssaId == retArg.ssaId) {
+								it = expr.removeArgument(&function->ssaRep, it);
+								changed = true;
+								continue;
+							}
+							else {
+								expr.replaceArgument(&function->ssaRep, it, SSAArgument::createId(retArg.ssaId, arg.ref));
+								changed = true;
+							}
+							it++;
 							continue;
 						}
 						else {
-							expr.replaceArgument(&function->ssaRep, it, SSAArgument::createId(retArg.ssaId, arg.ref));
-							changed = true;
-						}
-						it++;
-						continue;
-					}
-					if (it->ref.isLocation(SSALocation::eReg)) {
-						Register* reg = arch->getRegister(it->ref.id);
-						RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
-
-						int64_t change = 0;
-						HId baseExprId = 0;
-						if (calculate_basearg_plus_offset(&function->ssaRep, it->ssaId, &change, &baseExprId) != 0) {
-							SSAExpression& baseExpr = function->ssaRep.expressions[baseExprId];
+							RegisterState* state = function->regStates.getNewRegisterState(reg->parentRef.refId);
+							SSAExpression& baseExpr = function->ssaRep.expressions[retArg.ssaId];
 							if (baseExpr.type == SSAExprType::eInput && baseExpr.ref.isLocation(SSALocation::eReg) && baseExpr.ref.id == it->ref.id) {
-								state->arithmeticChange = change;
+								state->arithmeticChange = retArg.change;
 								it++;
 								continue;
 							}
 						}
-						else {
-							state->flags |= UsageFlags::eWrite;
-						}
 					}
-					else if (it->ref.isLocation(SSALocation::eMem)) {
-						function->regStates.getNewMemoryState(it->ref.id)->flags |= UsageFlags::eWrite;
+					else {
+						if (it->ref.isLocation(SSALocation::eReg))
+							function->regStates.getNewRegisterState(it->ref.id)->flags |= UsageFlags::eWrite;
+						if (it->ref.isLocation(SSALocation::eMem))
+							function->regStates.getNewMemoryState(it->ref.id)->flags |= UsageFlags::eWrite;
 					}
 					it++;
 				}
@@ -208,7 +275,8 @@ namespace holodec{
 		}
 		function->regStates.parsed = true;
 		//remove call-parameters and output-expressions if possible
-		for (SSAExpression& expr : function->ssaRep.expressions) {
+		for (size_t it = 0; it < function->ssaRep.expressions.list.size(); it++) {
+			SSAExpression& expr = function->ssaRep.expressions.list[it];
 			if (!expr.id) continue;
 			if (expr.type == SSAExprType::eCall) {
 				SSAExpression* dstExpr = find_baseexpr(&function->ssaRep, expr.subExpressions[0]);
@@ -289,7 +357,7 @@ namespace holodec{
 						}
 						HId exprId = expr.id;
 						HId newId = function->ssaRep.addBefore(&valexpr, expr.id);
-						function->ssaRep.expressions.list[exprId].addArgument(&function->ssaRep, SSAArgument::createId(newId));
+						function->ssaRep.expressions[exprId].addArgument(&function->ssaRep, SSAArgument::createId(newId));
 					}
 					changed = true;
 				}
