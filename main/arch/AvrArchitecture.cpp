@@ -227,7 +227,7 @@ namespace holoavr {
 			{ 1, "==(7,#arg[1])", "=($if,1)" },
 		}, InstructionType::eShr },
 		{ AVR_INSTR_CALL, "call",{
-			{ 1, "#seq(#push($stack,#ip),#call(#arg[1]))" }
+			{ 1, "#seq(#rec[push](#ip),#call(#arg[1]))" }
 		}, InstructionType::eShr },
 		{ AVR_INSTR_CBI, "cbi",{
 			{ 2, "#seq(#rec[in](#t[1],#arg[1]),#rec[out](#arg[1],#and(#t[1],#bnot(#shl(1,#arg[2])))))" }
