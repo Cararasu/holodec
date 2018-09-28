@@ -271,9 +271,6 @@ namespace holodec {
 		case SSAExprType::eOutput:
 			printf("Output ");
 			break;
-		case SSAExprType::eMemOutput:
-			printf("MemOut ");
-			break;
 		case SSAExprType::eReturn:
 			printf("Return ");
 			break;
@@ -473,9 +470,6 @@ namespace holodec {
 			break;
 		case SSAExprType::eOutput:
 			printf("Output ");
-			break;
-		case SSAExprType::eMemOutput:
-			printf("MemOut ");
 			break;
 		case SSAExprType::eReturn:
 			printf("Return ");
@@ -1173,7 +1167,7 @@ namespace holodec {
 			expr = &ssaRep->expressions[expr->subExpressions[0].ssaId];
 		return expr->id;
 	}
-	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, int64_t* arithchange, HId* baseExprId) {
+	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, int64_t* fixedValueChange, HId* baseExprId) {
 		SSAExpression& referencedExpr = ssaRep->expressions[ssaId];
 		*baseExprId = ssaId;
 		if (referencedExpr.type == SSAExprType::eOp && (referencedExpr.opType == SSAOpType::eAdd || referencedExpr.opType == SSAOpType::eSub)) {
@@ -1209,9 +1203,9 @@ namespace holodec {
 				}
 			}
 			if (idExpr) {
-				*arithchange += change;
+				*fixedValueChange += change;
 				*baseExprId = idExpr->id;
-				return calculate_basearg_plus_offset(ssaRep, idExpr->id, arithchange, baseExprId) + 1;
+				return calculate_basearg_plus_offset(ssaRep, idExpr->id, fixedValueChange, baseExprId) + 1;
 			}
 			else {
 				return 0;

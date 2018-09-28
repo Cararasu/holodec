@@ -194,7 +194,8 @@ namespace holodec {
 
 						SSAArgument apparg = SSAArgument::createId(ssaRep->addAfter(&appendexpr, store1expr.id));
 
-						SSAExpression storeexpr = ssaRep->expressions[context->expressionsMatched[0]];
+						SSAExpression storeexpr = ssaRep->expressions[context->expressionsMatched[2]];
+						storeexpr.subExpressions[0] = ssaRep->expressions[context->expressionsMatched[2]].subExpressions[0];
 						storeexpr.subExpressions[2] = apparg;
 						storeexpr.refs.clear();
 						storeexpr.directRefs.clear();
@@ -215,8 +216,10 @@ namespace holodec {
 
 						SSAArgument apparg = SSAArgument::createId(ssaRep->addAfter(&appendexpr, store1expr.id));
 
-						SSAExpression storeexpr = ssaRep->expressions[context->expressionsMatched[2]];
+						SSAExpression storeexpr = ssaRep->expressions[context->expressionsMatched[0]];
+						storeexpr.subExpressions[0] = ssaRep->expressions[context->expressionsMatched[2]].subExpressions[0];
 						storeexpr.subExpressions[2] = apparg;
+
 						storeexpr.refs.clear();
 						storeexpr.directRefs.clear();
 
@@ -242,10 +245,9 @@ namespace holodec {
 
 				if (!ssaRep->isReplaceable(neexpr))
 					return false;
-
-				if (lexpr.subExpressions.size() != 2 || subexpr.subExpressions.size() != 2) {
+				if (lexpr.subExpressions.size() != 2 || subexpr.subExpressions.size() != 2)
 					return false;
-				}
+
 				SSAExpression* baseexpr = nullptr;
 				if (ssaRep->expressions[lexpr.subExpressions[0].ssaId].isValue(0)) {
 					baseexpr = &ssaRep->expressions[lexpr.subExpressions[1].ssaId];
@@ -253,9 +255,8 @@ namespace holodec {
 				else if (ssaRep->expressions[lexpr.subExpressions[1].ssaId].isValue(0)) {
 					baseexpr = &ssaRep->expressions[lexpr.subExpressions[0].ssaId];
 				}
-				if (!baseexpr) {
+				if (!baseexpr)
 					return false;
-				}
 
 				if (baseexpr->type == SSAExprType::eSplit) {
 					if (baseexpr->offset + baseexpr->size != subexpr.size)

@@ -81,7 +81,7 @@ namespace holodec {
 	struct RegisterState {
 		HId regId;
 		Flags<UsageFlags> flags;
-		int64_t arithmeticChange = 0;
+		int64_t fixedValueChange = 0;
 	};
 	struct MemoryState {
 		HId memId;

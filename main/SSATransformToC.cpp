@@ -637,7 +637,7 @@ namespace holodec{
 		return true;
 	}
 	bool SSATransformToC::printExpression(SSAExpression& expr, uint32_t indent) {
-		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch)
+		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eBranch)
 			return false;
 		UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
 		resolveIds.insert(expr.id);

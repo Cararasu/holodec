@@ -36,7 +36,6 @@ namespace holodec {
 		
 		eInput		= SSA_EXPR_INPUT,
 		eOutput		= SSA_EXPR_OUTPUT,
-		eMemOutput	= SSA_EXPR_MEMOUTPUT,
 		
 		
 		eCall		= SSA_EXPR_CALL,
@@ -451,7 +450,7 @@ namespace holodec {
 	//returns the distance traveled from the ssaId
 	//if distance is 0 then the expression with id == ssaId was neither an addition or a subtraction
 	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, 
-		int64_t* arithchange/* result | the value that was added or subtracted */, HId* baseExprId/* result | the furthest argument we can travel to */);
+		int64_t* fixedValueChange/* result | the value that was added or subtracted */, HId* baseExprId/* result | the furthest argument we can travel to */);
 
 	void combine_operations(SSARepresentation* ssaRep, HId* exprsToReplace, SSAArgument* firstargss, SSAArgument* secargss, uint32_t count, SSAExpression expr, uint64_t instrAddr);
 

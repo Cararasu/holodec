@@ -886,7 +886,7 @@ namespace holodec {
 					if (!mem.id)
 						continue;
 					SSAExpression retExpr;
-					retExpr.type = SSAExprType::eMemOutput;
+					retExpr.type = SSAExprType::eOutput;
 					retExpr.exprtype = SSAType::eUInt;
 					retExpr.ref = &mem;
 					retExpr.size = 0;

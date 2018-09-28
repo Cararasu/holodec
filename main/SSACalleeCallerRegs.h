@@ -8,18 +8,16 @@ namespace holodec {
 
 	struct CalleeArgument {
 		HId ssaId = 0;
-		uint32_t size = 0;
 		int64_t change = 0;
 
 		CalleeArgument() {}
 		CalleeArgument(SSAArgument& arg) : ssaId(arg.ssaId) {}
-		CalleeArgument(CalleeArgument& arg) : ssaId(arg.ssaId), size(arg.size), change(arg.change) {}
-		CalleeArgument(const CalleeArgument&& arg) : ssaId(arg.ssaId), size(arg.size), change(arg.change) {}
+		CalleeArgument(CalleeArgument& arg) : ssaId(arg.ssaId), change(arg.change) {}
+		CalleeArgument(const CalleeArgument&& arg) : ssaId(arg.ssaId), change(arg.change) {}
 
 		CalleeArgument& operator=(CalleeArgument arg) {
 			ssaId = arg.ssaId;
 			change = arg.change;
-			size = arg.size;
 			return *this;
 		}
 
@@ -30,7 +28,7 @@ namespace holodec {
 		}
 
 		void print() {
-			printf("SSA: %" PRId32 " + " PRId64 "[%" PRId32 "]\n", ssaId, change, size);
+			printf("SSA: %" PRId32 " + " PRId64 "\n", ssaId, change);
 		}
 	};
 	inline bool operator==(CalleeArgument& lhs, CalleeArgument& rhs) {
@@ -46,7 +44,6 @@ namespace holodec {
 
 		virtual bool doTransformation(Binary* binary, Function* function);
 	private:
-		std::set<Function*> visitedFuncs;
 
 		bool isOnlyRecursive(Function* function, HId currentId, HId lastId, std::set<HId>& exprvisited, Reference locref);
 
