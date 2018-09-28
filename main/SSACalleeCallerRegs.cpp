@@ -13,9 +13,8 @@ namespace holodec{
 		SSAExpression* expr = &function->ssaRep.expressions[memId];
 		if (expr->type == SSAExprType::ePhi) {
 			exprvisited.insert(std::make_pair(expr->id, arg));
-			for (SSAArgument& exprArg : expr->subExpressions) {
-				if (exprArg.type == SSAArgType::eBlock)
-					continue;
+			for (size_t i = 1; i < expr->subExpressions.size(); i += 2) {
+				SSAArgument& exprArg = expr->subExpressions[i];
 				if (exprArg.type != SSAArgType::eId || !exprArg.ref.isLocation(SSALocation::eMem))
 					return false;
 				if (exprvisited.find(exprArg.ssaId) == exprvisited.end()) {
@@ -43,13 +42,10 @@ namespace holodec{
 					return calc_basearg_plus_offset(arch, function, arg.replace(expr->subExpressions[2]), exprvisited, reg, retArg);
 				}
 				//some kind of overlap
-				else if (storeoffsetmin <= ptroffsetmax && ptroffsetmin <= storeoffsetmax) {
+				else if (storeoffsetmin < ptroffsetmax && ptroffsetmin < storeoffsetmax) {
 					return false;
 				}
 			}
-			return calc_basearg_plus_offset_mem(arch, function, expr->subExpressions[0].ssaId, arg, exprvisited, reg, retArg, ptrBaseExprId, bitsread, ptrBaseExprChange);
-		}
-		else if (expr->type == SSAExprType::eLoad) {
 			return calc_basearg_plus_offset_mem(arch, function, expr->subExpressions[0].ssaId, arg, exprvisited, reg, retArg, ptrBaseExprId, bitsread, ptrBaseExprChange);
 		}
 		else if (expr->type == SSAExprType::eOutput) {
@@ -58,7 +54,7 @@ namespace holodec{
 				int64_t change = 0;
 				HId baseExprId = 0;
 				//an argument is passed to the function that has the same base + change as our pointer
-				if (calculate_basearg_plus_offset(&function->ssaRep, it->ssaId, &change, &baseExprId) != 0 || baseExprId == ptrBaseExprId || change == ptrBaseExprChange) {
+				if (calculate_basearg_plus_offset(&function->ssaRep, it->ssaId, &change, &baseExprId) && baseExprId == ptrBaseExprId && change == ptrBaseExprChange) {
 					return false;
 				}
 			}
@@ -96,11 +92,10 @@ namespace holodec{
 			int64_t change = 0;
 			HId baseExprId = 0;
 			//the pointer has to be one of the arguments to make sure it is the stack or something working similar to the stack
-			if (calculate_basearg_plus_offset(&function->ssaRep, expr->subExpressions[1].ssaId, &change, &baseExprId) != 0) {
-				SSAExpression& baseExpr = function->ssaRep.expressions[baseExprId];
-				if (baseExpr.type == SSAExprType::eInput) {
-					return calc_basearg_plus_offset_mem(arch, function, expr->subExpressions[0].ssaId, arg, exprvisited, reg, retArg, baseExprId, expr->size, change);
-				}
+			calculate_basearg_plus_offset(&function->ssaRep, expr->subExpressions[1].ssaId, &change, &baseExprId);
+			SSAExpression& baseExpr = function->ssaRep.expressions[baseExprId];
+			if (baseExpr.type == SSAExprType::eInput) {
+				return calc_basearg_plus_offset_mem(arch, function, expr->subExpressions[0].ssaId, arg, exprvisited, reg, retArg, baseExprId, expr->size, change);
 			}
 			return false;
 		}
