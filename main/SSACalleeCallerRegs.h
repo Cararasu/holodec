@@ -28,7 +28,7 @@ namespace holodec {
 		}
 
 		void print() {
-			printf("SSA: %" PRId32 " + " PRId64 "\n", ssaId, change);
+			printf("SSA: %" PRId32 " + %" PRId64 "\n", ssaId, change);
 		}
 	};
 	inline bool operator==(CalleeArgument& lhs, CalleeArgument& rhs) {

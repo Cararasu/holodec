@@ -99,7 +99,7 @@ namespace holoihex {
 					sym->name = "entry";
 					sym->size = 0;
 					sym->symboltype = &holodec::SymbolType::symfunc;
-					sym->vaddr = 0x68;
+					sym->vaddr = 0xe6;
 					binary->addSymbol(sym);
 				}
 				binary->addEntrypoint(sym->id);

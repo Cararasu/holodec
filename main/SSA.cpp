@@ -737,6 +737,40 @@ namespace holodec {
 		}
 		return count;
 	}
+	uint64_t SSARepresentation::replaceExprCompletely(SSAExpression& origExpr, SSAArgument replaceArg) {
+		uint64_t count = 0;
+
+		for (HId directRefId : origExpr.directRefs) {//iterate refs
+			SSAExpression& expr = expressions[directRefId];
+			if (replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id) {//don't replace refs and args if replace is the same
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
+						arg.replace(replaceArg);
+						count++;
+					}
+				}
+			}
+			else {
+				for (SSAArgument& arg : expr.subExpressions) {
+					if (arg.type == SSAArgType::eId && arg.ssaId == origExpr.id) {
+						arg.replace(replaceArg);
+						count++;
+						if (replaceArg.type == SSAArgType::eId)
+							expressions[replaceArg.ssaId].refs.push_back(directRefId);
+					}
+				}
+			}
+		}
+		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
+			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
+				it = origExpr.refs.erase(it);
+			}
+			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
+				it = origExpr.directRefs.erase(it);
+			}
+		}
+		return count;
+	}
 	uint64_t SSARepresentation::replaceOpExpr(SSAExpression& origExpr, SSAArgument replaceArg, SSAArgument opArg, uint32_t baseoffset) {
 		uint64_t count = 0;
 

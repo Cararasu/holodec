@@ -19,6 +19,7 @@
 #include "SSADCETransformer.h"
 #include "SSACalleeCallerRegs.h"
 #include "SSAReverseRegUsageAnalyzer.h"
+#include "SSARedundancyElimination.h"
 #include "HIdList.h"
 #include "SSAPeepholeOptimizer.h"
 #include "SSATransformToC.h"
@@ -44,7 +45,7 @@
 //Symbol -> Symbol, Binary*
 //Section -> Symbol, Binary*, CC*
 //Function -> Symbol, Binary*, SSARep
-//Architecture -> CC, ISA, Regs
+//Architecture -> ISA, Regs
 
 using namespace holodec;
 
@@ -192,7 +193,7 @@ int main (int argc, const char** argv) {
 	std::vector<SSATransformer*> transformers = {
 		new SSAPeepholeOptimizer(),
 		new SSADCETransformer(),
-		//new SSAAppendSimplifier(),
+		new SSARedundancyElimination(),
 		new SSACalleeCallerRegs(),
 	};
 	std::vector<SSATransformer*> endtransformers = {

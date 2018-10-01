@@ -21,6 +21,7 @@ namespace holodec {
 		uint64_t m_hash;
 		std::string m_str;
 
+		//djb2 hash
 		void doHash() {
 			m_hash = 0;
 			uint64_t val = 5381;

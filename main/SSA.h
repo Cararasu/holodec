@@ -238,7 +238,7 @@ namespace holodec {
 			case SSAArgType::eBlock:
 				return lhs.ssaId == rhs.ssaId;
 			default:
-				return false;
+				return true;
 			}
 			return true;
 		}
@@ -335,21 +335,41 @@ namespace holodec {
 		void print(Architecture* arch, int indent = 0);
 		void printSimple(Architecture* arch, int indent = 0);
 	};
-	inline bool operator== (SSAExpression& lhs, SSAExpression& rhs) {
-		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype && lhs.ref == rhs.ref) {
+	inline bool weak_equals(SSAExpression& lhs, SSAExpression& rhs) {
+		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
 				for (size_t i = 0; i < lhs.subExpressions.size(); i++) {
-					if (lhs.subExpressions[i] != rhs.subExpressions[i])
-						return false;
+					if (!weak_equals(lhs.subExpressions[i], rhs.subExpressions[i])) return false;
 				}
 			}
+			else {
+				return false;
+			}
+			if (EXPR_IS_CONTROLFLOW(rhs.type))
+				return false;
 			switch (rhs.type) {
 			case SSAExprType::eFlag:
-				return lhs.flagType == rhs.flagType;
+				return lhs.flagType == rhs.flagType && lhs.flagbit == rhs.flagbit;
 			case SSAExprType::eOp:
 				return lhs.opType == rhs.opType;
 			case SSAExprType::eBuiltin:
 				return lhs.builtinId == rhs.builtinId;
+			case SSAExprType::eValue:
+				switch (rhs.exprtype) {
+				case SSAType::eFloat:
+					return lhs.fval == rhs.fval;
+				case SSAType::eUInt:
+					return lhs.uval == rhs.uval;
+				case SSAType::eInt:
+					return lhs.sval == rhs.sval;
+				}
+			case SSAExprType::eCast:
+				return lhs.sourcetype == rhs.sourcetype;
+			case SSAExprType::eSplit:
+				return lhs.offset == rhs.offset;
+			case SSAExprType::eInput:
+			case SSAExprType::eOutput:
+				return lhs.ref == rhs.ref;
 			default:
 				return true;
 			}
@@ -393,6 +413,7 @@ namespace holodec {
 		uint64_t replaceAllArgs(SSAExpression& origExpr, SSAArgument replaceArg);
 		bool isReplaceable(SSAExpression& origExpr);
 		uint64_t replaceExpr(SSAExpression& origExpr, SSAArgument replaceArg);
+		uint64_t replaceExprCompletely(SSAExpression& origExpr, SSAArgument replaceArg);
 		uint64_t replaceOpExpr(SSAExpression& origExpr, SSAArgument replaceArg, SSAArgument opArg, uint32_t baseoffset);
 		void removeNodes(HSet<HId>* ids);
 		

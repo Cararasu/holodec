@@ -36,14 +36,18 @@ void holodec::Function::print(holodec::Architecture* arch, int indent) {
 	}
 	printf("\n");
 
-	printIndent(indent);
-	puts("Changed RegisterState");
-	regStates.print(arch, indent + 1);
+	if (regStates.parsed) {
+		printIndent(indent);
+		puts("Changed RegisterState");
+		regStates.print(arch, indent + 1);
+	}
 
-	printIndent(indent);
-	puts("Used RegisterState");
-	usedRegStates.print(arch, indent + 1);
 
+	if (usedRegStates.parsed) {
+		printIndent(indent);
+		puts("Used RegisterState");
+		usedRegStates.print(arch, indent + 1);
+	}
 	for (DisAsmBasicBlock& bb : basicblocks) {
 		bb.print(arch, indent + 1);
 	}

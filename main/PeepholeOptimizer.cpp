@@ -419,22 +419,20 @@ namespace holodec {
 				return false;
 			})
 			.ssaType(0, 0, SSAOpType::eSub)
-			.ssaType(1, 3, SSAFlagType::eC)
-			.ssaType(2, 1, SSAOpType::eSub)
+			.ssaType(1, 3, SSAOpType::eLower)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-				SSAExpression& firstAdd = ssaRep->expressions[context->expressionsMatched[2]];
-				SSAExpression& carryExpr = ssaRep->expressions[context->expressionsMatched[1]];
+				SSAExpression& lowerExpr = ssaRep->expressions[context->expressionsMatched[1]];
 				SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
-				if (!secondAdd.directRefs.size() || firstAdd.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || firstAdd.exprtype != secondAdd.exprtype ||
-					(firstAdd.exprtype != SSAType::eUInt || firstAdd.exprtype != SSAType::eInt))
+				if (!secondAdd.directRefs.size() || lowerExpr.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || lowerExpr.exprtype != secondAdd.exprtype ||
+					(lowerExpr.exprtype != SSAType::eUInt && lowerExpr.exprtype != SSAType::eInt))
 					return false;
 
 				g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry Sub");
 
-				if (firstAdd.size == carryExpr.flagbit && ssaRep->isNotUsedBefore(firstAdd, secondAdd)) {
-					HId exprsToReplace[2] = { firstAdd.id, secondAdd.id };
-					SSAArgument firstargss[2] = { firstAdd.subExpressions[0], secondAdd.subExpressions[0] };
-					SSAArgument secargss[2] = { firstAdd.subExpressions[1], secondAdd.subExpressions[1] };
+				if (ssaRep->isNotUsedBefore(lowerExpr, secondAdd)) {
+					HId exprsToReplace[2] = { lowerExpr.id, secondAdd.id };
+					SSAArgument firstargss[2] = { lowerExpr.subExpressions[0], secondAdd.subExpressions[0] };
+					SSAArgument secargss[2] = { lowerExpr.subExpressions[1], secondAdd.subExpressions[1] };
 
 					combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, secondAdd, secondAdd.instrAddr);
 					return true;
@@ -471,11 +469,9 @@ namespace holodec {
 
 				if (andExpr.subExpressions.size() != 2 || eq1Expr.subExpressions.size() != 2 || eq2Expr.subExpressions.size() != 2)
 					return false;
-
-				if (consecutive_exprs(arch, ssaRep, lowerExpr.subExpressions[0].ssaId, eq1Expr.subExpressions[0].ssaId) &&
-					consecutive_exprs(arch, ssaRep, eq2Expr.subExpressions[0].ssaId, eq1Expr.subExpressions[0].ssaId) &&
-					consecutive_exprs(arch, ssaRep, lowerExpr.subExpressions[1].ssaId, addExpr.subExpressions[0].ssaId) &&
-					consecutive_exprs(arch, ssaRep, eq2Expr.subExpressions[1].ssaId, addExpr.subExpressions[0].ssaId)) {
+				
+				if (lowerExpr.subExpressions[0].ssaId == eq2Expr.subExpressions[0].ssaId && 
+					lowerExpr.subExpressions[1].ssaId == eq2Expr.subExpressions[1].ssaId) {
 					SSAExpression appExpr1;
 					appExpr1.type = SSAExprType::eAppend;
 					appExpr1.exprtype = SSAType::eUInt;
@@ -712,6 +708,29 @@ namespace holodec {
 					}
 				}
 				bool replaced = false;
+
+				for (size_t index = 0; index < expr->subExpressions.size();) {
+					SSAExpression* thisexpr = &ssaRep->expressions[expr->subExpressions[index].ssaId];
+					if (thisexpr->type == SSAExprType::eAppend) {
+						HList<SSAArgument> args;
+						args.reserve(expr->subExpressions.size() + thisexpr->subExpressions.size() - 1);
+						for (size_t subindex = 0; subindex < index; subindex++) {
+							args.push_back(expr->subExpressions[subindex]);
+						}
+						for (size_t subindex = 0; subindex < thisexpr->subExpressions.size(); subindex++) {
+							args.push_back(thisexpr->subExpressions[subindex]);
+						}
+						for (size_t subindex = index + 1; subindex < expr->subExpressions.size(); subindex++) {
+							args.push_back(expr->subExpressions[subindex]);
+						}
+						expr->setAllArguments(ssaRep, args);
+						replaced = true;
+						index++;
+						continue;
+					}
+					index++;
+				}
+
 				uint32_t offset = 0;
 				//combine multiple values in an append
 				for (size_t index = 1; index < expr->subExpressions.size();) {
