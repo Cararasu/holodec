@@ -1302,7 +1302,7 @@ namespace holodec {
 		combine1.size = firstsize;
 		combine2.size = secondsize;
 
-		HId lastexprid = exprsToReplace[count - 1];
+		HId lastexprid = exprsToReplace[0];
 
 		SSAArgument combine1arg = SSAArgument::createId(ssaRep->addBefore(&combine1, lastexprid));
 		SSAArgument combine2arg = SSAArgument::createId(ssaRep->addBefore(&combine2, lastexprid));

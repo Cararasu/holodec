@@ -321,11 +321,6 @@ namespace holodec{
 		return nullptr;
 	}
 	bool SSATransformToC::resolveArgVariable(SSAExpression& expr, bool write) {
-		auto it = argumentIds.find(expr.id);
-		if (it != argumentIds.end()) {
-			printf("arg%d", it->second);
-			return true;
-		}
 
 		bool foundUExpr = false;
 		for (UnifiedExprs& exprs : unifiedExprs) {
@@ -351,6 +346,11 @@ namespace holodec{
 					return true;
 				}
 			}
+		}
+		auto it = argumentIds.find(expr.id);
+		if (it != argumentIds.end()) {
+			printf("arg%d", it->second);
+			return true;
 		}
 		if (foundUExpr) {
 			printf("tmp%d", expr.id);
@@ -673,7 +673,11 @@ namespace holodec{
 		if (uExprs && expr.type == SSAExprType::ePhi) {
 			printExprType(expr); 
 			resolveArgVariable(expr, true);
-			printf(" = var%d", uExprs->id);
+			Register* reg = arch->getRegister(uExprs->ref.id);
+			if(reg)
+				printf(" = var_%s", reg->name.cstr());
+			else
+				printf(" = var%d", uExprs->id);
 			uExprs->ssaId = expr.id;
 			return true;
 		}
@@ -1066,13 +1070,6 @@ namespace holodec{
 				}
 			}
 
-			printIndent(1);
-			printf("Input (");
-			for (CArgument arg : arguments) {
-				printf("arg%d <- %s ", arg.id, arg.regRef.name.cstr());
-			}
-			printf("){\n");
-
 			unifiedExprs.clear();
 
 			for (SSAExpression& expr : function->ssaRep.expressions) {
@@ -1138,7 +1135,13 @@ namespace holodec{
 					resolveIds.insert(expr.id);
 			}
 		}
-		printf("\n");
+		printIndent(1);
+		printf("Input (");
+		for (CArgument arg : arguments) {
+			resolveArgVariable(function->ssaRep.expressions[arg.ssaId], true);
+			printf(" <- %s, ", arg.regRef.name.cstr());
+		}
+		printf("){\n");
 		HSet<HId> visited;
 		printControlStruct(&g_struct, function->ssaRep.bbs[1], visited, 1);
 
