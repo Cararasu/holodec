@@ -1273,32 +1273,34 @@ namespace holodec {
 	}
 
 
-	void combine_operations(SSARepresentation* ssaRep, HId* exprsToReplace, SSAArgument* firstargss, SSAArgument* secargss, uint32_t count, SSAExpression expr, uint64_t instrAddr) {
+	bool combine_operations(SSARepresentation* ssaRep, HId* exprsToReplace, SSAArgument* firstargss, SSAArgument* secargss, uint32_t count, SSAExpression expr, uint64_t instrAddr) {
 
-		uint32_t size = 0;
-		for (uint32_t i = 0; i < count; i++) {
-			size += ssaRep->expressions[exprsToReplace[i]].size;
-		}
+		uint32_t firstsize = 0, secondsize = 0;
 
 		SSAExpression combine1;
 		combine1.type = SSAExprType::eAppend;
 		combine1.exprtype = SSAType::eUInt;
 		combine1.instrAddr = instrAddr;
 		combine1.subExpressions.resize(count);
-		for (uint32_t i = 0; i < count; i++) {
-			combine1.subExpressions[i] = firstargss[i];
-		}
-		combine1.size = size;
 
 		SSAExpression combine2;
 		combine2.type = SSAExprType::eAppend;
 		combine2.exprtype = SSAType::eUInt;
 		combine2.instrAddr = instrAddr;
 		combine2.subExpressions.resize(count);
+
 		for (uint32_t i = 0; i < count; i++) {
+			combine1.subExpressions[i] = firstargss[i];
 			combine2.subExpressions[i] = secargss[i];
+
+			firstsize += ssaRep->expressions[firstargss[i].ssaId].size;
+			secondsize += ssaRep->expressions[secargss[i].ssaId].size;
+
+			if (firstsize != secondsize)//mismatch of sizes
+				return false;
 		}
-		combine2.size = size;
+		combine1.size = firstsize;
+		combine2.size = secondsize;
 
 		HId lastexprid = exprsToReplace[count - 1];
 
@@ -1306,26 +1308,27 @@ namespace holodec {
 		SSAArgument combine2arg = SSAArgument::createId(ssaRep->addBefore(&combine2, lastexprid));
 
 		expr.subExpressions = { combine1arg , combine2arg };
-		expr.size = size;
+		expr.size = firstsize > secondsize ? firstsize : secondsize;
 
 		SSAArgument opexpr = SSAArgument::createId(ssaRep->addBefore(&expr, lastexprid));
 
 		uint32_t offset = 0;
 		for (uint32_t i = 0; i < count; i++) {
-			HId id = exprsToReplace[i];
+			uint32_t argumentsize = ssaRep->expressions[firstargss[i].ssaId].size;
 			SSAExpression split;
 			split.type = SSAExprType::eSplit;
 			split.exprtype = SSAType::eUInt;
 			split.instrAddr = instrAddr;
-			split.size = ssaRep->expressions[id].size;
+			split.size = argumentsize;
 			split.subExpressions = { opexpr };
 			split.offset = offset;
 
-			ssaRep->replaceOpExpr(ssaRep->expressions[exprsToReplace[i]], SSAArgument::createId(ssaRep->addBefore(&split, lastexprid)), opexpr, offset);
+			if(argumentsize == ssaRep->expressions[exprsToReplace[i]].size)//the expression to replace returns a different result
+				ssaRep->replaceOpExpr(ssaRep->expressions[exprsToReplace[i]], SSAArgument::createId(ssaRep->addBefore(&split, lastexprid)), opexpr, offset);
 
-			offset += ssaRep->expressions[id].size;
+			offset += argumentsize;
 		}
-
+		return true;
 	}
 	bool consecutive_exprs(Architecture* arch, SSARepresentation* ssaRep, HId expr1, HId expr2) {
 		SSAExpression& firstparam = ssaRep->expressions[expr1];

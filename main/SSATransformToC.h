@@ -12,6 +12,7 @@ namespace holodec {
 	struct UnifiedExprs {
 		HId id = 0;
 		HId ssaId = 0;
+		Reference ref;
 		std::set<HId> occuringIds;
 	};
 	enum class ControlStructType{
@@ -58,8 +59,8 @@ namespace holodec {
 		HIdList<UnifiedExprs> unifiedExprs;
 
 		virtual bool doTransformation (Binary* binary, Function* function);
-
-		UnifiedExprs* getUnifiedExpr(HId uId);
+		UnifiedExprs* getUnifiedExpr(HId id);
+		UnifiedExprs* getUnifiedExpr(Reference ref);
 
 		void analyzeStructure(ControlStruct& controlStruct, HId start_block_id);
 		bool analyzeLoop(ControlStruct* loopStruc);

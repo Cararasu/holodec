@@ -268,6 +268,7 @@ namespace holodec {
 
 				SSAExpression lowerexpression = subexpr;
 				lowerexpression.opType = SSAOpType::eLower;
+				lowerexpression.size = 1;
 				lowerexpression.exprtype = lexpr.exprtype;
 				lowerexpression.refs.clear();
 				lowerexpression.directRefs.clear();
@@ -333,6 +334,7 @@ namespace holodec {
 				SSAExpression lowerexpression = subexpr;
 				lowerexpression.opType = SSAOpType::eLower;
 				lowerexpression.exprtype = SSAType::eUInt;
+				lowerexpression.size = 1;
 				lowerexpression.refs.clear();
 				lowerexpression.directRefs.clear();
 
@@ -413,8 +415,7 @@ namespace holodec {
 					SSAArgument firstargss[2] = { firstAdd.subExpressions[0], secondAdd.subExpressions[0] };
 					SSAArgument secargss[2] = { firstAdd.subExpressions[1], secondAdd.subExpressions[1] };
 
-					combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, secondAdd, secondAdd.instrAddr);
-					return true;
+					return combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, secondAdd, secondAdd.instrAddr);
 				}
 				return false;
 			})
@@ -434,8 +435,7 @@ namespace holodec {
 					SSAArgument firstargss[2] = { lowerExpr.subExpressions[0], secondAdd.subExpressions[0] };
 					SSAArgument secargss[2] = { lowerExpr.subExpressions[1], secondAdd.subExpressions[1] };
 
-					combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, secondAdd, secondAdd.instrAddr);
-					return true;
+					return combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, secondAdd, secondAdd.instrAddr);
 				}
 				return false;
 			})
@@ -547,8 +547,7 @@ namespace holodec {
 					SSAArgument firstargss[2] = { lowerExpr.subExpressions[0], subOp.subExpressions[0] };
 					SSAArgument secargss[2] = { lowerExpr.subExpressions[1], subOp.subExpressions[1] };
 
-					combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, subOp, subOp.instrAddr);
-					return true;
+					return combine_operations(ssaRep, exprsToReplace, firstargss, secargss, 2, subOp, subOp.instrAddr);
 				}
 				return false;
 			})

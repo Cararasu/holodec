@@ -311,20 +311,48 @@ namespace holodec{
 		}
 		return nullptr;
 	}
+	UnifiedExprs* SSATransformToC::getUnifiedExpr(Reference ref) {
+		for (UnifiedExprs& exprs : unifiedExprs) {
+			if (!exprs.id) continue;
+			if (exprs.ref == ref) {
+				return &exprs;
+			}
+		}
+		return nullptr;
+	}
 	bool SSATransformToC::resolveArgVariable(SSAExpression& expr, bool write) {
 		auto it = argumentIds.find(expr.id);
 		if (it != argumentIds.end()) {
 			printf("arg%d", it->second);
 			return true;
 		}
-		else if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
-			if (write) {
-				printf("var%d, ", uExprs->id);
+
+		bool foundUExpr = false;
+		for (UnifiedExprs& exprs : unifiedExprs) {
+			if (!exprs.id) continue;
+			if (exprs.occuringIds.find(expr.uniqueId) != exprs.occuringIds.end()) {
+				foundUExpr = true;
+				Register* reg = arch->getRegister(exprs.ref.id);
+				if (write) {
+					if (reg) {
+						printf("var_%s, ", reg->name.cstr());
+					}
+					else {
+						printf("var%d, ", exprs.id);
+					}
+				}
+				else if (exprs.ssaId == expr.id) {
+					if (reg) {
+						printf("var_%s", reg->name.cstr());
+					}
+					else {
+						printf("var%d", exprs.id);
+					}
+					return true;
+				}
 			}
-			else if (uExprs->ssaId == expr.id)  {
-				printf("var%d", uExprs->id);
-				return true;
-			}
+		}
+		if (foundUExpr) {
 			printf("tmp%d", expr.id);
 			return true;
 		}
@@ -1050,12 +1078,13 @@ namespace holodec{
 			for (SSAExpression& expr : function->ssaRep.expressions) {
 				if (expr.type == SSAExprType::ePhi) {
 					HId foundId = 0;
-					UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
+					UnifiedExprs* uExprs = getUnifiedExpr(expr.ref);
 					if (uExprs) {
 						foundId = uExprs->id;
 					}
 					else {
 						foundId = unifiedExprs.emplace_back();
+						unifiedExprs[foundId].ref = expr.ref;
 						unifiedExprs[foundId].occuringIds.insert(expr.uniqueId);
 					}
 
@@ -1087,8 +1116,12 @@ namespace holodec{
 
 				if (expr.type == SSAExprType::eValue)
 					continue;
-				else if (expr.type == SSAExprType::ePhi)
+				else if (expr.type == SSAExprType::ePhi) {
 					resolveIds.insert(expr.id);
+					for (SSAArgument& arg : expr.subExpressions) {
+						resolveIds.insert(arg.ssaId);
+					}
+				}
 				else if (expr.type == SSAExprType::eInput)
 					resolveIds.insert(expr.id);
 				else if (expr.type == SSAExprType::eOutput)

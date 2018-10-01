@@ -473,7 +473,7 @@ namespace holodec {
 	uint64_t calculate_basearg_plus_offset(SSARepresentation* ssaRep, HId ssaId, 
 		int64_t* fixedValueChange/* result | the value that was added or subtracted */, HId* baseExprId/* result | the furthest argument we can travel to */);
 
-	void combine_operations(SSARepresentation* ssaRep, HId* exprsToReplace, SSAArgument* firstargss, SSAArgument* secargss, uint32_t count, SSAExpression expr, uint64_t instrAddr);
+	bool combine_operations(SSARepresentation* ssaRep, HId* exprsToReplace, SSAArgument* firstargss, SSAArgument* secargss, uint32_t count, SSAExpression expr, uint64_t instrAddr);
 
 	//checks if the expressions refer to the same expressions just split so they are laid out consecutive
 	//or they refer to load expressions that are consequitve in memory
