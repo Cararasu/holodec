@@ -109,12 +109,13 @@ namespace holoavr {
 		},
 	{},
 	{
-		{ AVR_INSTR_ADC, "adc",{ 
-			{ 2, "#and(==(#bsize(#arg[1]),#bsize(#arg[2])))", "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($vf,#o),=($cf,#c),=($hf,#c(4)),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
-		}, InstructionType::eAdd },
 		{ AVR_INSTR_ADD, "add",{
-			{ 2, "==(#bsize(#arg[1]),#bsize(#arg[2]))", "#seq(=(#arg[1],+(#arg[1],#arg[2])),=($vf,#o),=($cf,#c),=($hf,#c(4)),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" },
-			{ 3, "#and(==(#bsize(#arg[1]),#bsize(#arg[2])),==(+(#bsize(#arg[1]),#bsize(#arg[2])),#bsize(#arg[3])))", "#seq(=(#t[1],+(#app(#arg[1],#arg[2]),#arg[3])),=(#arg[1],#t[1][0,8]),=(#arg[2],#t[1][8,8]),=($vf,#o),=($cf,#c),=($hf,#c(4)),=($zf,==(#t[1],0)),=($nf,<[s](#t[1],0)),=($sf,<>($nf,$vf)))" }
+			{ 2, "==(#bsize(#arg[1]),#bsize(#arg[2]))", "#seq(=($zf,==(#arg[1],#arg[2])),=(#arg[1],+(#arg[1],#arg[2])),=($vf,#o),=($cf,#c),=($hf,#c(4)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" },
+			{ 3, "#and(==(#bsize(#arg[1]),#bsize(#arg[2])),==(+(#bsize(#arg[1]),#bsize(#arg[2])),#bsize(#arg[3])))", 
+				"#seq(=($zf,==(#app(#arg[1],#arg[2]),#arg[3])),=(#t[1],+(#app(#arg[1],#arg[2]),#arg[3])),=($vf,#o),=($cf,#c),=($hf,#c(4)),=($nf,<[s](#t[1],0)),=($sf,<>($nf,$vf)),=(#arg[1],#t[1][0,8]),=(#arg[2],#t[1][8,8]))" }
+		}, InstructionType::eAdd },
+		{ AVR_INSTR_ADC, "adc",{
+			{ 2, "#and(==(#bsize(#arg[1]),#bsize(#arg[2])))", "#seq(=($zf,#and(==(#arg[1],+(#arg[2],$cf)),$zf)),=(#arg[1],+(#arg[1],#arg[2],$cf)),=($vf,#o),=($cf,#c),=($hf,#c(4)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eAdd },
 		{ AVR_INSTR_AND, "and",{
 			{ 2, "#and(==(#bsize(#arg[1]),#bsize(#arg[2])))", "#seq(=(#arg[1],#band(#arg[1],#arg[2])),=($vf,0),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
@@ -266,10 +267,10 @@ namespace holoavr {
 			{ 1, "#seq(=(#t[1],255[8]),#rec[sub](#t[1],#arg[1]),=(#arg[1],#t[1]))" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_CP, "cp",{
-			{ 2, "#seq(=(#t[1],-(#arg[1],#arg[2])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#arg[1],#arg[2])),=($nf,<[s](#t[1],0)),=($sf,<>($nf,$vf)))" }
+			{ 2, "#seq(=($zf,==(#arg[1],#arg[2])),=(#t[1],-(#arg[1],#arg[2])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#t[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_CPC, "cpc",{
-			{ 2, "#seq(=(#t[1],-(#arg[1],#arg[2],$cf)),=(#t[2],$cf),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#t[1],0)),=($sf,<>($nf,$vf)),=($zf,#and(==(#arg[1],+(#arg[2],#t[2])),$zf)))" }
+			{ 2, "#seq(=($zf,#and(==(#arg[1],+(#arg[2],$cf)),$zf)),=(#t[1],-(#arg[1],+(#arg[2],$cf))),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#t[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eBitReset },
 		{ AVR_INSTR_CPSE, "cpse",{
 			{ 2, "#rec[cp](#arg[1],#arg[2])" }
@@ -437,8 +438,13 @@ namespace holoavr {
 			{ 1, "#seq(=(#t[1],#ror(#app($cf,#arg[1]))),=($cf,#t[1][8]),=(#arg[1],#t[1][0,8]),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($vf,<>($nf,$cf)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eShr },
 
+
+		{ AVR_INSTR_SUB, "sub",{
+			{ 2, "#seq(=($zf,==(#arg[1],#arg[2])),=(#arg[1],-(#arg[1],#arg[2])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" },
+			{ 3, "#seq(=($zf,==(#app(#arg[1],#arg[2]),#arg[3])),=(#t[1],-(#app(#arg[1],#arg[2]),#arg[3])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)),=(#arg[1],#t[1][0,8]),=(#arg[1],#t[1][8,8]))" }
+		}, InstructionType::eSub },
 		{ AVR_INSTR_SBC, "sbc",{
-			{ 2, "#seq(=(#arg[1],-(#arg[1],#arg[2],$cf)),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
+			{ 2, "#seq(=($zf,#and(==(#arg[1],+(#arg[2],$cf)),$zf)),=(#arg[1],-(#arg[1],#arg[2],$cf)),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
 		}, InstructionType::eSub },
 
 		{ AVR_INSTR_SBI, "sbi",{
@@ -507,11 +513,6 @@ namespace holoavr {
 		{ AVR_INSTR_ST | AVR_INSTR_DEC_PTR, "st-",{
 			{ 2, "#seq(=(#arg[2],-(#arg[2],1)),#st($dmem,#arg[1],#arg[2]))" }
 		}, InstructionType::eLoad },
-
-		{ AVR_INSTR_SUB, "sub",{
-			{ 2, "#seq(=(#arg[1],-(#arg[1],#arg[2])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#arg[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" },
-			{ 3, "#seq(=(#t[1],-(#app(#arg[1],#arg[2]),#arg[3])),=(#arg[1],#t[1][0,8]),=(#arg[1],#t[1][8,8]),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($zf,==(#t[1],0)),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }
-		}, InstructionType::eCall },
 
 
 		{ AVR_INSTR_SWAP, "swap",{

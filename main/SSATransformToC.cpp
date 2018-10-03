@@ -4,25 +4,28 @@
 namespace holodec{
 
 
-	void printExprType(SSAExpression& expr) {
-		switch (expr.exprtype) {
+	void printExprType(SSAType type, uint32_t size) {
+		switch (type) {
 		case SSAType::eInt:
-			printf("s%d ", expr.size);
+			printf("s%d ", size);
 			break;
 		case SSAType::eUInt:
-			printf("u%d ", expr.size);
+			printf("u%d ", size);
 			break;
 		case SSAType::eFloat:
-			printf("f%d ", expr.size);
+			printf("f%d ", size);
 			break;
 		case SSAType::ePc:
-			printf("pc%d ", expr.size);
+			printf("pc%d ", size);
 			break;
 		case SSAType::eMemaccess:
-			printf("mem%d ", expr.size);
+			printf("mem%d ", size);
 			break;
 		}
 
+	}
+	void printExprType(SSAExpression& expr) {
+		printExprType(expr.exprtype, expr.size);
 	}
 	void ControlStruct::print(int indent) {
 		printIndent(indent);
@@ -302,6 +305,15 @@ namespace holodec{
 		}
 		printf(")");
 	}
+	UnifiedExprs* SSATransformToC::getPhiUnifiedExpr(HId uId) {
+		for (UnifiedExprs& exprs : unifiedExprs) {
+			if (!exprs.id) continue;
+			if (exprs.phiIds.find(uId) != exprs.phiIds.end()) {
+				return &exprs;
+			}
+		}
+		return nullptr;
+	}
 	UnifiedExprs* SSATransformToC::getUnifiedExpr(HId uId) {
 		for (UnifiedExprs& exprs : unifiedExprs) {
 			if (!exprs.id) continue;
@@ -329,7 +341,7 @@ namespace holodec{
 				foundUExpr = true;
 				Register* reg = arch->getRegister(exprs.ref.id);
 				if (write) {
-					if (reg) {
+					if (reg->id) {
 						printf("var_%s, ", reg->name.cstr());
 					}
 					else {
@@ -337,7 +349,7 @@ namespace holodec{
 					}
 				}
 				else if (exprs.ssaId == expr.id) {
-					if (reg) {
+					if (reg->id) {
 						printf("var_%s", reg->name.cstr());
 					}
 					else {
@@ -363,7 +375,7 @@ namespace holodec{
 		}
 		return false;
 	}
-	void SSATransformToC::resolveArg(SSAArgument& arg) {
+	void SSATransformToC::resolveArg(SSAArgument arg) {
 		SSAExpression* subExpr = arg.type == SSAArgType::eId ? &function->ssaRep.expressions[arg.ssaId] : nullptr;
 		switch (arg.type) {
 		case SSAArgType::eUndef:
@@ -547,7 +559,9 @@ namespace holodec{
 			printf(")");
 		}break;
 		case SSAExprType::eCast: {
-			printf("Cast[");
+			printf("Cast[ ");
+			printExprType(expr.sourcetype, function->ssaRep.expressions[expr.subExpressions[0].ssaId].size);
+			printf("-> ");
 			printExprType(expr);
 			printf("]");
 			resolveArgs(expr);
@@ -667,20 +681,21 @@ namespace holodec{
 	bool SSATransformToC::printExpression(SSAExpression& expr, uint32_t indent) {
 		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eBranch)
 			return false;
-		UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
 		resolveIds.insert(expr.id);
 		printIndent(indent);
-		if (uExprs && expr.type == SSAExprType::ePhi) {
+		if (expr.type == SSAExprType::ePhi) {
+			UnifiedExprs* uExprs = getPhiUnifiedExpr(expr.uniqueId);
 			printExprType(expr); 
 			resolveArgVariable(expr, true);
 			Register* reg = arch->getRegister(uExprs->ref.id);
-			if(reg)
+			if(reg->id)
 				printf(" = var_%s", reg->name.cstr());
 			else
 				printf(" = var%d", uExprs->id);
 			uExprs->ssaId = expr.id;
 			return true;
 		}
+		UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
 		if (expr.type != SSAExprType::eCall && expr.type != SSAExprType::eStore && !EXPR_HAS_SIDEEFFECT(expr.type)) {
 			printExprType(expr);
 			resolveArgVariable(expr, true);
@@ -718,7 +733,7 @@ namespace holodec{
 		return false;
 	}
 
-	void SSATransformToC::resolveBlockArgument(ControlStruct* controlStruct, SSAArgument& arg, std::set<HId>& printed, uint32_t indent) {
+	void SSATransformToC::resolveBlockArgument(ControlStruct* controlStruct, SSAArgument arg, std::set<HId>& printed, uint32_t indent) {
 		if (arg.type == SSAArgType::eBlock) {
 			if (arg.ssaId != controlStruct->main_exit) {
 				if (controlStruct->contained_blocks.find(arg.ssaId) == controlStruct->contained_blocks.end()) {
@@ -987,8 +1002,10 @@ namespace holodec{
 
 		if (sym)
 			printf("Function: %s at 0x%" PRIx64 "\n", sym->name.cstr(), sym->vaddr);
+		else
+			printf("Function: at 0x%" PRIx64 "\n", function->baseaddr);
 
-		{//split blocks, so that they have either exactly one input ore one output
+		{//split blocks, so that they have either exactly one input or one output
 			bool changed = false;
 			do {
 				changed = false;
@@ -1075,20 +1092,22 @@ namespace holodec{
 			for (SSAExpression& expr : function->ssaRep.expressions) {
 				if (expr.type == SSAExprType::ePhi) {
 					HId foundId = 0;
-					UnifiedExprs* uExprs = getUnifiedExpr(expr.ref);
+					UnifiedExprs* uExprs = expr.ref.isLocation(SSALocation::eNone) ? getPhiUnifiedExpr(expr.uniqueId) : getUnifiedExpr(expr.ref);
+
 					if (uExprs) {
 						foundId = uExprs->id;
 					}
 					else {
 						foundId = unifiedExprs.emplace_back();
 						unifiedExprs[foundId].ref = expr.ref;
-						unifiedExprs[foundId].occuringIds.insert(expr.uniqueId);
 					}
+					unifiedExprs[foundId].phiIds.insert(expr.uniqueId);
+					unifiedExprs[foundId].occuringIds.insert(expr.uniqueId);
 
 					for (SSAArgument& arg : expr.subExpressions) {
 						if (arg.type == SSAArgType::eId) {
 							SSAExpression& argExpr = function->ssaRep.expressions[arg.ssaId];
-							if (argExpr.type == SSAExprType::ePhi) {
+							if (!unifiedExprs[foundId].ref.isLocation(SSALocation::eNone) && argExpr.type == SSAExprType::ePhi) {
 								for (auto it = unifiedExprs.begin(); it != unifiedExprs.end();) {
 									if (it->id && it->id != foundId && it->occuringIds.find(argExpr.uniqueId) != it->occuringIds.end()) {
 										unifiedExprs.get(foundId)->occuringIds.insert(it->occuringIds.begin(), it->occuringIds.end());
@@ -1101,7 +1120,6 @@ namespace holodec{
 							unifiedExprs.get(foundId)->occuringIds.insert(argExpr.uniqueId);
 						}
 					}
-					unifiedExprs.get(foundId)->occuringIds.insert(expr.uniqueId);
 
 					resolveIds.insert(expr.id);
 					for (SSAArgument& arg : expr.subExpressions) {
@@ -1113,12 +1131,6 @@ namespace holodec{
 
 				if (expr.type == SSAExprType::eValue)
 					continue;
-				else if (expr.type == SSAExprType::ePhi) {
-					resolveIds.insert(expr.id);
-					for (SSAArgument& arg : expr.subExpressions) {
-						resolveIds.insert(arg.ssaId);
-					}
-				}
 				else if (expr.type == SSAExprType::eInput)
 					resolveIds.insert(expr.id);
 				else if (expr.type == SSAExprType::eOutput)

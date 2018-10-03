@@ -128,7 +128,7 @@ namespace holodec {
 	}
 	void SSAExpression::print(Architecture* arch, int indent) {
 		printIndent(indent);
-		printf("0x%" PRIx64 ":", instrAddr);
+		printf("0x%04" PRIx64 ":", instrAddr);
 
 		switch (this->exprtype) {
 		case SSAType::eInt:
@@ -284,7 +284,7 @@ namespace holodec {
 			printf("Builtin");
 			break;
 		case SSAExprType::eSplit:
-			printf("Split %d", offset);
+			printf("Split%02" PRId32, offset);
 			break;
 		case SSAExprType::eAppend:
 			printf("Append ");
@@ -327,14 +327,14 @@ namespace holodec {
 			printf("                ");
 			break;
 		}
-		printf("Ref: %2" PRId64 " UId: %4" PRIx32 " Block: %2" PRId32 " | %4" PRId32 " = ", refs.size(), uniqueId, blockId, id);
+		printf("Ref: %2" PRId64 " UId: %4" PRIx32 " Block: %2" PRId32 " | %4" PRId32 " = ", directRefs.size(), uniqueId, blockId, id);
 		for (SSAArgument& arg : subExpressions) {
 			arg.print(arch);
 			printf(", ");
 		}
 
 		printf(" | Refs: ");
-		for (HId refId : refs) {
+		for (HId refId : directRefs) {
 			printf("%d, ", refId);
 		}
 		printf("\n");
@@ -624,20 +624,6 @@ namespace holodec {
 					}
 				}
 			}
-			for (auto it = expr.refs.begin(); it != expr.refs.end(); ) {
-				HId refId = *it;
-				auto repIt = replacements->find(refId);
-				if (repIt != replacements->end()) {
-					if (repIt->second.type == SSAArgType::eId){
-						refId = repIt->second.ssaId;
-					}
-					else {
-						it = expr.refs.erase(it);
-						continue;
-					}
-				}
-				++it;
-			}
 		}
 		recalcRefCounts();
 	}
@@ -670,7 +656,6 @@ namespace holodec {
 		}
 		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
 			origExpr.directRefs.clear();
-			origExpr.refs.clear();
 		}
 		return count;
 	}
@@ -714,19 +699,12 @@ namespace holodec {
 						arg.replace(replaceArg);
 						count++;
 						if (replaceArg.type == SSAArgType::eId)
-							expressions[replaceArg.ssaId].refs.push_back(directRefId);
+							expressions[replaceArg.ssaId].directRefs.push_back(directRefId);
 					}
 				}
 			}
 		}
 		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
-			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
-				if (!isFlagExpr(expressions[*it], &replaceArg)) {
-					it++;
-					continue;
-				}
-				it = origExpr.refs.erase(it);
-			}
 			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
 				if (!isFlagExpr(expressions[*it], &replaceArg)) {
 					it++;
@@ -737,7 +715,7 @@ namespace holodec {
 		}
 		return count;
 	}
-	uint64_t SSARepresentation::replaceExprCompletely(SSAExpression& origExpr, SSAArgument replaceArg) {
+	uint64_t SSARepresentation::replaceAllExprs(SSAExpression& origExpr, SSAArgument replaceArg) {
 		uint64_t count = 0;
 
 		for (HId directRefId : origExpr.directRefs) {//iterate refs
@@ -756,15 +734,12 @@ namespace holodec {
 						arg.replace(replaceArg);
 						count++;
 						if (replaceArg.type == SSAArgType::eId)
-							expressions[replaceArg.ssaId].refs.push_back(directRefId);
+							expressions[replaceArg.ssaId].directRefs.push_back(directRefId);
 					}
 				}
 			}
 		}
 		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
-			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
-				it = origExpr.refs.erase(it);
-			}
 			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
 				it = origExpr.directRefs.erase(it);
 			}
@@ -795,19 +770,12 @@ namespace holodec {
 						arg.replace(replaceArg);
 						count++;
 						if (replaceArg.type == SSAArgType::eId)
-							expressions[replaceArg.ssaId].refs.push_back(directRefId);
+							expressions[replaceArg.ssaId].directRefs.push_back(directRefId);
 					}
 				}
 			}
 		}
 		if (!(replaceArg.type == SSAArgType::eId && replaceArg.ssaId == origExpr.id)) {
-			for (auto it = origExpr.refs.begin(); it != origExpr.refs.end();) {
-				if (!isFlagExpr(expressions[*it], &replaceArg)) {
-					it++;
-					continue;
-				}
-				it = origExpr.refs.erase(it);
-			}
 			for (auto it = origExpr.directRefs.begin(); it != origExpr.directRefs.end();) {
 				if (!isFlagExpr(expressions[*it], &replaceArg)) {
 					it++;
@@ -834,12 +802,6 @@ namespace holodec {
 		std::map<HId, HId> replacements;
 
 		for (SSAExpression& expr : expressions) {
-			for (auto it = expr.refs.begin(); it != expr.refs.end();) {
-				if (!expressions[*it].id)
-					it = expr.refs.erase(it);
-				else
-					it++;
-			}
 			for (auto it = expr.directRefs.begin(); it != expr.directRefs.end();) {
 				if (!expressions[*it].id)
 					it = expr.directRefs.erase(it);
@@ -864,12 +826,6 @@ namespace holodec {
 						if (it != replacements.end()) {
 							arg.ssaId = it->second;
 						}
-					}
-				}
-				for (HId& ref : expr.refs) {
-					auto it = replacements.find(ref);
-					if (it != replacements.end()) {
-						ref = it->second;
 					}
 				}
 				for (HId& ref : expr.directRefs) {
@@ -907,11 +863,6 @@ namespace holodec {
 					fprintf(stderr, "Invalid Blockid in Expression %d\n", expr.id);
 					return false;
 				}
-				for (HId& id : expr.refs)
-					if (!(id && id <= expressions.size() && expressions[id].id)){
-						fprintf(stderr, "Invalid ssaId %d in ref from Expression %d\n", id, expr.id);
-						return false;
-					}
 				for (HId& id : expr.directRefs)
 					if (!(id && id <= expressions.size() && expressions[id].id)){
 						fprintf(stderr, "Invalid ssaId %d in directRef from Expression %d\n", id, expr.id);
@@ -939,7 +890,6 @@ namespace holodec {
 		if (!id)
 			return;
 		SSAExpression& expr = expressions[id];
-		expr.refs.push_back(refId);
 		if (EXPR_IS_TRANSPARENT (expr.type)) {
 			std::vector<bool> visited;
 			visited.resize (expressions.size(), false);
@@ -951,20 +901,15 @@ namespace holodec {
 			return;
 		visited[id - 1] = true;
 		SSAExpression& expr = expressions[id];
-		expr.refs.push_back(refId);
 		if (EXPR_IS_TRANSPARENT (expr.type)) {
 			for (SSAArgument& arg : expr.subExpressions) {
 				if (arg.type == SSAArgType::eId)
 					changeRefCount (arg.ssaId, visited, refId);
 			}
 		}
-		else {
-			expr.refs.push_back(refId);
-		}
 	}
 	void SSARepresentation::recalcRefCounts() {
 		for (SSAExpression& expr : expressions) {
-			expr.refs.clear();
 			expr.directRefs.clear();
 		}
 		for (SSAExpression& expr : expressions) {
@@ -1066,13 +1011,6 @@ namespace holodec {
 		for (SSAArgument& arg : expr.subExpressions) {
 			if (arg.type == SSAArgType::eId) {
 				SSAExpression& subexpr = expressions[arg.ssaId];
-				for (auto subit = subexpr.refs.begin(); subit != subexpr.refs.end();) {
-					if (*subit == *it) {
-						subit = subexpr.refs.erase(subit);
-						continue;
-					}
-					subit++;
-				}
 				for (auto subit = subexpr.directRefs.begin(); subit != subexpr.directRefs.end();) {
 					if (*subit == *it) {
 						subit = subexpr.directRefs.erase(subit);
@@ -1302,7 +1240,15 @@ namespace holodec {
 		combine1.size = firstsize;
 		combine2.size = secondsize;
 
-		HId lastexprid = exprsToReplace[0];
+		HId lastexprid = 0;
+		for (uint32_t i = 0; i < count; i++) {
+			if (exprsToReplace[i]) {
+				lastexprid = exprsToReplace[i];
+				break;
+			}
+		}
+		if (!lastexprid)
+			return false;
 
 		SSAArgument combine1arg = SSAArgument::createId(ssaRep->addBefore(&combine1, lastexprid));
 		SSAArgument combine2arg = SSAArgument::createId(ssaRep->addBefore(&combine2, lastexprid));
@@ -1315,20 +1261,85 @@ namespace holodec {
 		uint32_t offset = 0;
 		for (uint32_t i = 0; i < count; i++) {
 			uint32_t argumentsize = ssaRep->expressions[firstargss[i].ssaId].size;
-			SSAExpression split;
-			split.type = SSAExprType::eSplit;
-			split.exprtype = SSAType::eUInt;
-			split.instrAddr = instrAddr;
-			split.size = argumentsize;
-			split.subExpressions = { opexpr };
-			split.offset = offset;
+			if (exprsToReplace[i]) {
+				SSAExpression split;
+				split.type = SSAExprType::eSplit;
+				split.exprtype = SSAType::eUInt;
+				split.instrAddr = instrAddr;
+				split.size = argumentsize;
+				split.subExpressions = { opexpr };
+				split.offset = offset;
 
-			if(argumentsize == ssaRep->expressions[exprsToReplace[i]].size)//the expression to replace returns a different result
-				ssaRep->replaceOpExpr(ssaRep->expressions[exprsToReplace[i]], SSAArgument::createId(ssaRep->addBefore(&split, lastexprid)), opexpr, offset);
+				if (argumentsize == ssaRep->expressions[exprsToReplace[i]].size)//the expression to replace returns a different result
+					ssaRep->replaceOpExpr(ssaRep->expressions[exprsToReplace[i]], SSAArgument::createId(ssaRep->addBefore(&split, lastexprid)), opexpr, offset);
+			}
 
 			offset += argumentsize;
 		}
 		return true;
+	}
+	bool is_part_of(SSARepresentation* ssaRep, SSAArgument firstArg, SSAArgument secondArg, HMap<HId, HId>& relationship) {
+		auto entry = relationship.find(firstArg.ssaId);
+		if (entry != relationship.end())
+			return entry->second == secondArg.ssaId;
+		relationship.insert(std::make_pair(firstArg.ssaId, secondArg.ssaId));
+
+		SSAExpression* firstexpr = &ssaRep->expressions[firstArg.ssaId];
+		SSAExpression* secexpr = &ssaRep->expressions[secondArg.ssaId];
+
+		if (firstexpr->type == SSAExprType::eAppend && secexpr->type == SSAExprType::eAppend) {
+			if (firstexpr->subExpressions.size() >= secexpr->subExpressions.size())
+				return false;
+			for (int i = 0; i < firstexpr->subExpressions.size(); i++) {
+				if (!weak_equals(firstexpr->subExpressions[i], secexpr->subExpressions[i])) 
+					return false;
+			}
+			return true;
+		}
+		else if (firstexpr->isConst(SSAType::eUInt) && secexpr->isConst(SSAType::eUInt)) {
+			if ((firstexpr->uval & ((1 << firstexpr->size) - 1)) == (secexpr->uval & ((1 << firstexpr->size) - 1))) {
+				return true;
+			}
+			return false;
+		}
+		else if (firstexpr->type == SSAExprType::eCast && secexpr->type == SSAExprType::eCast) {
+			if (firstexpr->exprtype == secexpr->exprtype && firstexpr->sourcetype == secexpr->sourcetype && firstexpr->size < secexpr->size) {
+				return weak_equals(firstexpr->subExpressions[0], secexpr->subExpressions[0]);
+			}
+			return false;
+		}
+		else if (firstexpr->type != SSAExprType::eAppend && secexpr->type == SSAExprType::eAppend) {
+			return weak_equals(firstArg, secexpr->subExpressions[0]);
+		}
+		else if (firstexpr->type == SSAExprType::eSplit && secexpr->type == SSAExprType::eSplit) {
+			if (firstexpr->offset == secexpr->offset && firstexpr->size < secexpr->size) {
+				return weak_equals(firstexpr->subExpressions[0], secexpr->subExpressions[0]);
+			}
+			return false;
+		}
+		else if (firstexpr->type == SSAExprType::ePhi && secexpr->type == SSAExprType::ePhi) {
+			if (firstexpr->size >= secexpr->size)
+				return false;
+			for (int i = 1; i < firstexpr->subExpressions.size(); i += 2) {
+				if (!is_part_of(ssaRep, firstexpr->subExpressions[i], secexpr->subExpressions[i], relationship))
+					return false;
+			}
+			return true;
+		}
+		else if (firstexpr->isOp() && secexpr->isOp() && firstexpr->opType == secexpr->opType && firstexpr->subExpressions.size() == secexpr->subExpressions.size()) {
+			if (firstexpr->size >= secexpr->size)
+				return false;
+			for (int i = 0; i < firstexpr->subExpressions.size(); i++) {
+				if (!is_part_of(ssaRep, firstexpr->subExpressions[i], secexpr->subExpressions[i], relationship))
+					return false;
+			}
+			return true;
+		}
+		return false;
+	}
+	bool is_part_of(SSARepresentation* ssaRep, SSAArgument firstArg, SSAArgument secondArg) {
+		HMap<HId, HId> relationship;
+		return is_part_of(ssaRep, firstArg, secondArg, relationship);
 	}
 	bool consecutive_exprs(Architecture* arch, SSARepresentation* ssaRep, HId expr1, HId expr2) {
 		SSAExpression& firstparam = ssaRep->expressions[expr1];
@@ -1345,8 +1356,7 @@ namespace holodec {
 			uint32_t offsetfirst, offsetsecond;
 			offsetfirst = firstparam.type == SSAExprType::eSplit ? firstparam.offset : 0;
 			offsetsecond = secparam.type == SSAExprType::eSplit ? secparam.offset : 0;
-			if (offsetsecond - offsetfirst != firstparam.size)
-				return false;
+			if (offsetsecond - offsetfirst != firstparam.size) return false;
 		}
 		return true;
 	}

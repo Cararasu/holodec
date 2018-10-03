@@ -116,7 +116,7 @@ namespace holodec{
 			//if it is not read but only returned then it is not a callee saved register
 			return false;
 		}
-		else if (expr->type == SSAExprType::eOp) {
+		else if (expr->isOp()) {
 			if(expr->opType == SSAOpType::eAdd || expr->opType == SSAOpType::eSub) {
 				SSAExpression* idExpr = nullptr;
 				int64_t change = 0;
@@ -156,10 +156,12 @@ namespace holodec{
 				}
 			}
 		}
-		if (expr->ref.isReg(reg)) {
-			if (!retArg->ssaId)
-				*retArg = arg;
-			return *retArg == arg;
+		else if (expr->type == SSAExprType::eInput) {
+			if (expr->ref.isReg(reg)) {
+				if (!retArg->ssaId)
+					*retArg = arg;
+				return *retArg == arg;
+			}
 		}
 		return false;
 	}
@@ -208,11 +210,18 @@ namespace holodec{
 		bool changed = false;
 		for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type == SSAExprType::eReturn) {
-				std::map<HId, CalleeArgument> visited;
 				for (auto it = expr.subExpressions.begin(); it != expr.subExpressions.end(); ) {
 					SSAArgument& arg = *it;
 					if (arg.type == SSAArgType::eId && arg.ref.isLocation(SSALocation::eReg)) {
 						Register* reg = arch->getRegister(arg.ref.id);
+#ifdef HOLODEC_REMOVE_OBVIOUS
+						if (reg->size == 1) {
+							it = expr.removeArgument(&function->ssaRep, it);
+							regStates.getNewRegisterState(reg->parentRef.refId)->flags |= UsageFlags::eUndef;
+							changed = true;
+							continue;
+						}
+#endif
 						HId id = 0;
 						CalleeArgument retArg;
 						RegisterState* state = regStates.getRegisterState(reg->parentRef.refId);
@@ -221,8 +230,8 @@ namespace holodec{
 							continue;
 						}
 
+						std::map<HId, CalleeArgument> visited;
 						bool succ = calc_basearg_plus_offset(arch, function, arg, visited, reg, &retArg);
-						visited.clear();
 						if (succ) {
 							if (state && state->fixedValueChange != retArg.change) {//if we found a different result for the same register from another return
 								state->flags |= UsageFlags::eWrite;
@@ -409,6 +418,17 @@ namespace holodec{
 						expr->type = SSAExprType::eUndef;
 						changed = true;
 					}
+#ifdef HOLODEC_REMOVE_OBVIOUS
+					else if(expr->ref.isLocation(SSALocation::eReg)) {
+						Register* reg = arch->getRegister(expr->ref.id);
+						if (reg->name == "r1") {
+							expr->type = SSAExprType::eValue;
+							expr->exprtype = SSAType::eUInt;
+							expr->uval = 0x00;
+							changed = true;
+						}
+					}
+#endif
 				}
 			}
 		}

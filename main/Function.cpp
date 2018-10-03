@@ -69,6 +69,9 @@ void holodec::FuncRegState::print(holodec::Architecture* arch, int indent) {
 	for (RegisterState& regState : reg_states) {
 		printIndent(indent + 1);
 		printf("%s ", arch->getRegister(regState.regId)->name.cstr());
+		if (regState.flags.contains(UsageFlags::eUndef)) {
+			printf("Undef, ");
+		}
 		if (regState.flags.contains(UsageFlags::eWrite)) {
 			printf("Write, ");
 		}
