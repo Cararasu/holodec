@@ -788,12 +788,6 @@ namespace holodec {
 				HId exprId = context->expressionsMatched[0];
 				SSAExpression* expr = &ssaRep->expressions[exprId];
 
-				{
-					uint32_t size = 0;
-					for (SSAArgument& arg : expr->subExpressions) size += ssaRep->expressions[arg.ssaId].size;
-					assert(expr->size == size);
-				}
-
 				if (expr->subExpressions.size() == 2) {
 					SSAExpression& secExpr = ssaRep->expressions[expr->subExpressions[1].ssaId];
 					if (secExpr.isConst(SSAType::eUInt) && secExpr.uval == 0) {
@@ -805,11 +799,6 @@ namespace holodec {
 						g_peephole_logger.log<LogLevel::eDebug>("Replace Appends with Extend");
 						return true;
 					}
-				}
-				{
-					uint32_t size = 0;
-					for (SSAArgument& arg : expr->subExpressions) size += ssaRep->expressions[arg.ssaId].size;
-					assert(expr->size == size);
 				}
 				bool replaced = false;
 				//combine multiple appends stacked
@@ -833,11 +822,6 @@ namespace holodec {
 						continue;
 					}
 					index++;
-				}
-				{
-					uint32_t size = 0;
-					for (SSAArgument& arg : expr->subExpressions) size += ssaRep->expressions[arg.ssaId].size;
-					assert(expr->size == size);
 				}
 				//append(phi, phi, phi, phi) -> phi(append, append, append, append)
 				//this propagates the append upstream
@@ -907,11 +891,6 @@ namespace holodec {
 						replaced = true;
 					}
 				}
-				{
-					uint32_t size = 0;
-					for (SSAArgument& arg : expr->subExpressions) size += ssaRep->expressions[arg.ssaId].size;
-					assert(expr->size == size);
-				}
 				uint32_t offset = 0;
 				//combine multiple values in an append
 				for (size_t index = 1; index < expr->subExpressions.size();) {
@@ -932,11 +911,6 @@ namespace holodec {
 						continue;
 					}
 					index++;
-				}
-				{
-					uint32_t size = 0;
-					for (SSAArgument& arg : expr->subExpressions) size += ssaRep->expressions[arg.ssaId].size;
-					assert(expr->size == size);
 				}
 				//combine multiple loads in an append
 				for (size_t index = 1; index < expr->subExpressions.size(); ) {
@@ -970,11 +944,6 @@ namespace holodec {
 						continue;
 					}
 					index++;
-				}
-				{
-					uint32_t size = 0;
-					for (SSAArgument& arg : expr->subExpressions) size += ssaRep->expressions[arg.ssaId].size;
-					assert(expr->size == size);
 				}
 				//combine multiple loads in an append
 				for (size_t index = 1; index < expr->subExpressions.size(); ) {
@@ -1015,11 +984,6 @@ namespace holodec {
 					}
 					index++;
 				}
-				{
-					uint32_t size = 0;
-					for (SSAArgument& arg : expr->subExpressions) size += ssaRep->expressions[arg.ssaId].size;
-					assert(expr->size == size);
-				}
 				//combine same ids together with different offsets
 				for (size_t index = 1; index < expr->subExpressions.size(); ) {
 					SSAExpression* thisexpr = &ssaRep->expressions[expr->subExpressions[index].ssaId];
@@ -1055,11 +1019,6 @@ namespace holodec {
 				}
 				if (replaced) {
 					g_peephole_logger.log<LogLevel::eDebug>("Replace Some Arguments of Append");
-				}
-				{
-					uint32_t size = 0;
-					for (SSAArgument& arg : expr->subExpressions) size += ssaRep->expressions[arg.ssaId].size;
-					assert(expr->size == size);
 				}
 
 				if (expr->subExpressions.size() == 1) {
