@@ -1,22 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="radpp" Database="" Version="10.0.0">
   <Project Name="main" Path="main/main.project" Active="Yes"/>
-  <Project Name="VulkanTest" Path="../Vulkan/VulkanTest.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>
       <Project Name="main" ConfigName="Debug"/>
       <Project Name="main" ConfigName="Debug"/>
-      <Project Name="VulkanTest" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="no">
       <Environment/>
-      <Project Name="VulkanTest" ConfigName="Release"/>
       <Project Name="main" ConfigName="Release"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Debug Windows" Selected="no">
       <Environment/>
-      <Project Name="VulkanTest" ConfigName="Debug Windows"/>
       <Project Name="main" ConfigName="Debug VC17"/>
     </WorkspaceConfiguration>
   </BuildMatrix>

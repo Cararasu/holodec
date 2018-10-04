@@ -61,12 +61,12 @@ bool holox86::X86FunctionAnalyzer::analyzeInsts (size_t addr) {
 	do {
 		uint8_t dataBuffer[H_FUNC_ANAL_BUFFERSIZE];
 		size_t bufferSize;
-		MemoryArea* memArea = binary->defaultArea;
-		if (memArea->isMapped(addr)) {
-			uint64_t size = memArea->mappedSize(addr);
+		MemorySpace* memSpace = binary->defaultMemSpace;
+		if (memSpace->isMapped(addr)) {
+			uint64_t size = memSpace->mappedSize(addr);
 			bufferSize = std::min<uint64_t>(size, (uint64_t)H_FUNC_ANAL_BUFFERSIZE);
 			if (bufferSize)
-				memArea->copyData(dataBuffer, addr, bufferSize);
+				memSpace->copyData(dataBuffer, addr, bufferSize);
 		}
 		else {
 			bufferSize = 0;
@@ -161,7 +161,7 @@ void holox86::X86FunctionAnalyzer::setOperands (Instruction* instruction, cs_det
 		}
 		break;
 		case X86_OP_FP:
-			arg = IRArgument::createDVal ( (double) x86.operands[i].fp, x86.operands[i].size * arch->bitbase);
+			arg = IRArgument::createFVal ( (double) x86.operands[i].fp, x86.operands[i].size * arch->bitbase);
 			break;
 		default:
 			printf ("Invalid ...\n");

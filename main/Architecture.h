@@ -19,6 +19,7 @@ namespace holodec {
 	struct Builtin {
 		HId id;
 		HString name;
+		bool sideeffects;
 	};
 
 	struct Architecture {

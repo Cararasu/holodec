@@ -1,7 +1,7 @@
-#ifndef SSAADDRESSTOBLOCKTRANSFORMER_H
-#define SSAADDRESSTOBLOCKTRANSFORMER_H
+#pragma once
 
 #include "SSATransformer.h"
+
 namespace holodec {
 	struct SSAAddressToBlockTransformer : public SSATransformer {
 		Binary* binary;
@@ -13,4 +13,3 @@ namespace holodec {
 	};
 }
 
-#endif // SSAADDRESSTOBLOCKTRANSFORMER_H

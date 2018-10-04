@@ -101,11 +101,14 @@ namespace holodec {
 		}
 		for (Function* func : functions) {
 			for (SSAExpression& expr : func->ssaRep.expressions) {
-				if (expr.type == SSAExprType::eCall && expr.subExpressions[0].type == SSAArgType::eUInt) {
-					func->funcsCaller.insert(expr.subExpressions[0].uval);
-					Function* calledFunction = this->getFunctionByAddr(expr.subExpressions[0].uval);
-					if (calledFunction)
-						calledFunction->funcsCallee.insert(func->baseaddr);
+				if (expr.type == SSAExprType::eCall){
+					SSAExpression* baseexpr = find_baseexpr(&func->ssaRep, expr.subExpressions[0]);
+					if (baseexpr->type == SSAExprType::eValue && baseexpr->exprtype == SSAType::eUInt) {
+						func->funcsCaller.insert(baseexpr->uval);
+						Function* calledFunction = this->getFunctionByAddr(baseexpr->uval);
+						if (calledFunction) 
+							calledFunction->funcsCallee.insert(func->baseaddr);
+					}
 				}
 			}
 		}

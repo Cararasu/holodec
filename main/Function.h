@@ -81,7 +81,7 @@ namespace holodec {
 	struct RegisterState {
 		HId regId;
 		Flags<UsageFlags> flags;
-		int64_t arithChange = 0;
+		int64_t fixedValueChange = 0;
 	};
 	struct MemoryState {
 		HId memId;
@@ -134,7 +134,6 @@ namespace holodec {
 		//the start-address of the function
 		uint64_t baseaddr;
 		bool exported;
-		
 
 		FuncRegState regStates;
 		FuncRegState usedRegStates;

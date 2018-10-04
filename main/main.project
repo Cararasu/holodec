@@ -98,8 +98,6 @@
       <File Name="PeepholeOptimizer.cpp"/>
       <File Name="SSADCETransformer.cpp"/>
       <File Name="SSADCETransformer.h"/>
-      <File Name="SSAApplyRegRef.cpp"/>
-      <File Name="SSAApplyRegRef.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="binary">
       <VirtualDirectory Name="elf">
@@ -123,6 +121,7 @@
     <File Name="main_file.cpp"/>
   </VirtualDirectory>
   <Dependencies Name="Debug"/>
+  <Dependencies Name="Debug VC17"/>
   <Dependencies Name="Debug Windows"/>
   <Dependencies Name="Release"/>
   <Settings Type="Executable">
@@ -178,7 +177,7 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Debug VC17" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Debug VC17" CompilerType="MinGW ( mingw64 )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-Wall" C_Options="-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../capstone/include"/>
@@ -225,7 +224,7 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Debug Windows" CompilerType="Visual C++ 17" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Debug Windows" CompilerType="MinGW ( mingw64 )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g -Wall -static-libgcc -static-libstdc++ -Wno-format" C_Options="-g -Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../capstone/include"/>
@@ -238,7 +237,7 @@
         <Library Value="python37"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./DebugWin" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./DebugWin" Command="./$(ProjectName)" CommandArguments="../../workingdir/media_unit_fw.hex &gt; output.txt" UseSeparateDebugArgs="no" DebugArguments="../../workingdir/media_unit_fw.hex &gt; output.txt" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[PATH=$(PATH);../../cpython/PCbuild/amd64

@@ -36,14 +36,18 @@ void holodec::Function::print(holodec::Architecture* arch, int indent) {
 	}
 	printf("\n");
 
-	printIndent(indent);
-	puts("Changed RegisterState");
-	regStates.print(arch, indent + 1);
+	if (regStates.parsed) {
+		printIndent(indent);
+		puts("Changed RegisterState");
+		regStates.print(arch, indent + 1);
+	}
 
-	printIndent(indent);
-	puts("Used RegisterState");
-	usedRegStates.print(arch, indent + 1);
 
+	if (usedRegStates.parsed) {
+		printIndent(indent);
+		puts("Used RegisterState");
+		usedRegStates.print(arch, indent + 1);
+	}
 	for (DisAsmBasicBlock& bb : basicblocks) {
 		bb.print(arch, indent + 1);
 	}
@@ -68,12 +72,10 @@ void holodec::FuncRegState::print(holodec::Architecture* arch, int indent) {
 		if (regState.flags.contains(UsageFlags::eWrite)) {
 			printf("Write, ");
 		}
-		else {
-			if (regState.arithChange > 0)
-				printf("Arith + %" PRId64 ", ", regState.arithChange);
-			else if (regState.arithChange < 0)
-				printf("Arith - %" PRId64 ", ", regState.arithChange*-1);
-		}
+		if (regState.fixedValueChange > 0)
+			printf("Change + %" PRId64 ", ", regState.fixedValueChange);
+		else if (regState.fixedValueChange < 0)
+			printf("Change - %" PRId64 ", ", -regState.fixedValueChange);
 		if (regState.flags.contains(UsageFlags::eRead)) {
 			printf("Read, ");
 		}

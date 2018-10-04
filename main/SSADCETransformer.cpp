@@ -10,14 +10,14 @@ namespace holodec {
 
 	bool SSADCETransformer::doTransformation (Binary* binary, Function* function) {
 
-		printf ("DCE for Function at Address 0x%llx\n", function->baseaddr);
+		printf ("DCE for Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 		function->ssaRep.recalcRefCounts();
 		bool removed = false;
 		ssaRep = &function->ssaRep;
 		do {
 			HSet<HId> toRemove;
-			for (auto it = function->ssaRep.expressions.begin(); it != function->ssaRep.expressions.end();++it){
-				if(!it->id || EXPR_HAS_SIDEEFFECT(it->type) || !it->refs.empty())
+			for (auto it = function->ssaRep.expressions.begin(); it != function->ssaRep.expressions.end(); ++it) {
+				if (!it->id || EXPR_HAS_SIDEEFFECT(it->type) || !it->directRefs.empty())
 					continue;
 				toRemove.insert(it->id);
 			}

@@ -6,38 +6,20 @@ namespace holodec{
 
 	void printExprType(SSAExpression& expr) {
 		switch (expr.exprtype) {
-		case SSAType::eUnknown:
-			printf("Unkn%d ", expr.size);
-			break;
 		case SSAType::eInt:
-			printf("int%d_t ", expr.size);
+			printf("s%d ", expr.size);
 			break;
 		case SSAType::eUInt:
-			printf("uint%d_t ", expr.size);
+			printf("u%d ", expr.size);
 			break;
 		case SSAType::eFloat:
-			printf("float%d_t ", expr.size);
+			printf("f%d ", expr.size);
 			break;
 		case SSAType::ePc:
 			printf("pc%d ", expr.size);
 			break;
 		case SSAType::eMemaccess:
 			printf("mem%d ", expr.size);
-			break;
-		}
-
-	}
-	void printArgType(SSAArgument& arg) {
-		switch (arg.type) {
-		case SSAArgType::eSInt:
-			printf("int%d_t ", arg.size);
-			break;
-		case SSAArgType::eFloat:
-			printf("float%d_t ", arg.size);
-			break;
-		default:
-		case SSAArgType::eUInt:
-			printf("uint%d_t ", arg.size);
 			break;
 		}
 
@@ -265,20 +247,20 @@ namespace holodec{
 			while (changed && createdStruct.exit_blocks.size() > 1) {
 				changed = false;
 				for (auto it = createdStruct.exit_blocks.begin(); it != createdStruct.exit_blocks.end(); ++it) {
-					if (createdStruct.contained_blocks.find(it->blockId) != createdStruct.contained_blocks.end()) {
+					if (createdStruct.contained_blocks.find(it->blockId) != createdStruct.contained_blocks.end()) {//exit block is not in contained blocks
 						continue;
 					}
-					if (controlStruct.contained_blocks.find(it->blockId) == controlStruct.contained_blocks.end()) {
+					if (controlStruct.contained_blocks.find(it->blockId) == controlStruct.contained_blocks.end()) {//exit block is in parent contained blocks
 						continue;
 					}
 					SSABB* basicBlock = &function->ssaRep.bbs[it->blockId];
 					bool noHead = false;
-					for (HId id : basicBlock->inBlocks) {
+					for (HId id : basicBlock->inBlocks) {//if one input is not in the contained blocks
 						if (createdStruct.contained_blocks.find(id) == createdStruct.contained_blocks.end()) {
 							noHead |= true;
 						}
 					}
-					if (!noHead) {	
+					if (!noHead) {
 						changed = true;
 						uint32_t count = it->count;
 						it = createdStruct.exit_blocks.erase(it);
@@ -303,17 +285,7 @@ namespace holodec{
 		
 	}
 	bool SSATransformToC::shouldResolve(SSAExpression& expr) {
-		if (expr.type == SSAExprType::ePhi)//should never appear
-			return false;
-		if (expr.type == SSAExprType::eLoad)//for ordering sake until a comprehensive DFA is implemented
-			return true;
 		if (resolveIds.find(expr.id) != resolveIds.end()) {
-			return true;
-		}
-		if (expr.refs.size() > 1) {
-			return true;
-		}
-		if (EXPR_HAS_SIDEEFFECT(expr.type)) {
 			return true;
 		}
 		return false;
@@ -324,8 +296,6 @@ namespace holodec{
 		printf("(");
 		for (size_t i = 0; i < expr.subExpressions.size(); i++) {
 			SSAArgument& arg = expr.subExpressions[i];
-			if (arg.type == SSAArgType::eOther)
-				continue;
 			resolveArg(arg);
 			if(i + 1 != expr.subExpressions.size())
 				printf("%s", delimiter);
@@ -334,77 +304,84 @@ namespace holodec{
 	}
 	UnifiedExprs* SSATransformToC::getUnifiedExpr(HId uId) {
 		for (UnifiedExprs& exprs : unifiedExprs) {
+			if (!exprs.id) continue;
 			if (exprs.occuringIds.find(uId) != exprs.occuringIds.end()) {
 				return &exprs;
 			}
 		}
 		return nullptr;
 	}
-	bool SSATransformToC::resolveArgVariable(SSAExpression& expr) {
+	UnifiedExprs* SSATransformToC::getUnifiedExpr(Reference ref) {
+		for (UnifiedExprs& exprs : unifiedExprs) {
+			if (!exprs.id) continue;
+			if (exprs.ref == ref) {
+				return &exprs;
+			}
+		}
+		return nullptr;
+	}
+	bool SSATransformToC::resolveArgVariable(SSAExpression& expr, bool write) {
+
+		bool foundUExpr = false;
+		for (UnifiedExprs& exprs : unifiedExprs) {
+			if (!exprs.id) continue;
+			if (exprs.occuringIds.find(expr.uniqueId) != exprs.occuringIds.end()) {
+				foundUExpr = true;
+				Register* reg = arch->getRegister(exprs.ref.id);
+				if (write) {
+					if (reg) {
+						printf("var_%s, ", reg->name.cstr());
+					}
+					else {
+						printf("var%d, ", exprs.id);
+					}
+				}
+				else if (exprs.ssaId == expr.id) {
+					if (reg) {
+						printf("var_%s", reg->name.cstr());
+					}
+					else {
+						printf("var%d", exprs.id);
+					}
+					return true;
+				}
+			}
+		}
 		auto it = argumentIds.find(expr.id);
 		if (it != argumentIds.end()) {
 			printf("arg%d", it->second);
 			return true;
 		}
-		else if (UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId)) {
-			printf("var%d", uExprs->id);
+		if (foundUExpr) {
+			printf("tmp%d", expr.id);
 			return true;
 		}
-		else if (resolveIds.find(expr.id) != resolveIds.end()) {
-			printf("tmp%d", expr.id);
+		auto it2 = resolveIds.find(expr.id);
+		if (it2 != resolveIds.end()) {
+			printf("tmp%d", *it2);
 			return true;
 		}
 		return false;
 	}
 	void SSATransformToC::resolveArg(SSAArgument& arg) {
-		bool nonZeroOffset = (arg.offset != 0);
-
 		SSAExpression* subExpr = arg.type == SSAArgType::eId ? &function->ssaRep.expressions[arg.ssaId] : nullptr;
-		bool nonFullSize = subExpr && (arg.offset + arg.size != subExpr->size);
-		if (nonFullSize) {
-			printf("(");
-			printExprType(*subExpr);
-			printf(")");
-		}
-		if (nonZeroOffset)
-			printf("(");
-
 		switch (arg.type) {
 		case SSAArgType::eUndef:
 			printf("undef");
 			break;
-		case SSAArgType::eSInt:
-			printf("%" PRId64, arg.sval);
-			break;
-		case SSAArgType::eUInt:
-			printf("0x%" PRIx64, arg.uval);
-			break;
-		case SSAArgType::eFloat:
-			printf("%f", arg.fval);
-			break;
 		case SSAArgType::eId: {
-			if (!resolveArgVariable(*subExpr)) {
+			if (!resolveArgVariable(*subExpr, false)) {
 				resolveExpression(*subExpr);
 			}
 		}break;
-		case SSAArgType::eOther:
-			break;
 		}
-		if (arg.valueoffset > 0) {
-			printf(" + %" PRId64 " ", arg.valueoffset);
-		}
-		else if (arg.valueoffset < 0) {
-			printf(" - %" PRId64 " ", arg.valueoffset * -1);
-		}
-		if (nonZeroOffset)
-			printf(" >> %" PRId32 ")", arg.offset);
 	}
 	bool SSATransformToC::resolveExpression(SSAExpression& expr) {
 
 		if (expr.type == SSAExprType::eBranch)
 			return false;
 
-		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
+		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type))
 			printf("(");
 		switch (expr.type) {
 		case SSAExprType::eInvalid:
@@ -412,80 +389,98 @@ namespace holodec{
 		case SSAExprType::eLabel:
 			return false;
 		case SSAExprType::eUndef:
-			return false;
+			printf("undef");
+			break;
 		case SSAExprType::eNop:
-			return false;
+			printf("nop");
+			break;
 		case SSAExprType::eOp: {
-			for (size_t i = 0; i < expr.subExpressions.size(); ++i) {
-				SSAArgument& arg = expr.subExpressions[i];
-				resolveArg(arg);
-				if (i + 1 != expr.subExpressions.size()) {
-					switch (expr.opType) {
-					case SSAOpType::eMul:
-						printf(" * ");
-						break;
-					case SSAOpType::eDiv:
-						printf(" / ");
-						break;
-					case SSAOpType::eSub:
-						printf(" - ");
-						break;
-					case SSAOpType::eAdd:
-						printf(" + ");
-						break;
-					case SSAOpType::eAnd:
-						printf(" && ");
-						break;
-					case SSAOpType::eOr:
-						printf(" || ");
-						break;
-					case SSAOpType::eEq:
-						printf(" == ");
-						break;
-					case SSAOpType::eNe:
-						printf(" != ");
-						break;
-					case SSAOpType::eLe:
-						printf(" <= ");
-						break;
-					case SSAOpType::eLower:
-						printf(" < ");
-						break;
-					case SSAOpType::eGe:
-						printf(" >= ");
-						break;
-					case SSAOpType::eGreater:
-						printf(" > ");
-						break;
-					case SSAOpType::eBAnd:
-						printf(" & ");
-						break;
-					case SSAOpType::eBOr:
-						printf(" | ");
-						break;
-					case SSAOpType::eBXor:
-						printf(" ^ ");
-						break;
-					case SSAOpType::eBNot:
-						printf(" ~ ");
-						break;
-					case SSAOpType::eShr:
-						printf(" >> ");
-						break;
-					case SSAOpType::eShl:
-						printf(" << ");
-						break;
-					case SSAOpType::eRor:
-						printf(" >>> ");
-						break;
-					case SSAOpType::eRol:
-						printf(" <<< ");
-						break;
-					default:
-						printf(" op ");
-						break;
-					}
+			if (expr.opType == SSAOpType::eNot) {
+				printf("!(");
+
+				for (size_t i = 0; i < expr.subExpressions.size(); ++i) {
+					if (i > 0)
+						printf(",");
+					SSAArgument& arg = expr.subExpressions[i];
+					resolveArg(arg);
 				}
+				printf(")");
+			}
+			else {
+				for (size_t i = 0; i < expr.subExpressions.size(); ++i) {
+					SSAArgument& arg = expr.subExpressions[i];
+					resolveArg(arg);
+					if (i + 1 != expr.subExpressions.size()) {
+						switch (expr.opType) {
+						case SSAOpType::eMul:
+							printf(" * ");
+							break;
+						case SSAOpType::eDiv:
+							printf(" / ");
+							break;
+						case SSAOpType::eMod:
+							printf(" %% ");
+							break;
+						case SSAOpType::eSub:
+							printf(" - ");
+							break;
+						case SSAOpType::eAdd:
+							printf(" + ");
+							break;
+						case SSAOpType::eAnd:
+							printf(" && ");
+							break;
+						case SSAOpType::eOr:
+							printf(" || ");
+							break;
+						case SSAOpType::eEq:
+							printf(" == ");
+							break;
+						case SSAOpType::eNe:
+							printf(" != ");
+							break;
+						case SSAOpType::eLe:
+							printf(" <= ");
+							break;
+						case SSAOpType::eLower:
+							printf(" < ");
+							break;
+						case SSAOpType::eGe:
+							printf(" >= ");
+							break;
+						case SSAOpType::eGreater:
+							printf(" > ");
+							break;
+						case SSAOpType::eBAnd:
+							printf(" & ");
+							break;
+						case SSAOpType::eBOr:
+							printf(" | ");
+							break;
+						case SSAOpType::eBXor:
+							printf(" ^ ");
+							break;
+						case SSAOpType::eBNot:
+							printf(" ~ ");
+							break;
+						case SSAOpType::eShr:
+							printf(" >> ");
+							break;
+						case SSAOpType::eShl:
+							printf(" << ");
+							break;
+						case SSAOpType::eRor:
+							printf(" >>> ");
+							break;
+						case SSAOpType::eRol:
+							printf(" <<< ");
+							break;
+						default:
+							printf(" op ");
+							break;
+						}
+					}
+			}
 			}
 		}break;
 		case SSAExprType::eLoadAddr:
@@ -512,6 +507,7 @@ namespace holodec{
 				printf("Underflow");
 				break;
 			}
+			printf("-%d", expr.flagbit);
 			printf("(");
 			resolveArg(expr.subExpressions[0]);
 			printf(")");
@@ -520,11 +516,21 @@ namespace holodec{
 			printf("%s ", arch->getBuiltin(expr.builtinId)->name.cstr());
 			resolveArgs(expr);
 		}break;
-		case SSAExprType::eExtend: {
-			printf("(");
-			printExprType(expr);
-			printf(")");
-			resolveArgs(expr);
+		case SSAExprType::eSplit: {
+			if (expr.offset) {
+				printf("(");
+			}
+			SSAExpression& subexpr = function->ssaRep.expressions[expr.subExpressions[0].ssaId];
+			if (expr.size == subexpr.size) {
+				resolveArg(expr.subExpressions[0]);
+			}
+			else {
+				printExprType(expr);
+				resolveArg(expr.subExpressions[0]);
+			}
+			if (expr.offset) {
+				printf(" >> %d)", expr.offset);
+			}
 		}break;
 		case SSAExprType::eAppend: {
 			printf("(");
@@ -534,21 +540,30 @@ namespace holodec{
 				resolveArg(arg);
 				if(offset)
 					printf(" << %d", offset);
-				offset += arg.size;
+				offset += function->ssaRep.expressions[arg.ssaId].size;
 				if (i + 1 != expr.subExpressions.size())
 					printf(" | ");
 			}
 			printf(")");
 		}break;
 		case SSAExprType::eCast: {
-			if (expr.exprtype == SSAType::eFloat)
-				printf("F");
-			else if (expr.exprtype == SSAType::eInt)
-				printf("S");
-			else if (expr.exprtype == SSAType::eUInt)
-				printf("U");
-			printf("Cast%d ", expr.size);
+			printf("Cast[");
+			printExprType(expr);
+			printf("]");
 			resolveArgs(expr);
+		}break;
+		case SSAExprType::eValue: {
+			switch (expr.exprtype) {
+			case SSAType::eUInt:
+				printf("0x%" PRIx64, expr.uval);
+				break;
+			case SSAType::eInt:
+				printf("%" PRId64, expr.sval);
+				break;
+			case SSAType::eFloat:
+				printf("0x%f", expr.fval);
+				break;
+			}
 		}break;
 
 		case SSAExprType::eInput:
@@ -559,24 +574,25 @@ namespace holodec{
 			}
 			break;
 		case SSAExprType::eOutput:
-			return false;
+			resolveArgVariable(expr, true);
+			break;
 
 		case SSAExprType::eCall: {
 			for (HId id : expr.directRefs) {
 				SSAExpression& refExpr = function->ssaRep.expressions[id];
-				if (refExpr.type == SSAExprType::eOutput && refExpr.location == SSALocation::eReg) {
+				if (refExpr.type == SSAExprType::eOutput && refExpr.ref.isLocation(SSALocation::eReg)) {
 					printExprType(refExpr);
-					resolveArgVariable(refExpr);
-					printf(" <- %s, ", arch->getRegister(refExpr.locref.refId)->name.cstr());
+					resolveArgVariable(refExpr, true);
+					printf(" <- %s, ", arch->getRegister(refExpr.ref.id)->name.cstr());
 				}
 			}
 			printf("Call ");
-			resolveArg(expr.subExpressions[0]);
+			resolveExpression(function->ssaRep.expressions[expr.subExpressions[0].ssaId]);
 			printf("(");
 			for (size_t i = 0; i < expr.subExpressions.size(); i++) {
 				SSAArgument& arg = expr.subExpressions[i];
-				if (arg.type == SSAArgType::eId && arg.location == SSALocation::eReg) {
-					printf("%s <- ", arch->getRegister(arg.locref.refId)->name.cstr());
+				if (arg.type == SSAArgType::eId && arg.ref.isLocation(SSALocation::eReg)) {
+					printf("%s <- ", arch->getRegister(arg.ref.id)->name.cstr());
 					resolveArg(arg);
 					printf(", ");
 				}
@@ -588,11 +604,17 @@ namespace holodec{
 			printf("(");
 			for (size_t i = 0; i < expr.subExpressions.size(); i++) {
 				SSAArgument& arg = expr.subExpressions[i];
-				if (arg.location == SSALocation::eMem) {
+				if (arg.ref.isLocation(SSALocation::eMem)) {
 					continue;
 				}
-				if (arg.location == SSALocation::eReg) {
-					printf("%s: ", arch->getRegister(arg.locref.refId)->name.cstr());
+				if (arg.ref.isLocation(SSALocation::eReg)) {
+					if (function->usedRegStates.parsed) {
+						RegisterState* state = function->usedRegStates.getRegisterState(arg.ref.id);//reverse check if the argument is used outside in another function
+						if (!function->exported && !state || !state->flags.contains(UsageFlags::eRead)) {
+							continue;
+						}
+					}
+					printf("%s: ", arch->getRegister(arg.ref.id)->name.cstr());
 				}
 				resolveArg(arg);
 				if (i + 1 != expr.subExpressions.size())
@@ -610,23 +632,18 @@ namespace holodec{
 		}break;
 
 		case SSAExprType::ePhi: {
-			printf("Phi ");
-			resolveArgs(expr);
+			resolveArgVariable(expr, false);
 		}break;
 		case SSAExprType::eAssign: {
 			resolveArg(expr.subExpressions[0]);
-		}break;
-		case SSAExprType::eMemAccess: {
-			printf("MemAccess ");
-			resolveArgs(expr);
 		}break;
 		case SSAExprType::eStore: {
 			SSAArgument& memArg = expr.subExpressions[0];
 			SSAArgument& ptrArg = expr.subExpressions[1];
 			SSAArgument& valueArg = expr.subExpressions[2];
-
-			printf("%s[", arch->getMemory(memArg.locref.refId)->name.cstr());
-			printArgType(valueArg);
+			SSAExpression* valexpr = find_baseexpr(&function->ssaRep, valueArg);
+			printf("%s[", arch->getMemory(memArg.ref.id)->name.cstr());
+			printExprType(*valexpr);
 			printf(", ");
 			resolveArg(ptrArg);
 			printf("] = ");
@@ -636,28 +653,45 @@ namespace holodec{
 			SSAArgument& memArg = expr.subExpressions[0];
 			SSAArgument& ptrArg = expr.subExpressions[1];
 
-			printf("%s[", arch->getMemory(memArg.locref.refId)->name.cstr());
+			printf("%s[", arch->getMemory(memArg.ref.id)->name.cstr());
 			printExprType(expr);
 			printf(", ");
 			resolveArg(ptrArg);
 			printf("]");
 		}break;
 		}
-		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall)
+		if (expr.type != SSAExprType::eInput && expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type))
 			printf(")");
 		return true;
 	}
 	bool SSATransformToC::printExpression(SSAExpression& expr, uint32_t indent) {
-		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::ePhi || expr.type == SSAExprType::eMemOutput || expr.type == SSAExprType::eBranch)
+		if (expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eBranch)
 			return false;
+		UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
 		resolveIds.insert(expr.id);
 		printIndent(indent);
-		if (expr.type != SSAExprType::eCall && !EXPR_HAS_SIDEEFFECT(expr.type)) {
+		if (uExprs && expr.type == SSAExprType::ePhi) {
+			printExprType(expr); 
+			resolveArgVariable(expr, true);
+			Register* reg = arch->getRegister(uExprs->ref.id);
+			if(reg)
+				printf(" = var_%s", reg->name.cstr());
+			else
+				printf(" = var%d", uExprs->id);
+			uExprs->ssaId = expr.id;
+			return true;
+		}
+		if (expr.type != SSAExprType::eCall && expr.type != SSAExprType::eStore && !EXPR_HAS_SIDEEFFECT(expr.type)) {
 			printExprType(expr);
-			resolveArgVariable(expr);
+			resolveArgVariable(expr, true);
 			printf(" = ");
 		}
-		return resolveExpression(expr);
+		bool res = resolveExpression(expr);
+		if (uExprs) {
+			uExprs->ssaId = expr.id;
+			return true;
+		}
+		return res;
 	}
 	ControlStruct* getStructFromHead(ControlStruct* controlStruct, HId headId) {
 		for (ControlStruct& subStruct : controlStruct->child_struct) {
@@ -685,31 +719,31 @@ namespace holodec{
 	}
 
 	void SSATransformToC::resolveBlockArgument(ControlStruct* controlStruct, SSAArgument& arg, std::set<HId>& printed, uint32_t indent) {
-		if (arg.type == SSAArgType::eOther && arg.location == SSALocation::eBlock) {
-			if (arg.locref.refId != controlStruct->main_exit) {
-				if (controlStruct->contained_blocks.find(arg.locref.refId) == controlStruct->contained_blocks.end()) {
-					if (controlStruct->main_exit != arg.locref.refId) {
-						if (!resolveEscapeLoop(controlStruct, arg.locref.refId, indent)) {
-							printIndent(indent); printf("goto L%d\n", arg.locref.refId);
+		if (arg.type == SSAArgType::eBlock) {
+			if (arg.ssaId != controlStruct->main_exit) {
+				if (controlStruct->contained_blocks.find(arg.ssaId) == controlStruct->contained_blocks.end()) {
+					if (controlStruct->main_exit != arg.ssaId) {
+						if (!resolveEscapeLoop(controlStruct, arg.ssaId, indent)) {
+							printIndent(indent); printf("goto L%d\n", arg.ssaId);
 						}
 					}
 				}
 				else {
-					ControlStruct* subStruct = getStructFromHead(controlStruct, arg.locref.refId);
+					ControlStruct* subStruct = getStructFromHead(controlStruct, arg.ssaId);
 					if (subStruct)
 						printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent);
-					else if (controlStruct->main_exit != arg.locref.refId)  {
-						resolveEscapeLoop(controlStruct, arg.locref.refId, indent);
-						printIndent(indent); printf("goto L%d\n", arg.locref.refId);
+					else if (controlStruct->main_exit != arg.ssaId)  {
+						resolveEscapeLoop(controlStruct, arg.ssaId, indent);
+						printIndent(indent); printf("goto L%d\n", arg.ssaId);
 					}
 					else {
-						resolveEscapeLoop(controlStruct, arg.locref.refId, indent);
+						resolveEscapeLoop(controlStruct, arg.ssaId, indent);
 						//goto to the main exit
 					}
 				}
 			}
 			else {
-				resolveEscapeLoop(controlStruct, arg.locref.refId, indent);
+				resolveEscapeLoop(controlStruct, arg.ssaId, indent);
 				//main exit
 			}
 		}
@@ -721,7 +755,7 @@ namespace holodec{
 		if (expr.type == SSAExprType::eBranch) {
 			/*if (expr.subExpressions.size() == 3 &&
 				expr.subExpressions[0].type == SSAArgType::eOther && expr.subExpressions[0].location == SSALocation::eBlock && 
-				(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions[].locref.refId == controlStruct->main_exit))) {
+				(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions[].ref.refId == controlStruct->main_exit))) {
 				//special case where the first jump leads to the end of the branch
 				//then we invert the if and only print the original else block
 				printIndent(indent);
@@ -748,7 +782,7 @@ namespace holodec{
 					printIndent(indent); printf("}\n");
 				}
 				//if (!(expr.subExpressions.back().type == SSAArgType::eOther && expr.subExpressions.back().location == SSALocation::eBlock && 
-				//	(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions.back().locref.refId == controlStruct->main_exit)))) {
+				//	(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions.back().ref.refId == controlStruct->main_exit)))) {
 					//TODO also check for empty blocks
 					if (expr.subExpressions.size() > 1) {
 						printIndent(indent); printf("else {\n");
@@ -765,7 +799,9 @@ namespace holodec{
 		}
 	}
 	void SSATransformToC::resolveBlock(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent) {
-		printIndent(indent); printf("Label L%d:\n", bb.id);
+		if (bb.id > 1) {
+			printIndent(indent); printf("Label L%d:\n", bb.id);
+		}
 		if (bb.inBlocks.size() > 1) {
 			//printIndent(indent); printf("Label L%d:\n", theBB->id);
 		}
@@ -949,9 +985,11 @@ namespace holodec{
 		//function->print(binary->arch);
 		Symbol *sym = binary->getSymbol(function->symbolref);
 
-		{
+		if (sym)
+			printf("Function: %s at 0x%" PRIx64 "\n", sym->name.cstr(), sym->vaddr);
+
+		{//split blocks, so that they have either exactly one input ore one output
 			bool changed = false;
-			fflush(stdout);
 			do {
 				changed = false;
 				for (SSABB& bb : function->ssaRep.bbs) {
@@ -974,8 +1012,8 @@ namespace holodec{
 								}
 								loopBB.outBlocks.insert(newbb.id);
 								for (SSAArgument& arg : branchExpr.subExpressions) {
-									if (arg.type == SSAArgType::eOther && arg.location == SSALocation::eBlock && arg.locref.refId == oldBlockId)
-										arg.locref.refId = newbb.id;
+									if (arg.type == SSAArgType::eBlock && arg.ssaId == oldBlockId)
+										arg.ssaId = newbb.id;
 								}
 							}
 
@@ -1012,15 +1050,13 @@ namespace holodec{
 		argumentIds.clear();
 		resolveIds.clear();
 		resolveBBs.clear();
-		if(sym)
-			printf("Function: %s\n", sym->name.cstr());
 		{
 			SSABB& bb = function->ssaRep.bbs[1];
 			for (HId id : bb.exprIds) {
 				SSAExpression& expr = function->ssaRep.expressions[id];
 				if (expr.type == SSAExprType::eInput) {
-					if (expr.location == SSALocation::eReg) {
-						CArgument arg = { 0, expr.id, { binary->arch->getRegister(expr.locref.refId)->name.cstr(), expr.locref.refId } };
+					if (expr.ref.isLocation(SSALocation::eReg)) {
+						CArgument arg = { 0, expr.id, { binary->arch->getRegister(expr.ref.id)->name.cstr(), expr.ref.id } };
 						arguments.push_back(arg);
 						argumentIds.insert(std::make_pair(expr.id, static_cast<HId>(arguments.size())));
 					}
@@ -1034,24 +1070,19 @@ namespace holodec{
 				}
 			}
 
-			printIndent(1);
-			printf("Input (");
-			for (CArgument arg : arguments) {
-				printf("arg%d <- %s ", arg.id, arg.regRef.name.cstr());
-			}
-			printf("){\n");
-
 			unifiedExprs.clear();
 
 			for (SSAExpression& expr : function->ssaRep.expressions) {
 				if (expr.type == SSAExprType::ePhi) {
 					HId foundId = 0;
-					UnifiedExprs* uExprs = getUnifiedExpr(expr.uniqueId);
+					UnifiedExprs* uExprs = getUnifiedExpr(expr.ref);
 					if (uExprs) {
 						foundId = uExprs->id;
 					}
 					else {
 						foundId = unifiedExprs.emplace_back();
+						unifiedExprs[foundId].ref = expr.ref;
+						unifiedExprs[foundId].occuringIds.insert(expr.uniqueId);
 					}
 
 					for (SSAArgument& arg : expr.subExpressions) {
@@ -1059,7 +1090,7 @@ namespace holodec{
 							SSAExpression& argExpr = function->ssaRep.expressions[arg.ssaId];
 							if (argExpr.type == SSAExprType::ePhi) {
 								for (auto it = unifiedExprs.begin(); it != unifiedExprs.end();) {
-									if (it->id != foundId && it->occuringIds.find(expr.uniqueId) != it->occuringIds.end()) {
+									if (it->id && it->id != foundId && it->occuringIds.find(argExpr.uniqueId) != it->occuringIds.end()) {
 										unifiedExprs.get(foundId)->occuringIds.insert(it->occuringIds.begin(), it->occuringIds.end());
 										it = unifiedExprs.erase(it);
 										continue;
@@ -1080,12 +1111,37 @@ namespace holodec{
 					}
 				}
 
-				if (expr.type == SSAExprType::eOutput) {
+				if (expr.type == SSAExprType::eValue)
+					continue;
+				else if (expr.type == SSAExprType::ePhi) {
 					resolveIds.insert(expr.id);
+					for (SSAArgument& arg : expr.subExpressions) {
+						resolveIds.insert(arg.ssaId);
+					}
 				}
+				else if (expr.type == SSAExprType::eInput)
+					resolveIds.insert(expr.id);
+				else if (expr.type == SSAExprType::eOutput)
+					resolveIds.insert(expr.id);
+				else if (expr.type == SSAExprType::eLoad)//for ordering sake until a comprehensive DFA is implemented
+					resolveIds.insert(expr.id);
+				else if (expr.type == SSAExprType::eStore)//for ordering sake until a comprehensive DFA is implemented
+					resolveIds.insert(expr.id);
+				else if (expr.directRefs.size() > 1)
+					resolveIds.insert(expr.id);
+				else if (expr.directRefs.size() == 1 && function->ssaRep.expressions[expr.directRefs[0]].blockId != expr.blockId)
+					resolveIds.insert(expr.id);
+				else if (EXPR_HAS_SIDEEFFECT(expr.type))
+					resolveIds.insert(expr.id);
 			}
-
 		}
+		printIndent(1);
+		printf("Input (");
+		for (CArgument arg : arguments) {
+			resolveArgVariable(function->ssaRep.expressions[arg.ssaId], true);
+			printf(" <- %s, ", arg.regRef.name.cstr());
+		}
+		printf("){\n");
 		HSet<HId> visited;
 		printControlStruct(&g_struct, function->ssaRep.bbs[1], visited, 1);
 
@@ -1095,4 +1151,3 @@ namespace holodec{
 		return false;
 	}
 }
-

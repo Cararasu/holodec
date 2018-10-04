@@ -8,9 +8,7 @@ namespace holodec {
 	IRParser::IRParser (Architecture* arch) : arch (arch) {
 		IRExpression expression;
 		{
-			expression.exprtype = SSAType::eUnknown;
-			expression.type = IR_EXPR_UNDEF;
-			expressionmap.insert (std::make_pair ("undef", expression));
+			expression.exprtype = SSAType::eUInt;
 			expression.type = IR_EXPR_SEQUENCE;
 			expressionmap.insert (std::make_pair ("seq", expression));
 			expression.type = IR_EXPR_TRAP;
@@ -21,8 +19,6 @@ namespace holodec {
 			expressionmap.insert (std::make_pair ("call", expression));
 			expression.type = IR_EXPR_JMP;
 			expressionmap.insert (std::make_pair ("jmp", expression));
-			expression.type = IR_EXPR_CJMP;
-			expressionmap.insert (std::make_pair ("cjmp", expression));
 			expression.type = IR_EXPR_RETURN;
 			expressionmap.insert (std::make_pair ("ret", expression));
 			expression.type = IR_EXPR_NOP;
@@ -31,12 +27,14 @@ namespace holodec {
 			expressionmap.insert (std::make_pair ("if", expression));
 			expression.type = IR_EXPR_REP;
 			expressionmap.insert (std::make_pair ("rep", expression));
-			expression.type = IR_EXPR_ASSIGN;
-			expressionmap.insert (std::make_pair ("assign", expression));
 		}
 
 		{
 			expression.exprtype = SSAType::eUInt;
+			expression.type = IR_EXPR_ASSIGN;
+			expressionmap.insert(std::make_pair("assign", expression));
+			expression.type = IR_EXPR_UNDEF;
+			expressionmap.insert(std::make_pair("undef", expression));
 			{
 				expression.type = IR_EXPR_FLAG;
 				expression.size = arch->bitbase;
@@ -103,7 +101,7 @@ namespace holodec {
 			expressionmap.insert (std::make_pair ("ext", expression));
 
 			expression.type = IR_EXPR_CAST;
-			expressionmap.insert (std::make_pair ("f2i", expression));
+			expressionmap.insert (std::make_pair ("cast", expression));
 
 			expression.type = IR_EXPR_PUSH;
 			expressionmap.insert (std::make_pair ("push", expression));
@@ -124,19 +122,6 @@ namespace holodec {
 			expressionmap.insert (std::make_pair ("size", expression));
 
 		}
-		{
-			expression.exprtype = SSAType::eInt;
-			expression.type = IR_EXPR_CAST;
-			expressionmap.insert (std::make_pair ("f2s", expression));
-
-		}
-		{
-			expression.exprtype = SSAType::eFloat;
-
-			expression.type = IR_EXPR_CAST;
-			expressionmap.insert (std::make_pair ("i2f", expression));
-
-		}
 	}
 
 	void IRParser::skipWhitespaces() {
@@ -148,14 +133,20 @@ namespace holodec {
 		printf ("Invalid Token at '%s' expected %s\n", string.cstr() + index, str);
 	}
 	bool IRParser::parseIdentifier (char *buffer, size_t buffersize) {
-		for (size_t i = 0; i < buffersize; i++) {
+		char c = peek();
+		if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')) {
+			buffer[0] = c;
+			consume();
+		}
+		else {
+			return false;
+		}
+		for (size_t i = 1; i < buffersize; i++) {
 			char c = peek();
 			if ( ('a' <= c && c <= 'z') || ('0' <= c && c <= '9') || ('A' <= c && c <= 'Z')) {
 				buffer[i] = c;
 			} else {
 				buffer[i] = '\0';
-				if (i == 0)
-					return false;
 				return true;
 			}
 			consume();
@@ -172,6 +163,22 @@ namespace holodec {
 	}
 	IRArgument IRParser::parseIndex (IRArgument arg) {
 		if (parseCharacter ('[')) {
+			char buffer[100];
+			if (parseIdentifier(buffer, 100)) {
+				if (strcmp(buffer, "u") == 0) {
+					arg.argtype = SSAType::eUInt;
+				}else if (strcmp(buffer, "s") == 0) {
+					arg.argtype = SSAType::eInt;
+				}else if (strcmp(buffer, "f") == 0) {
+					arg.argtype = SSAType::eFloat;
+				}
+				else {
+					printParseFailure("identifier");
+				}
+				if (!parseCharacter(',')) {
+					return arg;
+				}
+			}
 			IRArgument offset, size;
 			if (! (offset = parseIRExpression())) {
 				printf ("Cannot parse Offset\n");
@@ -199,6 +206,43 @@ namespace holodec {
 			return IRArgument::create();
 		}
 		return arg;
+	}
+	bool IRParser::parseProcFlags(IRExpression* expr) {
+		size_t x = index;
+		if (parseCharacter('[')) {
+			char buffer[100];
+			if (parseIdentifier(buffer, 100)) {
+				if (strcmp(buffer, "u") == 0) {
+					expr->exprtype = SSAType::eUInt;
+				}
+				else if (strcmp(buffer, "s") == 0) {
+					expr->exprtype = SSAType::eInt;
+				}
+				else if (strcmp(buffer, "f") == 0) {
+					expr->exprtype = SSAType::eFloat;
+				}
+				else {
+					printParseFailure("identifier");
+				}
+				if (!parseCharacter(',')) {
+					if (!parseCharacter(']')) {
+						printParseFailure("']'");
+						return false;
+					}
+					return true;
+				}
+			}	
+			int64_t size;
+			if (parseNumber(&size)) {
+				expr->size = static_cast<uint32_t>(size);
+			}
+			if (!parseCharacter(']')) {
+				printParseFailure("']'");
+				return false;
+			}
+			return true;
+		}
+		return true;
 	}
 	uint32_t IRParser::parseNumberIndex () {
 		size_t x = index;
@@ -271,42 +315,6 @@ namespace holodec {
 			}
 		}
 		return i;
-	}
-	bool IRParser::parseProcFlags(IRExpression* expr) {
-		size_t x = index;
-		if (parseCharacter('[')) {
-			while (true) {
-				switch (peek()) {
-				case 'u':
-					expr->exprtype = SSAType::eUInt;
-					consume(1);
-					continue;
-				case 's':
-					expr->exprtype = SSAType::eInt;
-					consume(1);
-					continue;
-				case 'f':
-					expr->exprtype = SSAType::eFloat;
-					consume(1);
-					continue;
-				case '0':case '1':case '2':case '3':case '4':
-				case '5':case '6':case '7':case '8':case '9':
-					int64_t size;
-					if (parseNumber(&size))
-						expr->size = static_cast<uint32_t>(size);
-					continue;
-				default:
-					break;
-				}
-				break;
-			}
-			if (!parseCharacter(']')) {
-				printParseFailure("']'");
-				return false;
-			}
-			return true;
-		}
-		return true;
 	}
 	bool IRParser::parseArgFlags(IRArgument* arg) {
 		size_t x = index;

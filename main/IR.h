@@ -23,7 +23,6 @@ namespace holodec {
 
 		IR_EXPR_IF,
 		IR_EXPR_JMP,//jump depending on value
-		IR_EXPR_CJMP,
 		IR_EXPR_OP,
 		// Call - Return
 		IR_EXPR_CALL,  // a call to a function
@@ -59,7 +58,7 @@ namespace holodec {
 		HId id;
 		IRExprType type = IR_EXPR_INVALID;
 		uint32_t size = 0;
-		SSAType exprtype = SSAType::eUnknown;
+		SSAType exprtype = SSAType::eUInt;
 		struct { //196 bit
 			union { //64 bit
 				SSAFlagType flagType;

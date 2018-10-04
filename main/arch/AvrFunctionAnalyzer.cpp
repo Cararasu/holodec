@@ -50,11 +50,11 @@ namespace holoavr{
 	bool parseInstruction(Instruction* instr, Binary* binary, uint64_t addr, Architecture* arch) {
 
 		instr->instrdef = nullptr;
-		instr->size = 1;
+		instr->size = 2;
 		instr->addr = addr;
 
-		uint16_t firstbytes = static_cast<uint16_t>(binary->getVData(addr));
-		uint16_t secbytes = static_cast<uint16_t>(binary->getVData(addr + 1));
+		uint16_t firstbytes = static_cast<uint16_t>(binary->getVData(addr)) | (static_cast<uint16_t>(binary->getVData(addr + 1)) << 8);
+		uint16_t secbytes = static_cast<uint16_t>(binary->getVData(addr + 2)) | (static_cast<uint16_t>(binary->getVData(addr + 3)) << 8);
 
 		if ((firstbytes & 0xFE00) == 0x9400) {//one reg instr
 			switch (firstbytes & 0x000F) {
@@ -104,6 +104,11 @@ namespace holoavr{
 				}
 				else if (firstbytes == 0x9519) {//eicall
 					instr->instrdef = arch->getInstrDef(AVR_INSTR_EICALL);
+					return true;
+				}
+				else if (firstbytes == 0x95C8) {//lpm R0, Z
+					instr->operands.push_back(IRArgument::createReg(arch->getRegister("r0")));
+					instr->instrdef = arch->getInstrDef(AVR_INSTR_LPM);
 					return true;
 				}
 				else if((firstbytes & 0xFF0F) == 0x9408) {
@@ -181,7 +186,7 @@ namespace holoavr{
 				uint32_t dst = secbytes;
 				dst |= (firstbytes & 0x01) << 16;
 				dst |= (firstbytes & 0x1F0) << (17 - 4);
-				instr->operands.push_back(IRArgument::createUVal(dst, arch->instrptrsize * arch->bitbase));
+				instr->operands.push_back(IRArgument::createUVal(dst * 2, arch->instrptrsize * arch->bitbase));
 				instr->size = 2;
 				if (firstbytes & 0x0002) {//call
 					instr->instrdef = arch->getInstrDef(AVR_INSTR_CALL);
@@ -428,13 +433,13 @@ namespace holoavr{
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_LD);
 				instr->operands.push_back(IRArgument::createReg(reg));
 				instr->operands.push_back(IRArgument::createUVal(secbytes, arch->instrptrsize * arch->bitbase));
-				instr->size = 2;
+				instr->size = 4;
 			}
 			else {//sts
 				instr->instrdef = arch->getInstrDef(AVR_INSTR_ST);
 				instr->operands.push_back(IRArgument::createUVal(secbytes, arch->instrptrsize * arch->bitbase));
 				instr->operands.push_back(IRArgument::createReg(reg));
-				instr->size = 2;
+				instr->size = 4;
 			}
 			return true;
 		}
@@ -625,12 +630,6 @@ namespace holoavr{
 			}
 			return true;
 		}
-		else if (firstbytes == 0x95C8) {//lpm R0, Z
-			instr->operands.push_back(IRArgument::createReg(arch->getRegister("r0")));
-			instr->instrdef = arch->getInstrDef(AVR_INSTR_LPM | AVR_INSTR_INC_PTR);
-			instr->operands.push_back(IRArgument::createReg(arch->getRegister("z")));
-			return true;
-		}
 		else if ((firstbytes & 0xF808) == 0xF800) {//one reg instr
 			uint32_t regId = (firstbytes >> 0x4) & 0x1F;
 			Register* reg = getRegister(parseRegType2Big(firstbytes), arch);
@@ -673,10 +672,10 @@ namespace holoavr{
 		else if ((firstbytes & 0xE000) == 0xC000) {//control transfer relative
 			int16_t rel = firstbytes & 0x0FFF;
 			if (rel & 0x800) {
-				instr->jumpdest = instr->addr + instr->size - 0x1000 + rel;
+				instr->jumpdest = instr->addr + instr->size + (rel - 0x1000)*2;
 			}
 			else {
-				instr->jumpdest = instr->addr + instr->size + rel;
+				instr->jumpdest = instr->addr + instr->size + rel*2;
 			}
 			instr->operands.push_back(IRArgument::createUVal(instr->jumpdest, arch->instrptrsize * arch->bitbase));
 			if (firstbytes & 0x1000) {//rcall
@@ -690,10 +689,10 @@ namespace holoavr{
 		else if ((firstbytes & 0xF800) == 0xF000) {
 			uint16_t value = (firstbytes & 0x03f8) >> 3;
 			if (value & 0x40) {
-				instr->jumpdest = instr->addr + instr->size + value - 0x80;
+				instr->jumpdest = instr->addr + instr->size + (value - 0x80)*2;
 			}
 			else {
-				instr->jumpdest = instr->addr + instr->size + value;
+				instr->jumpdest = instr->addr + instr->size + value*2;
 			}
 			instr->nojumpdest = instr->addr + instr->size;
 			instr->operands.push_back(IRArgument::createUVal(instr->jumpdest, arch->instrptrsize * arch->bitbase));
@@ -764,6 +763,7 @@ namespace holoavr{
 			return true;
 		}
 		printf("Cannot disassemble Instruction 0x%x,\n", firstbytes);
+		fflush(stdout);
 		return false;
 	}
 

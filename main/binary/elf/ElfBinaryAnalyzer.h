@@ -13,10 +13,10 @@ namespace holoelf {
 		ELF_IS_AHM = 40,
 		ELF_IS_MIPS_X = 51,
 		ELF_IS_X86 = 62,
+		ELF_IS_AVR = 83,
 	};
 	class ElfBinaryAnalyzer : public holodec::BinaryAnalyzer {
 
-		holodec::Binary* binary;
 		holodec::File* file;
 
 		struct {

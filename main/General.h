@@ -198,7 +198,7 @@ namespace holodec {
 		}
 
 		explicit operator bool() const {
-			return !!mask;
+			return mask != 0;
 		}
 
 		explicit operator uint64_t() const {

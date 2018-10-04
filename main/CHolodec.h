@@ -103,7 +103,7 @@ HSSAFlagType ssa_get_expr_flagtype (HSSAExpression ssaExpr);
 HSSAOpType ssa_get_expr_optype (HSSAExpression ssaExpr);
 HId ssa_get_expr_builtinid (HSSAExpression ssaExpr);
 
-HSSAExprLocation ssa_get_expr_locationtype (HSSAExpression ssaExpr);
+HSSALocation ssa_get_expr_locationtype (HSSAExpression ssaExpr);
 HReference ssa_get_expr_locationref (HSSAExpression ssaExpr);
 
 uint64_t ssa_get_expr_instraddr (HSSAExpression ssaExpr);

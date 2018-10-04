@@ -445,27 +445,27 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 
 		{X86_INS_JMP, "jmp", {{1, "#jmp(#arg[1])"}}, InstructionType::eJmp, InstructionType::eUnknown},
 
-		{X86_INS_JE, "je", {{1, "#cjmp(#arg[1],#arg[2],$zf)"}}, InstructionType::eCJmp},
-		{X86_INS_JNE, "jne", {{1, "#cjmp(#arg[1],#arg[2],#not($zf))"}}, InstructionType::eCJmp},
-		{X86_INS_JA, "ja", {{1, "#cjmp(#arg[1],#arg[2],#not(#or($cf,$zf)))"}}, InstructionType::eCJmp},
-		{X86_INS_JAE, "jae", {{1, "#cjmp(#arg[1],#arg[2],#not($cf))"}}, InstructionType::eCJmp},
-		{X86_INS_JB, "jb", {{1, "#cjmp(#arg[1],#arg[2],#not($cf))"}}, InstructionType::eCJmp},
-		{X86_INS_JBE, "jbe", {{1, "#cjmp(#arg[1],#arg[2],#or($cf,$zf))"}}, InstructionType::eCJmp},
-		{X86_INS_JG, "jg", {{1, "#cjmp(#arg[1],#arg[2],#and(#not($zf),==($sf,$of)))"}}, InstructionType::eCJmp},
-		{X86_INS_JGE, "jge", {{1, "#cjmp(#arg[1],#arg[2],==($sf,$of))"}}, InstructionType::eCJmp},
-		{X86_INS_JL, "jl", {{1, "#cjmp(#arg[1],#arg[2],<>($sf,$of))"}}, InstructionType::eCJmp},
-		{X86_INS_JLE, "jle", {{1, "#cjmp(#arg[1],#arg[2],#or($zf,<>($sf,$of)))"}}, InstructionType::eCJmp},
-		{X86_INS_JO, "jo", {{1, "#cjmp(#arg[1],#arg[2],$of)"}}, InstructionType::eCJmp},
-		{X86_INS_JNO, "jno", {{1, "#cjmp(#arg[1],#arg[2],#not($of))"}}, InstructionType::eCJmp},
-		{X86_INS_JS, "js", {{1, "#cjmp(#arg[1],#arg[2],$sf)"}}, InstructionType::eCJmp},
-		{X86_INS_JNS, "jns", {{1, "#cjmp(#arg[1],#arg[2],#not($sf))"}}, InstructionType::eCJmp},
+		{X86_INS_JE, "je", {{1, "#jmp(#arg[1],#arg[2],$zf)"}}, InstructionType::eCJmp},
+		{X86_INS_JNE, "jne", {{1, "#jmp(#arg[1],#arg[2],#not($zf))"}}, InstructionType::eCJmp},
+		{X86_INS_JA, "ja", {{1, "#jmp(#arg[1],#arg[2],#not(#or($cf,$zf)))"}}, InstructionType::eCJmp},
+		{X86_INS_JAE, "jae", {{1, "#jmp(#arg[1],#arg[2],#not($cf))"}}, InstructionType::eCJmp},
+		{X86_INS_JB, "jb", {{1, "#jmp(#arg[1],#arg[2],#not($cf))"}}, InstructionType::eCJmp},
+		{X86_INS_JBE, "jbe", {{1, "#jmp(#arg[1],#arg[2],#or($cf,$zf))"}}, InstructionType::eCJmp},
+		{X86_INS_JG, "jg", {{1, "#jmp(#arg[1],#arg[2],#and(#not($zf),==($sf,$of)))"}}, InstructionType::eCJmp},
+		{X86_INS_JGE, "jge", {{1, "#jmp(#arg[1],#arg[2],==($sf,$of))"}}, InstructionType::eCJmp},
+		{X86_INS_JL, "jl", {{1, "#jmp(#arg[1],#arg[2],<>($sf,$of))"}}, InstructionType::eCJmp},
+		{X86_INS_JLE, "jle", {{1, "#jmp(#arg[1],#arg[2],#or($zf,<>($sf,$of)))"}}, InstructionType::eCJmp},
+		{X86_INS_JO, "jo", {{1, "#jmp(#arg[1],#arg[2],$of)"}}, InstructionType::eCJmp},
+		{X86_INS_JNO, "jno", {{1, "#jmp(#arg[1],#arg[2],#not($of))"}}, InstructionType::eCJmp},
+		{X86_INS_JS, "js", {{1, "#jmp(#arg[1],#arg[2],$sf)"}}, InstructionType::eCJmp},
+		{X86_INS_JNS, "jns", {{1, "#jmp(#arg[1],#arg[2],#not($sf))"}}, InstructionType::eCJmp},
 
-		{X86_INS_JP, "jp", {{1, "#cjmp(#arg[1],#arg[2],$pf)"}}, InstructionType::eCJmp},
-		{X86_INS_JNP, "jnp", {{1, "#cjmp(#arg[1],#arg[2],#not($pf))"}}, InstructionType::eCJmp},
+		{X86_INS_JP, "jp", {{1, "#jmp(#arg[1],#arg[2],$pf)"}}, InstructionType::eCJmp},
+		{X86_INS_JNP, "jnp", {{1, "#jmp(#arg[1],#arg[2],#not($pf))"}}, InstructionType::eCJmp},
 
-		{X86_INS_JCXZ, "jcxz", {{1, "#cjmp(#arg[1],#arg[2],#not($cx))"}}, InstructionType::eCJmp},
-		{X86_INS_JECXZ, "jecxz", {{1, "#cjmp(#arg[1],#arg[2],#not($ecx))"}}, InstructionType::eCJmp},
-		{X86_INS_JRCXZ, "jrcxz", {{1, "#cjmp(#arg[1],#arg[2],#not($rcx))"}}, InstructionType::eCJmp},
+		{X86_INS_JCXZ, "jcxz", {{1, "#jmp(#arg[1],#arg[2],#not($cx))"}}, InstructionType::eCJmp},
+		{X86_INS_JECXZ, "jecxz", {{1, "#jmp(#arg[1],#arg[2],#not($ecx))"}}, InstructionType::eCJmp},
+		{X86_INS_JRCXZ, "jrcxz", {{1, "#jmp(#arg[1],#arg[2],#not($rcx))"}}, InstructionType::eCJmp},
 
 
 		{X86_INS_XCHG, "xchg", {{2, "#seq(=(#t[1],#arg[1]),=(#arg[1],#arg[2]),=(#arg[2],#t[1]))"}}, InstructionType::eXchg},
@@ -497,8 +497,8 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 				{2, "#seq(=($zf,==(#app($rax,$rdx),#arg[1])),?($zf,=(#arg[1],#app($rbx,$rcx)),#seq(=($rax,#arg[1][0,64]),=($rdx,#arg[1][64,64]))))"}
 			}, InstructionType::eXchg, InstructionType::eUnknown
 		},
-		{X86_INS_PUSH, "push", {{1, "#push($stack,#arg[1])"}}, InstructionType::ePush},
-		{X86_INS_POP, "pop", {{1, "=(#arg[1],#pop($stack,#size(#arg[1])))"}}, InstructionType::ePop},
+		{X86_INS_PUSH, "push", {{1, "#seq(=($rsp,-($rsp,#size(#arg[1]))),#st($mem,+($rsp,1),#arg[1]))"}}, InstructionType::ePush},
+		{X86_INS_POP, "pop", {{1, "#seq(=(#arg[1],#ld($mem,+($rsp,1),#size(#arg[1]))),=($rsp,+($rsp,#size(#arg[1]))))"}}, InstructionType::ePop},
 
 		{X86_INS_PUSHAW, "pushad", {{1, "#seq(=(#t[1],$esp),#rec[push]($eax),#rec[push]($ecx),#rec[push]($edx),#rec[push]($edx),#rec[push]($ebx),#rec[push](#t[1]),#rec[push]($ebp),#rec[push]($esi),#rec[push]($edi))"}}, InstructionType::ePush},
 		{X86_INS_PUSHAL, "pusha", {{1, "#seq(=(#t[1],$sp),#rec[push]($ax),#rec[push]($cx),#rec[push]($dx),#rec[push]($dx),#rec[push]($bx),#rec[push](#t[1]),#rec[push]($bp),#rec[push]($si),#rec[push]($di))"}}, InstructionType::ePush},
@@ -526,8 +526,8 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 		{X86_INS_MOVSX, "movsx", {{2, "=(#arg[1],#ext[s](#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov, InstructionType::eExtend},
 		{X86_INS_MOVZX, "movzx", {{2, "=(#arg[1],#ext(#arg[2],#bsize(#arg[1])))"}}, InstructionType::eMov, InstructionType::eExtend},
 
-		{X86_INS_ADD, "add", {{2, "#seq(+(#arg[1][0,4],#arg[2][0,4]),=($af,#c),=(#arg[1],+(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
-		{X86_INS_ADC, "adc", {{2, "#seq(+(#arg[1][0,4],#arg[2][0,4],$cf),=($af,#c),=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADD, "add", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($af,#c(4)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
+		{X86_INS_ADC, "adc", {{2, "#seq(=(#arg[1],+(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($af,#c(4)),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eAdd},
 
 		{X86_INS_SUB, "sub", {{2, "#seq(-(#arg[1][0,4],#arg[2][0,4]),=($af,#c),=(#arg[1],-(#arg[1],#arg[2])),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
 		{X86_INS_SBB, "sbb", {{2, "#seq(-(#arg[1][0,4],#arg[2][0,4],$cf),=($af,#c),=(#arg[1],-(#arg[1],#arg[2],$cf)),=($of,#o),=($cf,#c),=($pf,$parity[u](#arg[1])),=($sf,<[s](#arg[1],0)),=($zf,==(#arg[1],0)))"}}, InstructionType::eSub},
@@ -657,12 +657,12 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 		{X86_INS_BTR, "btr", {{2, "#seq(=($cf,#arg[1][#arg[2]]),=(#arg[1][#arg[2]],0))"}}, InstructionType::eBitTest, InstructionType::eBitReset},
 		{X86_INS_BTC, "btc", {{2, "#seq(=($cf,#arg[1][#arg[2]]),=(#arg[1][#arg[2]],#not(#arg[1][#arg[2]])))"}}, InstructionType::eBitTest, InstructionType::eCpl},
 
-		{X86_INS_LOOP, "loop", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#arg[2],#not($ecx)))"}}, InstructionType::eCJmp},
+		{X86_INS_LOOP, "loop", {{1, "#seq(=($ecx,-($ecx,1)),#jmp(#arg[1],#arg[2],#not($ecx)))"}}, InstructionType::eCJmp},
 
 
-		{X86_INS_LOOPE, "loope", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#arg[2],#not(#and($ecx,$zf))))"}}, InstructionType::eCJmp},
+		{X86_INS_LOOPE, "loope", {{1, "#seq(=($ecx,-($ecx,1)),#jmp(#arg[1],#arg[2],#not(#and($ecx,$zf))))"}}, InstructionType::eCJmp},
 
-		{X86_INS_LOOPNE, "loopne", {{1, "#seq(=($ecx,-($ecx,1)),#cjmp(#arg[1],#arg[2],#not(#and($ecx,#not($zf)))))"}}, InstructionType::eCJmp},
+		{X86_INS_LOOPNE, "loopne", {{1, "#seq(=($ecx,-($ecx,1)),#jmp(#arg[1],#arg[2],#not(#and($ecx,#not($zf)))))"}}, InstructionType::eCJmp},
 
 		{X86_INS_CALL, "call", {{1, "#seq(#push($stack,#ip),#call(#arg[1]))"}},InstructionType::eCall},
 
@@ -761,22 +761,22 @@ Architecture holox86::x86architecture {"x86", "x86", 8, 8, 8, {
 			}
 		},
 
-		{X86_INS_CVTDQ2PD, "cvtdq2pd", {{2, "=(#arg[1],#app(#ext[f](#i2f(#arg[2][0,32]),64),#ext[f](#i2f(#arg[2][32,32]),64)))"}}},
-		{X86_INS_CVTDQ2PS, "cvtdq2ps", {{2, "=(#arg[1],#app(#i2f(#arg[2][0,32]),#i2f(#arg[2][32,32]),#i2f(#arg[2][64,32]),#i2f(#arg[2][96,32])))"}}},
-		{X86_INS_CVTPD2DQ, "cvtpd2dq", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#f2i(#arg[2][32,32]),#ext(0,64)))"}}},
+		{X86_INS_CVTDQ2PD, "cvtdq2pd", {{2, "=(#arg[1],#app(#ext[f](#cast[f](#arg[2][0,32]),64),#ext[f](#cast[f](#arg[2][32,32]),64)))"}}},
+		{X86_INS_CVTDQ2PS, "cvtdq2ps", {{2, "=(#arg[1],#app(#cast[f](#arg[2][0,32]),#cast[f](#arg[2][32,32]),#cast[f](#arg[2][64,32]),#cast[f](#arg[2][96,32])))"}}},
+		{X86_INS_CVTPD2DQ, "cvtpd2dq", {{2, "=(#arg[1],#app(#cast(#arg[2][f,0,32]),#cast(#arg[2][f,32,32]),#ext(0,64)))"}}},
 		{X86_INS_CVTPD2PS, "cvtpd2ps", {{2, "=(#arg[1],#app(#ext[f](#arg[2][0,64],32),#ext[f](#arg[2][64,64],32)))"}}},
-		{X86_INS_CVTPS2DQ, "cvtps2dq", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#f2i(#arg[2][32,32]),#f2i(#arg[2][64,32]),#f2i(#arg[2][96,32])))"}}},
+		{X86_INS_CVTPS2DQ, "cvtps2dq", {{2, "=(#arg[1],#app(#cast(#arg[2][f,0,32]),#cast(#arg[2][f,32,32]),#cast(#arg[2][f,64,32]),#cast(#arg[2][f,96,32])))"}}},
 		{X86_INS_CVTPS2PD, "cvtps2pd", {{2, "=(#arg[1],#app(#ext[f](#arg[2][0,32],64),#ext[f](#arg[2][32,32],64)))"}}},
-		{X86_INS_CVTSD2SI, "cvtsd2si", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,64],32),#arg[1][32]))"}}},
+		{X86_INS_CVTSD2SI, "cvtsd2si", {{2, "=(#arg[1],#app(#cast(#arg[2][f,0,64],32),#arg[1][32]))"}}},
 		{X86_INS_CVTSD2SS, "cvtsd2ss", {{2, "=(#arg[1],#app(#ext[f](#arg[2][0,64],32),#arg[1][32]))"}}},
-		{X86_INS_CVTSI2SD, "cvtsi2sd", {{2, "=(#arg[1],#app(#i2f(#arg[2][0,32],64),#arg[1][64]))"}}},
-		{X86_INS_CVTSI2SS, "cvtsi2ss", {{2, "=(#arg[1],#app(#i2f(#arg[2][0,32]),#arg[1][32]))"}}},
+		{X86_INS_CVTSI2SD, "cvtsi2sd", {{2, "=(#arg[1],#app(#cast[f](#arg[2][0,32],64),#arg[1][64]))"}}},
+		{X86_INS_CVTSI2SS, "cvtsi2ss", {{2, "=(#arg[1],#app(#cast[f](#arg[2][0,32]),#arg[1][32]))"}}},
 		{X86_INS_CVTSS2SD, "cvtss2sd", {{2, "=(#arg[1],#app(#ext[f](#arg[2][0,32],64),#arg[1][64]))"}}},
-		{X86_INS_CVTSS2SI, "cvtss2si", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#arg[1][32]))"}}},
-		{X86_INS_CVTTPD2DQ, "cvttpd2dq", {{2, "=(#arg[1],#app(#ext(#f2i(#arg[2][0,64]),32),#ext(#f2i(#arg[2][64,64]),32),#ext(0,64)))"}}},
-		{X86_INS_CVTTPS2DQ, "cvttps2dq", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,32]),#f2i(#arg[2][32,32]),#f2i(#arg[2][64,32]),#f2i(#arg[2][96,32])))"}}},
-		{X86_INS_CVTTSD2SI, "cvttsd2si", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,64],32),#arg[1][32]))"}}},
-		{X86_INS_CVTTSS2SI, "cvttss2si", {{2, "=(#arg[1],#app(#f2i(#arg[2][0,64],32),#arg[1][32]))"}}},
+		{X86_INS_CVTSS2SI, "cvtss2si", {{2, "=(#arg[1],#app(#cast(#arg[2][f,0,32]),#arg[1][32]))"}}},
+		{X86_INS_CVTTPD2DQ, "cvttpd2dq", {{2, "=(#arg[1],#app(#ext(#cast(#arg[2][f,0,64]),32),#ext(#cast(#arg[2][f,64,64]),32),#ext(0,64)))"}}},
+		{X86_INS_CVTTPS2DQ, "cvttps2dq", {{2, "=(#arg[1],#app(#cast(#arg[2][f,0,32]),#cast(#arg[2][f,32,32]),#cast(#arg[2][f,64,32]),#cast(#arg[2][f,96,32])))"}}},
+		{X86_INS_CVTTSD2SI, "cvttsd2si", {{2, "=(#arg[1],#app(#cast(#arg[2][f,0,64],32),#arg[1][32]))"}}},
+		{X86_INS_CVTTSS2SI, "cvttss2si", {{2, "=(#arg[1],#app(#cast(#arg[2][f,0,64],32),#arg[1][32]))"}}},
 
 		{X86_INS_AESDECLAST, "aesdeclast", {}, InstructionType::eCrypto},
 		{X86_INS_AESDEC, "aesdec", {}, InstructionType::eCrypto},

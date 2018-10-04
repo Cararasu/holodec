@@ -9,16 +9,14 @@ namespace holodec {
 		printf("Simplifying Appends for Function at Address 0x%" PRIx64 "\n", function->baseaddr);
 
 		uint32_t replaced = 0;
-
-		for (SSAExpression& expr : function->ssaRep.expressions) {
+		
+		/*for (SSAExpression& expr : function->ssaRep.expressions) {
 			if (expr.type != SSAExprType::eAppend)
 				continue;
 			for (auto argIt = expr.subExpressions.begin(); argIt != expr.subExpressions.end(); ++argIt) {
 				if (argIt->type == SSAArgType::eId && argIt->location != SSALocation::eMem) {
 					SSAExpression& subExpr = function->ssaRep.expressions[argIt->ssaId];
 					if (subExpr.type != SSAExprType::eAppend)
-						continue;
-					if (argIt->offset == 0 && subExpr.size == argIt->size)
 						continue;
 
 					uint32_t offset = 0;
@@ -32,7 +30,7 @@ namespace holodec {
 					}
 				}
 			}
-		}
+		}*/
 		printf("Replaced %" PRId32 "\n", replaced);
 
 		return replaced != 0;
