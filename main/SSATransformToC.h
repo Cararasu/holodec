@@ -13,6 +13,7 @@ namespace holodec {
 		HId id = 0;
 		HId ssaId = 0;
 		Reference ref;
+		std::set<HId> phiIds;
 		std::set<HId> occuringIds;
 	};
 	enum class ControlStructType{
@@ -59,6 +60,7 @@ namespace holodec {
 		HIdList<UnifiedExprs> unifiedExprs;
 
 		virtual bool doTransformation (Binary* binary, Function* function);
+		UnifiedExprs* getPhiUnifiedExpr(HId id);
 		UnifiedExprs* getUnifiedExpr(HId id);
 		UnifiedExprs* getUnifiedExpr(Reference ref);
 
@@ -69,7 +71,7 @@ namespace holodec {
 		void consolidateBranchLoops(ControlStruct* controlStruct);
 
 
-		void resolveBlockArgument(ControlStruct* controlStruct, SSAArgument& arg, std::set<HId>& printed, uint32_t indent = 0);
+		void resolveBlockArgument(ControlStruct* controlStruct, SSAArgument arg, std::set<HId>& printed, uint32_t indent = 0);
 		void resolveBranchExpr(ControlStruct* controlStruct, SSAExpression& expr, std::set<HId>& printed, uint32_t indent = 0);
 		void resolveBlock(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 		void printControlStruct(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
@@ -77,7 +79,7 @@ namespace holodec {
 		bool printExpression(SSAExpression& expression, uint32_t indent);
 		bool resolveArgVariable(SSAExpression& expr, bool write);
 		void resolveArgs(SSAExpression& expression, const char* delimiter = ", ");
-		void resolveArg(SSAArgument& arg);
+		void resolveArg(SSAArgument arg);
 		bool resolveExpression(SSAExpression& expression);
 		bool shouldResolve(SSAExpression& expr);
 

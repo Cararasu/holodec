@@ -191,10 +191,10 @@ int main (int argc, const char** argv) {
 		new SSAReverseRegUsageAnalyzer(),
 	};
 	std::vector<SSATransformer*> transformers = {
-		new SSAPeepholeOptimizer(),
-		new SSADCETransformer(),
 		new SSARedundancyElimination(),
 		new SSACalleeCallerRegs(),
+		new SSADCETransformer(),
+		new SSAPeepholeOptimizer(),
 	};
 	std::vector<SSATransformer*> endtransformers = {
 		new SSATransformToC(),

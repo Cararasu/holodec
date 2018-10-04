@@ -332,7 +332,7 @@ namespace holodec {
 			expression->instrAddr = instruction->addr;
 		}
 		HId ssaId = ssaRep->addAtEnd (expression, activeblock);
-		if (expression->type == SSAExprType::eOp)
+		if (expression->isOp())
 			lastOp = ssaId;
 		return ssaId;
 	}

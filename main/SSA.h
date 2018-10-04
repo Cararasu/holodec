@@ -17,6 +17,7 @@
 namespace holodec {
 
 	struct Architecture;
+	struct SSAExpression;
 	
 	enum class SSAExprType {
 		eInvalid	= SSA_EXPR_INVALID,
@@ -192,6 +193,8 @@ namespace holodec {
 			arg.ref = ref;
 			return arg;
 		}
+		static inline SSAArgument create(SSAExpression* expr);
+
 		static inline SSAArgument createId(HId ssaId, Reference ref = Reference()) {
 			assert(ssaId);
 			return create(ssaId, ref);
@@ -234,9 +237,9 @@ namespace holodec {
 		if (lhs.type == rhs.type) {
 			switch (lhs.type) {
 			case SSAArgType::eId:
-				return lhs.ssaId == rhs.ssaId;
+				return lhs.ssaId && lhs.ssaId == rhs.ssaId;
 			case SSAArgType::eBlock:
-				return lhs.ssaId == rhs.ssaId;
+				return lhs.ssaId && lhs.ssaId == rhs.ssaId;
 			default:
 				return true;
 			}
@@ -297,7 +300,6 @@ namespace holodec {
 		Reference ref;
 		uint64_t instrAddr = 0;
 
-		HList<HId> refs;
 		HList<HId> directRefs;
 		HList<SSAArgument> subExpressions;
 
@@ -325,6 +327,12 @@ namespace holodec {
 		bool isValue(uint64_t value) {
 			return type == SSAExprType::eValue && exprtype == SSAType::eUInt && uval == value;
 		}
+		bool isOp() {
+			return type == SSAExprType::eOp;
+		}
+		bool isOp(SSAOpType opType) {
+			return type == SSAExprType::eOp && this->opType == opType;
+		}
 
 		bool operator!() {
 			return type == SSAExprType::eInvalid;
@@ -335,6 +343,11 @@ namespace holodec {
 		void print(Architecture* arch, int indent = 0);
 		void printSimple(Architecture* arch, int indent = 0);
 	};
+
+	inline SSAArgument SSAArgument::create(SSAExpression* expr) {
+		return create(expr->id, expr->ref);
+	}
+
 	inline bool weak_equals(SSAExpression& lhs, SSAExpression& rhs) {
 		if (lhs.type == rhs.type && lhs.size == rhs.size && lhs.exprtype == rhs.exprtype) {
 			if (lhs.subExpressions.size() == rhs.subExpressions.size()) {
@@ -413,7 +426,7 @@ namespace holodec {
 		uint64_t replaceAllArgs(SSAExpression& origExpr, SSAArgument replaceArg);
 		bool isReplaceable(SSAExpression& origExpr);
 		uint64_t replaceExpr(SSAExpression& origExpr, SSAArgument replaceArg);
-		uint64_t replaceExprCompletely(SSAExpression& origExpr, SSAArgument replaceArg);
+		uint64_t replaceAllExprs(SSAExpression& origExpr, SSAArgument replaceArg);
 		uint64_t replaceOpExpr(SSAExpression& origExpr, SSAArgument replaceArg, SSAArgument opArg, uint32_t baseoffset);
 		void removeNodes(HSet<HId>* ids);
 		
@@ -474,6 +487,8 @@ namespace holodec {
 		int64_t* fixedValueChange/* result | the value that was added or subtracted */, HId* baseExprId/* result | the furthest argument we can travel to */);
 
 	bool combine_operations(SSARepresentation* ssaRep, HId* exprsToReplace, SSAArgument* firstargss, SSAArgument* secargss, uint32_t count, SSAExpression expr, uint64_t instrAddr);
+
+	bool is_part_of(SSARepresentation* ssaRep, SSAArgument firstArg, SSAArgument secondArg);
 
 	//checks if the expressions refer to the same expressions just split so they are laid out consecutive
 	//or they refer to load expressions that are consequitve in memory

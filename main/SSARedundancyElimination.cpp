@@ -20,7 +20,7 @@ namespace holodec {
 					if (weak_equals(function->ssaRep.expressions[*iit], function->ssaRep.expressions[*jit])) {
 						if (function->ssaRep.expressions[*jit].directRefs.size()) {
 							//always replace the second with the first otherwise ordering becomes an issue
-							function->ssaRep.replaceExprCompletely(function->ssaRep.expressions[*jit], SSAArgument::createId(*iit));
+							function->ssaRep.replaceAllExprs(function->ssaRep.expressions[*jit], SSAArgument::createId(*iit));
 							applied++;
 						}
 					}
