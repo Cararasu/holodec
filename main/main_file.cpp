@@ -126,6 +126,26 @@ int main (int argc, const char** argv) {
 	}
 	Binary* binary = analyzer->binary;
 
+	if(binary->arch->name == "avr"){
+		Symbol* sym = new holodec::Symbol();
+		sym->name = "entry";
+		sym->size = 0;
+		sym->symboltype = &holodec::SymbolType::symfunc;
+		//fibseq
+		sym->vaddr = 0xe6;
+		//fibrec
+		//sym->vaddr = 0x68;
+		//fibdrec
+		//sym->vaddr = 0x5c;
+		//fibseq
+		//sym->vaddr = 0x448;
+		//plus
+		//sym->vaddr = 0x1a4;
+		//prime
+		//sym->vaddr = 0x34;
+		binary->addSymbol(sym);
+		binary->addEntrypoint(sym->id);
+	}
 
 	for(Section* section : binary->sections){
 		section->print();

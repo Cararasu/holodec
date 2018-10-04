@@ -12,7 +12,7 @@ namespace holodec {
 
 		CalleeArgument() {}
 		CalleeArgument(SSAArgument& arg) : ssaId(arg.ssaId) {}
-		CalleeArgument(CalleeArgument& arg) : ssaId(arg.ssaId), change(arg.change) {}
+		CalleeArgument(const CalleeArgument& arg) : ssaId(arg.ssaId), change(arg.change) {}
 		CalleeArgument(const CalleeArgument&& arg) : ssaId(arg.ssaId), change(arg.change) {}
 
 		CalleeArgument& operator=(CalleeArgument arg) {

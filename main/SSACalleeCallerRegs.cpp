@@ -71,20 +71,29 @@ namespace holodec{
 		if (f != exprvisited.end()) {
 			return f->second == arg;
 		}
+		
 		SSAExpression* expr = &function->ssaRep.expressions[arg.ssaId];
 		if (expr->type == SSAExprType::ePhi) {
-			exprvisited.insert(std::make_pair(expr->id, arg));
+			//create temporary map so we can reset if the first loop fails otherwise temporary phi-argument pairs may remain
+			//which might cause a success where there is none
+			std::map<HId, CalleeArgument> tempexprvisited = exprvisited;
+			tempexprvisited.insert(std::make_pair(expr->id, arg));
 			bool retry, success;
-			retry = !(success = calc_basearg_plus_offset(arch, function, arg.replace(expr->subExpressions[1]), exprvisited, reg, retArg));
+			retry = !(success = calc_basearg_plus_offset(arch, function, arg.replace(expr->subExpressions[1]), tempexprvisited, reg, retArg));
 			for (size_t i = 3; i < expr->subExpressions.size(); i+=2) {
-				success = calc_basearg_plus_offset(arch, function, arg.replace(expr->subExpressions[i]), exprvisited, reg, retArg) && success;
+				success = calc_basearg_plus_offset(arch, function, arg.replace(expr->subExpressions[i]), tempexprvisited, reg, retArg) && success;
 			}
 			//otherwise it might be because of recursion so we try again
 			if (retry) {
-				success = true;
+				exprvisited.insert(std::make_pair(expr->id, arg));
 				for (size_t i = 1; i < expr->subExpressions.size(); i+=2) {
-					success = calc_basearg_plus_offset(arch, function, arg.replace(expr->subExpressions[i]), exprvisited, reg, retArg) && success;
+					if(!calc_basearg_plus_offset(arch, function, arg.replace(expr->subExpressions[i]), exprvisited, reg, retArg))
+						return false;
 				}
+				success = true;
+			}else{
+				//lock the temporary map because we will not continue
+				exprvisited = tempexprvisited;
 			}
 			return success;
 		}

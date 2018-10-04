@@ -263,12 +263,13 @@ namespace holodec {
 
 				SSAExpression lowerexpression = subexpr;
 				lowerexpression.opType = SSAOpType::eLower;
-				lowerexpression.size = 1;
 				lowerexpression.exprtype = lexpr.exprtype;
+				lowerexpression.size = 1;
 				lowerexpression.directRefs.clear();
 
 				//This is made to replace SF != ZF patterns but for multibyte subtracts it may produce weird results
-				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
+				SSAArgument lowerarg = SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0]));
+				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], lowerarg);
 
 				return true;
 			})
@@ -309,9 +310,12 @@ namespace holodec {
 				SSAExpression lowerexpression = subexpr;
 				lowerexpression.opType = SSAOpType::eGe;
 				lowerexpression.exprtype = lexpr.exprtype;
+				lowerexpression.size = 1;
+				lowerexpression.directRefs.clear();
 
 				//This is made to replace SF != ZF patterns but for multibyte subtracts it may produce weird results
-				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
+				SSAArgument lowerarg = SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0]));
+				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], lowerarg);
 
 				return true;
 			})
@@ -331,7 +335,8 @@ namespace holodec {
 				lowerexpression.size = 1;
 				lowerexpression.directRefs.clear();
 
-				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0])));
+				SSAArgument lowerarg = SSAArgument::createId(ssaRep->addAfter(&lowerexpression, context->expressionsMatched[0]));
+				ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], lowerarg);
 
 				return true;
 			})
@@ -442,7 +447,8 @@ namespace holodec {
 						SSAArgument::createId(ssaRep->addBefore(&appExpr1, context->expressionsMatched[0])), 
 						SSAArgument::createId(ssaRep->addBefore(&appExpr2, context->expressionsMatched[0])) 
 					};
-					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addBefore(&compareExpr, context->expressionsMatched[0]))) != 0;
+					SSAArgument comparearg = SSAArgument::createId(ssaRep->addBefore(&compareExpr, context->expressionsMatched[0]));
+					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], comparearg) != 0;
 				}
 				return false;
 			})
@@ -462,7 +468,8 @@ namespace holodec {
 					newExpr.subExpressions = secArgExpr->subExpressions;
 					newExpr.size = 1;
 
-					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addBefore(&newExpr, context->expressionsMatched[0]))) != 0;
+					SSAArgument newarg = SSAArgument::createId(ssaRep->addBefore(&newExpr, context->expressionsMatched[0]));
+					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], newarg) != 0;
 				}else if (firstArgExpr->isOp(SSAOpType::eSub) && secArgExpr->isValue(0x0)) {
 					SSAExpression newExpr;
 					newExpr.type = SSAExprType::eOp;
@@ -470,7 +477,8 @@ namespace holodec {
 					newExpr.subExpressions = firstArgExpr->subExpressions;
 					newExpr.size = 1;
 
-					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addBefore(&newExpr, context->expressionsMatched[0]))) != 0;
+					SSAArgument newarg = SSAArgument::createId(ssaRep->addBefore(&newExpr, context->expressionsMatched[0]));
+					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], newarg) != 0;
 				}
 				return false;
 			})
@@ -487,7 +495,9 @@ namespace holodec {
 				neqExpr.size = 1;
 				neqExpr.instrAddr = notExpr.instrAddr;
 				neqExpr.subExpressions = eqExpr.subExpressions;
-				return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addBefore(&neqExpr, context->expressionsMatched[0]))) != 0;
+				
+				SSAArgument neqarg = SSAArgument::createId(ssaRep->addBefore(&neqExpr, context->expressionsMatched[0]));
+				return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], neqarg) != 0;
 			})
 			.ssaType(0, 0, SSAOpType::eNot)
 			.ssaType(1, 1, SSAOpType::eNe)
@@ -502,7 +512,9 @@ namespace holodec {
 				eqExpr.size = 1;
 				eqExpr.instrAddr = notExpr.instrAddr;
 				eqExpr.subExpressions = neqExpr.subExpressions;
-				return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addBefore(&eqExpr, context->expressionsMatched[0]))) != 0;
+				
+				SSAArgument eqarg = SSAArgument::createId(ssaRep->addBefore(&eqExpr, context->expressionsMatched[0]));
+				return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], eqarg) != 0;
 			})
 			//((((arg16 | arg17 << 8)) == ((arg1 | arg1 << 8))) && (arg16 == arg1)) -> (((arg16 | arg17 << 8)) == ((arg1 | arg1 << 8)))
 			.ssaType(0, 0, SSAOpType::eAnd)
@@ -552,8 +564,11 @@ namespace holodec {
 				for (SSAArgument& arg : app1Expr.subExpressions) app1Expr.size += ssaRep->expressions[arg.ssaId].size;
 				for (SSAArgument& arg : app2Expr.subExpressions) app2Expr.size += ssaRep->expressions[arg.ssaId].size;
 
-				eqExpr.replaceArgument(ssaRep, 0, SSAArgument::createId(ssaRep->addBefore(&app1Expr, context->expressionsMatched[0])));
-				eqExpr.replaceArgument(ssaRep, 1, SSAArgument::createId(ssaRep->addBefore(&app2Expr, context->expressionsMatched[0])));
+				SSAArgument app1arg = SSAArgument::createId(ssaRep->addBefore(&app1Expr, context->expressionsMatched[0]));
+				eqExpr.replaceArgument(ssaRep, 0, app1arg);
+				
+				SSAArgument app2arg = SSAArgument::createId(ssaRep->addBefore(&app2Expr, context->expressionsMatched[0]));
+				eqExpr.replaceArgument(ssaRep, 1, app2arg);
 
 				return true;
 			})
@@ -585,8 +600,11 @@ namespace holodec {
 				for (SSAArgument& arg : app1Expr.subExpressions) app1Expr.size += ssaRep->expressions[arg.ssaId].size;
 				for (SSAArgument& arg : app2Expr.subExpressions) app2Expr.size += ssaRep->expressions[arg.ssaId].size;
 
-				ssaRep->expressions[context->expressionsMatched[0]].replaceArgument(ssaRep, 0, SSAArgument::createId(ssaRep->addBefore(&app1Expr, context->expressionsMatched[0])));
-				ssaRep->expressions[context->expressionsMatched[0]].replaceArgument(ssaRep, 1, SSAArgument::createId(ssaRep->addBefore(&app2Expr, context->expressionsMatched[0])));
+				SSAArgument app1arg = SSAArgument::createId(ssaRep->addBefore(&app1Expr, context->expressionsMatched[0]));
+				ssaRep->expressions[context->expressionsMatched[0]].replaceArgument(ssaRep, 0, app1arg);
+
+				SSAArgument app2arg = SSAArgument::createId(ssaRep->addBefore(&app2Expr, context->expressionsMatched[0]));
+				ssaRep->expressions[context->expressionsMatched[0]].replaceArgument(ssaRep, 1, app2arg);
 
 				return true;
 			})
@@ -686,7 +704,8 @@ namespace holodec {
 						SSAArgument::createId(baseExprId),
 						SSAArgument::createId(ssaRep->addBefore(&valExpr, subId))
 					};
-					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addBefore(&newExpr, subId))) != 0;
+					SSAArgument newarg = SSAArgument::createId(ssaRep->addBefore(&newExpr, subId));
+					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], newarg) != 0;
 				}
 				else {
 					return ssaRep->replaceExpr(subexpr, SSAArgument::createId(baseExprId)) != 0;
@@ -719,15 +738,59 @@ namespace holodec {
 				for (SSAArgument& arg : opExpr.subExpressions) {
 					if (!ssaRep->expressions[arg.ssaId].isConst(SSAType::eUInt)) return false;
 				}
+				SSAExpression valexpr;
+				valexpr.type = SSAExprType::eValue;
+				valexpr.exprtype = SSAType::eUInt;
+				valexpr.size = opExpr.size;
+				valexpr.instrAddr = opExpr.instrAddr;
+				valexpr.uval = ssaRep->expressions[opExpr.subExpressions[0].ssaId].uval;
 				switch (opExpr.opType) {
+				case SSAOpType::eAdd: {
+					for (auto it = opExpr.subExpressions.begin() + 1; it != opExpr.subExpressions.end(); ++it) {
+						valexpr.uval += ssaRep->expressions[it->ssaId].uval;
+					}
+				}break;
+				case SSAOpType::eSub: {
+					for (auto it = opExpr.subExpressions.begin() + 1; it != opExpr.subExpressions.end(); ++it) {
+						valexpr.uval -= ssaRep->expressions[it->ssaId].uval;
+					}
+				}break;
 				case SSAOpType::eShl: {
-					//TODO implement reductions here
+					for (auto it = opExpr.subExpressions.begin() + 1; it != opExpr.subExpressions.end(); ++it) {
+						valexpr.uval <<= ssaRep->expressions[it->ssaId].uval;
+					}
+				}break;
+				case SSAOpType::eShr: {
+					for (auto it = opExpr.subExpressions.begin() + 1; it != opExpr.subExpressions.end(); ++it) {
+						valexpr.uval >>= ssaRep->expressions[it->ssaId].uval;
+					}
+				}break;
+				case SSAOpType::eBNot: {
+					valexpr.uval = ~valexpr.uval;
+				}break;
+				case SSAOpType::eBAnd: {
+					for (auto it = opExpr.subExpressions.begin() + 1; it != opExpr.subExpressions.end(); ++it) {
+						valexpr.uval &= ssaRep->expressions[it->ssaId].uval;
+					}
+				}break;
+				case SSAOpType::eBOr: {
+					for (auto it = opExpr.subExpressions.begin() + 1; it != opExpr.subExpressions.end(); ++it) {
+						valexpr.uval |= ssaRep->expressions[it->ssaId].uval;
+					}
+				}break;
+				case SSAOpType::eBXor: {
+					for (auto it = opExpr.subExpressions.begin() + 1; it != opExpr.subExpressions.end(); ++it) {
+						SSAArgument& arg = *it;
+						valexpr.uval ^= ssaRep->expressions[it->ssaId].uval;
+					}
 				}break;
 				default: {
-
+					return false;
 				}break;
 				}
-				return false;
+				valexpr.uval &= (1 << valexpr.size) - 1;
+				SSAArgument valarg = SSAArgument::createId(ssaRep->addBefore(&valexpr, context->expressionsMatched[0]));
+				return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], valarg) != 0;
 			})
 			.ssaType(0, 0, SSAExprType::eAppend)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
@@ -774,7 +837,8 @@ namespace holodec {
 						innerOffset += subsize;
 					}
 					for (SSAExpression& expr : toinsertexprs) {
-						index = ssaRep->expressions[exprId].insertArgument(ssaRep, index, SSAArgument::createId(ssaRep->addBefore(&expr, exprId)));
+						SSAArgument newarg = SSAArgument::createId(ssaRep->addBefore(&expr, exprId));
+						index = ssaRep->expressions[exprId].insertArgument(ssaRep, index, newarg);
 					}
 					if(toinsertexprs.size())
 						subAppends = true;
@@ -883,7 +947,8 @@ namespace holodec {
 							offset += phiexpr->size;
 							HId smallerphiId = phiexpr->id;
 
-							ssaRep->replaceAllExprs(ssaRep->expressions[smallerphiId], SSAArgument::createId(ssaRep->addAfter(&split, phiId)));
+							SSAArgument newarg = SSAArgument::createId(ssaRep->addAfter(&split, phiId));
+							ssaRep->replaceAllExprs(ssaRep->expressions[smallerphiId], newarg);
 
 							//reload
 							expr = &ssaRep->expressions[exprId];
@@ -905,7 +970,9 @@ namespace holodec {
 						newexpr.size = thisexpr->size + lastexpr->size;
 
 						index = ssaRep->expressions[exprId].removeArgument(ssaRep, index);
-						ssaRep->expressions[exprId].setArgument(ssaRep, index - 1, SSAArgument::createId(ssaRep->addBefore(&newexpr, exprId)));
+						
+						SSAArgument newarg = SSAArgument::createId(ssaRep->addBefore(&newexpr, exprId));
+						ssaRep->expressions[exprId].setArgument(ssaRep, index - 1, newarg);
 						expr = &ssaRep->expressions[exprId];
 						replaced = true;
 						continue;
@@ -935,7 +1002,8 @@ namespace holodec {
 							newexpr.instrAddr = lastexpr->instrAddr;
 
 							index = ssaRep->expressions[exprId].removeArgument(ssaRep, index);
-							ssaRep->expressions[exprId].setArgument(ssaRep, index - 1, SSAArgument::createId(ssaRep->addAfter(&newexpr, thisexpr->id)));
+							SSAArgument newarg = SSAArgument::createId(ssaRep->addAfter(&newexpr, thisexpr->id));
+							ssaRep->expressions[exprId].setArgument(ssaRep, index - 1, newarg);
 							expr = &ssaRep->expressions[exprId];
 							replaced = true;
 							continue;
@@ -1012,7 +1080,9 @@ namespace holodec {
 					newexpr.subExpressions = thisexpr->subExpressions;
 
 					index = ssaRep->expressions[exprId].removeArgument(ssaRep, index);
-					ssaRep->expressions[exprId].setArgument(ssaRep, index - 1, SSAArgument::createId(ssaRep->addAfter(&newexpr, thisexpr->id)));
+					//split these because apparently
+					SSAArgument arg = SSAArgument::createId(ssaRep->addAfter(&newexpr, thisexpr->id));
+					ssaRep->expressions[exprId].setArgument(ssaRep, index - 1, arg);
 					expr = &ssaRep->expressions[exprId];
 					replaced = true;
 					continue;
@@ -1036,7 +1106,8 @@ namespace holodec {
 					zeroexpr.type = SSAExprType::eValue;
 					zeroexpr.exprtype = SSAType::eUInt;
 					zeroexpr.uval = 0x0;
-					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], SSAArgument::createId(ssaRep->addBefore(&zeroexpr, expr.size))) != 0;
+					SSAArgument zeroarg = SSAArgument::createId(ssaRep->addBefore(&zeroexpr, expr.size));
+					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], zeroarg) != 0;
 				}
 				return false;
 			})

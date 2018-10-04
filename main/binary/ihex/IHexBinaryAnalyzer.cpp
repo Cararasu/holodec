@@ -93,16 +93,6 @@ namespace holoihex {
 				assert(mem);
 				binary->memorySpaces.emplace(mem->id, memSpace);
 
-				holodec::Symbol* sym = binary->findSymbol(0, &holodec::SymbolType::symfunc);
-				if (!sym) {
-					sym = new holodec::Symbol();
-					sym->name = "entry";
-					sym->size = 0;
-					sym->symboltype = &holodec::SymbolType::symfunc;
-					sym->vaddr = 0xe6;
-					binary->addSymbol(sym);
-				}
-				binary->addEntrypoint(sym->id);
 				return true;
 			}
 			case 0x02:
