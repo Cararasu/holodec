@@ -345,6 +345,7 @@ namespace holodec {
 			.ssaType(1, 1, SSAOpType::eLower)
 			.ssaType(1, 2, SSAOpType::eEq)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+				//or not
 				return false;
 			})
 			.ssaType(0, 0, SSAOpType::eAdd)
@@ -375,8 +376,9 @@ namespace holodec {
 				SSAExpression& lowerExpr = ssaRep->expressions[context->expressionsMatched[1]];
 				SSAExpression& secondAdd = ssaRep->expressions[context->expressionsMatched[0]];
 				if (!secondAdd.directRefs.size() || lowerExpr.subExpressions.size() != 2 || secondAdd.subExpressions.size() != 3 || lowerExpr.exprtype != secondAdd.exprtype ||
-					(lowerExpr.exprtype != SSAType::eUInt && lowerExpr.exprtype != SSAType::eInt))
+					(lowerExpr.exprtype != SSAType::eUInt && lowerExpr.exprtype != SSAType::eInt)) {
 					return false;
+				}
 
 				g_peephole_logger.log<LogLevel::eDebug>("Replace Sub - Carry Sub");
 
@@ -452,6 +454,8 @@ namespace holodec {
 				}
 				return false;
 			})
+			//eq(0x0, -(xx, yy)) -> -(xx, yy)
+			//eq(-(xx, yy), 0x0) -> -(xx, yy)
 			.ssaType(0, 0, SSAOpType::eEq)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 				SSAExpression& eqExpr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -547,10 +551,16 @@ namespace holodec {
 
 				if (eqExpr.subExpressions.size() != 2 || addExpr.subExpressions.size() != 2 || lowerExpr.subExpressions.size() != 2)
 					return false;
-				{//check if the a < + < chain was resolved
-					SSAExpression* sExpr = &ssaRep->expressions[lowerExpr.subExpressions[1].ssaId];
-					if (sExpr->isOp(SSAOpType::eAdd))
-						return false;
+				{//check if the a <(xx, +(yy, <(...))) chain was resolved, if not don't do anything
+					for (SSAArgument& arg : lowerExpr.subExpressions) {
+						SSAExpression* sExpr = &ssaRep->expressions[arg.ssaId];
+						if (sExpr->isOp(SSAOpType::eAdd)) {
+							for (SSAArgument& arg : sExpr->subExpressions) {
+								SSAExpression* ssExpr = &ssaRep->expressions[arg.ssaId];
+								if (sExpr->isOp(SSAOpType::eLower)) return false;
+							}
+						}
+					}
 				}
 
 				SSAExpression app1Expr;
@@ -979,6 +989,17 @@ namespace holodec {
 					}
 					index++;
 				}
+				//combine multiple loads
+				for (size_t index = 1; index < expr->subExpressions.size();) {
+					SSAExpression* thisexpr = &ssaRep->expressions[expr->subExpressions[index].ssaId];
+					SSAExpression* lastexpr = &ssaRep->expressions[expr->subExpressions[index - 1].ssaId];
+					if (thisexpr->type == SSAExprType::eLoad && lastexpr->type == SSAExprType::eLoad) {
+						if (thisexpr->subExpressions[0].ssaId == lastexpr->subExpressions[0].ssaId) {
+							//printf("");
+						}
+					}
+					index++;
+				}
 				//combine multiple loads in an append
 				for (size_t index = 1; index < expr->subExpressions.size(); ) {
 					SSAExpression* thisexpr = &ssaRep->expressions[expr->subExpressions[index].ssaId];
@@ -993,20 +1014,31 @@ namespace holodec {
 						uint64_t difference = lastexpr->size / (mem->wordsize * arch->bitbase);
 
 						int64_t diff;
-						if (calculate_difference(ssaRep, lastexpr->subExpressions[1].ssaId, thisexpr->subExpressions[1].ssaId, &diff) && difference == diff) {
-							SSAExpression newexpr;
-							newexpr.type = SSAExprType::eLoad;
-							newexpr.exprtype = SSAType::eUInt;
-							newexpr.size = thisexpr->size + lastexpr->size;
-							newexpr.subExpressions = lastexpr->subExpressions;
-							newexpr.instrAddr = lastexpr->instrAddr;
+						int64_t change;
+						if (calculate_difference(ssaRep, thisexpr->subExpressions[1].ssaId, lastexpr->subExpressions[1].ssaId, &change)) {
+							if (change * arch->bitbase == thisexpr->size) {
+								//printf("");
+							}
+							if ((-change) * arch->bitbase == lastexpr->size) {
+								//printf("");
+							}
+						}
+						if (calculate_difference(ssaRep, lastexpr->subExpressions[1].ssaId, thisexpr->subExpressions[1].ssaId, &diff)){
+							if (difference == diff) {
+								SSAExpression newexpr;
+								newexpr.type = SSAExprType::eLoad;
+								newexpr.exprtype = SSAType::eUInt;
+								newexpr.size = thisexpr->size + lastexpr->size;
+								newexpr.subExpressions = lastexpr->subExpressions;
+								newexpr.instrAddr = lastexpr->instrAddr;
 
-							index = ssaRep->expressions[exprId].removeArgument(ssaRep, index);
-							SSAArgument newarg = SSAArgument::createId(ssaRep->addAfter(&newexpr, thisexpr->id));
-							ssaRep->expressions[exprId].setArgument(ssaRep, index - 1, newarg);
-							expr = &ssaRep->expressions[exprId];
-							replaced = true;
-							continue;
+								index = ssaRep->expressions[exprId].removeArgument(ssaRep, index);
+								SSAArgument newarg = SSAArgument::createId(ssaRep->addAfter(&newexpr, thisexpr->id));
+								ssaRep->expressions[exprId].setArgument(ssaRep, index - 1, newarg);
+								expr = &ssaRep->expressions[exprId];
+								replaced = true;
+								continue;
+							}
 						}
 						index++;
 						continue;
@@ -1033,11 +1065,10 @@ namespace holodec {
 							thisbase = &ssaRep->expressions[thisexpr->subExpressions[0].ssaId];
 						}
 					}
-					if (thisbase->isOp() && lastbase->isOp() && thisbase->opType == lastbase->opType &&
+					if (thisbase->isOp() && lastbase->isOp() && (thisbase->opType == lastbase->opType) &&
 							//check that we only look at the last part
-							lastoffset + lastsize == lastbase->size && thisoffset + thissize == thisbase->size &&
-							lastoffset + lastsize == thisoffset &&
-							lastbase->subExpressions.size() == 2 && thisbase->subExpressions.size() == 2) {
+							(lastoffset + lastsize == lastbase->size) && (thisoffset + thissize == thisbase->size) && (lastoffset + lastsize == thisoffset) &&
+							(lastbase->subExpressions.size()) == 2 && (thisbase->subExpressions.size() == 2)) {
 
 						if (is_part_of(ssaRep, lastbase->subExpressions[0], thisbase->subExpressions[0]) && is_part_of(ssaRep, lastbase->subExpressions[1], thisbase->subExpressions[1])) {
 							if (lastoffset) {
@@ -1109,6 +1140,17 @@ namespace holodec {
 					SSAArgument zeroarg = SSAArgument::createId(ssaRep->addBefore(&zeroexpr, expr.size));
 					return ssaRep->replaceExpr(ssaRep->expressions[context->expressionsMatched[0]], zeroarg) != 0;
 				}
+				/*This is bad as it prevents other better optimizations at the moment
+				if ( (expr.opType == SSAOpType::eSub || expr.opType == SSAOpType::eAdd) && expr.subExpressions.size() == 2) {
+					SSAExpression& arg1 = ssaRep->expressions[expr.subExpressions[0].ssaId];
+					SSAExpression& arg2 = ssaRep->expressions[expr.subExpressions[1].ssaId];
+					if (arg1.isValue(0)) {
+						return ssaRep->replaceExpr(expr, expr.subExpressions[1]) != 0;
+					}
+					else if (arg2.isValue(0)) {
+						return ssaRep->replaceExpr(expr, expr.subExpressions[0]) != 0;
+					}
+				}*/
 				return false;
 			})
 			.ssaType(0, 0, SSAOpType::eEq)

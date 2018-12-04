@@ -441,7 +441,7 @@ namespace holoavr {
 
 		{ AVR_INSTR_SUB, "sub",{
 			{ 2, "#seq(=($zf,==(#arg[1],#arg[2])),=(#arg[1],-(#arg[1],#arg[2])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" },
-			{ 3, "#seq(=($zf,==(#app(#arg[1],#arg[2]),#arg[3])),=(#t[1],-(#app(#arg[1],#arg[2]),#arg[3])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)),=(#arg[1],#t[1][0,8]),=(#arg[1],#t[1][8,8]))" }
+			{ 3, "#seq(=($zf,==(#app(#arg[1],#arg[2]),#arg[3])),=(#t[1],-(#app(#arg[1],#arg[2]),#arg[3])),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)),=(#arg[1],#t[1][0,8]),=(#arg[2],#t[1][8,8]))" }
 		}, InstructionType::eSub },
 		{ AVR_INSTR_SBC, "sbc",{
 			{ 2, "#seq(=($zf,#and(==(#arg[1],+(#arg[2],$cf)),$zf)),=(#arg[1],-(#arg[1],#arg[2],$cf)),=($cf,#c),=($hf,#c(4)),=($vf,#o),=($nf,<[s](#arg[1],0)),=($sf,<>($nf,$vf)))" }

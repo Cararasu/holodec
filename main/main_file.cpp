@@ -132,7 +132,7 @@ int main (int argc, const char** argv) {
 		sym->size = 0;
 		sym->symboltype = &holodec::SymbolType::symfunc;
 		//fibseq
-		sym->vaddr = 0xe6;
+		sym->vaddr = 0x28;
 		//fibrec
 		//sym->vaddr = 0x68;
 		//fibdrec
@@ -308,8 +308,7 @@ int main (int argc, const char** argv) {
 			func->ssaRep.recalcRefCounts();
 			holodec::g_logger.log<LogLevel::eInfo>("Symbol %s", binary->getSymbol(func->symbolref)->name.cstr());
 			for (SSATransformer* transform : endtransformers) {
-				if (transform)
-					transform->doTransformation(binary, func);
+				if (transform) transform->doTransformation(binary, func);
 			}
 		}
 	}

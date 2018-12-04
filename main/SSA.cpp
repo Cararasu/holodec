@@ -1317,6 +1317,9 @@ namespace holodec {
 			}
 			return false;
 		}
+		else if (firstexpr->type == SSAExprType::eSplit && secexpr->type != SSAExprType::eSplit) {
+			return weak_equals(firstexpr->subExpressions[0], secondArg);
+		}
 		else if (firstexpr->type == SSAExprType::ePhi && secexpr->type == SSAExprType::ePhi) {
 			if (firstexpr->size >= secexpr->size)
 				return false;

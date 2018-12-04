@@ -72,7 +72,7 @@ namespace holodec {
 
 
 		void resolveBlockArgument(ControlStruct* controlStruct, SSAArgument arg, std::set<HId>& printed, uint32_t indent = 0);
-		void resolveBranchExpr(ControlStruct* controlStruct, SSAExpression& expr, std::set<HId>& printed, uint32_t indent = 0);
+		void resolveBranchExpr(ControlStruct* controlStruct, std::set<HId>& printed, uint32_t indent = 0);
 		void resolveBlock(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 		void printControlStruct(ControlStruct* controlStruct, SSABB& bb, std::set<HId>& printed, uint32_t indent = 0);
 

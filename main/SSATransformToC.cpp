@@ -701,20 +701,11 @@ namespace holodec {
 		return true;
 	}
 	bool SSATransformToC::printExpression ( SSAExpression& expr, uint32_t indent ) {
-		if ( expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eBranch )
+		if ( expr.type == SSAExprType::eOutput || expr.type == SSAExprType::eInput || expr.type == SSAExprType::eBranch || expr.type == SSAExprType::ePhi)
 			return false;
 		resolveIds.insert ( expr.id );
 		printIndent ( indent );
 		if ( expr.type == SSAExprType::ePhi ) {
-			UnifiedExprs* uExprs = getPhiUnifiedExpr ( expr.uniqueId );
-			printExprType ( expr );
-			resolveArgVariable ( expr, true );
-			Register* reg = arch->getRegister ( uExprs->ref.id );
-			if ( reg->id )
-				printf ( " = var_%s", reg->name.cstr() );
-			else
-				printf ( " = var%d", uExprs->id );
-			uExprs->ssaId = expr.id;
 			return true;
 		}
 		UnifiedExprs* uExprs = getUnifiedExpr ( expr.uniqueId );
@@ -789,21 +780,35 @@ namespace holodec {
 			printf ( ";\n" );
 		}
 	}
-	void SSATransformToC::resolveBranchExpr ( ControlStruct* controlStruct, SSAExpression& expr, std::set<HId>& printed, uint32_t indent ) {
+	void SSATransformToC::resolveBranchExpr ( ControlStruct* controlStruct, std::set<HId>& printed, uint32_t indent ) {
+		SSAExpression& expr = function->ssaRep.expressions[function->ssaRep.bbs[controlStruct->head_block].exprIds.back()];
 		if ( expr.type == SSAExprType::eBranch ) {
-			/*if (expr.subExpressions.size() == 3 &&
-				expr.subExpressions[0].type == SSAArgType::eOther && expr.subExpressions[0].location == SSALocation::eBlock &&
-				(controlStruct->type == ControlStructType::LOOP || (controlStruct->type != ControlStructType::LOOP && expr.subExpressions[].ref.refId == controlStruct->main_exit))) {
-				//special case where the first jump leads to the end of the branch
-				//then we invert the if and only print the original else block
-				printIndent(indent);
-				printf("if(!");
-				resolveArg(expr.subExpressions[1]);
-				printf(") {\n");
-				resolveBlockArgument(controlStruct, expr.subExpressions[2], printed, indent + 1);
-				printIndent(indent); printf("}\n");
+
+			for (size_t i = 0; i < expr.subExpressions.size(); i += 2) {
+				SSAArgument arg = expr.subExpressions[i];
+				if (arg.type == SSAArgType::eBlock) {
+					SSABB* bb = &function->ssaRep.bbs[arg.ssaId];
+					for (HId id : bb->exprIds) {
+						SSAExpression* anexpr = &function->ssaRep.expressions[id];
+						if (anexpr->type == SSAExprType::ePhi) {
+							printIndent(indent);
+							UnifiedExprs* uExprs = getPhiUnifiedExpr(anexpr->uniqueId);
+							printExprType(*anexpr);
+							//resolveArgVariable(*anexpr, true);
+							printf("tmp%d", anexpr->id);
+							Register* reg = arch->getRegister(uExprs->ref.id);
+							if (reg->id)
+								printf(" = var_%s", reg->name.cstr());
+							else
+								printf(" = var%d", uExprs->id);
+							uExprs->ssaId = expr.id;
+							printf("\n");
+						}
+					}
+				}
+
 			}
-			else */if ( expr.subExpressions.size() == 1 ) {
+			if ( expr.subExpressions.size() == 1 ) {
 				SSAArgument& blockarg = expr.subExpressions[0];
 				resolveBlockArgument ( controlStruct, blockarg, printed, indent );
 			} else {
@@ -879,21 +884,22 @@ namespace holodec {
 				}
 			}
 			if ( endBB ) {
-				resolveBranchExpr ( controlStruct, function->ssaRep.expressions[endBB->exprIds.back()], printed, indent );
+				resolveBranchExpr ( controlStruct, printed, indent );
 			}
 		}
 		break;
 		case ControlStructType::BRANCH: {
 			resolveBlock ( controlStruct, function->ssaRep.bbs[controlStruct->head_block], printed, indent );
-			resolveBranchExpr ( controlStruct, function->ssaRep.expressions[function->ssaRep.bbs[controlStruct->head_block].exprIds.back()], printed, indent );
+			resolveBranchExpr ( controlStruct, printed, indent );
 		}
 		break;
 		case ControlStructType::LOOP: {
 			printIndent ( indent );
 			printf ( "loop {\n" );
 			ControlStruct* subStruct = getStructFromHead ( controlStruct, controlStruct->head_block );
-			if ( subStruct )
-				printControlStruct ( subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent + 1 );
+			if (subStruct) {
+				printControlStruct(subStruct, function->ssaRep.bbs[subStruct->head_block], printed, indent + 1);
+			}
 			else {
 				printIndent ( indent + 1 );
 				printf ( "goto L%d\n", controlStruct->head_block );
@@ -906,7 +912,7 @@ namespace holodec {
 			printIndent ( indent );
 			printf ( "}\n" );
 		}
-		return;
+		break;
 		case ControlStructType::GLOBAL: {
 			printControlStruct ( &controlStruct->child_struct[0], function->ssaRep.bbs[controlStruct->child_struct[0].head_block], printed, indent + 1 );
 		}
@@ -945,22 +951,29 @@ namespace holodec {
 			changed = false;
 			for ( ControlStruct& childStruct : controlStruct->child_struct ) {
 				//ignore non-branches and in case of one exitblock we are already finished with consolidating branches
-				if ( childStruct.type != ControlStructType::BRANCH || childStruct.exit_blocks.size() <= 1 )
+				if ( childStruct.exit_blocks.size() <= 1 )
 					continue;
 
 				for ( const IOBlock& exitBlock : childStruct.exit_blocks ) {
-					//if we exit the block completely continue
+					printf("%d -> %d\n", exitBlock.blockId, childStruct.head_block);
+					for (HId id : controlStruct->contained_blocks) printf("%d, ", id);
+					printf("\n");
+					//if we exit the current block completely then continue, because well the exit-block is outside so we can not pull it in. This should have been done in a parent struct if it would be needed
 					if ( controlStruct->contained_blocks.find ( exitBlock.blockId ) == controlStruct->contained_blocks.end() ) {
 						continue;
 					}
+					printf("%d -> %d\n", exitBlock.blockId, childStruct.head_block);
 					//search where the control flow goes next
 					auto innerInputIt = controlStruct->child_struct.begin();
 					for ( ; innerInputIt != controlStruct->child_struct.end(); ++innerInputIt ) {
-						if ( innerInputIt->type == ControlStructType::LOOP && innerInputIt->input_blocks.find ( exitBlock.blockId ) != innerInputIt->input_blocks.end() )
-							break;
+						if (innerInputIt->head_block == childStruct.head_block) continue;
+						if (innerInputIt->head_block == controlStruct->head_block) continue;
+						if (innerInputIt->input_blocks.find(exitBlock.blockId) != innerInputIt->input_blocks.end()) break;
 					}
-					if ( innerInputIt != controlStruct->child_struct.end() ) {
-						//all inputs
+					printf("%d -> %d\n", exitBlock.blockId, childStruct.head_block);
+					if ( innerInputIt != controlStruct->child_struct.end() ) {//the block is a child of the current ControlStruct
+						printf("www %d -> %d\n", innerInputIt->head_block, childStruct.head_block);
+						fflush(stdout);
 						bool canNotFuse = false;
 						for ( const IOBlock& aBlock : innerInputIt->input_blocks ) {
 							for ( ControlStruct& subStruct : controlStruct->child_struct ) {
@@ -999,13 +1012,12 @@ namespace holodec {
 							break;
 						}
 					}
-					if ( changed )
-						break;
+					if ( changed ) continue;
 				}
-				if ( changed )
-					break;
+				if ( changed ) continue;
 			}
 		} while ( changed );
+
 		for ( ControlStruct& childStruct : controlStruct->child_struct ) {
 			consolidateBranchLoops ( &childStruct );
 		}
@@ -1064,11 +1076,18 @@ namespace holodec {
 								}
 								loopBB.outBlocks.insert ( newbb.id );
 								for ( SSAArgument& arg : branchExpr.subExpressions ) {
-									if ( arg.type == SSAArgType::eBlock && arg.ssaId == oldBlockId )
-										arg.ssaId = newbb.id;
+									if ( arg.type == SSAArgType::eBlock && arg.ssaId == oldBlockId ) arg.ssaId = newbb.id;
 								}
 							}
-
+							for (auto it = oldBB.exprIds.begin(); it != oldBB.exprIds.end();) {
+								HId id = *it;
+								if (function->ssaRep.expressions[id].type == SSAExprType::ePhi) {
+									newbb.exprIds.push_back(id);
+									it = oldBB.exprIds.erase(it);
+									continue;
+								}
+								it++;
+							}
 							SSAExpression branchExpr ( SSAExprType::eBranch, arch->bitbase * arch->bytebase, SSAType::ePc );
 							branchExpr.subExpressions = { SSAArgument::createBlock ( oldBB.id ) };
 							function->ssaRep.addAtEnd ( &branchExpr, &newbb );
@@ -1094,7 +1113,9 @@ namespace holodec {
 				g_struct.exit_blocks.insert ( bb.id ).first->count++;
 		}
 		analyzeStructure ( g_struct, 1 );
+		g_struct.print(1);
 		consolidateBranchLoops ( &g_struct );
+		g_struct.print(1);
 		setParentStructs ( &g_struct );
 
 
@@ -1181,6 +1202,7 @@ namespace holodec {
 					resolveIds.insert ( expr.id );
 			}
 		}
+
 		printIndent ( 1 );
 		printf ( "Input (" );
 		for ( CArgument arg : arguments ) {
