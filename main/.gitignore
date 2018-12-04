@@ -1,6 +1,5 @@
 Debug/
 DebugWin/
 Release/
-*.mk
 .x64/
 .vs/
