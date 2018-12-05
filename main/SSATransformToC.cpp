@@ -372,6 +372,7 @@ namespace holodec {
 		return false;
 	}
 	void SSATransformToC::resolveArg ( SSAArgument arg ) {
+		fflush(stdout);
 		SSAExpression* subExpr = arg.type == SSAArgType::eId ? &function->ssaRep.expressions[arg.ssaId] : nullptr;
 		switch ( arg.type ) {
 		case SSAArgType::eUndef:
@@ -428,7 +429,6 @@ namespace holodec {
 			}
 			break;
 			default: {
-
 				for ( size_t i = 0; i < expr.subExpressions.size(); ++i ) {
 					SSAArgument& arg = expr.subExpressions[i];
 					resolveArg ( arg );
@@ -506,15 +506,23 @@ namespace holodec {
 		}
 		break;
 		case SSAExprType::eLoadAddr:
-			printf ( "[" );
+			printf ( "[\n" );
+			expr.subExpressions[1].print(arch);
+			printf("\n");
 			resolveArg ( expr.subExpressions[1] );
-			printf ( "+" );
+			printf ( "+\n" );
+			expr.subExpressions[2].print(arch);
+			printf("\n");
 			resolveArg ( expr.subExpressions[2] );
-			printf ( "*" );
+			printf ( "*\n" );
+			expr.subExpressions[3].print(arch);
+			printf("\n");
 			resolveArg ( expr.subExpressions[3] );
-			printf ( "+" );
+			printf ( "+\n" );
+			expr.subExpressions[4].print(arch);
+			printf("\n");
 			resolveArg ( expr.subExpressions[4] );
-			printf ( "]" );
+			printf ( "]\n" );
 			break;
 		case SSAExprType::eFlag:
 			printf ( "Flag-" );
@@ -571,12 +579,18 @@ namespace holodec {
 		}
 		break;
 		case SSAExprType::eCast: {
-			printf ( "Cast[ " );
-			printExprType ( expr.sourcetype, function->ssaRep.expressions[expr.subExpressions[0].ssaId].size );
-			printf ( "-> " );
-			printExprType ( expr );
-			printf ( "]" );
-			resolveArgs ( expr );
+			SSAExpression& subExpr = function->ssaRep.expressions[expr.subExpressions[0].ssaId];
+			if (expr.exprtype == subExpr.exprtype && expr.size > subExpr.size) {
+				return resolveExpression(subExpr);
+			}
+			else {
+				printf("Cast[ ");
+				printExprType(expr.sourcetype, function->ssaRep.expressions[expr.subExpressions[0].ssaId].size);
+				printf("-> ");
+				printExprType(expr);
+				printf("]");
+				resolveArgs(expr);
+			}
 		}
 		break;
 		case SSAExprType::eValue: {
@@ -955,14 +969,10 @@ namespace holodec {
 					continue;
 
 				for ( const IOBlock& exitBlock : childStruct.exit_blocks ) {
-					printf("%d -> %d\n", exitBlock.blockId, childStruct.head_block);
-					for (HId id : controlStruct->contained_blocks) printf("%d, ", id);
-					printf("\n");
 					//if we exit the current block completely then continue, because well the exit-block is outside so we can not pull it in. This should have been done in a parent struct if it would be needed
 					if ( controlStruct->contained_blocks.find ( exitBlock.blockId ) == controlStruct->contained_blocks.end() ) {
 						continue;
 					}
-					printf("%d -> %d\n", exitBlock.blockId, childStruct.head_block);
 					//search where the control flow goes next
 					auto innerInputIt = controlStruct->child_struct.begin();
 					for ( ; innerInputIt != controlStruct->child_struct.end(); ++innerInputIt ) {
@@ -970,10 +980,7 @@ namespace holodec {
 						if (innerInputIt->head_block == controlStruct->head_block) continue;
 						if (innerInputIt->input_blocks.find(exitBlock.blockId) != innerInputIt->input_blocks.end()) break;
 					}
-					printf("%d -> %d\n", exitBlock.blockId, childStruct.head_block);
 					if ( innerInputIt != controlStruct->child_struct.end() ) {//the block is a child of the current ControlStruct
-						printf("www %d -> %d\n", innerInputIt->head_block, childStruct.head_block);
-						fflush(stdout);
 						bool canNotFuse = false;
 						for ( const IOBlock& aBlock : innerInputIt->input_blocks ) {
 							for ( ControlStruct& subStruct : controlStruct->child_struct ) {
@@ -1113,11 +1120,10 @@ namespace holodec {
 				g_struct.exit_blocks.insert ( bb.id ).first->count++;
 		}
 		analyzeStructure ( g_struct, 1 );
-		g_struct.print(1);
 		consolidateBranchLoops ( &g_struct );
-		g_struct.print(1);
 		setParentStructs ( &g_struct );
 
+		//g_struct.print(1);
 
 		arguments.clear();
 		argumentIds.clear();

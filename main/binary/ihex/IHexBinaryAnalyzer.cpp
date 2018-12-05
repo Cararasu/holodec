@@ -57,29 +57,15 @@ namespace holoihex {
 			uint64_t type = parse8BitHex(file, index + 7);
 			switch (type) {
 			case 0x00: {
-				holodec::DataSegment* appendSegment = nullptr;
-				for (holodec::DataSegment* dataSegment : memSpace->dataSegments) {
-					if (dataSegment->offset + dataSegment->data.size() == offset) {
-						appendSegment = dataSegment;
-						break;
-					}
-				}
-				if (!appendSegment) {
-					memSpace->dataSegments.push_back(new holodec::DataSegment());
-					appendSegment = memSpace->dataSegments.back();
-					appendSegment->data.resize(size);
-					appendSegment->offset = offset;
-				}
-				else {
-					appendSegment->data.resize(appendSegment->data.size() + size);
-				}
-
+				uint8_t *data = new uint8_t[size];
 				index += 0x9;
 				for (int i = 0; i < size; i++) {
-					appendSegment->data[offset + i - appendSegment->offset] = parse8BitHex(file, index);
+					data[i] = parse8BitHex(file, index);
 					index += 0x02;
 				}
 				index += 0x02;
+				memSpace->addData(offset, size, data);
+				delete[] data;
 			} break;
 			case 0x01: {
 				holodec::DataSegment* data = new holodec::DataSegment();

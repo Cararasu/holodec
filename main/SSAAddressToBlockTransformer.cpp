@@ -35,11 +35,6 @@ namespace holodec {
 					}
 				}
 			}
-			/*for (Register& reg : arch->registers) {
-				if (!reg.id || reg.directParentRef)
-					continue;
-				expr.subExpressions.push_back(SSAArgument::createReg(&reg, 0));
-			}*/
 			return true;
 		}
 		return false;

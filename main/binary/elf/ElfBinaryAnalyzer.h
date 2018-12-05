@@ -8,11 +8,13 @@
 namespace holoelf {
 
 	enum Elf_Instructionset {
+		ELF_IS_SPARC = 2,
+		ELF_IS_X86 = 3,
 		ELF_IS_MIPS_I = 8,
-		ELF_IS_MIPS_HS3000 = 10,
-		ELF_IS_AHM = 40,
+		ELF_IS_MIPS_RS3000 = 10,
+		ELF_IS_ARM = 40,
 		ELF_IS_MIPS_X = 51,
-		ELF_IS_X86 = 62,
+		ELF_IS_X86_64 = 62,
 		ELF_IS_AVR = 83,
 	};
 	class ElfBinaryAnalyzer : public holodec::BinaryAnalyzer {

@@ -15,11 +15,6 @@ Register* g_x86_reg[X86_REG_ENDING] = {0,};
 Register* g_x86_reg_al;
 
 
-
-void setJumpDest (Instruction * instruction);
-void setOperands (Instruction * instruction, cs_x86 * x86info);
-
-
 Register * getRegister (x86_reg reg) {
 	if (reg >= X86_REG_ENDING)
 		return 0;
@@ -65,20 +60,41 @@ bool holox86::X86FunctionAnalyzer::analyzeInsts (size_t addr) {
 		if (memSpace->isMapped(addr)) {
 			uint64_t size = memSpace->mappedSize(addr);
 			bufferSize = std::min<uint64_t>(size, (uint64_t)H_FUNC_ANAL_BUFFERSIZE);
-			if (bufferSize)
-				memSpace->copyData(dataBuffer, addr, bufferSize);
+			if (bufferSize) memSpace->copyData(dataBuffer, addr, bufferSize);
 		}
 		else {
 			bufferSize = 0;
 		}
 
 		count = cs_disasm (handle, dataBuffer, bufferSize, addr, state.maxInstr, &insn);
-
 		if (count > 0) {
 			for (size_t i = 0; i < count; i++) {
 				memset (&instruction, 0, sizeof (Instruction));
 				instruction.addr = insn[i].address;
 				instruction.size = insn[i].size;
+				switch (insn[i].id) {
+				case X86_INS_JE:
+				case X86_INS_JNE:
+				case X86_INS_JA:
+				case X86_INS_JAE:
+				case X86_INS_JB:
+				case X86_INS_JBE:
+				case X86_INS_JG:
+				case X86_INS_JGE:
+				case X86_INS_JL:
+				case X86_INS_JLE:
+				case X86_INS_JO:
+				case X86_INS_JNO:
+				case X86_INS_JS:
+				case X86_INS_JNS:
+				case X86_INS_JP:
+				case X86_INS_JNP:
+				case X86_INS_JCXZ:
+				case X86_INS_JECXZ:
+				case X86_INS_JRCXZ:
+					instruction.operands.push_back(IRArgument::createUVal((uint64_t)(insn[i].address + insn[i].size), arch->instrptrsize * arch->bitbase));
+					break;
+				}
 				setOperands (&instruction, insn[i].detail);
 
 				switch (insn[i].detail->x86.prefix[0]) {

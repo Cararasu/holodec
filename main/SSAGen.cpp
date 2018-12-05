@@ -816,9 +816,13 @@ namespace holodec {
 				expression.type = SSAExprType::eOp;
 				expression.opType = irExpr->mod.opType;
 				expression.exprtype = irExpr->exprtype;
+				for (size_t i = 0; i < subexpressioncount; i++) {
+					expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions[i])));
+				}
 				uint32_t size = 0;
 				for (size_t i = 0; i < subexpressioncount; i++) {
-					SSAArgument arg = parseIRArg2SSAArg (parseExpression (irExpr->subExpressions[i]));
+					SSAArgument& arg = expression.subExpressions[i];
+					if (function->ssaRep.expressions[arg.ssaId].isConst()) continue;
 					if (expression.opType == SSAOpType::eMul)
 						size += getSize(arg);
 					else if (!size)
@@ -826,8 +830,12 @@ namespace holodec {
 					else
 						assert(!arg.ssaId || size >= ssaRep->expressions[arg.ssaId].size);
 					assert(!(!ssaRep->expressions[arg.ssaId].isConst() && getSize(arg) == 0));
-					expression.subExpressions.push_back (arg);
 				}
+				for (size_t i = 0; i < subexpressioncount; i++) {
+					SSAArgument& arg = expression.subExpressions[i];
+					if (function->ssaRep.expressions[arg.ssaId].isConst()) function->ssaRep.expressions[arg.ssaId].size = size;
+				}
+
 				switch (expression.opType) {
 				case SSAOpType::eEq:
 				case SSAOpType::eNe:

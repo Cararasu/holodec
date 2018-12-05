@@ -18,61 +18,80 @@ namespace holodec {
 
 	struct MemorySpace {
 		StringRef name;
-		HList<DataSegment*> dataSegments;
+		HList<DataSegment> dataSegments;
 		uint64_t wordsize = 1;
 		Endianess endianess = Endianess::eBig;
 
 		bool isMapped(uint64_t addr) {
-			for (DataSegment* dataSegment : dataSegments) {
-				if (dataSegment->isInSegment(addr, wordsize)) {
+			for (DataSegment& dataSegment : dataSegments) {
+				if (dataSegment.isInSegment(addr, wordsize)) {
 					return true;
 				}
 			}
 			return false;
 		}
 		uint64_t mappedSize(uint64_t addr) {
-			for (DataSegment* dataSegment : dataSegments) {
-				if (dataSegment->isInSegment(addr, wordsize)) {
-					return addr - dataSegment->offset;
+			for (DataSegment& dataSegment : dataSegments) {
+				if (dataSegment.isInSegment(addr, wordsize)) {
+					return addr - dataSegment.offset;
 				}
 			}
 			return 0;
 		}
 		void copyData(uint8_t* buffer, uint64_t addr, uint64_t size) {
-			for (DataSegment* dataSegment : dataSegments) {
-				if (dataSegment->isInSegment(addr, wordsize)) {
-					return dataSegment->copyData(buffer, addr, size, wordsize);
+			for (DataSegment& dataSegment : dataSegments) {
+				if (dataSegment.isInSegment(addr, wordsize)) {
+					return dataSegment.copyData(buffer, addr, size, wordsize);
 				}
 			}
 		}
 		const uint8_t* getVDataPtr(size_t addr) {
-			for (DataSegment* dataSegment : dataSegments) {
-				if (dataSegment->isInSegment(addr, wordsize)) {
-					return dataSegment->getPtr(addr, wordsize);
+			for (DataSegment& dataSegment : dataSegments) {
+				if (dataSegment.isInSegment(addr, wordsize)) {
+					return dataSegment.getPtr(addr, wordsize);
 				}
 			}
 			return nullptr;
 		}
 		const uint64_t getVData(size_t addr) {
-			for (DataSegment* dataSegment : dataSegments) {
-				if (dataSegment->isInSegment(addr, wordsize)) {
-					return dataSegment->get(addr, wordsize, endianess);
+			for (DataSegment& dataSegment : dataSegments) {
+				if (dataSegment.isInSegment(addr, wordsize)) {
+					return dataSegment.get(addr, wordsize, endianess);
 				}
 			}
 			return 0;
 		}
 		DataSegment* getDataSegment(size_t addr) {
-			for (DataSegment* dataSegment : dataSegments) {
-				if (dataSegment->isInSegment(addr, wordsize)) {
-					return dataSegment;
+			for (DataSegment& dataSegment : dataSegments) {
+				if (dataSegment.isInSegment(addr, wordsize)) {
+					return &dataSegment;
 				}
 			}
 			return 0;
 		}
+		void addData(size_t offset, size_t size, void* data) {
+			holodec::DataSegment* appendSegment = nullptr;
+			for (holodec::DataSegment& dataSegment : dataSegments) {
+				if (dataSegment.offset + dataSegment.data.size() == offset) {
+					appendSegment = &dataSegment;
+					break;
+				}
+			}
+			if (!appendSegment) {
+				dataSegments.emplace_back();
+				appendSegment = &dataSegments.back();
+				appendSegment->data.resize(size);
+				appendSegment->offset = offset;
+			}
+			else {
+				appendSegment->data.resize(appendSegment->data.size() + size);
+			}
+			memcpy(appendSegment->data.data() + (offset - appendSegment->offset), data, size);
+		}
 	};
 	struct Binary {
 		HString name;
-		MemorySpace* defaultMemSpace;
+		MemorySpace* defaultMemSpace = nullptr;
 
 		HList<HId> entrypoints;
 		HIdPtrList<Function*> functions;
@@ -86,7 +105,7 @@ namespace holodec {
 		size_t bitbase;
 		size_t bytebase;
 		Endianess endianess;
-		Architecture* arch;
+		Architecture* arch = nullptr;
 
 		Binary(HString name);
 		virtual ~Binary();
@@ -180,11 +199,11 @@ namespace holodec {
 			for (std::pair<HId, MemorySpace*> memSpace : memorySpaces) {
 				printIndent(indent + 1);
 				printf("Memory-Area %s\n", arch->getMemory(memSpace.first)->name.cstr());
-				for (DataSegment* segment : memSpace.second->dataSegments) {
+				for (DataSegment& segment : memSpace.second->dataSegments) {
 					printIndent(indent + 2);
-					printf("Block: 0x%" PRIx64 " - 0x%" PRIx64 "\n", segment->offset, segment->offset + (segment->data.size() / memSpace.second->wordsize));
+					printf("Block: 0x%" PRIx64 " - 0x%" PRIx64 "\n", segment.offset, segment.offset + (segment.data.size() / memSpace.second->wordsize));
 					printIndent(indent + 2);
-					printf("Size: 0x%zx\n", segment->data.size());
+					printf("Size: 0x%zx\n", segment.data.size());
 				}
 			}
 			printIndent(indent);

@@ -103,6 +103,18 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 	if (!parseSectionHeaderTable())
 		return false;
 
+	//construct memoryspace
+	holodec::MemorySpace* memSpace = new holodec::MemorySpace();
+	memSpace->endianess = holodec::Endianess::eLittle;
+	memSpace->wordsize = 1;
+
+	holodec::Memory* mem = binary->arch->getMemory("mem");
+	assert(mem);
+	binary->memorySpaces.emplace(mem->id, memSpace);
+	binary->defaultMemSpace = memSpace;
+	for(Section* section : binary->sections)
+		memSpace->addData(section->vaddr, section->size, &file->data[section->offset]);
+
 	//handle entry and exit points
 	{
 		uint32_t entrypoint = getValue<uint32_t>(file, 0x18, binary->endianess);
@@ -149,7 +161,6 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 		}
 	}
 	{
-
 		Section* dynsym, *dynstr;
 		if ((dynsym = binary->getSection(".dynsym")) &&
 			(dynstr = binary->getSection(".dynstr"))) {
@@ -179,12 +190,21 @@ bool holoelf::ElfBinaryAnalyzer::init(holodec::File* file) {
 				}
 				else if (section->name.str().compare(0, 5, ".rel.") == 0) {
 					printf("------------------------\n");
-					printf("Section %s\n", section->name.cstr());
-					for (size_t entryoffset = 0; entryoffset < section->size; entryoffset += rela_structlength) {
-						uint64_t offset = getValue<uint64_t>(file, section->offset + entryoffset, binary->endianess);
-						uint64_t info = getValue<uint64_t>(file, section->offset + entryoffset + 0x8, binary->endianess);
+					printf("Relocation %s\n", section->name.cstr());
 
-						uint64_t type = binary->bytebase == 4 ? info >> 8 : info >> 32;
+					for (size_t entryoffset = 0; entryoffset < section->size; entryoffset += rela_structlength) {
+						uint64_t offset, info, type;
+
+						if (binary->bytebase == 4) {
+							offset = getValue<uint32_t>(file, section->offset + entryoffset, binary->endianess);
+							info = getValue<uint32_t>(file, section->offset + entryoffset + 0x4, binary->endianess);
+							type = info >> 8;
+						}
+						else {
+							offset = getValue<uint64_t>(file, section->offset + entryoffset, binary->endianess);
+							info = getValue<uint64_t>(file, section->offset + entryoffset + 0x8, binary->endianess);
+							type = info >> 32;
+						}
 
 						if (binary->arch && binary->arch->name == "x86") {
 							switch (info & 0xF) {
@@ -352,13 +372,17 @@ bool holoelf::ElfBinaryAnalyzer::parseFileHeader() {
 		printf("InstructionSet: %s\n", instructionsets[elf_is]);
 	}
 	switch (elf_is) {
-	case ELF_IS_X86:
-		binary->arch = holodec::Main::g_main->getArchitecture("x86");
-		break;
+	//case ELF_IS_X86:
+		//binary->arch = holodec::Main::g_main->getArchitecture("x86");
+		//break;
 	case ELF_IS_AVR:
 		binary->arch = holodec::Main::g_main->getArchitecture("avr");
 		break;
+	case ELF_IS_X86_64:
+		binary->arch = holodec::Main::g_main->getArchitecture("x86");
+		break;
 	default:
+		assert(false);
 		break;
 	}
 	//ELF Version

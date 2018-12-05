@@ -97,16 +97,16 @@ namespace holodec {
 
 		builder = peephole_optimizer->ruleSet;
 		builder
-			.ssaType(0, 0, SSAExprType::eCast)
-			.ssaType(1, 1, SSAExprType::eCast)
-			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
-				SSAExpression& cast1expr = ssaRep->expressions[context->expressionsMatched[0]];
-				SSAExpression& cast2expr = ssaRep->expressions[context->expressionsMatched[1]];
-				if (cast1expr.exprtype == cast1expr.sourcetype && cast2expr.exprtype == cast2expr.sourcetype && cast1expr.exprtype == cast2expr.exprtype) {
-					cast1expr.setArgument(ssaRep, 0, cast2expr.subExpressions[0]);
-				}
-				return false;
-			})
+		.ssaType(0, 0, SSAExprType::eCast)
+		.ssaType(1, 1, SSAExprType::eCast)
+		.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
+			SSAExpression& cast1expr = ssaRep->expressions[context->expressionsMatched[0]];
+			SSAExpression& cast2expr = ssaRep->expressions[context->expressionsMatched[1]];
+			if (cast1expr.exprtype == cast1expr.sourcetype && cast2expr.exprtype == cast2expr.sourcetype && cast1expr.exprtype == cast2expr.exprtype) {
+				cast1expr.setArgument(ssaRep, 0, cast2expr.subExpressions[0]);
+			}
+			return false;
+		})
 			.ssaType(0, 0, SSAExprType::eAssign)
 			.execute([](Architecture * arch, SSARepresentation * ssaRep, MatchContext * context) {
 				SSAExpression& expr = ssaRep->expressions[context->expressionsMatched[0]];
@@ -1201,6 +1201,7 @@ namespace holodec {
 						if (arg1.isValue(0)) {
 							if (arg2.isValue(0) || arg3.isValue(0)) {
 								expr.setAllArguments(ssaRep, { SSAArgument::createId(arg4.id) });
+								expr.type = SSAExprType::eAssign;
 								g_peephole_logger.log<LogLevel::eDebug>("Const LoadAddr");
 								return true;
 							}
@@ -1208,6 +1209,7 @@ namespace holodec {
 						else if (arg4.isValue(0)) {
 							if (arg2.isValue(0) || arg3.isValue(0)) {
 								expr.setAllArguments(ssaRep, { SSAArgument::createId(arg1.id) });
+								expr.type = SSAExprType::eAssign;
 								g_peephole_logger.log<LogLevel::eDebug>("Const LoadAddr");
 								return true;
 							}

@@ -154,7 +154,6 @@ namespace holodec {
 		HId ssaId;
 		Reference ref;
 
-
 		bool operator!() {
 			return type != SSAArgType::eUndef;
 		}
