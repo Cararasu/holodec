@@ -372,14 +372,14 @@ bool holoelf::ElfBinaryAnalyzer::parseFileHeader() {
 		printf("InstructionSet: %s\n", instructionsets[elf_is]);
 	}
 	switch (elf_is) {
-	//case ELF_IS_X86:
-		//binary->arch = holodec::Main::g_main->getArchitecture("x86");
-		//break;
+	case ELF_IS_X86:
+		binary->arch = holodec::Main::g_main->getArchitecture("x86");
+		break;
 	case ELF_IS_AVR:
 		binary->arch = holodec::Main::g_main->getArchitecture("avr");
 		break;
 	case ELF_IS_X86_64:
-		binary->arch = holodec::Main::g_main->getArchitecture("x86");
+		binary->arch = holodec::Main::g_main->getArchitecture("x86_64");
 		break;
 	default:
 		assert(false);
@@ -459,7 +459,7 @@ bool holoelf::ElfBinaryAnalyzer::parseProgramHeaderTable() {
 																			   //printf ("Alignment: %X\n", data.get<uint32_t> (entryoffset + 0x30));
 			}
 
-			binary->addSection(section);
+			//binary->addSection(section);
 		}
 
 	}

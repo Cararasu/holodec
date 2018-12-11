@@ -102,13 +102,15 @@ int main (int argc, const char** argv) {
 
 
 	Main::g_main->registerFileFormat (&elffileformat);
-	Main::g_main->registerArchitecture (&holox86::x86architecture);
+	Main::g_main->registerArchitecture(&holox86::x86architecture);
+	Main::g_main->registerArchitecture(&holox86::x8664architecture);
 
 	Main::g_main->registerFileFormat(&ihexfileformat);
 	Main::g_main->registerArchitecture(&holoavr::avrarchitecture);
 
 	g_logger.log<LogLevel::eInfo> ("Init X86\n");
 	holox86::x86architecture.init();
+	holox86::x8664architecture.init();
 	holoavr::avrarchitecture.init();
 
 	//ScriptingInterface script;
@@ -132,9 +134,9 @@ int main (int argc, const char** argv) {
 		sym->size = 0;
 		sym->symboltype = &holodec::SymbolType::symfunc;
 		//fibseq
-		sym->vaddr = 0x28;
+		//sym->vaddr = 0x28;
 		//fibrec
-		//sym->vaddr = 0x68;
+		sym->vaddr = 0x28;
 		//fibdrec
 		//sym->vaddr = 0x5c;
 		//fibseq
@@ -143,6 +145,15 @@ int main (int argc, const char** argv) {
 		//sym->vaddr = 0x1a4;
 		//prime
 		//sym->vaddr = 0x34;
+		binary->addSymbol(sym);
+		binary->addEntrypoint(sym->id);
+	}
+	else {
+		Symbol* sym = new holodec::Symbol();
+		sym->name = "main";
+		sym->size = 0;
+		sym->symboltype = &holodec::SymbolType::symfunc;
+		sym->vaddr = 0x0000053d;
 		binary->addSymbol(sym);
 		binary->addEntrypoint(sym->id);
 	}

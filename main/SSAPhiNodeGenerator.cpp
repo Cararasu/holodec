@@ -183,7 +183,10 @@ namespace holodec {
 		for (HId bbId : wrapper->ssaBB->inBlocks) {
 			//expressions need to reloaded after each call to getSSAId as they may insert an expression
 			function->ssaRep.expressions[id].subExpressions.push_back(SSAArgument::createBlock(bbId));
-			function->ssaRep.expressions[id].subExpressions.push_back(getSSAId(getWrapper(bbId), parent_reg));
+
+			//do not inline because for some inexplicaple reason sometimes the push_back does not work inlined
+			SSAArgument a = getSSAId(getWrapper(bbId), parent_reg);
+			function->ssaRep.expressions[id].subExpressions.push_back(a);
 		}
 		return SSAArgument::createReg(parent_reg, id);
 	}

@@ -33,7 +33,7 @@ namespace holodec {
 		uint64_t mappedSize(uint64_t addr) {
 			for (DataSegment& dataSegment : dataSegments) {
 				if (dataSegment.isInSegment(addr, wordsize)) {
-					return addr - dataSegment.offset;
+					return dataSegment.data.size() - (addr - dataSegment.offset);
 				}
 			}
 			return 0;

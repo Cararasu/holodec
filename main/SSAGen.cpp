@@ -51,6 +51,7 @@ namespace holodec {
 
 	SSAArgument SSAGen::readReg(HId regid) {
 		Register* reg = arch->getRegister(regid);
+		assert(reg->id);
 		return readReg(reg);
 	}
 	SSAArgument SSAGen::readReg(Register* reg) {
@@ -803,9 +804,11 @@ namespace holodec {
 				}
 				expression.subExpressions.push_back(parseIRArg2SSAArg(parseExpression(irExpr->subExpressions.back())));
 				{
-					SSAExpression* dstexpr = find_baseexpr(ssaRep, expression.subExpressions[0]);
-					if (dstexpr->type == SSAExprType::eValue && dstexpr->exprtype == SSAType::eUInt)
-						function->addrToAnalyze.insert(dstexpr->uval);
+					for (size_t i = 0; i < irExpr->subExpressions.size(); i += 2) {
+						SSAExpression* dstexpr = find_baseexpr(ssaRep, expression.subExpressions[i]);
+						if (dstexpr->type == SSAExprType::eValue && dstexpr->exprtype == SSAType::eUInt)
+							function->addrToAnalyze.insert(dstexpr->uval);
+					}
 				}
 
 				endOfBlock = true;

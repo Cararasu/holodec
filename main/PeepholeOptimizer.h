@@ -19,20 +19,19 @@ namespace holodec {
 
 	struct PhRule {
 		HId matchedIndex;//select the ith matched expression
-		HId argIndex;//select the ith indexed expression
+		HId argIndex;
 		SSAExprType type;
 		SSAOpType opType;
 		SSAFlagType flagType;
 
-		PhRule (HId matchedIndex, HId argIndex, SSAExprType type, SSAOpType opType, SSAFlagType flagType) : matchedIndex (matchedIndex), argIndex (argIndex), type (type), opType (opType), flagType (flagType) {}
-
-		bool matchRule (Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr, MatchContext* context);
+		PhRule (HId matchedIndex, HId argIndex, SSAExprType type, SSAOpType opType, SSAFlagType flagType) : matchedIndex (matchedIndex), argIndex(argIndex), type (type), opType (opType), flagType (flagType) {}
 	};
 	struct PhRuleInstance {
 		std::vector<PhRule> rules;
 		PhExecutor executor;
 
 		bool match(Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr);
+		bool match(Architecture* arch, SSARepresentation* ssaRep, SSAExpression* expr, MatchContext* context, std::vector<PhRule>::iterator it);
 	};
 	
 	struct PhRuleSet {

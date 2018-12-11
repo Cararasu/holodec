@@ -31,8 +31,14 @@ bool holox86::X86FunctionAnalyzer::canAnalyze (Binary* binary) {
 }
 bool holox86::X86FunctionAnalyzer::init (Binary* binary) {
 	this->binary = binary;
-	if (cs_open (CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK)
-		return false;
+	if (this->arch->bytebase == 8) {
+		if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK)
+			return false;
+	}
+	else {
+		if (cs_open(CS_ARCH_X86, CS_MODE_32, &handle) != CS_ERR_OK)
+			return false;
+	}
 	if (cs_option (handle, CS_OPT_DETAIL, CS_OPT_ON) != CS_ERR_OK)
 		return false;
 	return true;
@@ -65,13 +71,13 @@ bool holox86::X86FunctionAnalyzer::analyzeInsts (size_t addr) {
 		else {
 			bufferSize = 0;
 		}
-
 		count = cs_disasm (handle, dataBuffer, bufferSize, addr, state.maxInstr, &insn);
 		if (count > 0) {
 			for (size_t i = 0; i < count; i++) {
 				memset (&instruction, 0, sizeof (Instruction));
 				instruction.addr = insn[i].address;
 				instruction.size = insn[i].size;
+				setOperands(&instruction, insn[i].detail);
 				switch (insn[i].id) {
 				case X86_INS_JE:
 				case X86_INS_JNE:
@@ -92,10 +98,10 @@ bool holox86::X86FunctionAnalyzer::analyzeInsts (size_t addr) {
 				case X86_INS_JCXZ:
 				case X86_INS_JECXZ:
 				case X86_INS_JRCXZ:
+					instruction.nojumpdest = (uint64_t)(insn[i].address + insn[i].size);
 					instruction.operands.push_back(IRArgument::createUVal((uint64_t)(insn[i].address + insn[i].size), arch->instrptrsize * arch->bitbase));
 					break;
 				}
-				setOperands (&instruction, insn[i].detail);
 
 				switch (insn[i].detail->x86.prefix[0]) {
 				case X86_PREFIX_REP:

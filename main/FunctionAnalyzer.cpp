@@ -119,6 +119,7 @@ bool holodec::FunctionAnalyzer::analyzeFunction (Function* function) {
 		
 		ssaGen.activateBlock (ssaGen.createNewBlock());
 		
+		printf("Analyze Blocks 0x%x\n", addr);
 		if(!analyzeInsts (addr)){
 			return false;
 		}

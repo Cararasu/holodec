@@ -112,7 +112,7 @@ namespace holodec{
 			if (!expr->ref.isReg(reg)) return false;
 
 			SSAExpression* callexpr = &function->ssaRep.expressions[expr->subExpressions[0].ssaId];
-			if (callexpr->type != SSAExprType::eCall) return false;
+			assert (callexpr->type == SSAExprType::eCall);
 
 			SSAExpression* valueexpr = &function->ssaRep.expressions[callexpr->subExpressions[0].ssaId];
 			if (!valueexpr->isValue(function->baseaddr))  return false;//not a recursion...
@@ -242,7 +242,7 @@ namespace holodec{
 						std::map<HId, CalleeArgument> visited;
 						bool succ = calc_basearg_plus_offset(arch, function, arg, visited, reg, &retArg);
 						if (succ) {
-							if (state && state->fixedValueChange != retArg.change) {//if we found a different result for the same register from another return
+							if (state && state->flags.contains(UsageFlags::eWrite) && state->fixedValueChange != retArg.change) {//if we found a different result for the same register from another return
 								state->flags |= UsageFlags::eWrite;
 								it++;
 								continue;
@@ -428,7 +428,7 @@ namespace holodec{
 						changed = true;
 					}
 #ifdef HOLODEC_REMOVE_OBVIOUS
-					else if(expr->ref.isLocation(SSALocation::eReg)) {
+					/*else if(expr->ref.isLocation(SSALocation::eReg)) {
 						Register* reg = arch->getRegister(expr->ref.id);
 						if (reg->name == "r1") {
 							expr->type = SSAExprType::eValue;
@@ -436,7 +436,7 @@ namespace holodec{
 							expr->uval = 0x00;
 							changed = true;
 						}
-					}
+					}*/
 #endif
 				}
 			}

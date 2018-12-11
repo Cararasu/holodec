@@ -11,6 +11,7 @@ namespace holox86 {
 
 	using namespace holodec;
 
+	extern Architecture x8664architecture;
 	extern Architecture x86architecture;
 
 	class X86FunctionAnalyzer : public FunctionAnalyzer {

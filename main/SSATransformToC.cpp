@@ -506,23 +506,13 @@ namespace holodec {
 		}
 		break;
 		case SSAExprType::eLoadAddr:
-			printf ( "[\n" );
-			expr.subExpressions[1].print(arch);
-			printf("\n");
 			resolveArg ( expr.subExpressions[1] );
-			printf ( "+\n" );
-			expr.subExpressions[2].print(arch);
-			printf("\n");
+			printf ( "+" );
 			resolveArg ( expr.subExpressions[2] );
-			printf ( "*\n" );
-			expr.subExpressions[3].print(arch);
-			printf("\n");
+			printf ( "*" );
 			resolveArg ( expr.subExpressions[3] );
-			printf ( "+\n" );
-			expr.subExpressions[4].print(arch);
-			printf("\n");
+			printf ( "+" );
 			resolveArg ( expr.subExpressions[4] );
-			printf ( "]\n" );
 			break;
 		case SSAExprType::eFlag:
 			printf ( "Flag-" );
@@ -584,7 +574,7 @@ namespace holodec {
 				return resolveExpression(subExpr);
 			}
 			else {
-				printf("Cast[ ");
+				printf("Cast[");
 				printExprType(expr.sourcetype, function->ssaRep.expressions[expr.subExpressions[0].ssaId].size);
 				printf("-> ");
 				printExprType(expr);

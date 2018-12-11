@@ -24,7 +24,7 @@ namespace holodec {
 				SSAExpression& loadExpr = function->ssaRep.expressions[arg.ssaId];
 				if (loadExpr.type == SSAExprType::eLoad) {
 					uint64_t baseaddr;
-					if (function->ssaRep.calcConstValue(loadExpr.subExpressions[0], &baseaddr)) {
+					if (loadExpr.subExpressions[0].ssaId && function->ssaRep.calcConstValue(loadExpr.subExpressions[0], &baseaddr)) {
 						if (arch->bytebase < sizeof(uint64_t))
 							baseaddr %= ((uint64_t)1 << (arch->bytebase * arch->bitbase));
 
@@ -44,6 +44,9 @@ namespace holodec {
 		this->binary = binary;
 		this->function = function;
 		bool applied = false;
+
+		function->print(binary->arch);
+		fflush(stdout);
 
 		for (SSABB& block : function->ssaRep.bbs) {
 			if (block.exprIds.size() && function->ssaRep.expressions[block.exprIds.back()].type == SSAExprType::eReturn)//if last statement is return then we do nothing
