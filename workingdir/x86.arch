@@ -1,0 +1,458 @@
+
+architecture
+	name;			x86
+	instrptr;		eip
+	instrptrsize;	8
+	wordbase;		8
+	
+	stack
+		name;			x87
+		pushlocation;	bottom
+		backingregs;
+			st0
+			st1
+			st2
+			st3
+			st4
+			st5
+			st6
+			st7
+	stack
+		name;			stack
+		pushlocation;	bottom
+		backingmem;		mem
+		stackpointer;	esp
+
+	memory
+		name;		mem
+		wordsize;	8
+		
+%general purpose registers
+	register
+		name;	eax
+		size;	32
+	register
+		name;	ax
+		size;	16
+		parentreg;	eax
+	register
+		name;	al
+		size;	8
+		parentreg;	eax
+	register
+		name;	ah
+		size;	8
+		offset;	8
+		parentreg;	eax
+
+	register
+		name;	ebx
+		size;	32
+	register
+		name;	bx
+		size;	16
+		parentreg;	ebx
+	register
+		name;	bl
+		size;	8
+		parentreg;	ebx
+	register
+		name;	bh
+		offset;	8
+		size;	8
+		parentreg;	ebx
+
+	register
+		name;	ecx
+		size;	32
+	register
+		name;	cx
+		size;	16
+		parentreg;	ecx
+	register
+		name;	cl
+		size;	8
+		parentreg;	ecx
+	register
+		name;	ch
+		offset;	8
+		size;	8
+		parentreg;	ecx
+
+	register
+		name;	edx
+		size;	32
+	register
+		name;	dx
+		size;	16
+		parentreg;	edx
+	register
+		name;	dl
+		size;	8
+		parentreg;	edx
+	register
+		name;	dh
+		offset;	8
+		size;	8
+		parentreg;	edx
+
+	register
+		name;	ebp
+		size;	32
+	register
+		name;	bp
+		size;	16
+		parentreg;	ebp
+	register
+		name;	bpl
+		size;	8
+		parentreg;	ebp
+
+	register
+		name;	esi
+		size;	32
+	register
+		name;	si
+		size;	16
+		parentreg;	esi
+	register
+		name;	sil
+		size;	8
+		parentreg;	esi
+
+	register
+		name;	edi
+		size;	32
+	register
+		name;	di
+		size;	16
+		parentreg;	edi
+	register
+		name;	dil
+		size;	8
+		parentreg;	edi
+
+	register
+		name;	esp
+		size;	32
+	register
+		name;	sp
+		size;	16
+		parentreg;	esp
+	register
+		name;	spl
+		size;	8
+		parentreg;	esp
+
+	register
+		name;	eip
+		size;	32
+	register
+		name;	ip
+		size;	16
+		parentreg;	eip
+%flags
+	register
+		name;	rflags
+		size;	64
+	register
+		name;	eflags
+		size;	32
+		parentreg;	rflags
+	register
+		name;	flags
+		size;	16
+		parentreg;	rflags
+	register
+		name;	cf
+		size;	1
+		parentreg;	rflags
+	register
+		name;	pf
+		size;	1
+		offset;	2
+		parentreg;	rflags
+	register
+		name;	af
+		size;	1
+		offset;	4
+		parentreg;	rflags
+	register
+		name;	zf
+		size;	1
+		offset;	6
+		parentreg;	rflags
+	register
+		name;	sf
+		size;	1
+		offset;	7
+		parentreg;	rflags
+	register
+		name;	tf
+		size;	1
+		offset;	8
+		parentreg;	rflags
+	register
+		name;	if
+		size;	1
+		offset;	9
+		parentreg;	rflags
+	register
+		name;	df
+		size;	1
+		offset;	10
+		parentreg;	rflags
+	register
+		name;	of
+		size;	1
+		offset;	11
+		parentreg;	rflags
+	register
+		name;	iopl
+		size;	2
+		offset;	12
+		parentreg;	rflags
+	register
+		name;	iopl
+		size;	2
+		offset;	12
+		parentreg;	rflags
+	register
+		name;	nt
+		size;	1
+		offset;	14
+		parentreg;	rflags
+	register
+		name;	rf
+		size;	1
+		offset;	16
+		parentreg;	rflags
+	register
+		name;	vm
+		size;	1
+		offset;	17
+		parentreg;	rflags
+	register
+		name;	ac
+		size;	1
+		offset;	18
+		parentreg;	rflags
+	register
+		name;	vif
+		size;	1
+		offset;	19
+		parentreg;	rflags
+	register
+		name;	vip
+		size;	1
+		offset;	20
+		parentreg;	rflags
+	register
+		name;	id
+		size;	1
+		offset;	21
+		parentreg;	rflags
+
+%segment registers
+	register
+		name;	cs
+		size;	16
+	register
+		name;	ss
+		size;	16
+	register
+		name;	ds
+		size;	16
+	register
+		name;	es
+		size;	16
+	register
+		name;	fs
+		size;	16
+	register
+		name;	gs
+		size;	16
+
+%x87-stack
+
+	register
+		name;	st0
+		size;	80
+	register
+		name;	mm0
+		size;	64
+		parentreg;	st0
+
+	register
+		name;	st1
+		size;	80
+	register
+		name;	mm1
+		size;	64
+		parentreg;	st1
+
+	register
+		name;	st2
+		size;	80
+	register
+		name;	mm2
+		size;	64
+		parentreg;	st2
+
+	register
+		name;	st3
+		size;	80
+	register
+		name;	mm3
+		size;	64
+		parentreg;	st3
+
+	register
+		name;	st4
+		size;	80
+	register
+		name;	mm4
+		size;	64
+		parentreg;	st4
+
+	register
+		name;	st5
+		size;	80
+	register
+		name;	mm5
+		size;	64
+		parentreg;	st5
+
+	register
+		name;	st6
+		size;	80
+	register
+		name;	mm6
+		size;	64
+		parentreg;	st6
+
+	register
+		name;	st7
+		size;	80
+	register
+		name;	mm7
+		size;	64
+		parentreg;	st7
+	
+	register
+		name;	cw
+		size;	16
+	register
+		name;	sw
+		size;	16
+	register
+		name;	tw
+		size;	16
+	register
+		name;	fp_ds
+		size;	16
+	register
+		name;	fp_opc
+		size;	16
+	register
+		name;	fp_cs
+		size;	16
+	register
+		name;	fp_dp
+		size;	32
+	register
+		name;	fp_ip
+		size;	32
+
+%table registers
+	register
+		name;	gdtr
+		size;	16
+	register
+		name;	idtr
+		size;	16
+	register
+		name;	tr
+		size;	16
+	register
+		name;	ldtr
+		size;	16
+		
+	primitivetype
+		name;		uint
+		shorthand;	u
+		consteval;	bitfield
+	primitivetype
+		name;		sint
+		shorthand;	s
+		bitsizes;
+			8
+			16
+			32
+			64
+		consteval;	twocomplement
+	primitivetype
+		name;		float
+		shorthand;	f
+		bitsizes;	32
+		consteval;	ieee754
+	primitivetype
+		name;		long_float
+		shorthand;	lf
+		bitsizes;	80
+	primitivetype
+		name;		double
+		shorthand;	d
+		bitsizes;	64
+		consteval;	ieee754
+
+	builtin
+		name;		test
+		argument
+			name;	t
+			type;	f
+			size;	32
+		return
+			name;	x
+			type;	f
+			size;	32
+	instruction
+		mnemonic;	mul
+		translation
+			argcount;	1
+			cond;		$1 = #eq(#bsize($1),8)
+			code;
+				$ax = #mul($al,$1)
+				$cf = #c
+				$of = #o
+			undef;	$sf, $zf, $af, $pf
+		translation
+			argcount;	1
+			cond;		#1 := #eq(#bsize($1),16)
+			code;
+				#1 = #mul($ax,$1)
+				$cf = #c
+				$of = #o
+				$dx = #1[0,16]
+				$ax = #1[16,16]
+			undef;	$sf, $zf, $af, $pf
+		translation
+			argcount;	1
+			cond;		#1 = #eq(#bsize($1),32)
+			code;
+				#1 = #mul($eax,$1)
+				$cf = #c
+				$of = #o
+				$edx = #t[1][0,32]
+				$eax = #t[1][32,32]
+			undef;	$sf, $zf, $af, $pf
+		translation
+			argcount;	1
+			cond;		#1 = ==(#bsize($1),64)
+			code;
+				#1 = #mul($rax,$1)
+				$cf = #c
+				$of = #o
+				$rdx = #1[0,32]
+				$rax = #1[32,32]
+			undef;	$sf, $zf, $af, $pf

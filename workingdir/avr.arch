@@ -1,0 +1,1128 @@
+
+architecture
+	name;			avr
+	instrptr;		ip
+	wordbase;		8
+	%default valuesize
+	
+	stack
+		name;			stack
+		pushlocation;	bottom
+		backingmem;		dmem
+		stackpointer;	sp
+
+	memory
+		name;		dmem
+		wordsize;	8
+	memory
+		name;		pmem
+		wordsize;	8
+
+	register
+		name;	ip
+		size;	24
+%general purpose registers
+	register
+		name;	r0
+		size;	8
+	register
+		name;	r1
+		size;	8
+	register
+		name;	r2
+		size;	8
+	register
+		name;	r3
+		size;	8
+	register
+		name;	r4
+		size;	8
+	register
+		name;	r5
+		size;	8
+	register
+		name;	r6
+		size;	8
+	register
+		name;	r7
+		size;	8
+	register
+		name;	r8
+		size;	8
+	register
+		name;	r9
+		size;	8
+	register
+		name;	r10
+		size;	8
+	register
+		name;	r11
+		size;	8
+	register
+		name;	r12
+		size;	8
+	register
+		name;	r13
+		size;	8
+	register
+		name;	r14
+		size;	8
+	register
+		name;	r15
+		size;	8
+	register
+		name;	r16
+		size;	8
+	register
+		name;	r17
+		size;	8
+	register
+		name;	r18
+		size;	8
+	register
+		name;	r19
+		size;	8
+	register
+		name;	r20
+		size;	8
+	register
+		name;	r21
+		size;	8
+	register
+		name;	r22
+		size;	8
+	register
+		name;	r23
+		size;	8
+	register
+		name;	r24
+		size;	8
+	register
+		name;	r25
+		size;	8
+	register
+		name;	x
+		size;	16
+	register
+		name;	r26
+		size;	8
+		parentreg;	x
+	register
+		name;	r27
+		size;	8
+		offset;	8
+		parentreg;	x
+	register
+		name;	y
+		size;	16
+	register
+		name;	r28
+		size;	8
+		parentreg;	y
+	register
+		name;	r29
+		size;	8
+		offset;	8
+		parentreg;	y
+	register
+		name;	z
+		size;	16
+	register
+		name;	r30
+		size;	8
+		parentreg;	z
+	register
+		name;	r31
+		size;	8
+		offset;	8
+		parentreg;	z
+	register
+		name;	ccp
+		size;	8
+	register
+		name;	rampd
+		size;	8
+	register
+		name;	rampx
+		size;	8
+	register
+		name;	rampy
+		size;	8
+	register
+		name;	rampz
+		size;	8
+	register
+		name;	eind
+		size;	8
+
+	register
+		name;	sp
+		size;	16
+	register
+		name;	spl
+		size;	8
+		parentreg;	sp
+	register
+		name;	sph
+		size;	8
+		offset;	8
+		parentreg;	sp
+
+	register
+		name;	flags
+		size;	8
+	register
+		name;	cf
+		size;	1
+		parentreg;	flags
+	register
+		name;	zf
+		size;	1
+		offset;	1
+		parentreg;	flags
+	register
+		name;	nf
+		size;	1
+		offset;	2
+		parentreg;	flags
+	register
+		name;	vf
+		size;	1
+		offset;	3
+		parentreg;	flags
+	register
+		name;	sf
+		size;	1
+		offset;	4
+		parentreg;	flags
+	register
+		name;	hf
+		size;	1
+		offset;	5
+		parentreg;	flags
+	register
+		name;	tf
+		size;	1
+		offset;	6
+		parentreg;	flags
+	register
+		name;	if
+		size;	1
+		offset;	7
+		parentreg;	flags
+			
+	primitivetype
+		name;		uint
+		shorthand;	u
+		consteval;	bitfield
+		default
+	primitivetype
+		name;		sint
+		shorthand;	s
+		bitsizes;	8, 16
+		consteval;	twocomplement
+	
+	builtin
+		name;	in
+		argument
+			name;	address
+			type;	u
+			size;	8
+		return
+			name;	value
+			type;	u
+			size;	8
+	builtin
+		name;	out
+		argument
+			name;	address
+			type;	u
+			size;	8
+		argument
+			name;	value
+			type;	u
+			size;	8
+	builtin
+		name;	watchdogreset
+	instruction
+		mnemonic;	add
+		translation
+			argcount;	2
+			cond;		#1 = #eq(#bsize($1),#bsize($2))
+			code;
+				$zf = #eq($1, $2)
+				$1 = #add($1, $2)
+				$vf = #overflow($1)
+				$cf = #carry($1)
+				$hf = #carry($1, 4)
+				$nf = #less[t:s]($1, 0)
+				$sf = #neq($nf,$vf)
+		translation
+			argcount;	3
+			cond;		#1 = #and(#eq(#bsize($1),#bsize($2)), #eq(#add(#bsize(#arg[1]), #bsize(#arg[2])), #bsize(#arg[3]))
+			code;
+				$zf = #eq(#app($1, $2), $3)
+				#1  = #add(#app($1, $2), $3)
+				$vf = #overflow(#1)
+				$cf = #carry(#1)
+				$hf = #carry(#1, 4)
+				$nf = #less[t:s](#1, 0)
+				$sf = #neq($nf,$vf)
+				$1  = #1[o:0, s:8]
+				$2  = #1[o:8, s:8]
+	instruction
+		mnemonic;	adc
+		translation
+			argcount;	2
+			cond;		#1 = #and(#eq(#bsize($1), #bsize($2)))
+			code;
+				#1 = #add($2, $cf)
+				$zf = #and(#eq($1, #1),$zf)
+				$1 = #add($1, #1)
+				$vf = #or(#overflow($1), #overflow(#1))
+				$cf = #or(#carry($1), #carry(#1))
+				$hf = #or(#carry($1, 4), #carry(#1, 4))
+				$nf = #less[t:s]($1, 0)
+				$sf = #neq($nf,$vf)
+	instruction
+		mnemonic;	and
+		translation
+			argcount;	2
+			cond;		#1 = #and(#eq(#bsize($1), #bsize($2)))
+			code;
+				$1 = #add($1, $2)
+				$vf = 0
+				$zf = #eq($1, 0)
+				$nf = #less[t:s]($1, 0)
+				$sf = #neq($nf,$vf)
+	instruction
+		mnemonic;	asr
+		translation
+			argcount;	1
+			code;
+				$cf = $1[o:0, s:1]
+				$1 = #div[t:s]($1, 2)
+				$zf = #eq($1, 0)
+				$nf = #less[t:s]($1, 0)
+				$vf = #neq($nf, $cf)
+				$sf = #neq($nf, $vf)
+	instruction
+		mnemonic;	bclr
+		translation
+			argcount;	1
+			code;		$flags[o:$1, s:1] = 0
+	instruction
+		mnemonic;	bclr
+		translation
+			argcount;	2
+			code;		$1 = #bor(#band($1, #bnot(#shl(1[8], $2))), #shl(#ext[s:8]($tf), $2))
+	instruction
+		mnemonic;	bst
+		translation
+			argcount;	2
+			code;		$tf = #neq(#band($1, #shl(1, $2)), 0)
+	instruction
+		mnemonic;	brbc
+		translation
+			argcount;	2
+			code;		$ip = #ext[s:24]($2) ? #not($flags[o:$1, s:1])
+	instruction
+		mnemonic;	brbs
+		translation
+			argcount;	2
+			code;		$ip = #ext[s:24]($2) ? $flags[o:$1, s:1]
+	instruction
+		mnemonic;	brcc
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? #not($cf)
+	instruction
+		mnemonic;	brcs
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $cf
+	instruction
+		mnemonic;	break
+		translation
+			argcount;	0
+			code;		#trap
+	instruction
+		mnemonic;	breq
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $zf
+	instruction
+		mnemonic;	brge
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? #not($sf)
+	instruction
+		mnemonic;	brhc
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? #not($hf)
+	instruction
+		mnemonic;	brhs
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $hf
+	instruction
+		mnemonic;	brid
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? #not($if)
+	instruction
+		mnemonic;	brie
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $if
+	instruction
+		mnemonic;	brlo
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $cf
+	instruction
+		mnemonic;	brlt
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $sf
+	instruction
+		mnemonic;	brmi
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $nf
+	instruction
+		mnemonic;	brne
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? #not($zf)
+	instruction
+		mnemonic;	brpl
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $nf
+	instruction
+		mnemonic;	brsh
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? #not($cf)
+	instruction
+		mnemonic;	brtc
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? #not($tf)
+	instruction
+		mnemonic;	brts
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $tf
+	instruction
+		mnemonic;	brvc
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? #not($vf)
+	instruction
+		mnemonic;	brvs
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $vf
+	instruction
+		mnemonic;	brvs
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1) ? $vf
+	instruction
+		mnemonic;	bset
+		translation
+			argcount;	1
+			code;		$flags[o:$1, s:1] = 1
+	instruction
+		mnemonic;	call
+		translation
+			argcount;	1
+			code;
+				#rec[push](#add($ip, #isize))
+				$ip = #ext[s:24]($1)
+	instruction
+		mnemonic;	cbi
+		translation
+			argcount;	2
+			code;
+				#rec[in](#1, $1)
+				#rec[out]($1, #and(#1, #bnot(#shl(1, $2))))
+				$ip = #ext[s:24]($1)
+	instruction
+		mnemonic;	cbr
+		translation
+			argcount;	2
+			code;
+				$1 = #and($1, #bnot(#shl(1, $2)))
+				$vf = 0[s:1]
+				$zf = #eq($1, 0)
+				$nf = #less[t:s]($1, 0)
+				$sf = #neq($nf, $vf)
+	instruction
+		mnemonic;	clc
+		translation
+			argcount;	0
+			code;		$cf = 0[s:1]
+	instruction
+		mnemonic;	clf
+		translation
+			argcount;	0
+			code;		$hf = 0[s:1]
+	instruction
+		mnemonic;	cli
+		translation
+			argcount;	0
+			code;		$if = 0[s:1]
+	instruction
+		mnemonic;	cln
+		translation
+			argcount;	0
+			code;		$nf = 0[s:1]
+	instruction
+		mnemonic;	clr
+		translation
+			argcount;	0
+			code;
+				$1 = 0
+				$sf = 0[s:1]
+				$vf = 0[s:1]
+				$nf = 0[s:1]
+				$zf = 1[s:1]
+	instruction
+		mnemonic;	cls
+		translation
+			argcount;	0
+			code;		$sf = 0[s:1]
+	instruction
+		mnemonic;	clt
+		translation
+			argcount;	0
+			code;		$tf = 0[s:1]
+	instruction
+		mnemonic;	clv
+		translation
+			argcount;	0
+			code;		$vf = 0[s:1]
+	instruction
+		mnemonic;	clz
+		translation
+			argcount;	0
+			code;		$zf = 0[s:1]
+	instruction
+		mnemonic;	com
+		translation
+			argcount;	1
+			code;
+				#1 = 0xFF
+				#rec[sub](#1, $1)
+				$1 = #1
+	instruction
+		mnemonic;	cp
+		translation
+			argcount;	2
+			code;
+				#1 = $1
+				#rec[sub](#1, $2)
+	instruction
+		mnemonic;	cpc
+		translation
+			argcount;	2
+			code;
+				#1 = $1
+				#rec[sbc](#1, $2)
+	instruction
+		mnemonic;	cpse
+		translation
+			argcount;	3
+			code;
+				#rec[cp]($1,$2)
+				$ip = #ext[s:24]($3) ? $zf
+	instruction
+		mnemonic;	dec
+		translation
+			argcount;	1
+			code;
+				#1 = $cf
+				#rec[sub]($1, 1)
+				$cf = #1
+	instruction
+		mnemonic;	eicall
+		translation
+			argcount;	1
+			code;		#rec[call](#app($z, $eind))
+	instruction
+		mnemonic;	eijmp
+		translation
+			argcount;	1
+			code;		$ip = #app($z, $eind)
+	instruction
+		mnemonic;	elpm
+		translation
+			argcount;	1
+			code;		$1 = $mem[pmem][addr:#app($z,$rampz), s:#bsize($1)]
+	instruction
+		mnemonic;	elpm+
+		translation
+			argcount;	1
+			code;
+				#1 = #app($z, $rampz)
+				$1 = $mem[pmem][addr:#1, s:#bsize($1)]
+				#1 = #add(#1, 1[s:24])
+				$z = #1[o:0, s:16]
+				$rampz = #1[o:16, s:8]
+	instruction
+		mnemonic;	eor
+		translation
+			argcount;	2
+			code;
+				$1 = #bxor($1, $2)
+				$vf = 0[s:1]
+				$zf = #eq($1, 0)
+				$nf = #less[t:s]($1, 0)
+				$sf = #neq($nf, $vf)
+	instruction
+		mnemonic;	fmuls
+		translation
+			argcount;	2
+			code;
+				#1 = #shl(#mul[t:s]($1, $2), 1[s:16])
+				$r0 = #1[o:0, s:8]
+				$r1 = #1[o:8, s:8]
+				$zf = #eq(#1, 0[s:16])
+				$cf = #c(#1)
+	instruction
+		mnemonic;	fmulsu
+		translation
+			argcount;	2
+			code;
+				#1 = #shl(#mul[t:s]($1, $2), 1[s:16])
+				$r0 = #1[o:0, s:8]
+				$r1 = #1[o:8, s:8]
+				$zf = #eq(#1, 0[s:16])
+				$cf = #c(#1)
+	instruction
+		mnemonic;	icall
+		translation
+			argcount;	0
+			code;		#rec[call](#ext[s:#bsize($ip)]($z))
+	instruction
+		mnemonic;	icall
+		translation
+			argcount;	1
+			code;		#rec[call](#ext[s:#bsize($ip)]($z))
+	instruction
+		mnemonic;	ijmp
+		translation
+			argcount;	1
+			code;		#rec[jmp](#ext[s:#bsize($ip)]($z))
+	instruction
+		mnemonic;	in
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 52)
+			code;		$1 = $cpp
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 56)
+			code;		$1 = $rampd
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 57)
+			code;		$1 = $rampx
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 58)
+			code;		$1 = $rampy
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 59)
+			code;		$1 = $rampz
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 60)
+			code;		$1 = $eind
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 61)
+			code;		$1 = $spl
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 62)
+			code;		$1 = $sph
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 63)
+			code;		$1 = $flags
+		translation
+			argcount;	2
+			code;
+				#1 = $builtin[in]($2)
+				$1 = #extract[value](#1)
+	instruction
+		mnemonic;	inc
+		translation
+			argcount;	1
+			code;
+				#1 = $cf
+				#rec[add]($1, 1)
+				$cf = #1
+	instruction
+		mnemonic;	jmp
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1)
+	instruction
+		mnemonic;	ld
+		translation
+			argcount;	2
+			code;		$1 = $mem[dmem][addr:$2, s:#bsize($1)]
+	instruction
+		mnemonic;	ldd
+		translation
+			argcount;	2
+			code;		$1 = $mem[dmem][addr:$2, s:#bsize($1)]
+	instruction
+		mnemonic;	ld+
+		translation
+			argcount;	2
+			code;
+				$1 = $mem[dmem][addr:$2, s:#bsize($1)]
+				$2 = #add($2, 1[s:16])
+	instruction
+		mnemonic;	ld+
+		translation
+			argcount;	2
+			code;
+				$2 = #sub($2, 1[s:16])
+				$1 = $mem[dmem][addr:$2, s:#bsize($1)]
+	instruction
+		mnemonic;	lat
+		translation
+			argcount;	1
+			code;
+				$1 = #bxor($1, $mem[dmem][addr:$z, s:8])
+				$mem[dmem][addr:$z, s:#bsize($1)] = $1
+	instruction
+		mnemonic;	las
+		translation
+			argcount;	1
+			code;
+				$1 = #bor($1, $mem[dmem][addr:$z, s:8])
+				$mem[dmem][addr:$z, s:#bsize($1)] = $1
+	instruction
+		mnemonic;	lac
+		translation
+			argcount;	1
+			code;
+				#1 = #band(#sub(0xFF, $1), $mem[dmem][addr:$z, s:8])
+				$mem[dmem][addr:$z, s:#bsize($1)] = #1
+	instruction
+		mnemonic;	ldi
+		translation
+			argcount;	2
+			code;		$1 = $2
+	instruction
+		mnemonic;	ldi
+		translation
+			argcount;	1
+			code;		$1 = $mem[dmem][addr:$2, s:8]
+	instruction
+		mnemonic;	lpm
+		translation
+			argcount;	1
+			code;		$1 = $mem[pmem][addr:$z, s:8]
+	instruction
+		mnemonic;	lpm+
+		translation
+			argcount;	1
+			code;
+				$1 = $mem[pmem][addr:$2, s:8]
+				$z = #add($z, 1[s:16])
+	instruction
+		mnemonic;	lsl
+		translation
+			argcount;	1
+			code;
+				$hf = $1[o:3, s:1]
+				$1 = #shl($1, 1)
+				$cf = #c($1)
+				$zf = #eq($1, 0)
+				$nf = #less[t:s]($1, 0)
+				$vf = #neq($nf, $cf)
+				$sf = #neq($nf, $vf)
+	instruction
+		mnemonic;	lsr
+		translation
+			argcount;	1
+			code;
+				$hf = $1[o:3, s:1]
+				$1 = #shr($1, 1)
+				$cf = #c($1)
+				$zf = #eq($1, 0)
+				$nf = #less[t:s]($1, 0)
+				$vf = #neq($nf, $cf)
+				$sf = #neq($nf, $vf)
+	instruction
+		mnemonic;	mov
+		translation
+			argcount;	2
+			code;		$1 = $2
+	instruction
+		mnemonic;	mov
+		translation
+			argcount;	2
+			code;		$1 = $2
+		translation
+			argcount;	3
+			cond;		#1 = #eq(#bsize($1), 16)
+			code;		$1 = #app($2, $3)
+		translation
+			argcount;	3
+			cond;		#1 = #eq(#bsize($1), 16)
+			code;
+				$1 = $3[o:0, s:8]
+				$2 = $3[o:8, s:8]
+		translation
+			argcount;	4
+			code;
+				$1 = $3
+				$2 = $4
+	instruction
+		mnemonic;	mul
+		translation
+			argcount;	2
+			code;
+				#1 = #mul($1, $2)
+				$r0 = #1[o:0, s:8]
+				$r1 = #1[o:8, s:8]
+				$zf = #eq(#1, 0[s:16])
+				$cf = #less(#1, 0[s:16])
+	instruction
+		mnemonic;	muls
+		translation
+			argcount;	2
+			code;
+				#1 = #mul[t:s]($1, $2)
+				$r0 = #1[o:0, s:8]
+				$r1 = #1[o:8, s:8]
+				$zf = #eq(#1, 0[s:16])
+				$cf = #greater[t:s](#1, 0[s:16])
+	instruction
+		mnemonic;	muls
+		translation
+			argcount;	2
+			code;
+				#1 = #mul[t:s]($1, $2)
+				$r0 = #1[o:0, s:8]
+				$r1 = #1[o:8, s:8]
+				$zf = #eq(#1, 0[s:16])
+				$cf = #greater[t:s](#1, 0[s:16])
+	instruction
+		mnemonic;	neg
+		translation
+			argcount;	1
+			code;
+				$1 = 0
+				#rec[sub]($1, $1)
+	instruction
+		mnemonic;	nop
+		translation
+			argcount;	0
+			code;		#nop
+			
+	instruction
+		mnemonic;	or
+		translation
+			argcount;	2
+			code;
+				$1 = #bor($1, $2)
+				$cf = #c($1)
+				$zf = #eq($1, 0)
+				$nf = #less[t:s]($1, 0)
+				$vf = 0[s:1]
+				$sf = #neq($nf, $vf)
+				
+	instruction
+		mnemonic;	out
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 52)
+			code;		$cpp = $1
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 56)
+			code;		$rampd = $1
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 57)
+			code;		$rampx = $1
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 58)
+			code;		$rampy = $1
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 59)
+			code;		$rampz = $1
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 60)
+			code;		$eind = $1
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 61)
+			code;		$spl = $1
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 62)
+			code;		$sph = $1
+		translation
+			argcount;	2
+			cond;		#1 = #eq($2, 63)
+			code;		$flags = $1
+		translation
+			argcount;	2
+			code;		$builtin[out]($2, $1)
+			
+	instruction
+		mnemonic;	pop
+		translation
+			argcount;	1
+			code;
+				$1 = $mem[dmem][addr:#add($sp, 1), s:8]
+				$sp = #add($sp, #size($1))
+	instruction
+		mnemonic;	push
+		translation
+			argcount;	1
+			code;
+				$sp = #sub($sp, #size($1))
+				$mem[dmem][addr:#add($sp, 1), s:8] = $1
+	instruction
+		mnemonic;	rcall
+		translation
+			argcount;	1
+			code;
+				#rec[push](#add($ip, #isize))
+				$ip = #ext[s:24]($1)
+	instruction
+		mnemonic;	ret
+		translation
+			argcount;	1
+			code;		#rec[pop]($ip)
+	instruction
+		mnemonic;	reti
+		translation
+			argcount;	1
+			code;
+				$ie = 1[s:1]
+				#rec[pop]($ip)
+	instruction
+		mnemonic;	rjmp
+		translation
+			argcount;	1
+			code;		$ip = #ext[s:24]($1)
+				
+	instruction
+		mnemonic;	rol
+		translation
+			argcount;	1
+			code;
+				#1 = #rol(#app($cf, $1), 1)
+				$hf = #1[o:4, s:1]
+				$cf = #1[o:1, s:1]
+				$1 = #1[o:0, s:8]
+				$zf = #eq($1, 0)
+				$nf = #less[t:s]($1, 0)
+				$vf = #neq($nf, $cf)
+				$sf = #neq($nf, $vf)
+	instruction
+		mnemonic;	ror
+		translation
+			argcount;	1
+			code;
+				#1 = #ror(#app($cf, $1), 1)
+				$hf = #1[o:3, s:1]
+				$cf = #1[o:8, s:1]
+				$1 = #1[o:0, s:8]
+				$zf = #eq($1, 0)
+				$nf = #less[t:s]($1, 0)
+				$vf = #neq($nf, $cf)
+				$sf = #neq($nf, $vf)
+
+	instruction
+		mnemonic;	sub
+		translation
+			argcount;	2
+			code;
+				$zf = #eq($1, $2)
+				$1 = #sub($1, $2)
+				$cf = #c($1)
+				$hf = #c($1, 4)
+				$vf = #o($1)
+				$nf = #less[t:s]($1, 0)
+				$sf = #neq($nf, $vf)
+		translation
+			argcount;	3
+			code;
+				$zf = #eq(#app($1, $2), $3)
+				#1 = #sub(#app($1, $2), $3)
+				$cf = #c($1)
+				$hf = #c($1, 4)
+				$vf = #o($1)
+				$nf = #less[t:s]($1, 0)
+				$sf = #neq($nf, $vf)
+				$1 = #1[o:0, s:8]
+				$2 = #1[o:8, s:8]
+	instruction
+		mnemonic;	sbc
+		translation
+			argcount;	2
+			code;
+				#1 = #add($2, $cf)
+				$zf = #or(#eq($1, #1), $zf)
+				$1 = #sub($1, #1)
+				$vf = #or(#overflow($1), #overflow(#1))
+				$cf = #or(#carry($1), #carry(#1))
+				$hf = #or(#carry($1, 4), #carry(#1, 4))
+				$nf = #less[t:s]($1, 0)
+				$sf = #neq($nf, $vf)
+	instruction
+		mnemonic;	sbi
+		translation
+			argcount;	2
+			code;
+				#rec[in](#1, $1)
+				$builtin[out]($1, #or(#1, #shl(1, $2)))
+	instruction
+		mnemonic;	sbic
+		translation
+			argcount;	3
+			code;
+				#rec[in](#1, $1)
+				$ip = #ext[s:24]($3) ? #eq(#or(#1, #shl(1, $2)),0)
+	instruction
+		mnemonic;	sbis
+		translation
+			argcount;	3
+			code;
+				#rec[in](#1, $1)
+				$ip = #ext[s:24]($3) ? #neq(#or(#1, #shl(1, $2)),0)
+				
+	instruction
+		mnemonic;	sbr
+		translation
+			argcount;	2
+			code;		#rec[or]($1, #shl(1, $2))
+	instruction
+		mnemonic;	sbrc
+		translation
+			argcount;	3
+			code;		$ip = #ext[s:24]($3) ? #eq(#or($1, #shl(1, $2)), 0)
+	instruction
+		mnemonic;	sbrs
+		translation
+			argcount;	3
+			code;		$ip = #ext[s:24]($3) ? #neq(#or($1, #shl(1, $2)), 0)
+	instruction
+		mnemonic;	sec
+		translation
+			argcount;	0
+			code;		$sf = 1[s:1]
+	instruction
+		mnemonic;	seh
+		translation
+			argcount;	0
+			code;		$hf = 1[s:1]
+	instruction
+		mnemonic;	sei
+		translation
+			argcount;	0
+			code;		$if = 1[s:1]
+	instruction
+		mnemonic;	ser
+		translation
+			argcount;	1
+			code;		$1 = 0xFF
+	instruction
+		mnemonic;	ses
+		translation
+			argcount;	0
+			code;		$sf = 1[s:1]
+	instruction
+		mnemonic;	set
+		translation
+			argcount;	0
+			code;		$tf = 1[s:1]
+	instruction
+		mnemonic;	sev
+		translation
+			argcount;	0
+			code;		$vf = 1[s:1]
+	instruction
+		mnemonic;	sez
+		translation
+			argcount;	0
+			code;		$zf = 1[s:1]
+	instruction
+		mnemonic;	sleep
+		translation
+			argcount;	0
+			code;		#trap
+	instruction
+		mnemonic;	spm
+		translation
+			argcount;	1
+			code;		$mem[pmem][addr:#app($z,$rampz), s:#bsize($1)] = $1
+	instruction
+		mnemonic;	st
+		translation
+			argcount;	2
+			code;		$mem[dmem][addr:$1, s:#bsize($2)] = $2
+	instruction
+		mnemonic;	std
+		translation
+			argcount;	3
+			code;		$mem[dmem][addr:#add($1, $2), s:#bsize($3)] = $3
+	instruction
+		mnemonic;	st+
+		translation
+			argcount;	2
+			code;
+				$mem[dmem][addr:$1, s:#bsize($2)] = $2
+				$1 = #add($1, #size($2))
+	instruction
+		mnemonic;	st+
+		translation
+			argcount;	2
+			code;
+				$1 = #sub($1, #size($2))
+				$mem[dmem][addr:$1, s:#bsize($2)] = $2
+	instruction
+		mnemonic;	swap
+		translation
+			argcount;	1
+			code;		$1 = #app($1[o:4, s:4], $1[o:0, s:4])
+	instruction
+		mnemonic;	tst
+		translation
+			argcount;	2
+			code;
+				#1 = $1
+				#rec[and](#1, $2)
+	instruction
+		mnemonic;	wdr
+		translation
+			argcount;	0
+			code;		$builtin[watchdogreset]()
+	instruction
+		mnemonic;	xchwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+		translation
+			argcount;	1
+			code;
+				#1 = $mem[dmem][addr:$z, s:8]
+				$mem[dmem][addr:$z, s:8] = $1
+				$1 = #1

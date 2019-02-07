@@ -1,0 +1,677 @@
+
+architecture
+	name;			x86_64
+	instrptr;		rip
+	instrptrsize;	8
+	wordbase;		8
+	
+	stack
+		name;			x87
+		pushlocation;	bottom
+		maxcount;		8
+		backingregs;
+			st0
+			st1
+			st2
+			st3
+			st4
+			st5
+			st6
+			st7
+	stack
+		name;			stack
+		pushlocation;	bottom
+		backingmem;		mem
+		stackpointer;	rsp
+
+	memory
+		name;		mem
+		wordsize;	1
+		
+%general purpose registers
+	register
+		name;	rax
+		size;	64
+		register
+			name;	eax
+			size;	32
+			clearOnWrite
+		register
+			name;	ax
+			size;	16
+		register
+			name;	al
+			size;	8
+		register
+			name;	ah
+			offset;	8
+			size;	8
+	register
+		name;	rbx
+		size;	64
+		register
+			name;	ebx
+			size;	32
+			clearOnWrite
+		register
+			name;	bx
+			size;	16
+		register
+			name;	bl
+			size;	8
+		register
+			name;	bh
+			offset;	8
+			size;	8
+	register
+		name;	rcx
+		size;	64
+		register
+			name;	ecx
+			size;	32
+			clearOnWrite
+		register
+			name;	cx
+			size;	16
+		register
+			name;	cl
+			size;	8
+		register
+			name;	ch
+			offset;	8
+			size;	8
+	register
+		name;	rdx
+		size;	64
+		register
+			name;	edx
+			size;	32
+			clearOnWrite
+		register
+			name;	dx
+			size;	16
+		register
+			name;	dl
+			size;	8
+		register
+			name;	dh
+			offset;	8
+			size;	8
+	register
+		name;	rbp
+		size;	64
+		register
+			name;	ebp
+			size;	32
+			clearOnWrite
+		register
+			name;	bp
+			size;	16
+		register
+			name;	bpl
+			size;	8
+	register
+		name;	rsi
+		size;	64
+		register
+			name;	esi
+			size;	32
+			clearOnWrite
+		register
+			name;	si
+			size;	16
+		register
+			name;	sil
+			size;	8
+	register
+		name;	rdi
+		size;	64
+		register
+			name;	edi
+			size;	32
+			clearOnWrite
+		register
+			name;	di
+			size;	16
+		register
+			name;	dil
+			size;	8
+	register
+		name;	rsp
+		size;	64
+		register
+			name;	esp
+			size;	32
+			clearOnWrite
+		register
+			name;	sp
+			size;	16
+		register
+			name;	spl
+	register
+		name;	rip
+		size;	64
+		register
+			name;	eip
+			size;	32
+			clearOnWrite
+		register
+			name;	ip
+			size;	16
+	register
+		name;	r8
+		size;	64
+		register
+			name;	r8d
+			size;	32
+			clearOnWrite
+		register
+			name;	r8w
+			size;	16
+		register
+			name;	r8b
+			size;	8
+	register
+		name;	r9
+		size;	64
+		register
+			name;	r9d
+			size;	32
+			clearOnWrite
+		register
+			name;	r9w
+			size;	16
+		register
+			name;	r9b
+			size;	8
+	register
+		name;	r10
+		size;	64
+		register
+			name;	r10d
+			size;	32
+			clearOnWrite
+		register
+			name;	r10w
+			size;	16
+		register
+			name;	r10b
+			size;	8
+	register
+		name;	r11
+		size;	64
+		register
+			name;	r11d
+			size;	32
+			clearOnWrite
+		register
+			name;	r11w
+			size;	16
+		register
+			name;	r11b
+			size;	8
+	register
+		name;	r12
+		size;	64
+		register
+			name;	r12d
+			size;	32
+			clearOnWrite
+		register
+			name;	r12w
+			size;	16
+		register
+			name;	r12b
+			size;	8
+	register
+		name;	r13
+		size;	64
+		register
+			name;	r13d
+			size;	32
+			clearOnWrite
+		register
+			name;	r13w
+			size;	16
+		register
+			name;	r13b
+			size;	8
+	register
+		name;	r14
+		size;	64
+		register
+			name;	r14d
+			size;	32
+			clearOnWrite
+		register
+			name;	r14w
+			size;	16
+		register
+			name;	r14b
+			size;	8
+	register
+		name;	r15
+		size;	64
+		register
+			name;	r15d
+			size;	32
+			clearOnWrite
+		register
+			name;	r15w
+			size;	16
+		register
+			name;	r15b
+			size;	8
+%flags
+	register
+		name;	rflags
+		size;	64
+		register
+			name;	eflags
+			size;	32
+		register
+			name;	flags
+			size;	16
+		register
+			name;	cf
+			size;	1
+		register
+			name;	pf
+			size;	1
+			offset;	2
+		register
+			name;	af
+			size;	1
+			offset;	4
+		register
+			name;	zf
+			size;	1
+			offset;	6
+		register
+			name;	sf
+			size;	1
+			offset;	7
+		register
+			name;	tf
+			size;	1
+			offset;	8
+		register
+			name;	if
+			size;	1
+			offset;	9
+		register
+			name;	df
+			size;	1
+			offset;	10
+		register
+			name;	of
+			size;	1
+			offset;	11
+		register
+			name;	iopl
+			size;	2
+			offset;	12
+		register
+			name;	iopl
+			size;	2
+			offset;	12
+		register
+			name;	nt
+			size;	1
+			offset;	14
+		register
+			name;	rf
+			size;	1
+			offset;	16
+		register
+			name;	vm
+			size;	1
+			offset;	17
+		register
+			name;	ac
+			size;	1
+			offset;	18
+		register
+			name;	vif
+			size;	1
+			offset;	19
+		register
+			name;	vip
+			size;	1
+			offset;	20
+		register
+			name;	id
+			size;	1
+			offset;	21
+%segment registers
+	register
+		name;	cs
+		size;	16
+	register
+		name;	ss
+		size;	16
+	register
+		name;	ds
+		size;	16
+	register
+		name;	es
+		size;	16
+	register
+		name;	fs
+		size;	16
+	register
+		name;	gs
+		size;	16
+	register
+		name;	zmm0
+		size;	512
+		register
+			name;	ymm0
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm0
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm1
+		size;	512
+		register
+			name;	ymm1
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm1
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm2
+		size;	512
+		register
+			name;	ymm2
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm2
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm3
+		size;	512
+		register
+			name;	ymm3
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm3
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm4
+		size;	512
+		register
+			name;	ymm4
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm4
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm5
+		size;	512
+		register
+			name;	ymm5
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm5
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm6
+		size;	512
+		register
+			name;	ymm6
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm6
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm7
+		size;	512
+		register
+			name;	ymm7
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm7
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm8
+		size;	512
+		register
+			name;	ymm8
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm8
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm9
+		size;	512
+		register
+			name;	ymm9
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm9
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm10
+		size;	512
+		register
+			name;	ymm10
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm10
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm11
+		size;	512
+		register
+			name;	ymm11
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm11
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm12
+		size;	512
+		register
+			name;	ymm12
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm12
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm13
+		size;	512
+		register
+			name;	ymm13
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm13
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm14
+		size;	512
+		register
+			name;	ymm14
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm14
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm15
+		size;	512
+		register
+			name;	ymm15
+			size;	256
+			clearOnWrite
+		register
+			name;	xmm15
+			size;	128
+			clearOnWrite
+	register
+		name;	zmm16
+		size;	512
+	register
+		name;	zmm17
+		size;	512
+	register
+		name;	zmm18
+		size;	512
+	register
+		name;	zmm19
+		size;	512
+	register
+		name;	zmm20
+		size;	512
+	register
+		name;	zmm21
+		size;	512
+	register
+		name;	zmm22
+		size;	512
+	register
+		name;	zmm23
+		size;	512
+	register
+		name;	zmm24
+		size;	512
+	register
+		name;	zmm25
+		size;	512
+	register
+		name;	zmm26
+		size;	512
+	register
+		name;	zmm27
+		size;	512
+	register
+		name;	zmm28
+		size;	512
+	register
+		name;	zmm29
+		size;	512
+	register
+		name;	zmm30
+		size;	512
+	register
+		name;	zmm31
+		size;	512
+
+%table registers
+	register
+		name;	gdtr
+		size;	16
+	register
+		name;	idtr
+		size;	16
+	register
+		name;	tr
+		size;	16
+	register
+		name;	ldtr
+		size;	16
+		
+	primitivetype
+		name;		uint
+		shorthand;	u
+		consteval;	bitfield
+	primitivetype
+		name;		sint
+		shorthand;	s
+		bitsizes;	8, 16, 32, 64
+		consteval;	twocomplement
+	primitivetype
+		name;		float
+		shorthand;	f
+		bitsizes;	32
+		consteval;	ieee754
+	primitivetype
+		name;		long_float
+		shorthand;	lf
+		bitsizes;	80
+	primitivetype
+		name;		double
+		shorthand;	d
+		bitsizes;	64
+		consteval;	ieee754
+
+	builtin
+		name;		test
+		argument
+			name;	t
+			type;	f
+			size;	32
+		return
+			name;	x
+			type;	f
+			size;	32
+	instruction
+		mnemonic;	mul
+		translation
+			argcount;	1
+			cond;		$1 = #eq(#bsize($1),8)
+			code
+				$ax = #mul($al,$1)
+				$cf = #c(#1, 8)
+				$of = #o(#1)
+			undef;		$sf, $zf, $af, $pf
+		translation
+			argcount;	1
+			cond;		#1 := #eq(#bsize($1),16)
+			code
+				#1 = #mul($ax,$1)
+				$cf = #c(#1, 16)
+				$of = #o(#1)
+				$dx = #1[0,16]
+				$ax = #1[16,16]
+			undef; $sf, $zf, $af, $pf
+		translation
+			argcount;	1
+			cond;		#1 = #eq(#bsize($1),32)
+			code
+				#1 = #mul($eax,$1)
+				$cf = #c(#1, 32)
+				$of = #o(#1)
+				$edx = #t[1][0,32]
+				$eax = #t[1][32,32]
+			undef;		$sf, $zf, $af, $pf
+		translation
+			argcount;	1
+			cond;		#1 = ==(#bsize($1),64)
+			code
+				#1 = #mul($rax,$1)
+				$cf = #c(#1, 64)
+				$of = #o(#1)
+				$rdx = #1[0,32]
+				$rax = #1[32,32]
+			undef;		$sf, $zf, $af, $pf
