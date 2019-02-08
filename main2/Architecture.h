@@ -79,31 +79,51 @@ namespace holodec {
 
 	struct Architecture {
 		u32 id;
+		//the name of the architecture
 		ProxyString name;
+		//the register that is the instructionpointer
 		StringRef instrptr;
+		//the number of bits a single word has
 		u32 wordbase = 0;
+		//the default type of expressions
+		StringRef default_type;
 
+		//registers
 		IdArray<Register> registers;
-		IdArray<Memory> memories;
-		IdArray<Stack> stacks;
-		IdArray<PrimitiveType> primitivetypes;
-		IdArray<Builtin> builtins;
-		IdArray<Instruction> instructions;
+		Map<String, u32> reg_name_map;
 
 		Register* get_register(StringRef* ref);
-		Memory* get_memory(StringRef* ref);
-		Stack* get_stack(StringRef* ref);
-		PrimitiveType* get_primitivetype(StringRef* ref);
-		Builtin* get_builtin(StringRef* ref);
-		Instruction* get_instruction(StringRef* ref);
 
+		//memories
+		IdArray<Memory> memories;
+		Map<String, u32> mem_name_map;
+
+		Memory* get_memory(StringRef* ref);
+
+		//stacks
+		IdArray<Stack> stacks;
+		Map<String, u32> stack_name_map;
+
+		Stack* get_stack(StringRef* ref);
+
+		//primitivetypes
+		IdArray<PrimitiveType> primitivetypes;
+
+		PrimitiveType* get_primitivetype(StringRef* ref);
+
+		//builtins
+		IdArray<Builtin> builtins;
+
+		Builtin* get_builtin(StringRef* ref);
+
+		//instructions
+		translation::IRExprStore ir_expr_store;
+		IdArray<Instruction> instructions;
 		Map<String, u32> instr_mnemonic_map;
 
+		Instruction* get_instruction_by_mnemonic(StringRef* ref);
 		Instruction* get_instruction_by_mnemonic(String* str);
 
-		Map<String, u32> reg_name_map;
-		Map<String, u32> mem_name_map;
-		Map<String, u32> stack_name_map;
 
 		void print(u32 indent = 0, FILE * file = stdout);
 		void update_ids();

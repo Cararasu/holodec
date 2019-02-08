@@ -115,7 +115,7 @@ namespace holodec {
 	}
 	bool parse_int_value_rec(DecompContext* context, FileData* fdata, Line* line, u64* i) {
 		if (line->value) {
-			FileData valdata = { line->value.ptr, 0, line->value.size };
+			FileData valdata(line->value.ptr, line->value.size);
 			return valdata.integer(i);
 		}
 		else {
@@ -125,7 +125,7 @@ namespace holodec {
 	}
 	bool parse_int_value_rec(DecompContext* context, FileData* fdata, Line* line, u32* i) {
 		if (line->value) {
-			FileData valdata = { line->value.ptr, 0, line->value.size };
+			FileData valdata(line->value.ptr, line->value.size);
 			u64 li;
 			bool res = valdata.integer(&li);
 			*i = static_cast<u32>(li);
@@ -393,6 +393,9 @@ namespace holodec {
 		}
 		else if (match_part(&line->token, "wordbase")) {
 			return parse_int_value(context, fdata, line, &arch->wordbase);
+		}
+		else if (match_part(&line->token, "defaulttype")) {
+			return parse_stringref_value(context, fdata, line, &arch->default_type);
 		}
 		else if (match_part(&line->token, "stack")) {
 			Stack stack;

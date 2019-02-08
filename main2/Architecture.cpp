@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "Architecture.h"
+#include "IRTranslation.h"
 
 namespace holodec {
 
@@ -54,11 +55,23 @@ namespace holodec {
 		}
 		return nullptr;
 	}
-	Instruction* Architecture::get_instruction(StringRef* ref) {
+	Instruction* Architecture::get_instruction_by_mnemonic(StringRef* ref) {
 		if (ref->id) return instructions.get(ref->id);
 		for (Instruction& instruction : instructions) {
 			if (instruction.id && instruction.mnemonic == ref->name) {
 				ref->id = instruction.id;
+				return &instruction;
+			}
+		}
+		return nullptr;
+	}
+	Instruction* Architecture::get_instruction_by_mnemonic(String* str) {
+		auto it = instr_mnemonic_map.find(*str);
+		if (it != instr_mnemonic_map.end()) {
+			return &instructions[it->second];
+		}
+		for (Instruction& instruction : instructions) {
+			if (instruction.id && instruction.mnemonic == *str) {
 				return &instruction;
 			}
 		}
@@ -92,10 +105,15 @@ namespace holodec {
 			}
 		}
 		for (Instruction& instruction : instructions) {
-			for (translation::IRTranslation& translation : instruction.translations) {
-
-			}
 			instr_mnemonic_map.insert(std::make_pair(instruction.mnemonic, instruction.id));
 		}
+		default_type.id = 0;
+		if (default_type.name) get_primitivetype(&default_type);
+
+		DecompContext context;
+		context.arch = this;
+		StringStore stringstore;
+		context.string_store = &stringstore;
+		translation::parse_all_ir_strings(&context);
 	}
 }

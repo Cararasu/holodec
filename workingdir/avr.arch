@@ -3,7 +3,6 @@ architecture
 	name;			avr
 	instrptr;		ip
 	wordbase;		8
-	%default valuesize
 	
 	stack
 		name;			stack
@@ -17,7 +16,42 @@ architecture
 	memory
 		name;		pmem
 		wordsize;	8
+			
+	primitivetype
+		name;		uint
+		shorthand;	u
+		consteval;	bitfield
+	primitivetype
+		name;		sint
+		shorthand;	s
+		bitsizes;	8, 16
+		consteval;	twocomplement
 
+	defaulttype;	u
+	
+	builtin
+		name;	in
+		argument
+			name;	address
+			type;	u
+			size;	8
+		return
+			name;	value
+			type;	u
+			size;	8
+	builtin
+		name;	out
+		argument
+			name;	address
+			type;	u
+			size;	8
+		argument
+			name;	value
+			type;	u
+			size;	8
+	builtin
+		name;	watchdogreset
+		
 	register
 		name;	ip
 		size;	24
@@ -210,40 +244,7 @@ architecture
 		size;	1
 		offset;	7
 		parentreg;	flags
-			
-	primitivetype
-		name;		uint
-		shorthand;	u
-		consteval;	bitfield
-		default
-	primitivetype
-		name;		sint
-		shorthand;	s
-		bitsizes;	8, 16
-		consteval;	twocomplement
 	
-	builtin
-		name;	in
-		argument
-			name;	address
-			type;	u
-			size;	8
-		return
-			name;	value
-			type;	u
-			size;	8
-	builtin
-		name;	out
-		argument
-			name;	address
-			type;	u
-			size;	8
-		argument
-			name;	value
-			type;	u
-			size;	8
-	builtin
-		name;	watchdogreset
 	instruction
 		mnemonic;	add
 		translation
@@ -254,18 +255,18 @@ architecture
 				$1 = #add($1, $2)
 				$vf = #overflow($1)
 				$cf = #carry($1)
-				$hf = #carry($1, 4)
+				$hf = #carry[o:4]($1)
 				$nf = #less[t:s]($1, 0)
 				$sf = #neq($nf,$vf)
 		translation
 			argcount;	3
-			cond;		#1 = #and(#eq(#bsize($1),#bsize($2)), #eq(#add(#bsize(#arg[1]), #bsize(#arg[2])), #bsize(#arg[3]))
+			cond;		#1 = #and(#eq(#bsize($1),#bsize($2)), #eq(#add(#bsize($1), #bsize($2)), #bsize($3))
 			code;
 				$zf = #eq(#app($1, $2), $3)
 				#1  = #add(#app($1, $2), $3)
 				$vf = #overflow(#1)
 				$cf = #carry(#1)
-				$hf = #carry(#1, 4)
+				$hf = #carry[o:4](#1)
 				$nf = #less[t:s](#1, 0)
 				$sf = #neq($nf,$vf)
 				$1  = #1[o:0, s:8]
@@ -281,7 +282,7 @@ architecture
 				$1 = #add($1, #1)
 				$vf = #or(#overflow($1), #overflow(#1))
 				$cf = #or(#carry($1), #carry(#1))
-				$hf = #or(#carry($1, 4), #carry(#1, 4))
+				$hf = #or(#carry[o:4]($1), #carry[o:4](#1))
 				$nf = #less[t:s]($1, 0)
 				$sf = #neq($nf,$vf)
 	instruction
@@ -315,7 +316,7 @@ architecture
 		mnemonic;	bclr
 		translation
 			argcount;	2
-			code;		$1 = #bor(#band($1, #bnot(#shl(1[8], $2))), #shl(#ext[s:8]($tf), $2))
+			code;		$1 = #bor(#band($1, #bnot(#shl(1[s:8], $2))), #shl(#ext[s:8]($tf), $2))
 	instruction
 		mnemonic;	bst
 		translation
@@ -562,14 +563,14 @@ architecture
 		mnemonic;	elpm
 		translation
 			argcount;	1
-			code;		$1 = $mem[pmem][addr:#app($z,$rampz), s:#bsize($1)]
+			code;		$1 = $mem[pmem][o:#app($z,$rampz), s:#bsize($1)]
 	instruction
 		mnemonic;	elpm+
 		translation
 			argcount;	1
 			code;
 				#1 = #app($z, $rampz)
-				$1 = $mem[pmem][addr:#1, s:#bsize($1)]
+				$1 = $mem[pmem][o:#1, s:#bsize($1)]
 				#1 = #add(#1, 1[s:24])
 				$z = #1[o:0, s:16]
 				$rampz = #1[o:16, s:8]
@@ -592,7 +593,7 @@ architecture
 				$r0 = #1[o:0, s:8]
 				$r1 = #1[o:8, s:8]
 				$zf = #eq(#1, 0[s:16])
-				$cf = #c(#1)
+				$cf = #carry(#1)
 	instruction
 		mnemonic;	fmulsu
 		translation
@@ -602,7 +603,7 @@ architecture
 				$r0 = #1[o:0, s:8]
 				$r1 = #1[o:8, s:8]
 				$zf = #eq(#1, 0[s:16])
-				$cf = #c(#1)
+				$cf = #carry(#1)
 	instruction
 		mnemonic;	icall
 		translation
@@ -678,18 +679,18 @@ architecture
 		mnemonic;	ld
 		translation
 			argcount;	2
-			code;		$1 = $mem[dmem][addr:$2, s:#bsize($1)]
+			code;		$1 = $mem[dmem][o:$2, s:#bsize($1)]
 	instruction
 		mnemonic;	ldd
 		translation
 			argcount;	2
-			code;		$1 = $mem[dmem][addr:$2, s:#bsize($1)]
+			code;		$1 = $mem[dmem][o:$2, s:#bsize($1)]
 	instruction
 		mnemonic;	ld+
 		translation
 			argcount;	2
 			code;
-				$1 = $mem[dmem][addr:$2, s:#bsize($1)]
+				$1 = $mem[dmem][o:$2, s:#bsize($1)]
 				$2 = #add($2, 1[s:16])
 	instruction
 		mnemonic;	ld+
@@ -697,28 +698,28 @@ architecture
 			argcount;	2
 			code;
 				$2 = #sub($2, 1[s:16])
-				$1 = $mem[dmem][addr:$2, s:#bsize($1)]
+				$1 = $mem[dmem][o:$2, s:#bsize($1)]
 	instruction
 		mnemonic;	lat
 		translation
 			argcount;	1
 			code;
-				$1 = #bxor($1, $mem[dmem][addr:$z, s:8])
-				$mem[dmem][addr:$z, s:#bsize($1)] = $1
+				$1 = #bxor($1, $mem[dmem][o:$z, s:8])
+				$mem[dmem][o:$z, s:#bsize($1)] = $1
 	instruction
 		mnemonic;	las
 		translation
 			argcount;	1
 			code;
-				$1 = #bor($1, $mem[dmem][addr:$z, s:8])
-				$mem[dmem][addr:$z, s:#bsize($1)] = $1
+				$1 = #bor($1, $mem[dmem][o:$z, s:8])
+				$mem[dmem][o:$z, s:#bsize($1)] = $1
 	instruction
 		mnemonic;	lac
 		translation
 			argcount;	1
 			code;
-				#1 = #band(#sub(0xFF, $1), $mem[dmem][addr:$z, s:8])
-				$mem[dmem][addr:$z, s:#bsize($1)] = #1
+				#1 = #band(#sub(0xFF, $1), $mem[dmem][o:$z, s:8])
+				$mem[dmem][o:$z, s:#bsize($1)] = #1
 	instruction
 		mnemonic;	ldi
 		translation
@@ -728,18 +729,18 @@ architecture
 		mnemonic;	ldi
 		translation
 			argcount;	1
-			code;		$1 = $mem[dmem][addr:$2, s:8]
+			code;		$1 = $mem[dmem][o:$2, s:8]
 	instruction
 		mnemonic;	lpm
 		translation
 			argcount;	1
-			code;		$1 = $mem[pmem][addr:$z, s:8]
+			code;		$1 = $mem[pmem][o:$z, s:8]
 	instruction
 		mnemonic;	lpm+
 		translation
 			argcount;	1
 			code;
-				$1 = $mem[pmem][addr:$2, s:8]
+				$1 = $mem[pmem][o:$2, s:8]
 				$z = #add($z, 1[s:16])
 	instruction
 		mnemonic;	lsl
@@ -748,7 +749,7 @@ architecture
 			code;
 				$hf = $1[o:3, s:1]
 				$1 = #shl($1, 1)
-				$cf = #c($1)
+				$cf = #carry($1)
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
 				$vf = #neq($nf, $cf)
@@ -760,7 +761,7 @@ architecture
 			code;
 				$hf = $1[o:3, s:1]
 				$1 = #shr($1, 1)
-				$cf = #c($1)
+				$cf = #carry($1)
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
 				$vf = #neq($nf, $cf)
@@ -839,7 +840,7 @@ architecture
 			argcount;	2
 			code;
 				$1 = #bor($1, $2)
-				$cf = #c($1)
+				$cf = #carry($1)
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
 				$vf = 0[s:1]
@@ -892,7 +893,7 @@ architecture
 		translation
 			argcount;	1
 			code;
-				$1 = $mem[dmem][addr:#add($sp, 1), s:8]
+				$1 = $mem[dmem][o:#add($sp, 1), s:8]
 				$sp = #add($sp, #size($1))
 	instruction
 		mnemonic;	push
@@ -900,7 +901,7 @@ architecture
 			argcount;	1
 			code;
 				$sp = #sub($sp, #size($1))
-				$mem[dmem][addr:#add($sp, 1), s:8] = $1
+				$mem[dmem][o:#add($sp, 1), s:8] = $1
 	instruction
 		mnemonic;	rcall
 		translation
@@ -960,9 +961,9 @@ architecture
 			code;
 				$zf = #eq($1, $2)
 				$1 = #sub($1, $2)
-				$cf = #c($1)
-				$hf = #c($1, 4)
-				$vf = #o($1)
+				$cf = #carry($1)
+				$hf = #carry[o:4]($1)
+				$vf = #overflow($1)
 				$nf = #less[t:s]($1, 0)
 				$sf = #neq($nf, $vf)
 		translation
@@ -970,9 +971,9 @@ architecture
 			code;
 				$zf = #eq(#app($1, $2), $3)
 				#1 = #sub(#app($1, $2), $3)
-				$cf = #c($1)
-				$hf = #c($1, 4)
-				$vf = #o($1)
+				$cf = #carry($1)
+				$hf = #carry[o:4]($1)
+				$vf = #overflow($1)
 				$nf = #less[t:s]($1, 0)
 				$sf = #neq($nf, $vf)
 				$1 = #1[o:0, s:8]
@@ -987,7 +988,7 @@ architecture
 				$1 = #sub($1, #1)
 				$vf = #or(#overflow($1), #overflow(#1))
 				$cf = #or(#carry($1), #carry(#1))
-				$hf = #or(#carry($1, 4), #carry(#1, 4))
+				$hf = #or(#carry[o:4]($1), #carry[o:4](#1))
 				$nf = #less[t:s]($1, 0)
 				$sf = #neq($nf, $vf)
 	instruction
@@ -1076,23 +1077,23 @@ architecture
 		mnemonic;	spm
 		translation
 			argcount;	1
-			code;		$mem[pmem][addr:#app($z,$rampz), s:#bsize($1)] = $1
+			code;		$mem[pmem][o:#app($z,$rampz), s:#bsize($1)] = $1
 	instruction
 		mnemonic;	st
 		translation
 			argcount;	2
-			code;		$mem[dmem][addr:$1, s:#bsize($2)] = $2
+			code;		$mem[dmem][o:$1, s:#bsize($2)] = $2
 	instruction
 		mnemonic;	std
 		translation
 			argcount;	3
-			code;		$mem[dmem][addr:#add($1, $2), s:#bsize($3)] = $3
+			code;		$mem[dmem][o:#add($1, $2), s:#bsize($3)] = $3
 	instruction
 		mnemonic;	st+
 		translation
 			argcount;	2
 			code;
-				$mem[dmem][addr:$1, s:#bsize($2)] = $2
+				$mem[dmem][o:$1, s:#bsize($2)] = $2
 				$1 = #add($1, #size($2))
 	instruction
 		mnemonic;	st+
@@ -1100,7 +1101,7 @@ architecture
 			argcount;	2
 			code;
 				$1 = #sub($1, #size($2))
-				$mem[dmem][addr:$1, s:#bsize($2)] = $2
+				$mem[dmem][o:$1, s:#bsize($2)] = $2
 	instruction
 		mnemonic;	swap
 		translation
@@ -1119,10 +1120,10 @@ architecture
 			argcount;	0
 			code;		$builtin[watchdogreset]()
 	instruction
-		mnemonic;	xchwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww
+		mnemonic;	xch
 		translation
 			argcount;	1
 			code;
-				#1 = $mem[dmem][addr:$z, s:8]
-				$mem[dmem][addr:$z, s:8] = $1
+				#1 = $mem[dmem][o:$z, s:8]
+				$mem[dmem][o:$z, s:8] = $1
 				$1 = #1

@@ -17,6 +17,12 @@ namespace holodec {
 		operator bool() {
 			return ptr != nullptr && size != 0;
 		}
+		String to_string() {
+			return String(ptr, size);
+		}
+		ProxyString to_proxystring(StringStore* store) {
+			return ProxyString(ptr, size, store);
+		}
 	};
 
 	inline bool match_part(DataPart* token, const char* string, size_t size) {
@@ -49,6 +55,11 @@ namespace holodec {
 		char* data;
 		size_t offset;
 		size_t size;
+
+		FileData() : data(nullptr), offset(0), size(0) {}
+		FileData(char* data) : data(data), offset(0), size(strlen(data)) {}
+		FileData(char* data, size_t size) : data(data), offset(0), size(size) {}
+		FileData(String& s) : data(s.str()), offset(0), size(s.size()) {}
 
 		char* current_ptr() {
 			return &data[offset];
@@ -216,6 +227,12 @@ namespace holodec {
 			}
 			go_back(savepoint);
 			return false;
+		}
+		bool integer(u32* i) {
+			u64 li;
+			bool res = integer(&li);
+			*i = (u32)li;
+			return res;
 		}
 		bool signed_integer(s64* i) {
 			size_t savepoint = offset;

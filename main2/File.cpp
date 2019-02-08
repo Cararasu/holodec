@@ -20,7 +20,7 @@ namespace holodec {
 		fclose(f);
 
 		data[size] = 0;
-		return { data, 0, (holodec::u64)size };
+		return FileData(data, size);
 	}
 
 	bool parse_line(FileData* fdata, Line* line, bool is_value) {

@@ -2,6 +2,7 @@
 
 #include "File.h"
 #include "IRTranslation.h"
+#include "Architecture.h"
 
 
 
@@ -9,23 +10,29 @@ namespace holodec {
 
 namespace translation {
 
-	bool parse_expression(FileData* fdata);
+	u32 parse_expression(DecompContext* context, FileData* fdata);
 
 	template<typename T>
-	using MODIFIER_PARSER = bool(*) (FileData*, DataPart*, T*);
+	using MODIFIER_PARSER = bool(*) (DecompContext* context, FileData*, DataPart*, T*);
 
-	bool parse_arguments(FileData* fdata) {
+
+	bool parse_arguments(DecompContext* context, FileData* fdata, translation::Expression* expr) {
 		fdata->whitespaces();
+		u32 i = 0;
 		if (fdata->character('(')) {
+			fdata->whitespaces();
+			if (fdata->character(')')) return true;
 			do {
 				fdata->whitespaces();
-				if (!parse_expression(fdata)) {
+				expr->sub_expressions[i] = parse_expression(context, fdata);
+				if (!expr->sub_expressions[i]) {
 					//ERROR
 					printf("ERROR: Badly Formatted Expression in Modifier-value %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 					return false;
 				}
 				fdata->whitespaces();
-			} while (fdata->character(','));
+				i++;
+			} while (i < MAX_SUBEXPRESSIONS && fdata->character(','));
 
 			if (!fdata->character(')')) {
 				//ERROR
@@ -36,8 +43,7 @@ namespace translation {
 		}
 		return true;
 	}
-	bool parse_generic_modifier(FileData* fdata, DataPart* token, void* data) {
-		printf("    Parsed Modifier %.*s\n", (int)token->size, token->ptr);
+	bool parse_generic_modifier(DecompContext* context, FileData* fdata, DataPart* token, Expression* expr) {
 		if (match_part(token, "t")) {
 			DataPart typetoken;
 			fdata->whitespaces();
@@ -46,10 +52,43 @@ namespace translation {
 				printf("ERROR: Badly Formatted Type-string in Modifier-value %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 				return false;
 			}
+			expr->typeref = typetoken.to_proxystring(context->string_store);
+		}
+		else if (match_part(token, "s")) {
+			fdata->whitespaces();
+			expr->size_id = parse_expression(context, fdata);
+			return expr->size_id != 0;
+		}
+		else if (match_part(token, "o")) {
+			fdata->whitespaces();
+			expr->offset_id = parse_expression(context, fdata);
+			return expr->offset_id != 0;
+		}
+		else {
+			printf("ERROR: Unknown Modifier %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
+			return false;
+		}
+		return true;
+	}
+	bool parse_cast_modifier(DecompContext* context, FileData* fdata, DataPart* token, Expression* expr) {
+		if (match_part(token, "t")) {
+			DataPart typetoken;
+			fdata->whitespaces();
+			if (!fdata->token(&typetoken)) {
+				//ERROR
+				printf("ERROR: Badly Formatted Type-string in Modifier-value %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
+				return false;
+			}
+			expr->cast_typeref = typetoken.to_proxystring(context->string_store);
+		}
+		else if (match_part(token, "s")) {
+			fdata->whitespaces();
+			expr->cast_size_id = parse_expression(context, fdata);
+			return expr->cast_size_id != 0;
 		}
 		else {
 			fdata->whitespaces();
-			if (!parse_expression(fdata)) {
+			if (!parse_expression(context, fdata)) {
 				//ERROR
 				printf("ERROR: Badly Formatted Expression in Modifier-value %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 				return false;
@@ -58,7 +97,7 @@ namespace translation {
 		return true;
 	}
 	template<typename T>
-	bool parse_modifiers(FileData* fdata, MODIFIER_PARSER<T> modify_parser, T* data) {
+	bool parse_modifiers(DecompContext* context, FileData* fdata, MODIFIER_PARSER<T> modify_parser, T* data) {
 		fdata->whitespaces();
 		if (fdata->character('[')) {
 			do {
@@ -76,7 +115,7 @@ namespace translation {
 					return false;
 				}
 				fdata->whitespaces();
-				modify_parser(fdata, &token, data);
+				modify_parser(context, fdata, &token, data);
 				fdata->whitespaces();
 			} while (fdata->character(','));
 
@@ -89,7 +128,7 @@ namespace translation {
 		}
 		return true;
 	}
-	bool parse_string_modifier(FileData* fdata, DataPart* token) {
+	bool parse_string_modifier(DecompContext* context, FileData* fdata, DataPart* token) {
 		fdata->whitespaces();
 		if (fdata->character('[')) {
 			fdata->whitespaces();
@@ -105,103 +144,187 @@ namespace translation {
 		}
 		return true;
 	}
-	bool parse_expression(FileData* fdata) {
+	bool parse_op(DecompContext* context, FileData* fdata, DataPart* token, translation::Expression* expr) {
+		fdata->whitespaces();
+		if (match_part(token, "extract")) {
+			expr->type = ExpressionType::eExtract;
+			DataPart strmod;
+			if (!parse_string_modifier(context, fdata, &strmod)) return false;
+			expr->ref = strmod.to_proxystring(context->string_store);
+		}
+		else if (match_part(token, "cast")) {
+			expr->type = ExpressionType::eCast;
+			if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, expr)) return false;
+			fdata->whitespaces();
+			if (!(fdata->character('-') && fdata->character('>'))) {
+				//ERROR
+				return false;
+			}
+			if (!parse_modifiers<Expression>(context, fdata, parse_cast_modifier, expr)) return false;
+		}
+		else if (match_part(token, "isize")) {
+			expr->type = ExpressionType::eInstructionSize;
+		}
+		else if (match_part(token, "size")) {
+			expr->type = ExpressionType::eWordSize;
+		}
+		else if (match_part(token, "bsize")) {
+			expr->type = ExpressionType::eBitSize;
+		}
+		else {
+			expr->type = ExpressionType::eOp;
+			if (match_part(token, "ext"))		expr->op_type = OpType::eExtend;
+			else if (match_part(token, "app"))	expr->op_type = OpType::eAppend;
+			else if (match_part(token, "add"))	expr->op_type = OpType::eAdd;
+			else if (match_part(token, "sub"))	expr->op_type = OpType::eSub;
+			else if (match_part(token, "mul"))	expr->op_type = OpType::eMul;
+			else if (match_part(token, "div"))	expr->op_type = OpType::eDiv;
+			else if (match_part(token, "mod"))	expr->op_type = OpType::eMod;
+			else if (match_part(token, "and"))	expr->op_type = OpType::eAnd;
+			else if (match_part(token, "or"))	expr->op_type = OpType::eOr;
+			else if (match_part(token, "not"))	expr->op_type = OpType::eNot;
+			else if (match_part(token, "eq"))	expr->op_type = OpType::eEq;
+			else if (match_part(token, "neq"))	expr->op_type = OpType::eNeq;
+			else if (match_part(token, "less"))	expr->op_type = OpType::eLess;
+			else if (match_part(token, "lesseq"))	expr->op_type = OpType::eLessEq;
+			else if (match_part(token, "greater"))	expr->op_type = OpType::eGreater;
+			else if (match_part(token, "greatereq"))	expr->op_type = OpType::eGreaterEq;
+			else if (match_part(token, "band"))	expr->op_type = OpType::eBAnd;
+			else if (match_part(token, "bor"))	expr->op_type = OpType::eBOr;
+			else if (match_part(token, "bxor"))	expr->op_type = OpType::eBXor;
+			else if (match_part(token, "bnot"))	expr->op_type = OpType::eBNot;
+			else if (match_part(token, "shr"))	expr->op_type = OpType::eShr;
+			else if (match_part(token, "shl"))	expr->op_type = OpType::eShl;
+			else if (match_part(token, "ror"))	expr->op_type = OpType::eRor;
+			else if (match_part(token, "rol"))	expr->op_type = OpType::eRol;
+			else if (match_part(token, "carry"))	expr->op_type = OpType::eCarryFlag;
+			else if (match_part(token, "overflow"))	expr->op_type = OpType::eOverflowFlag;
+			else if (match_part(token, "underflow"))	expr->op_type = OpType::eUnderflowFlag;
+			else {
+				printf("ERROR: unknown token %.*s\n", (int)token->size, token->ptr);
+				expr->ref = token->to_proxystring(context->string_store);
+			}
+			if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, expr)) return 0;
+		}
+		if (!parse_arguments(context, fdata, expr)) return false;
+		return true;
+	}
+	u32 parse_expression(DecompContext* context, FileData* fdata) {
 		DataPart token;
-		u64 i;
-		s64 si;
+		u32 index;
+		u64 ival;
+
 		if (fdata->character('#')) {
 			if (fdata->token(&token)) { //ir-defined operations
-				printf("Parsed ir-defined operation %.*s\n", (int)token.size, token.ptr);
-				if (match_part(&token, "extract")) {
-					printf("Parsed Extract\n");
-					DataPart strmod;
-					if (!parse_string_modifier(fdata, &strmod)) return false;
-				}
-				else if (match_part(&token, "isize")) {
-					printf("Parsed Instructionsize\n");
-				}
-				else {
-					if (!parse_modifiers<void>(fdata, parse_generic_modifier, nullptr)) return false;
-				}
-				if (!parse_arguments(fdata)) return false;
+				Expression expr;
+				if (!parse_op(context, fdata, &token, &expr)) return 0;
+				return context->arch->ir_expr_store.insert(expr);
 			}
-			else if (fdata->integer(&i)) { //temporary
-				printf("Parsed Temporary %" PRIu64 "\n", i);
+			else if (fdata->integer(&index)) { //temporary
+				Expression expr;
+				expr.type = ExpressionType::eTemporary;
+				expr.index = index;
+				if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, &expr)) return 0;
+				return context->arch->ir_expr_store.insert(expr);
 			}
 			else {
 				//ERROR
 				printf("ERROR: #-Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
-				return false;
-			}
-		}
-		else if (fdata->character('§')) {
-			if (fdata->integer(&i)) { //temporary
-				printf("Parsed Label %" PRIu64 "\n", i);
-			}
-			else {
-				//ERROR
-				printf("ERROR: §-Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
-				return false;
+				return 0;
 			}
 		}
 		else if (fdata->character('$')) { //arch-defined
 			if (fdata->token(&token)) {
 				fdata->whitespaces();
-				DataPart strmod;
 				if (match_part(&token, "mem")) {
-					printf("Parsed Memory %.*s\n", (int)token.size, token.ptr);
-					if (!parse_string_modifier(fdata, &strmod) || !parse_modifiers<void>(fdata, parse_generic_modifier, nullptr)) return false;
+					Expression expr;
+					expr.type = ExpressionType::eMemory;
+
+					DataPart stringtoken;
+					if (!parse_string_modifier(context, fdata, &stringtoken)) return 0;
+					expr.ref = stringtoken.to_proxystring(context->string_store);
+					if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, &expr)) return 0;
+					return context->arch->ir_expr_store.insert(expr);
 				}
 				else if (match_part(&token, "stack")) {
-					printf("Parsed Stack %.*s\n", (int)token.size, token.ptr);
-					if (!parse_string_modifier(fdata, &strmod)) return false;
+					Expression expr;
+					expr.type = ExpressionType::eStack;
+
+					DataPart stringtoken;
+					if (!parse_string_modifier(context, fdata, &stringtoken)) return 0;
+					expr.ref = stringtoken.to_proxystring(context->string_store);
+					if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, &expr)) return 0;
+					return context->arch->ir_expr_store.insert(expr);
 				}
 				else if (match_part(&token, "builtin")) {
-					printf("Parsed Builtin %.*s\n", (int)token.size, token.ptr);
-					if (!parse_string_modifier(fdata, &strmod) || !parse_arguments(fdata)) return false;
+					Expression expr;
+					expr.type = ExpressionType::eBuiltin;
+
+					DataPart stringtoken;
+					if (!parse_string_modifier(context, fdata, &stringtoken)) {
+						//ERROR
+						return 0;
+					}
+					expr.ref = stringtoken.to_proxystring(context->string_store);
+					if (!parse_arguments(context, fdata, &expr)) return 0;
+					return context->arch->ir_expr_store.insert(expr);
 				}
 				else {//register
+					Expression expr;
+					expr.type = ExpressionType::eRegister;
 					if (match_part(&token, "reg")) {
-						if (!parse_string_modifier(fdata, &strmod)) return false;
+						DataPart stringtoken;
+						if (!parse_string_modifier(context, fdata, &stringtoken)) return 0;
+						expr.ref = stringtoken.to_proxystring(context->string_store);
 					}
-					printf("Parsed Register %.*s\n", (int)token.size, token.ptr);
+					else {
+						expr.ref = token.to_proxystring(context->string_store);
+					}
+					if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, &expr)) return 0;
+					return context->arch->ir_expr_store.insert(expr);
 				}
 			}
-			else if (fdata->integer(&i)) { //argument
-				printf("Parsed Argument %" PRIu64 "\n", i);
+			else if (fdata->integer(&index)) { //argument
+				Expression expr;
+				expr.type = ExpressionType::eArgument;
+				expr.index = index;
+				if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, &expr)) return 0;
+				return context->arch->ir_expr_store.insert(expr);
 			}
 			else {
 				printf("ERROR: $-Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
-				return false;
+				return 0;
 			}
 		}
-		else if (fdata->integer(&i)) { //value
-			printf("Parsed Value %" PRIu64 "\n", i);
+		else if (fdata->integer(&ival)) { //value
+			Expression expr;
+			expr.type = ExpressionType::eValue;
+			expr.value.bits = ival;
+			expr.value.bitcount = context->arch->wordbase;
+			if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, &expr)) return 0;
+			return context->arch->ir_expr_store.insert(expr);
 		}
-		else if (fdata->signed_integer(&si)) { //value
-			printf("Parsed Signed Value %" PRId64 "\n", si);
-		}
-		else {
-			//ERROR
-			printf("ERROR: Unknown Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
-			fdata->integer(&i);
+		//ERROR
+		printf("ERROR: Unknown Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
+		return 0;
+	}
+	bool is_ending(FileData* fdata) {
+		fdata->whitespaces();
+		if (!fdata->eof()) {
+			printf("ERROR: Not parsed whole line %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 			return false;
 		}
-		if (!parse_modifiers<void>(fdata, parse_generic_modifier, nullptr)) return false;
 		return true;
 	}
 
-	bool parse_ir_string(FileData* fdata) {
+	bool parse_ir_string(DecompContext* context, FileData* fdata, IRLine* line) {
 		printf("%.*s\n", (int)fdata->size, fdata->data);
 		DataPart token;
-		u64 i;
+		u32 index;
 
 		fdata->whitespaces();
 		if (fdata->character('§')) {
-			if (fdata->integer(&i)) { //label
-				printf("Parsed Label %" PRIu64 "\n", i);
-			}
-			else {
+			if (!fdata->integer(&line->label_id)) { //label
 				//ERROR
 				return false;
 			}
@@ -210,24 +333,32 @@ namespace translation {
 		if (fdata->character('#')) {
 			if (fdata->token(&token)) { //ir-defined operations
 				if (match_part(&token, "rec")) { //Parse recursive instruction
+					Expression expr;
+					expr.type = ExpressionType::eRecursive;
+
 					DataPart stringtoken;
-					if (!parse_string_modifier(fdata, &stringtoken)) {
+					if (!parse_string_modifier(context, fdata, &stringtoken)) {
 						//ERROR
 						return false;
 					}
-					printf("Parsed recursive operation of instruction %.*s\n", (int)stringtoken.size, stringtoken.ptr);
-					if (!parse_arguments(fdata)) {
+					expr.ref = stringtoken.to_proxystring(context->string_store);
+					if (!parse_arguments(context, fdata, &expr)) {
 						//ERROR
 						return false;
 					}
+					line->expr_id = context->arch->ir_expr_store.insert(expr);
+					return is_ending(fdata);
 				}
 				else {
 					//ERROR
 					return false;
 				}
 			}
-			else if (fdata->integer(&i)) { //temporary
-				printf("Parsed Temporary %" PRIu64 "\n", i);
+			else if (fdata->integer(&index)) { //temporary
+				Expression expr;
+				expr.type = ExpressionType::eTemporary;
+				expr.index = index;
+				line->write_id = context->arch->ir_expr_store.insert(expr);
 			}
 			else {
 				//ERROR
@@ -237,29 +368,75 @@ namespace translation {
 		else if (fdata->character('$')) { //arch-defined
 			if (fdata->token(&token)) {
 				if (match_part(&token, "mem")) {
-					printf("Parsed Memory\n");
-				}
-				else if (match_part(&token, "stack")) {
-					printf("Parsed Stack\n");
-				}
-				else if (match_part(&token, "builtin")) {
-					printf("Parsed Builtin\n");
-					if (!parse_arguments(fdata)) {
+					Expression expr;
+					expr.type = ExpressionType::eMemory;
+
+					DataPart stringtoken;
+					if (!parse_string_modifier(context, fdata, &stringtoken)) {
 						//ERROR
 						return false;
 					}
+					expr.ref = stringtoken.to_proxystring(context->string_store);
+					if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, &expr)) {
+						//ERROR
+						return false;
+					}
+
+					line->write_id = context->arch->ir_expr_store.insert(expr);
+				}
+				else if (match_part(&token, "stack")) {
+					Expression expr;
+					expr.type = ExpressionType::eStack;
+
+					DataPart stringtoken;
+					if (!parse_string_modifier(context, fdata, &stringtoken)) {
+						//ERROR
+						return false;
+					}
+					expr.ref = stringtoken.to_proxystring(context->string_store);
+
+					line->write_id = context->arch->ir_expr_store.insert(expr);
+				}
+				else if (match_part(&token, "builtin")) {
+					Expression expr;
+					expr.type = ExpressionType::eBuiltin;
+
+					DataPart stringtoken;
+					if (!parse_string_modifier(context, fdata, &stringtoken)) {
+						//ERROR
+						return false;
+					}
+					expr.ref = stringtoken.to_proxystring(context->string_store);
+					if (!parse_arguments(context, fdata, &expr)) {
+						//ERROR
+						return false;
+					}
+
+					line->expr_id = context->arch->ir_expr_store.insert(expr);
+					return is_ending(fdata);
 				}
 				else {//register
+					Expression expr;
+					expr.type = ExpressionType::eRegister;
 					if (match_part(&token, "reg")) {
-						printf("Parsed Register\n");
+						DataPart stringtoken;
+						if (!parse_string_modifier(context, fdata, &stringtoken)) {
+							//ERROR
+							return false;
+						}
+						expr.ref = stringtoken.to_proxystring(context->string_store);
 					}
 					else {
-						printf("Parsed Register\n");
+						expr.ref = token.to_proxystring(context->string_store);
 					}
+					line->write_id = context->arch->ir_expr_store.insert(expr);
 				}
 			}
-			else if (fdata->integer(&i)) { //argument
-				printf("Parsed Argument %" PRIu64 "\n", i);
+			else if (fdata->integer(&index)) { //argument
+				Expression expr;
+				expr.type = ExpressionType::eArgument;
+				expr.index = index;
+				line->write_id = context->arch->ir_expr_store.insert(expr);
 			}
 			else {
 				//ERROR
@@ -273,10 +450,12 @@ namespace translation {
 		fdata->whitespaces();
 		if (!fdata->character('=')) {
 			//ERROR
+			printf("ERROR: Expected '='\n");
 			return false;
 		}
 		fdata->whitespaces();
-		if (!parse_expression(fdata)) {
+		line->expr_id = parse_expression(context, fdata);
+		if (!line->expr_id) {
 			//ERROR
 			return false;
 		}
@@ -284,19 +463,40 @@ namespace translation {
 		if (fdata->character('?')) {
 			printf("Parsing Condition\n");
 			fdata->whitespaces();
-			if (!parse_expression(fdata)) {
+			line->cond_id = parse_expression(context, fdata);
+			if (!line->cond_id) {
 				//ERROR
 				return false;
 			}
 		}
-		fdata->whitespaces();
-		if (!fdata->eof()) {
-			printf("ERROR: Not parsed whole line %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
+		line->print(context);
+		return is_ending(fdata);
+	}
+
+	bool parse_ir_string(DecompContext* context, IRLine* line) {
+		FileData fdata(line->str);
+		return parse_ir_string(context, &fdata, line);
+	}
+
+
+	bool parse_all_ir_strings(DecompContext* context) {
+		if (!context->arch) {
+			//ERROR
 			return false;
+		}
+
+		for (Instruction& instruction : context->arch->instructions) {
+			for (IRTranslation& translation : instruction.translations) {
+				for (IRLine& line : translation.condition) {
+					parse_ir_string(context, &line);
+				}
+				for (IRLine& line : translation.code) {
+					parse_ir_string(context, &line);
+				}
+			}
 		}
 		return true;
 	}
-
 }
 
 }
