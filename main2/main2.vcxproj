@@ -156,6 +156,7 @@
     <ClInclude Include="Architecture.h" />
     <ClInclude Include="Array.h" />
     <ClInclude Include="Binary.h" />
+    <ClInclude Include="BitValue.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="IR.h" />
@@ -163,10 +164,13 @@
     <ClInclude Include="Parser.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="String.h" />
+    <ClInclude Include="ConstEval.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Architecture.cpp" />
+    <ClCompile Include="ConstEval.cpp" />
     <ClCompile Include="File.cpp" />
+    <ClCompile Include="General.cpp" />
     <ClCompile Include="main2.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="pch.cpp">

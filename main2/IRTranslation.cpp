@@ -3,6 +3,7 @@
 #include "File.h"
 #include "IRTranslation.h"
 #include "Architecture.h"
+#include "BitValue.h"
 
 
 
@@ -184,11 +185,8 @@ namespace translation {
 			else if (match_part(token, "or"))	expr->op_type = OpType::eOr;
 			else if (match_part(token, "not"))	expr->op_type = OpType::eNot;
 			else if (match_part(token, "eq"))	expr->op_type = OpType::eEq;
-			else if (match_part(token, "neq"))	expr->op_type = OpType::eNeq;
 			else if (match_part(token, "less"))	expr->op_type = OpType::eLess;
-			else if (match_part(token, "lesseq"))	expr->op_type = OpType::eLessEq;
 			else if (match_part(token, "greater"))	expr->op_type = OpType::eGreater;
-			else if (match_part(token, "greatereq"))	expr->op_type = OpType::eGreaterEq;
 			else if (match_part(token, "band"))	expr->op_type = OpType::eBAnd;
 			else if (match_part(token, "bor"))	expr->op_type = OpType::eBOr;
 			else if (match_part(token, "bxor"))	expr->op_type = OpType::eBXor;
@@ -217,7 +215,10 @@ namespace translation {
 		if (fdata->character('#')) {
 			if (fdata->token(&token)) { //ir-defined operations
 				Expression expr;
-				if (!parse_op(context, fdata, &token, &expr)) return 0;
+				if (!parse_op(context, fdata, &token, &expr)) {
+					printf("ERROR: Not a #-op %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
+					return 0;
+				}
 				return context->arch->ir_expr_store.insert(expr);
 			}
 			else if (fdata->integer(&index)) { //temporary
@@ -299,8 +300,7 @@ namespace translation {
 		else if (fdata->integer(&ival)) { //value
 			Expression expr;
 			expr.type = ExpressionType::eValue;
-			expr.value.bits = ival;
-			expr.value.bitcount = context->arch->wordbase;
+			expr.value.set_value(ival, context->arch->wordbase);
 			if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, &expr)) return 0;
 			return context->arch->ir_expr_store.insert(expr);
 		}
@@ -349,8 +349,20 @@ namespace translation {
 					line->expr_id = context->arch->ir_expr_store.insert(expr);
 					return is_ending(fdata);
 				}
+				if (match_part(&token, "trap")) { //Parse recursive instruction
+					Expression expr;
+					expr.type = ExpressionType::eTrap;
+
+					if (!parse_arguments(context, fdata, &expr)) {
+						//ERROR
+						return false;
+					}
+					line->expr_id = context->arch->ir_expr_store.insert(expr);
+					return is_ending(fdata);
+				}
 				else {
 					//ERROR
+					printf("ERROR: Not a standalone #-op %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 					return false;
 				}
 			}
@@ -362,6 +374,7 @@ namespace translation {
 			}
 			else {
 				//ERROR
+				printf("ERROR: #-Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 				return false;
 			}
 		}
@@ -440,17 +453,19 @@ namespace translation {
 			}
 			else {
 				//ERROR
+				printf("ERROR: $-Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 				return false;
 			}
 		}
 		else {
 			//ERROR
+			printf("ERROR: Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 			return false;
 		}
 		fdata->whitespaces();
 		if (!fdata->character('=')) {
 			//ERROR
-			printf("ERROR: Expected '='\n");
+			printf("ERROR: Expected '=' %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 			return false;
 		}
 		fdata->whitespaces();
@@ -461,7 +476,6 @@ namespace translation {
 		}
 		fdata->whitespaces();
 		if (fdata->character('?')) {
-			printf("Parsing Condition\n");
 			fdata->whitespaces();
 			line->cond_id = parse_expression(context, fdata);
 			if (!line->cond_id) {
@@ -469,15 +483,138 @@ namespace translation {
 				return false;
 			}
 		}
-		line->print(context);
 		return is_ending(fdata);
 	}
-
 	bool parse_ir_string(DecompContext* context, IRLine* line) {
 		FileData fdata(line->str);
 		return parse_ir_string(context, &fdata, line);
 	}
+	bool validate_ir_expression(DecompContext* context, u32 id);
 
+	bool validate_ir_arguments(DecompContext* context, Expression* expr, u32 minval, u32 maxvalue) {
+		u32 i = 0;
+		for (; i < MAX_SUBEXPRESSIONS; i++) {
+			if (!expr->sub_expressions[i]) break;
+			if (!validate_ir_expression(context, expr->sub_expressions[i])) return false;
+		}
+		return i >= minval && i <= maxvalue;
+	}
+	bool validate_ir_op(DecompContext* context, Expression* expr) {
+		switch (expr->op_type) {
+		default:
+		case OpType::eInvalid:
+			return false;
+		case OpType::eExtend:
+			return validate_ir_arguments(context, expr, 1, 1);
+		case OpType::eAppend:
+			return validate_ir_arguments(context, expr, 1, MAX_SUBEXPRESSIONS);
+		case OpType::eAdd:
+		case OpType::eSub:
+		case OpType::eMul:
+		case OpType::eDiv:
+		case OpType::eMod:
+			return validate_ir_arguments(context, expr, 2, 2);
+		case OpType::eEq:
+		case OpType::eLess:
+		case OpType::eGreater:
+			return validate_ir_arguments(context, expr, 2, 2);
+		case OpType::eAnd:
+		case OpType::eOr:
+			return validate_ir_arguments(context, expr, 2, 2);
+		case OpType::eNot:
+			return validate_ir_arguments(context, expr, 1, 1);
+		case OpType::eCarryFlag:
+		case OpType::eOverflowFlag:
+		case OpType::eUnderflowFlag:
+			return validate_ir_arguments(context, expr, 1, 1);
+		case OpType::eBAnd:
+		case OpType::eBOr:
+		case OpType::eBXor:
+			return validate_ir_arguments(context, expr, 2, 2);
+		case OpType::eBNot:
+			return validate_ir_arguments(context, expr, 1, 1);
+		case OpType::eShr:
+		case OpType::eShl:
+		case OpType::eRor:
+		case OpType::eRol:
+			return validate_ir_arguments(context, expr, 2, 2);
+		}
+	}
+	bool validate_ir_expression(DecompContext* context, u32 id) {
+		if (id) {
+			Expression* expr = context->arch->ir_expr_store.get(id);
+			if (!expr) return false;
+			switch (expr->type) {
+			default:
+			case ExpressionType::eInvalid:
+				return false;
+			case ExpressionType::eArgument:
+			case ExpressionType::eTemporary:
+				return validate_ir_arguments(context, expr, 0, 0) && expr->index;
+			case ExpressionType::eValue:
+				return validate_ir_arguments(context, expr, 0, 0) && expr->value.bitcount;
+			case ExpressionType::eRegister:
+			case ExpressionType::eMemory:
+			case ExpressionType::eStack:
+				return validate_ir_arguments(context, expr, 0, 0) && expr->ref;
+			case ExpressionType::eBuiltin:
+				//TODO check argument count
+				return true;
+			case ExpressionType::eRecursive:
+				return true;
+			case ExpressionType::eTrap:
+				return validate_ir_arguments(context, expr, 0, 0);
+			case ExpressionType::eExtract:
+				return validate_ir_arguments(context, expr, 1, 1);
+			case ExpressionType::eCast:
+				return validate_ir_arguments(context, expr, 1, 1) && expr->typeref && expr->cast_typeref;
+			case ExpressionType::eOp:
+				return validate_ir_op(context, expr);
+			case ExpressionType::eInstructionSize:
+			case ExpressionType::eWordSize:
+			case ExpressionType::eBitSize:
+				return validate_ir_arguments(context, expr, 1, 1);
+			}
+		}
+		return false;
+	}
+	bool validate_ir_write(DecompContext* context, u32 id) {
+		if (id) {
+			Expression* expr = context->arch->ir_expr_store.get(id);
+			if (!expr) return false;
+			switch (expr->type) {
+			case ExpressionType::eValue:
+			case ExpressionType::eArgument:
+			case ExpressionType::eTemporary:
+			case ExpressionType::eRegister:
+			case ExpressionType::eMemory:
+			case ExpressionType::eStack:
+				return validate_ir_expression(context, id);
+			default:
+				return false;
+			}
+		}
+		return false;
+	}
+
+	bool validate_ir_line(DecompContext* context, IRLine* line) {
+		if (line->write_id) {
+			if (!validate_ir_write(context, line->write_id)) {
+				return false;
+			}
+		}
+		if (line->expr_id) {
+			if (!validate_ir_expression(context, line->expr_id)) {
+				return false;
+			}
+		}
+		if (line->cond_id) {
+			if (!validate_ir_expression(context, line->cond_id)) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	bool parse_all_ir_strings(DecompContext* context) {
 		if (!context->arch) {
@@ -488,10 +625,20 @@ namespace translation {
 		for (Instruction& instruction : context->arch->instructions) {
 			for (IRTranslation& translation : instruction.translations) {
 				for (IRLine& line : translation.condition) {
-					parse_ir_string(context, &line);
+					if (parse_ir_string(context, &line)) {
+						if (!validate_ir_line(context, &line)) {
+							printf("Validation failed\n");
+						}
+						line.print(context);
+					}
 				}
 				for (IRLine& line : translation.code) {
-					parse_ir_string(context, &line);
+					if (parse_ir_string(context, &line)) {
+						if (!validate_ir_line(context, &line)) {
+							printf("Validation failed\n");
+						}
+						line.print(context);
+					}
 				}
 			}
 		}

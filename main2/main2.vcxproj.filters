@@ -45,6 +45,12 @@
     <ClInclude Include="Parser.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="BitValue.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstEval.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -66,6 +72,12 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Architecture.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstEval.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="General.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

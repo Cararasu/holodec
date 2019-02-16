@@ -175,8 +175,8 @@ namespace holodec {
 	}
 	void print_expr(DecompContext* context, u32 expr_id, FILE* file);
 	void print_expr_arguments(DecompContext* context, translation::Expression* expr, FILE* file) {
-		fprintf(file, "(");
 		if (expr->sub_expressions[0]) {
+			fprintf(file, "(");
 			print_expr(context, expr->sub_expressions[0], file);
 			for (u32 i = 1; i < translation::MAX_SUBEXPRESSIONS; i++) {
 				if (expr->sub_expressions[i]) {
@@ -187,8 +187,8 @@ namespace holodec {
 					break;
 				}
 			}
+			fprintf(file, ")");
 		}
-		fprintf(file, ")");
 	}
 	void print_expr_modifiers(DecompContext* context, translation::Expression* expr, FILE* file) {
 		bool first_expr = true;
@@ -276,20 +276,11 @@ namespace holodec {
 		case translation::OpType::eEq: {
 			fprintf(file, "#eq");
 		}break;
-		case translation::OpType::eNeq: {
-			fprintf(file, "#neq");
-		}break;
 		case translation::OpType::eLess: {
 			fprintf(file, "#less");
 		}break;
-		case translation::OpType::eLessEq: {
-			fprintf(file, "#lesseq");
-		}break;
 		case translation::OpType::eGreater: {
 			fprintf(file, "#greater");
-		}break;
-		case translation::OpType::eGreaterEq: {
-			fprintf(file, "#greatereq");
 		}break;
 		case translation::OpType::eBAnd: {
 			fprintf(file, "#greatereq");
@@ -329,7 +320,12 @@ namespace holodec {
 			fprintf(file, "Invalid Expression-Type");
 		}break;
 		case translation::ExpressionType::eValue: {
-			fprintf(file, "%" PRIu64, expr->value.bits);
+			if (expr->value.bitcount <= 64) {
+				fprintf(file, "%" PRIu64, expr->value.value[0]);
+			}
+			else {
+				expr->value.print(file);
+			}
 			print_expr_modifiers(context, expr, file);
 		}break;
 		case translation::ExpressionType::eArgument: {
@@ -358,6 +354,10 @@ namespace holodec {
 		}break;
 		case translation::ExpressionType::eRecursive: {
 			fprintf(file, "#rec[%.*s]", (int)expr->ref.name.size(), expr->ref.name.str());
+			print_expr_arguments(context, expr, file);
+		}break;
+		case translation::ExpressionType::eTrap: {
+			fprintf(file, "#trap");
 			print_expr_arguments(context, expr, file);
 		}break;
 		case translation::ExpressionType::eOp: {

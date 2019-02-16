@@ -1,9 +1,12 @@
 #pragma once
 
+#include "BitValue.h"
+
 namespace holodec{
 
 struct FileData;
 struct DecompContext;
+
 namespace translation {
 
 	const u32 MAX_SUBEXPRESSIONS = 4;
@@ -11,54 +14,31 @@ namespace translation {
 	bool parse_all_ir_strings(DecompContext* context);
 	bool parse_ir_string(DecompContext* context, FileData* fdata);
 
-	struct BitValue {
-		union {
-			u64 bits;
-			u64* data;
-		};
-		u32 bitcount;
-	};
-
-	inline bool operator==(BitValue& lhs, BitValue& rhs) {
-		if (lhs.bitcount == rhs.bitcount) {
-			if (lhs.bitcount <= 64) {
-				return lhs.bits == rhs.bits;
-			}
-			else {
-				return memcmp(lhs.data, rhs.data, 8*(lhs.bitcount / 64)) == 0;
-			}
-		}
-		return false;
-	}
-
-	struct VMState {
-		bool carry, overflow, underflow;
-	};
-
-	struct ConstExprEval {
-		StringRef type;
-
-		BitValue(*addition) (BitValue& lhs, BitValue& rhs, VMState* state, u32 result_bitcount);
-		BitValue(*subtraction) (BitValue& lhs, BitValue& rhs, VMState* state, u32 result_bitcount);
-
-		BitValue(*multiply) (BitValue& lhs, BitValue& rhs, VMState* state, u32 result_bitcount);
-		BitValue(*division) (BitValue& lhs, BitValue& rhs, VMState* state, u32 result_bitcount);
-		BitValue(*modulo) (BitValue& lhs, BitValue& rhs, VMState* state, u32 result_bitcount);
-	};
 
 	enum class ExpressionType {
 		eInvalid,
+
+		//
 		eValue,
 		eArgument,
 		eTemporary,
 		eRegister,
 		eMemory,
 		eStack,
+
+		//
 		eBuiltin,
 		eRecursive,
-		eOp,
+
+		//
+		eTrap,
 		eExtract,
 		eCast,
+
+		//Operation
+		eOp,
+
+		//Sizes
 		eInstructionSize,
 		eWordSize,
 		eBitSize,
@@ -66,29 +46,30 @@ namespace translation {
 	enum class OpType {
 		eInvalid,
 
+		//Size changing Operations
 		eExtend,
 		eAppend,
 
-		eCarryFlag,
-		eOverflowFlag,
-		eUnderflowFlag,
-
+		//Type dependent Operations
 		eAdd,
 		eSub,
 		eMul,
 		eDiv,
 		eMod,
 
+		eEq,
+		eLess,
+		eGreater,
+
+		//Flags
+		eCarryFlag,
+		eOverflowFlag,
+		eUnderflowFlag,
+
+		//Type independent Operations
 		eAnd,
 		eOr,
 		eNot,
-
-		eEq,
-		eNeq,
-		eLess,
-		eLessEq,
-		eGreater,
-		eGreaterEq,
 
 		eBAnd,
 		eBOr,
@@ -118,7 +99,7 @@ namespace translation {
 		StringRef cast_typeref;
 		u32 cast_size_id = 0;
 
-		u32 sub_expressions[MAX_SUBEXPRESSIONS] = {0, 0, 0, 0};
+		u32 sub_expressions[MAX_SUBEXPRESSIONS] = {};
 	};
 
 	inline bool operator==(Expression& lhs, Expression& rhs) {

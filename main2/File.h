@@ -190,19 +190,19 @@ namespace holodec {
 					go_back(savepoint);
 					return false;
 				}
-				while (!eof()) {
-					char c = peek();
+				char c;
+				while (!eof() && holodec::hex(c = peek())) {
 					if (holodec::numeric(c)) {
 						*i *= 16;
 						*i += c - '0';
 					}
 					else if (holodec::lowercase(c)) {
 						*i *= 16;
-						*i += c - 'a';
+						*i += c - 'a' + 10;
 					}
 					else if (holodec::uppercase(c)) {
 						*i *= 16;
-						*i += c - 'A';
+						*i += c - 'A' + 10;
 					}
 					else break;
 					pop_char();

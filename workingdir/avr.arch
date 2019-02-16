@@ -252,50 +252,51 @@ architecture
 			cond;		#1 = #eq(#bsize($1),#bsize($2))
 			code;
 				$zf = #eq($1, $2)
+				$hf = #carry(#add($1[s:4], $2[s:4]))
 				$1 = #add($1, $2)
 				$vf = #overflow($1)
 				$cf = #carry($1)
-				$hf = #carry[o:4]($1)
 				$nf = #less[t:s]($1, 0)
-				$sf = #neq($nf,$vf)
+				$sf = #not(#eq($nf, $vf))
 		translation
 			argcount;	3
-			cond;		#1 = #and(#eq(#bsize($1),#bsize($2)), #eq(#add(#bsize($1), #bsize($2)), #bsize($3))
+			cond;		#1 = #and(#eq(#bsize($1),#bsize($2)), #eq(#add(#bsize($1), #bsize($2)), #bsize($3)))
 			code;
-				$zf = #eq(#app($1, $2), $3)
-				#1  = #add(#app($1, $2), $3)
-				$vf = #overflow(#1)
-				$cf = #carry(#1)
-				$hf = #carry[o:4](#1)
-				$nf = #less[t:s](#1, 0)
-				$sf = #neq($nf,$vf)
-				$1  = #1[o:0, s:8]
-				$2  = #1[o:8, s:8]
+				#1  = #app($1, $2)
+				$zf = #eq(#1, $3)
+				$hf = #carry(#add(#1[s: 12], $3[s: 12]))
+				#2  = #add(#1, $3)
+				$vf = #overflow(#2)
+				$cf = #carry(#2)
+				$nf = #less[t:s](#2, 0)
+				$sf = #not(#eq($nf, $vf))
+				$1  = #2[o:0, s:8]
+				$2  = #2[o:8, s:8]
 	instruction
 		mnemonic;	adc
 		translation
 			argcount;	2
-			cond;		#1 = #and(#eq(#bsize($1), #bsize($2)))
+			cond;		#1 = #eq(#bsize($1), #bsize($2))
 			code;
 				#1 = #add($2, $cf)
 				$zf = #and(#eq($1, #1),$zf)
+				$hf = #or(#carry(#add($2[s:4], $cf[s:4])), #carry(#add($1[s:4], #1[s:4])))
 				$1 = #add($1, #1)
 				$vf = #or(#overflow($1), #overflow(#1))
 				$cf = #or(#carry($1), #carry(#1))
-				$hf = #or(#carry[o:4]($1), #carry[o:4](#1))
 				$nf = #less[t:s]($1, 0)
-				$sf = #neq($nf,$vf)
+				$sf = #not(#eq($nf, $vf))
 	instruction
 		mnemonic;	and
 		translation
 			argcount;	2
-			cond;		#1 = #and(#eq(#bsize($1), #bsize($2)))
+			cond;		#1 = #eq(#bsize($1), #bsize($2))
 			code;
 				$1 = #add($1, $2)
 				$vf = 0
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
-				$sf = #neq($nf,$vf)
+				$sf = #not(#eq($nf, $vf))
 	instruction
 		mnemonic;	asr
 		translation
@@ -305,8 +306,8 @@ architecture
 				$1 = #div[t:s]($1, 2)
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
-				$vf = #neq($nf, $cf)
-				$sf = #neq($nf, $vf)
+				$vf = #not(#eq($nf, $cf))
+				$sf = #not(#eq($nf, $vf))
 	instruction
 		mnemonic;	bclr
 		translation
@@ -321,7 +322,7 @@ architecture
 		mnemonic;	bst
 		translation
 			argcount;	2
-			code;		$tf = #neq(#band($1, #shl(1, $2)), 0)
+			code;		$tf = #not(#eq(#band($1, #shl(1, $2)), 0))
 	instruction
 		mnemonic;	brbc
 		translation
@@ -461,7 +462,7 @@ architecture
 				$vf = 0[s:1]
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
-				$sf = #neq($nf, $vf)
+				$sf = #not(#eq($nf, $vf))
 	instruction
 		mnemonic;	clc
 		translation
@@ -583,7 +584,7 @@ architecture
 				$vf = 0[s:1]
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
-				$sf = #neq($nf, $vf)
+				$sf = #not(#eq($nf, $vf))
 	instruction
 		mnemonic;	fmuls
 		translation
@@ -752,8 +753,8 @@ architecture
 				$cf = #carry($1)
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
-				$vf = #neq($nf, $cf)
-				$sf = #neq($nf, $vf)
+				$vf = #not(#eq($nf, $cf))
+				$sf = #not(#eq($nf, $vf))
 	instruction
 		mnemonic;	lsr
 		translation
@@ -764,8 +765,8 @@ architecture
 				$cf = #carry($1)
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
-				$vf = #neq($nf, $cf)
-				$sf = #neq($nf, $vf)
+				$vf = #not(#eq($nf, $cf))
+				$sf = #not(#eq($nf, $vf))
 	instruction
 		mnemonic;	mov
 		translation
@@ -844,7 +845,7 @@ architecture
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
 				$vf = 0[s:1]
-				$sf = #neq($nf, $vf)
+				$sf = #not(#eq($nf, $vf))
 				
 	instruction
 		mnemonic;	out
@@ -938,8 +939,8 @@ architecture
 				$1 = #1[o:0, s:8]
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
-				$vf = #neq($nf, $cf)
-				$sf = #neq($nf, $vf)
+				$vf = #not(#eq($nf, $cf))
+				$sf = #not(#eq($nf, $vf)))
 	instruction
 		mnemonic;	ror
 		translation
@@ -951,8 +952,8 @@ architecture
 				$1 = #1[o:0, s:8]
 				$zf = #eq($1, 0)
 				$nf = #less[t:s]($1, 0)
-				$vf = #neq($nf, $cf)
-				$sf = #neq($nf, $vf)
+				$vf = #not(#eq($nf, $cf))
+				$sf = #not(#eq($nf, $vf))
 
 	instruction
 		mnemonic;	sub
@@ -960,37 +961,38 @@ architecture
 			argcount;	2
 			code;
 				$zf = #eq($1, $2)
+				$hf = #carry(#sub($1[s:4], $2[s:4]))
 				$1 = #sub($1, $2)
 				$cf = #carry($1)
-				$hf = #carry[o:4]($1)
 				$vf = #overflow($1)
 				$nf = #less[t:s]($1, 0)
-				$sf = #neq($nf, $vf)
+				$sf = #not(#eq($nf, $vf))
 		translation
 			argcount;	3
 			code;
-				$zf = #eq(#app($1, $2), $3)
-				#1 = #sub(#app($1, $2), $3)
-				$cf = #carry($1)
-				$hf = #carry[o:4]($1)
-				$vf = #overflow($1)
-				$nf = #less[t:s]($1, 0)
-				$sf = #neq($nf, $vf)
-				$1 = #1[o:0, s:8]
-				$2 = #1[o:8, s:8]
+				#1 = #app($1, $2)
+				$zf = #eq(#1, $3)
+				$hf = #carry(#sub(#1[s: 12], $3[s: 12]))
+				#2 = #sub(#1, $3)
+				$cf = #carry(#2)
+				$vf = #overflow(#2)
+				$nf = #less[t:s](#2, 0)
+				$sf = #not(#eq($nf, $vf))
+				$1 = #2[o:0, s:8]
+				$2 = #2[o:8, s:8]
 	instruction
 		mnemonic;	sbc
 		translation
 			argcount;	2
 			code;
 				#1 = #add($2, $cf)
+				$hf = #or(#carry(#sub($1[s:4], #1[s:4])), #carry(#add($2[s:4], $cf[s:4])))
 				$zf = #or(#eq($1, #1), $zf)
 				$1 = #sub($1, #1)
 				$vf = #or(#overflow($1), #overflow(#1))
 				$cf = #or(#carry($1), #carry(#1))
-				$hf = #or(#carry[o:4]($1), #carry[o:4](#1))
 				$nf = #less[t:s]($1, 0)
-				$sf = #neq($nf, $vf)
+				$sf = #not(#eq($nf, $vf))
 	instruction
 		mnemonic;	sbi
 		translation
@@ -1011,7 +1013,7 @@ architecture
 			argcount;	3
 			code;
 				#rec[in](#1, $1)
-				$ip = #ext[s:24]($3) ? #neq(#or(#1, #shl(1, $2)),0)
+				$ip = #ext[s:24]($3) ? #not(#eq(#bor(#1, #shl(1, $2)),0))
 				
 	instruction
 		mnemonic;	sbr
@@ -1027,7 +1029,7 @@ architecture
 		mnemonic;	sbrs
 		translation
 			argcount;	3
-			code;		$ip = #ext[s:24]($3) ? #neq(#or($1, #shl(1, $2)), 0)
+			code;		$ip = #ext[s:24]($3) ? #not(#eq(#or($1, #shl(1, $2)), 0))
 	instruction
 		mnemonic;	sec
 		translation
@@ -1118,7 +1120,7 @@ architecture
 		mnemonic;	wdr
 		translation
 			argcount;	0
-			code;		$builtin[watchdogreset]()
+			code;		#1 = $builtin[watchdogreset]()
 	instruction
 		mnemonic;	xch
 		translation

@@ -5,6 +5,7 @@
 #include "File.h"
 #include "Binary.h"
 #include "IRTranslation.h"
+#include "BitValue.h"
 #include <map>
 
 

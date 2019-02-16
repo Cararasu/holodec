@@ -5,58 +5,54 @@
 
 namespace holodec {
 
-
-	struct NopAllocator {
-		void* allocate(size_t size, size_t alignment) {
-			return malloc(size);
-		}
-		void* reallocate(void* data, size_t size, size_t alignment) {
-			return realloc(data, size);
-		}
-		void free(void* data) {
-			::free(data);
-		}
+	struct Allocator {
+		void* (*allocate)(size_t size, size_t alignment);
+		void* (*reallocate)(void* data, size_t size, size_t alignment);
+		void(*free)(void* data);
 	};
-	template<typename T, typename ALLOC>
-	inline T* t_allocate(ALLOC* allocator, size_t count) {
+
+	extern Allocator nop_allocator;
+
+	template<typename T>
+	inline T* t_allocate(Allocator* allocator, size_t count) {
 		if (allocator) return reinterpret_cast<T*> (allocator->allocate(count * sizeof(T), alignof (T)));
 		else return reinterpret_cast<T*> (malloc(count * sizeof(T)));
 	}
-	template<typename T, typename ALLOC>
-	inline T* t_reallocate(ALLOC* allocator, T* old_ptr, size_t count) {
+	template<typename T>
+	inline T* t_reallocate(Allocator* allocator, T* old_ptr, size_t count) {
 		if (allocator) return reinterpret_cast<T*> (allocator->reallocate(old_ptr, count * sizeof(T), alignof (T)));
 		else return reinterpret_cast<T*> (realloc(old_ptr, count * sizeof(T)));
 	}
-	template<typename T, typename ALLOC>
-	inline void t_free(ALLOC* allocator, T* ptr) {
+	template<typename T>
+	inline void t_free(Allocator* allocator, T* ptr) {
 		if (allocator) allocator->free(ptr);
 		else free(ptr);
 	}
 
-	template<typename T, typename ALLOC = NopAllocator>
+	template<typename T>
 	struct Array;
-	template<typename T, typename ALLOC = NopAllocator>
+	template<typename T>
 	struct DynArray;
-	template<typename T, u32 LOCALSIZE = 4,  typename ALLOC = NopAllocator >
+	template<typename T, u32 LOCALSIZE = 4>
 	struct StaticDynArray;
-	template<typename T, typename ALLOC = NopAllocator>
+	template<typename T>
 	struct IdArray;
-	template<typename T, typename ALLOC = NopAllocator>
+	template<typename T>
 	struct IdPtrArray;
-	template<typename T, typename ALLOC = NopAllocator>
+	template<typename T>
 	struct UIdArray;
-	template<typename T, typename ALLOC = NopAllocator>
+	template<typename T>
 	struct UIdPtrArray;
 
 	template<typename S, typename T>
 	using Map = std::map<S, T>;
 
-	template<typename T, typename ALLOC>
+	template<typename T>
 	struct Array {
 
 		size_t size = 0;
 		T* data = nullptr;
-		ALLOC* allocator = nullptr;
+		Allocator* allocator = nullptr;
 
 		typedef T* iterator;
 
@@ -64,49 +60,49 @@ namespace holodec {
 			if (data) {
 				for (size_t i = 0; i < size; i++) {
 					data[i].~T();
-					t_free<T, ALLOC>(allocator, data);
+					t_free<T>(allocator, data);
 				}
 				size = 0;
 				data = nullptr;
 			}
 		}
 
-		Array(ALLOC* allocator = nullptr) : size(0), data(nullptr), allocator(allocator) {}
+		Array(Allocator* allocator = nullptr) : size(0), data(nullptr), allocator(allocator) {}
 
-		Array(size_t size, ALLOC* allocator) : size(size), data(nullptr), allocator(allocator) {
+		Array(size_t size, Allocator* allocator) : size(size), data(nullptr), allocator(allocator) {
 			if (size) {
-				data = t_allocate<T, ALLOC>(allocator, size);
+				data = t_allocate<T>(allocator, size);
 				for (int i = 0; i < size; i++) {
 					new (&data[i]) T;
 				}
 			}
 		}
-		Array(size_t size, const T& ele, ALLOC* allocator) : size(size), data(nullptr), allocator(allocator) {
+		Array(size_t size, const T& ele, Allocator* allocator) : size(size), data(nullptr), allocator(allocator) {
 			if (size) {
-				data = t_allocate<T, ALLOC>(allocator, size);
+				data = t_allocate<T>(allocator, size);
 				for (size_t i = 0; i < size; i++) {
 					new (&data[i]) T(ele);
 				}
 			}
 
 		}
-		Array(const Array<T, ALLOC>& array) : size(array.size), data(nullptr), allocator(array.allocator) {
+		Array(const Array<T>& array) : size(array.size), data(nullptr), allocator(array.allocator) {
 			if (size) {
-				data = t_allocate<T, ALLOC>(allocator, size);
+				data = t_allocate<T>(allocator, size);
 				for (int i = 0; i < array.size; i++) {
 					new (&data[i]) T(array.data[i]);
 				}
 			}
 		}
-		Array(const Array<T, ALLOC>&& array) : size(array.size), data(array.data), allocator(array.allocator) {
+		Array(const Array<T>&& array) : size(array.size), data(array.data), allocator(array.allocator) {
 			array.size = 0;
 			array.data = nullptr;
 		}
-		Array<T, ALLOC>& operator= (const std::initializer_list<T> init_list) {
+		Array<T>& operator= (const std::initializer_list<T> init_list) {
 			free();
 			size = init_list.size();
 			if (size) {
-				data = t_allocate<T, ALLOC>(allocator, size);
+				data = t_allocate<T>(allocator, size);
 
 				for (int i = 0; i < init_list.size(); i++) {
 					new (&data[i]) T(init_list[i]);
@@ -114,12 +110,12 @@ namespace holodec {
 			}
 			return *this;
 		}
-		Array<T, ALLOC>& operator= (const Array<T, ALLOC>& array) {
+		Array<T>& operator= (const Array<T>& array) {
 			free();
 			data = nullptr;
 			size = array.size;
 			if (size) {
-				data = t_allocate<T, ALLOC>(allocator, size);
+				data = t_allocate<T>(allocator, size);
 
 				for (int i = 0; i < array.size; i++) {
 					new (&data[i]) T(std::move(array[i]));
@@ -128,7 +124,7 @@ namespace holodec {
 			}
 			return *this;
 		}
-		Array<T, ALLOC>& operator= (Array<T, ALLOC>&& array) {
+		Array<T>& operator= (Array<T>&& array) {
 			free();
 			data = array.data;
 			array.data = nullptr;
@@ -141,7 +137,7 @@ namespace holodec {
 			free();
 		}
 		void resize(size_t size, const T& ele) {
-			data = t_reallocate<T, ALLOC>(allocator, data, size);
+			data = t_reallocate<T>(allocator, data, size);
 			for (size_t i = this->size; i < size; i++) {
 				new (data[i]) T(ele);
 			}
@@ -168,12 +164,12 @@ namespace holodec {
 		}
 	};
 
-	template<typename T, typename ALLOC> 
+	template<typename T> 
 	struct DynArray {
 
 		size_t size = 0, capacity = 0;
 		T* data = nullptr;
-		ALLOC* allocator = nullptr;
+		Allocator* allocator = nullptr;
 
 		typedef T* iterator;
 
@@ -182,66 +178,66 @@ namespace holodec {
 				for (size_t i = 0; i < size; i++) {
 					data[i].~T();
 				}
-				t_free<T, ALLOC>(allocator, data);
+				t_free<T>(allocator, data);
 				size = 0;
 				capacity = 0;
 				data = nullptr;
 			}
 		}
 
-		DynArray(ALLOC* allocator = nullptr) : size(0), capacity(0), data(nullptr), allocator(allocator) {}
+		DynArray(Allocator* allocator = nullptr) : size(0), capacity(0), data(nullptr), allocator(allocator) {}
 
-		DynArray(size_t size, ALLOC* allocator) : size(size), capacity(0), data(nullptr), allocator(allocator) {
+		DynArray(size_t size, Allocator* allocator) : size(size), capacity(0), data(nullptr), allocator(allocator) {
 			if (size) {
 				capacity = 8;
 				while (capacity < size) capacity *= 2;
-				data = t_allocate<T, ALLOC>(allocator, capacity);
+				data = t_allocate<T>(allocator, capacity);
 				for (int i = 0; i < size; i++) {
 					new (&data[i]) T;
 				}
 			}
 		}
-		DynArray(size_t size, size_t capacity, ALLOC* allocator) : size(size), capacity(capacity), data(nullptr), allocator(allocator) {
+		DynArray(size_t size, size_t capacity, Allocator* allocator) : size(size), capacity(capacity), data(nullptr), allocator(allocator) {
 			if (size || capacity) {
 				while (capacity < size) capacity *= 2;
-				data = t_allocate<T, ALLOC>(allocator, capacity);
+				data = t_allocate<T>(allocator, capacity);
 				for (int i = 0; i < size; i++) {
 					new (&data[i]) T;
 				}
 			}
 		}
-		DynArray(size_t size, const T& ele, ALLOC* allocator) : size(size), capacity(8), data(nullptr), allocator(allocator) {
+		DynArray(size_t size, const T& ele, Allocator* allocator) : size(size), capacity(8), data(nullptr), allocator(allocator) {
 			if (size) {
 				capacity = 8;
 				while (capacity < size) capacity *= 2;
-				data = t_allocate<T, ALLOC>(allocator, capacity);
+				data = t_allocate<T>(allocator, capacity);
 				for (size_t i = 0; i < size; i++) {
 					new (&data[i]) T(ele);
 				}
 			}
 
 		}
-		DynArray(const DynArray<T, ALLOC>& array) : size(array.size), capacity(array.capacity), data(nullptr), allocator(array.allocator) {
+		DynArray(const DynArray<T>& array) : size(array.size), capacity(array.capacity), data(nullptr), allocator(array.allocator) {
 			if (size) {
-				data = t_allocate<T, ALLOC>(allocator, capacity);
+				data = t_allocate<T>(allocator, capacity);
 				for (int i = 0; i < array.size; i++) {
 					new (&data[i]) T(array.data[i]);
 				}
 			}
 		}
-		DynArray(const DynArray<T, ALLOC>&& array) : size(array.size), capacity(array.capacity), data(array.data), allocator(array.allocator) {
+		DynArray(const DynArray<T>&& array) : size(array.size), capacity(array.capacity), data(array.data), allocator(array.allocator) {
 			array.size = 0;
 			array.capacity = 0;
 			array.data = nullptr;
 		}
-		DynArray<T, ALLOC>& operator= (const std::initializer_list<T> init_list) {
+		DynArray<T>& operator= (const std::initializer_list<T> init_list) {
 			free();
 			capacity = 0;
 			size = init_list.size();
 			if (size) {
 				capacity = 8;
 				while (capacity < size) capacity *= 2;
-				data = t_allocate<T, ALLOC>(allocator, capacity);
+				data = t_allocate<T>(allocator, capacity);
 
 				for (int i = 0; i < init_list.size(); i++) {
 					new (&data[i]) T(init_list[i]);
@@ -249,7 +245,7 @@ namespace holodec {
 			}
 			return *this;
 		}
-		DynArray<T, ALLOC>& operator= (const DynArray<T, ALLOC>& array) {
+		DynArray<T>& operator= (const DynArray<T>& array) {
 			free();
 			data = nullptr;
 			capacity = 0;
@@ -257,7 +253,7 @@ namespace holodec {
 			if (size) {
 				capacity = 8;
 				while (capacity < size) capacity *= 2;
-				data = t_allocate<T, ALLOC>(allocator, capacity);
+				data = t_allocate<T>(allocator, capacity);
 
 				for (int i = 0; i < array.size; i++) {
 					new (&data[i]) T(std::move(array[i]));
@@ -266,7 +262,7 @@ namespace holodec {
 			}
 			return *this;
 		}
-		DynArray<T, ALLOC>& operator= (DynArray<T, ALLOC>&& array) {
+		DynArray<T>& operator= (DynArray<T>&& array) {
 			free();
 
 			data = array.data;
@@ -286,19 +282,19 @@ namespace holodec {
 			if (min_capacity > this->capacity) {
 				capacity = MAX(capacity, 8);
 				while (capacity < min_capacity) capacity *= 2;
-				data = t_reallocate<T, ALLOC>(allocator, data, capacity);
+				data = t_reallocate<T>(allocator, data, capacity);
 			}
 		}
 		void shrink(size_t min_capacity = 0) {
 			if (!size && !min_capacity) {
-				t_free<T, ALLOC>(allocator, data);
+				t_free<T>(allocator, data);
 				data = nullptr;
 				capacity = 0;
 			}
 			else if (min_capacity > this->capacity) {
 				capacity = MAX(capacity, 8);
 				while (capacity < min_capacity) capacity *= 2;
-				data = t_reallocate<T, ALLOC>(allocator, data, capacity);
+				data = t_reallocate<T>(allocator, data, capacity);
 			}
 		}
 		void push_back(T&& ele) {
@@ -306,7 +302,7 @@ namespace holodec {
 			if (capacity < neededcap) {
 				capacity = MAX(capacity, 8);
 				while (capacity < neededcap) capacity *= 2;
-				data = t_reallocate<T, ALLOC>(allocator, data, capacity);
+				data = t_reallocate<T>(allocator, data, capacity);
 			}
 			new (&data[size++]) T(std::move(ele));
 		}
@@ -315,7 +311,7 @@ namespace holodec {
 			if (capacity < neededcap) {
 				capacity = MAX(capacity, 8);
 				while (capacity < neededcap) capacity *= 2;
-				data = t_reallocate<T, ALLOC>(allocator, data, capacity);
+				data = t_reallocate<T>(allocator, data, capacity);
 			}
 			new (&data[size]) T(ele);
 			return &data[size++];
@@ -325,7 +321,7 @@ namespace holodec {
 			if (capacity < neededcap) {
 				capacity = MAX(capacity, 8);
 				while (capacity < neededcap) capacity *= 2;
-				data = t_reallocate<T, ALLOC>(allocator, data, capacity);
+				data = t_reallocate<T>(allocator, data, capacity);
 			}
 			for (; size < neededcap; size++) {
 				new (&data[size]) T(ele);
@@ -336,7 +332,7 @@ namespace holodec {
 			if (capacity < neededcap) {
 				capacity = MAX(capacity, 8);
 				while (capacity < neededcap) capacity *= 2;
-				data = t_reallocate<T, ALLOC>(allocator, data, capacity);
+				data = t_reallocate<T>(allocator, data, capacity);
 			}
 			for (; size < neededcap; size++) {
 				new (&data[size]) T(ele);
@@ -348,7 +344,7 @@ namespace holodec {
 			if (capacity < neededcap) {
 				capacity = MAX(capacity, 8);
 				while (capacity < neededcap) capacity *= 2;
-				data = t_reallocate<T, ALLOC>(allocator, data, capacity);
+				data = t_reallocate<T>(allocator, data, capacity);
 			}
 			new (&data[size]) T(std::forward<Args>(args)...);
 			return &data[size++];
@@ -370,7 +366,7 @@ namespace holodec {
 			if (size > capacity) {
 				capacity = MAX(capacity, 8);
 				while (capacity < size) capacity *= 2;
-				data = t_reallocate<T, ALLOC>(allocator, data, capacity);
+				data = t_reallocate<T>(allocator, data, capacity);
 			}
 			for (size_t i = this->size; i < size; i++) {
 				new (data[i]) T(ele);
@@ -398,28 +394,28 @@ namespace holodec {
 		}
 	};
 
-	template<typename T, u32 LOCALSIZE, typename ALLOC>
+	template<typename T, u32 LOCALSIZE>
 	struct StaticDynArray {
 
 		size_t size = 0, capacity = 0;
 		T* data = nullptr;
 		T localarr[LOCALSIZE];
-		ALLOC* allocator = nullptr;
+		Allocator* allocator = nullptr;
 
 		struct iterator {
-			StaticDynArray<T, LOCALSIZE, ALLOC>* arr;
+			StaticDynArray<T, LOCALSIZE>* arr;
 			size_t i = 0;
 		};
 		//TODO
 	};
 
-	template<typename T, typename ALLOC>
-	inline void free_backing_id_dynarray(DynArray<T, ALLOC>* list) {
+	template<typename T>
+	inline void free_backing_id_dynarray(DynArray<T>* list) {
 		if (list->data) {
 			for (size_t i = 0; i < list->size; i++) {
 				if (list->data[i].id) list->data[i].~T();
 			}
-			t_free<T, ALLOC>(list->allocator, list->data);
+			t_free<T>(list->allocator, list->data);
 			list->size = 0;
 			list->capacity = 0;
 			list->data = nullptr;
@@ -437,10 +433,10 @@ namespace holodec {
 			val = 0;
 		}
 	};
-	template<typename T, typename ALLOC>
+	template<typename T>
 	struct IdArray {
-		DynArray<T, ALLOC> list;
-		typedef typename DynArray<T, ALLOC>::iterator iterator;
+		DynArray<T> list;
+		typedef typename DynArray<T>::iterator iterator;
 
 
 		IdArray() {}
@@ -457,7 +453,7 @@ namespace holodec {
 			this->list.insert(list.begin(), list.end(), this->list.begin());
 		}
 		~IdArray() {
-			free_backing_id_dynarray<T, ALLOC>(&list);
+			free_backing_id_dynarray<T>(&list);
 		}
 
 		u32 insert(const T&& ele) {
@@ -532,10 +528,10 @@ namespace holodec {
 		return (((u64)id) << 32) | (u64)uid;
 	}
 
-	template<typename T, typename ALLOC>
+	template<typename T>
 	struct UIdArray {
 		IdGenerator gen;
-		DynArray<T, ALLOC> list;
+		DynArray<T> list;
 
 		typedef typename DynArray<T>::iterator iterator;
 
@@ -551,7 +547,7 @@ namespace holodec {
 			}
 		}
 		~UIdArray() {
-			free_backing_id_dynarray<T, ALLOC>(&list);
+			free_backing_id_dynarray<T>(&list);
 		}
 
 		u64 insert(T& ele) {
@@ -605,11 +601,11 @@ namespace holodec {
 		}
 	};
 
-	template<typename T, typename ALLOC>
+	template<typename T>
 	struct IdPtrArray {
-		DynArray<T*, ALLOC> list;
+		DynArray<T*> list;
 
-		typedef typename DynArray<T*, ALLOC>::iterator iterator;
+		typedef typename DynArray<T*>::iterator iterator;
 
 		IdPtrArray() {}
 		IdPtrArray(std::initializer_list<T> list) : list(list) {
@@ -625,7 +621,7 @@ namespace holodec {
 			this->list.insert(list.begin(), list.end(), this->list.begin());
 		}
 		~IdPtrArray() {
-			free_backing_id_dynarray<T, ALLOC>(&list);
+			free_backing_id_dynarray<T>(&list);
 		}
 
 		T* insert(T* ele) {
@@ -671,12 +667,12 @@ namespace holodec {
 			list.clear();
 		}
 	};
-	template<typename T, typename ALLOC>
+	template<typename T>
 	struct UIdPtrArray {
 		IdGenerator gen;
-		DynArray<T*, ALLOC> list;
+		DynArray<T*> list;
 
-		typedef typename DynArray<T*, ALLOC>::iterator iterator;
+		typedef typename DynArray<T*>::iterator iterator;
 
 		UIdPtrArray() {}
 		UIdPtrArray(std::initializer_list<T*> list) : list(list) {
@@ -692,7 +688,7 @@ namespace holodec {
 			this->list.insert(list.begin(), list.end(), this->list.begin());
 		}
 		~UIdPtrArray() {
-			free_backing_id_dynarray<T, ALLOC>(&list);
+			free_backing_id_dynarray<T>(&list);
 		}
 
 		T* insert(T* ele) {
