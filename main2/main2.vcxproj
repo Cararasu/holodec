@@ -159,6 +159,7 @@
     <ClInclude Include="BitValue.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="Header.h" />
+    <ClInclude Include="Instruction.h" />
     <ClInclude Include="IR.h" />
     <ClInclude Include="IRTranslation.h" />
     <ClInclude Include="Parser.h" />

@@ -95,6 +95,7 @@ namespace translation {
 		u32 size_id = 0;
 
 		u32 offset_id = 0;
+		u32 addr_id = 0;
 
 		StringRef cast_typeref;
 		u32 cast_size_id = 0;
@@ -109,6 +110,7 @@ namespace translation {
 			lhs.value == rhs.value &&
 			lhs.size_id == rhs.size_id &&
 			lhs.offset_id == rhs.offset_id &&
+			lhs.addr_id == rhs.addr_id &&
 			lhs.sub_expressions[0] == rhs.sub_expressions[0] &&
 			lhs.sub_expressions[1] == rhs.sub_expressions[1] &&
 			lhs.sub_expressions[2] == rhs.sub_expressions[2] &&

@@ -3,6 +3,40 @@
 namespace holodec {
 	namespace ir {
 
+		enum class LocationType {
+			eInvalid,
+
+			eRegister,
+			eMemory
+		};
+
+		struct Location {
+			LocationType type;
+
+			u64 address;
+			u32 ref_id;
+		};
+
+		enum class ArgType {
+			eInvalid,
+			eExpression,
+			ePhi
+		};
+
+		struct Argument {
+			ArgType type;
+
+			u32 block_id;
+			u32 expr_id;
+
+			Location location;
+		};
+
+		struct BlockArgument {
+			u32 block_id;
+			Argument arg;
+		};
+
 		enum class ExprType {
 			eInvalid,
 
@@ -12,25 +46,22 @@ namespace holodec {
 			eOp,
 			eFlag,
 			eBuiltin,
-			eSplit,
-			eAppend,
 			eCast,
 
 			eInput,
 			eOutput,
 
-			eJump,
-			eSyscall,
-			eTrap,
-
-			ePhi,
 			eAssign,
 
 			eStore,
 			eLoad,
 		};
+
 		enum class OpType {
 			eInvalid,
+
+			eSplit,
+			eAppend,
 
 			eAdd,
 			eSub,
@@ -45,9 +76,7 @@ namespace holodec {
 			eEq,
 			eNe,
 			eLess,
-			eLessEq,
 			eGreater,
-			eGreatEq,
 
 			eBAnd,
 			eBOr,
@@ -67,16 +96,43 @@ namespace holodec {
 			eOverflow,
 			eUnderflow,
 		};
-		struct Argument {
-			
+
+		struct PhiExpression {
+			u32 id;
+
+			// block_id is the incoming block
+			// the argument refers to the actual expression
+			StaticDynArray<BlockArgument, 4> block_args;
+			StaticDynArray<Location, 2> locations;
 		};
-		struct Location {
-			u64 address;
-			//type
-			//regid, memid
-		};
+
 		struct Expression {
-			//location
+			u32 id;
+
+			ExprType type;
+			OpType op_type;
+
+			BitValue value;
+
+			Argument arg[3];
+
+			StaticDynArray<Location, 2> locations;
+		};
+
+		struct BasicBlock {
+			u32 id;
+
+			DynArray<u32> phi_expressions;
+			DynArray<u32> expressions;
+
+			IdArray<Expression> expressions;
+
+			// if block_id of jump_dest is set then the target is block with the id of block_id
+			// if the block_id is 0 then the argument refers to the target
+			BlockArgument jump_dest;
+
+			// the condition makes the jump conditional if set
+			Argument jump_cond;
 		};
 	}
 }

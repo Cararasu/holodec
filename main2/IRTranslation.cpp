@@ -65,8 +65,13 @@ namespace translation {
 			expr->offset_id = parse_expression(context, fdata);
 			return expr->offset_id != 0;
 		}
+		else if (match_part(token, "addr")) {
+			fdata->whitespaces();
+			expr->addr_id = parse_expression(context, fdata);
+			return expr->addr_id != 0;
+		}
 		else {
-			printf("ERROR: Unknown Modifier %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
+			printf("ERROR: Unknown Modifier %.*s\n", (int)token->size, token->ptr);
 			return false;
 		}
 		return true;

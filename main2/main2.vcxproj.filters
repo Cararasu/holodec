@@ -51,6 +51,9 @@
     <ClInclude Include="ConstEval.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Instruction.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

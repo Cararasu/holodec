@@ -2,6 +2,7 @@
 
 #include "Header.h"
 #include <map>
+#include <unordered_map>
 
 namespace holodec {
 
@@ -47,6 +48,9 @@ namespace holodec {
 	template<typename S, typename T>
 	using Map = std::map<S, T>;
 
+	template<typename S, typename T>
+	using MultiMap = std::unordered_multimap<S, T>;
+
 	template<typename T>
 	struct Array {
 
@@ -84,7 +88,6 @@ namespace holodec {
 					new (&data[i]) T(ele);
 				}
 			}
-
 		}
 		Array(const Array<T>& array) : size(array.size), data(nullptr), allocator(array.allocator) {
 			if (size) {
@@ -256,7 +259,7 @@ namespace holodec {
 				data = t_allocate<T>(allocator, capacity);
 
 				for (int i = 0; i < array.size; i++) {
-					new (&data[i]) T(std::move(array[i]));
+					new (&data[i]) T(array[i]);
 					i++;
 				}
 			}
@@ -306,7 +309,7 @@ namespace holodec {
 			}
 			new (&data[size++]) T(std::move(ele));
 		}
-		T* push_back(T& ele) {
+		T* push_back(const T& ele) {
 			size_t neededcap = size + 1;
 			if (capacity < neededcap) {
 				capacity = MAX(capacity, 8);
@@ -352,6 +355,9 @@ namespace holodec {
 		void pop_back(size_t count = 1) {
 			data[--size].~T();
 		}
+		T& front() {
+			return data[0];
+		}
 		T& back() {
 			return data[size - 1];
 		}
@@ -394,19 +400,290 @@ namespace holodec {
 		}
 	};
 
-	template<typename T, u32 LOCALSIZE>
+	template<typename T, u32 LOCAL_SIZE>
 	struct StaticDynArray {
 
 		size_t size = 0, capacity = 0;
 		T* data = nullptr;
-		T localarr[LOCALSIZE];
 		Allocator* allocator = nullptr;
+		T localarr[LOCAL_SIZE];
+
+
+		T* get(size_t i) {
+			return i < LOCAL_SIZE ? &localarr[i] : &data[i - LOCAL_SIZE];
+		}
+		void free() {
+			for (size_t i = 0; i < size; i++) {
+				get(i)->~T();
+			}
+			if (data) {
+				t_free<T>(allocator, data);
+				size = 0;
+				capacity = 0;
+				data = nullptr;
+			}
+		}
+
+		StaticDynArray(Allocator* allocator = nullptr) : size(0), capacity(0), data(nullptr), allocator(allocator) {}
+
+		StaticDynArray(const StaticDynArray<T, LOCAL_SIZE>& array) : size(array.size), capacity(array.capacity), data(nullptr), allocator(array.allocator) {
+			if (size > LOCAL_SIZE) {
+				size_t needed_cap = size - LOCAL_SIZE;
+				capacity = MAX(capacity, LOCAL_SIZE);
+				while (capacity < needed_cap) capacity *= 2;
+				data = t_allocate<T>(allocator, capacity);
+			}
+			for (int i = 0; i < array.size; i++) {
+				new (get(i)) T(array[i]);
+			}
+		}
+		StaticDynArray(const StaticDynArray<T, LOCAL_SIZE>&& array) : size(array.size), capacity(array.capacity), data(array.data), allocator(array.allocator) {
+			memcpy(localarr, array.localarr, LOCAL_SIZE * sizeof(T));
+
+			array.size = 0;
+			array.capacity = 0;
+			array.data = nullptr;
+		}
+		StaticDynArray<T, LOCAL_SIZE>& operator= (const std::initializer_list<T> init_list) {
+			free();
+
+			capacity = 0;
+			size = init_list.size();
+			if (size > LOCAL_SIZE) {
+				size_t needed_cap = size - LOCAL_SIZE;
+				capacity = MAX(capacity, LOCAL_SIZE);
+				while (capacity < needed_cap) capacity *= 2;
+				data = t_allocate<T>(allocator, capacity);
+			}
+			for (int i = 0; i < init_list.size(); i++) {
+				new (get(i)) T(init_list[i]);
+			}
+			return *this;
+		}
+		StaticDynArray<T, LOCAL_SIZE>& operator= (const StaticDynArray<T, LOCAL_SIZE>& array) {
+			free();
+
+			data = nullptr;
+			capacity = 0;
+			size = array.size;
+			if (size > LOCAL_SIZE) {
+				size_t needed_cap = size - LOCAL_SIZE;
+				capacity = MAX(capacity, LOCAL_SIZE);
+				while (capacity < needed_cap) capacity *= 2;
+				data = t_allocate<T>(allocator, capacity);
+			}
+			for (int i = 0; i < array.size; i++) {
+				new (get(i)) T(array[i]);
+			}
+			return *this;
+		}
+		StaticDynArray<T, LOCAL_SIZE>& operator= (StaticDynArray<T, LOCAL_SIZE>&& array) {
+			free();
+
+			data = array.data;
+			array.data = nullptr;
+			memcpy(localarr, array.localarr, LOCAL_SIZE * sizeof(T));
+			size = array.size;
+			array.size = 0;
+			capacity = array.capacity;
+			array.capacity = 0;
+			allocator = array.allocator;
+			return *this;
+		}
+		~StaticDynArray() {
+			free();
+		}
+
+		void shrink() {
+			if (size < LOCAL_SIZE) {
+				t_free<T>(allocator, data);
+				data = nullptr;
+				capacity = 0;
+			}
+			else if (4 > this->capacity) {
+				size_t neededcap = LOCAL_SIZE;
+				capacity = MAX(capacity, 4);
+				while (capacity < neededcap) capacity *= 2;
+				data = t_reallocate<T>(allocator, data, capacity);
+			}
+		}
+		void push_back(T&& ele) {
+			size_t neededcap = size + 1;
+			if (neededcap > LOCAL_SIZE && capacity < neededcap) {
+				neededcap -= LOCAL_SIZE;
+				capacity = MAX(capacity, 4);
+				while (capacity < neededcap) capacity *= 2;
+				data = t_reallocate<T>(allocator, data, capacity);
+			}
+			new (get(size)) T(std::move(ele));
+		}
+		T* push_back(T& ele) {
+			size_t neededcap = size + 1;
+			if (neededcap > LOCAL_SIZE && capacity < neededcap) {
+				neededcap -= LOCAL_SIZE;
+				capacity = MAX(capacity, 4);
+				while (capacity < neededcap) capacity *= 2;
+				data = t_reallocate<T>(allocator, data, capacity);
+			}
+			new (get(size)) T(ele);
+			return get(size++);
+		}
+		void push_back(T&& ele, size_t count) {
+			size_t neededcap = size + count;
+			if (neededcap > LOCAL_SIZE && capacity < neededcap) {
+				neededcap -= LOCAL_SIZE;
+				capacity = MAX(capacity, 4);
+				while (capacity < neededcap) capacity *= 2;
+				data = t_reallocate<T>(allocator, data, capacity);
+			}
+			for (; size < neededcap; size++) {
+				new (get(size)) T(ele);
+			}
+		}
+		void push_back(T& ele, size_t count) {
+			size_t neededcap = size + count;
+			if (neededcap > LOCAL_SIZE && capacity < neededcap) {
+				neededcap -= LOCAL_SIZE;
+				capacity = MAX(capacity, 4);
+				while (capacity < neededcap) capacity *= 2;
+				data = t_reallocate<T>(allocator, data, capacity);
+			}
+			for (; size < neededcap; size++) {
+				new (get(size)) T(ele);
+			}
+		}
+		template< class... Args >
+		T* emplace_back(Args&&... args) {
+			size_t neededcap = size + 1;
+			if (neededcap > LOCAL_SIZE && capacity < neededcap) {
+				neededcap -= LOCAL_SIZE;
+				capacity = MAX(capacity, 4);
+				while (capacity < neededcap) capacity *= 2;
+				data = t_reallocate<T>(allocator, data, capacity);
+			}
+			new (get(size)) T(std::forward<Args>(args)...);
+			return get(size++);
+		}
+		void pop_back(size_t count = 1) {
+			get(--size)->~T();
+		}
+		T& front() {
+			return *get(0);
+		}
+		T& back() {
+			return *get(size - 1);
+		}
+
+		void clear() {
+			for (size_t i = 0; i < size; i++) {
+				get(i)->~T();
+			}
+			size = 0;
+		}
+		void resize(size_t size, const T& ele) {
+			if (size > LOCAL_SIZE && size > (capacity - LOCAL_SIZE)) {
+				capacity = MAX(capacity, 4);
+				size_t needed = size - LOCAL_SIZE;
+				while (capacity < needed) capacity *= 2;
+				data = t_reallocate<T>(allocator, data, capacity);
+			}
+			for (size_t i = this->size; i < size; i++) {
+				new (get(i)) T(ele);
+			}
+			this->size = size - LOCAL_SIZE;
+		}
+
+		T& operator[] (size_t i) {
+			return *get(i);
+		}
+		const T& operator[] (size_t i) const {
+			return *get(i);
+		}
 
 		struct iterator {
-			StaticDynArray<T, LOCALSIZE>* arr;
-			size_t i = 0;
+			StaticDynArray<T, LOCAL_SIZE>* arr;
+			size_t index = 0;
+
+			iterator(StaticDynArray<T, LOCAL_SIZE>* arr, size_t index) : arr(arr), index(index) {}
+			iterator(const iterator& it) : arr(it.arr), index(it.index) {}
+			iterator(iterator&& it) : arr(it.arr), index(it.index) {}
+			iterator& operator=(iterator&& it) {
+				this->arr = it.arr;
+				this->index = it.index;
+			}
+			~iterator() {}
+
+
+			T& operator[] (size_t i) {
+				return *arr->get(index + i);
+			}
+			const T& operator[] (size_t i) const {
+				return *arr->get(index + i);
+			}
+			T& operator->() {
+				return *arr->get(index);
+			}
+			T& operator*() {
+				return *arr->get(index);
+			}
+			bool operator<(iterator& it) {
+				return index < it.index;
+			}
+			bool operator<=(iterator& it) {
+				return index <= it.index;
+			}
+			bool operator>(iterator& it) {
+				return index > it.index;
+			}
+			bool operator>=(iterator& it) {
+				return index >= it.index;
+			}
+			bool operator==(iterator& it) {
+				return index == it.index;
+			}
+			bool operator!=(iterator& it) {
+				return index != it.index;
+			}
+			iterator operator+(size_t i) {
+				return iterator(arr, index + i);
+			}
+			iterator operator-(size_t i) {
+				return iterator(arr, index - i);
+			}
+			iterator& operator+=(size_t i) {
+				index += i;
+				return *this;
+			}
+			iterator& operator-=(size_t i) {
+				index -= i;
+				return *this;
+			}
+			T& operator++() {
+				return *arr->get(++index);
+			}
+			T& operator--() {
+				return *arr->get(--index);
+			}
+			T& operator++(int) {
+				return *arr->get(index++);
+			}
+			T& operator--(int) {
+				return *arr->get(index--);
+			}
 		};
-		//TODO
+
+		iterator begin() {
+			return iterator(this, 0);
+		}
+		iterator end() {
+			return iterator(this, size);
+		}
+		const iterator begin() const {
+			return iterator(this, 0);
+		}
+		const iterator end() const {
+			return iterator(this, size);
+		}
 	};
 
 	template<typename T>
@@ -456,7 +733,7 @@ namespace holodec {
 			free_backing_id_dynarray<T>(&list);
 		}
 
-		u32 insert(const T&& ele) {
+		u32 insert(T&& ele) {
 			for (size_t i = 0; i < list.size(); i++) {
 				if (!list[i].id) {
 					u32 id = i + 1;
@@ -470,7 +747,7 @@ namespace holodec {
 			list.back().id = id;
 			return id;
 		}
-		u32 insert(T& ele) {
+		u32 insert(const T& ele) {
 			for (size_t i = 0; i < list.size; i++) {
 				if (!list[i].id) {
 					u32 id = (u32)(i + 1);
@@ -550,7 +827,7 @@ namespace holodec {
 			free_backing_id_dynarray<T>(&list);
 		}
 
-		u64 insert(T& ele) {
+		u64 insert(T&& ele) {
 			for (size_t i = 0; i < list.size; i++) {
 				if (!list[i].id) {
 					ele.id = pack_handle((u32)i + 1, gen.next());
@@ -561,6 +838,18 @@ namespace holodec {
 			ele.id = pack_handle((u32)list.size + 1, gen.next());
 			list.push_back(ele);
 			return ele.id;
+		}
+		u64 insert(const T& ele) {
+			for (size_t i = 0; i < list.size; i++) {
+				if (!list[i].id) {
+					list[i] = ele;
+					list[i].id = pack_handle((u32)i + 1, gen.next());
+					return list[i].id;
+				}
+			}
+			list.push_back(ele);
+			list.back().id = pack_handle((u32)list.size, gen.next());
+			return list.back().id;
 		}
 		auto begin() -> decltype (list.begin()) {
 			return list.begin();

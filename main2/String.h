@@ -26,7 +26,7 @@ namespace holodec {
 		union {
 			struct {
 				char* cstr;
-				size_t hash;
+				size_t _hash;
 			};
 			struct {
 				char data[BUFFER_SIZE];
@@ -37,7 +37,7 @@ namespace holodec {
 
 		String() {
 			cstr = nullptr;
-			hash = 0;
+			_hash = 0;
 			_size = 0;
 		}
 		String(const char* cstr) {
@@ -48,7 +48,7 @@ namespace holodec {
 			}
 			else {
 				this->cstr = string_dup(cstr, _size);
-				hash = djb2_hash(cstr, _size);
+				_hash = djb2_hash(cstr, _size);
 			}
 		}
 		String(const char* cstr, size_t size) {
@@ -59,7 +59,7 @@ namespace holodec {
 			}
 			else {
 				this->cstr = string_dup(cstr, size);
-				hash = djb2_hash(cstr, size);
+				_hash = djb2_hash(cstr, size);
 			}
 		}
 		String(const String& str) {
@@ -69,7 +69,7 @@ namespace holodec {
 			}
 			else {
 				cstr = string_dup(str.str(), str.size());
-				hash = str.hash;
+				_hash = str._hash;
 			}
 		}
 		String(String&& str) {
@@ -79,7 +79,7 @@ namespace holodec {
 			}
 			else {
 				cstr = string_dup(str.str(), str.size());
-				hash = str.hash;
+				_hash = str._hash;
 			}
 		}
 		String& operator= (const String& str) {
@@ -89,7 +89,7 @@ namespace holodec {
 			}
 			else {
 				cstr = string_dup(str.str(), str.size());
-				hash = str.hash;
+				_hash = str._hash;
 			}
 			return *this;
 		}
@@ -100,7 +100,7 @@ namespace holodec {
 			}
 			else {
 				cstr = string_dup(str.str(), str.size());
-				hash = str.hash;
+				_hash = str._hash;
 			}
 			return *this;
 		}
@@ -112,7 +112,7 @@ namespace holodec {
 			}
 			else {
 				this->cstr = string_dup(cstr, _size);
-				hash = djb2_hash(cstr, _size);
+				_hash = djb2_hash(cstr, _size);
 			}
 			return *this;
 		}
@@ -132,11 +132,14 @@ namespace holodec {
 		size_t size() const {
 			return _size;
 		}
+		size_t hash() const {
+			return _size > BUFFER_SIZE ? _hash : *(size_t*)data;
+		}
 	};
 
 
 	inline bool operator==(const String& lhs, const String& rhs) {
-		return lhs.hash == rhs.hash ? strcmp(lhs.str(), rhs.str()) == 0 : false;
+		return lhs._hash == rhs._hash ? strcmp(lhs.str(), rhs.str()) == 0 : false;
 	}
 	inline bool operator==(const String& lhs, const char* rhs) {
 		return strcmp(lhs.str(), rhs) == 0;
@@ -154,16 +157,16 @@ namespace holodec {
 		return !(lhs == rhs);
 	}
 	inline bool operator<(const String& lhs, const String& rhs) {
-		return lhs.hash < rhs.hash ? true : strcmp(lhs.str(), rhs.str()) < 0;
+		return lhs._hash < rhs._hash ? true : strcmp(lhs.str(), rhs.str()) < 0;
 	}
 	inline bool operator<=(const String& lhs, const String& rhs) {
-		return lhs.hash <= rhs.hash ? true : strcmp(lhs.str(), rhs.str()) <= 0;
+		return lhs._hash <= rhs._hash ? true : strcmp(lhs.str(), rhs.str()) <= 0;
 	}
 	inline bool operator>(const String& lhs, const String& rhs) {
-		return lhs.hash > rhs.hash ? true : strcmp(lhs.str(), rhs.str()) > 0;
+		return lhs._hash > rhs._hash ? true : strcmp(lhs.str(), rhs.str()) > 0;
 	}
 	inline bool operator>=(const String& lhs, const String& rhs) {
-		return lhs.hash >= rhs.hash ? true : strcmp(lhs.str(), rhs.str()) >= 0;
+		return lhs._hash >= rhs._hash ? true : strcmp(lhs.str(), rhs.str()) >= 0;
 	}
 
 
@@ -176,18 +179,32 @@ namespace holodec {
 		};
 
 		UIdArray<StringWrapper> stringlist;
+		
+		MultiMap<u64, u64> hash_map;
 
-		u64 insert_string(const char* cstr, size_t size) {
-			for (StringWrapper& entry : stringlist) {
-				if (entry.string.size() == size && entry.string == cstr) {
-					entry.refcount++;
-					return entry.id;
+		u64 insert_string(String&& string) {
+			u64 hash = string.hash();
+			auto it_pair = hash_map.equal_range(hash);
+			for (auto it = it_pair.first; (it != it_pair.second); ) {
+				StringWrapper& wrap = stringlist[it->second];
+				if (string == wrap.string) {
+					wrap.refcount++;
+					return wrap.id;
 				}
+				it++;
 			}
 			StringWrapper wrap;
-			wrap.string = String(cstr, size);
+			wrap.string = std::move(string);
 			wrap.refcount++;
-			return stringlist.insert(wrap);
+			u64 handle = stringlist.insert(std::move(wrap));
+			hash_map.insert(std::make_pair(wrap.string.hash(), handle));
+			return handle;
+		}
+		u64 insert_string(const String& string) {
+			return insert_string(string.str(), string.size());
+		}
+		u64 insert_string(const char* cstr, size_t size) {
+			return insert_string(String(cstr, size));
 		}
 		u64 insert_string(const char* cstr) {
 			return insert_string(cstr, strlen(cstr));
@@ -196,9 +213,6 @@ namespace holodec {
 			StringWrapper* entry = stringlist.get(handle);
 			if (entry) entry->refcount++;
 			return handle;
-		}
-		u64 insert_string(String& string) {
-			return insert_string(string.str(), string.size());
 		}
 		String* get_string(u64 handle) {
 			StringWrapper* entry = stringlist.get(handle);
@@ -209,7 +223,17 @@ namespace holodec {
 			StringWrapper* entry = stringlist.get(handle);
 			if (entry) {
 				if (--entry->refcount == 0) {
-					stringlist.remove(entry->id);
+					u64 entry_id = entry->id;
+					u64 hash = entry->string.hash();
+					stringlist.remove(entry_id);
+					auto it_pair = hash_map.equal_range(hash);
+					for(auto it = it_pair.first; (it != it_pair.second); ) {
+						if (it->second == entry_id) {
+							it = hash_map.erase(it);
+							continue;
+						}
+						it++;
+					}
 				}
 			}
 			else {

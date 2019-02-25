@@ -22,7 +22,8 @@ namespace holodec {
 
 	bool bitfield_and(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result) {
 		bool lhs_res, rhs_res;
-		if (bitfield_boolean(lhs, &lhs_res) && bitfield_boolean(rhs, &rhs_res)) {
+		VMState somestate;
+		if (bitfield_boolean(lhs, &somestate, &lhs_res) && bitfield_boolean(rhs, &somestate, &rhs_res)) {
 			*result = BitValue((lhs_res && rhs_res) ? 1 : 0, 1);
 			state->overflow = false;
 			state->carry = false;
@@ -34,7 +35,8 @@ namespace holodec {
 	}
 	bool bitfield_or(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result) {
 		bool lhs_res, rhs_res;
-		if (bitfield_boolean(lhs, &lhs_res) && bitfield_boolean(rhs, &rhs_res)) {
+		VMState somestate;
+		if (bitfield_boolean(lhs, &somestate, &lhs_res) && bitfield_boolean(rhs, &somestate, &rhs_res)) {
 			*result = BitValue((lhs_res || rhs_res) ? 1 : 0, 1);
 			state->overflow = false;
 			state->carry = false;
@@ -46,7 +48,8 @@ namespace holodec {
 	}
 	bool bitfield_not(BitValue* val, VMState* state, BitValue* result) {
 		bool val_res;
-		if (bitfield_boolean(val, &val_res)) {
+		VMState somestate;
+		if (bitfield_boolean(val, &somestate, &val_res)) {
 			*result = BitValue(!val_res ? 1 : 0, 1);
 			state->overflow = false;
 			state->carry = false;
@@ -223,6 +226,7 @@ namespace holodec {
 			result->truncate();
 
 			u32 lastword = words - 1;
+			u64 lastbit = (u64)1 << ((lhs->bitcount % 64) - 1);
 			carry = res_ptr[lastword] < lhs_ptr[lastword];
 
 			bool lhs_sign = (lhs_ptr[lastword] & lastbit) != 0;
@@ -263,7 +267,7 @@ namespace holodec {
 			result->truncate();
 
 			u32 lastword = words - 1;
-
+			u64 lastbit = (u64)1 << ((lhs->bitcount % 64) - 1);
 			carry = res_ptr[lastword] < lhs_ptr[lastword];
 
 			bool lhs_sign = (lhs_ptr[lastword] & lastbit) != 0;
@@ -371,7 +375,7 @@ namespace holodec {
 
 			for (u32 i = 0; i < words; i++) {
 				if (lhs_ptr[i] != rhs_ptr[i]) {
-					*result = BitValue(0, 1);
+					*result = BitValue((u64)0, 1);
 					return true;
 				}
 			}
@@ -394,7 +398,7 @@ namespace holodec {
 
 			for (u32 i = words - 1; i >= 0; i--) {
 				if (!(lhs_ptr[i] < rhs_ptr[i])) {
-					*result = BitValue(0, 1);
+					*result = BitValue((u64)0, 1);
 					return true;
 				}
 			}
@@ -417,7 +421,7 @@ namespace holodec {
 
 			for (u32 i = words - 1; i >= 0; i--) {
 				if (!(lhs_ptr[i] > rhs_ptr[i])) {
-					*result = BitValue(0, 1);
+					*result = BitValue((u64)0, 1);
 					return true;
 				}
 			}

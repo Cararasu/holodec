@@ -204,6 +204,13 @@ namespace holodec {
 			print_expr(context, expr->offset_id, file);
 			first_expr = false;
 		}
+		if (expr->addr_id) {
+			if (first_expr) printf("[");
+			else fprintf(file, ", ");
+			fprintf(file, "addr:");
+			print_expr(context, expr->addr_id, file);
+			first_expr = false;
+		}
 		if (expr->size_id) {
 			if (first_expr) printf("[");
 			else fprintf(file, ", ");

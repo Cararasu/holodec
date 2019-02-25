@@ -17,22 +17,22 @@ namespace holodec {
 	typedef bool(*CONST_BOOLEAN) (BitValue* value, VMState* state, bool* result);
 
 
-	CONST_INT_OP bitfield_extend;
-	CONST_BI_OP bitfield_append;
+	bool bitfield_extend(BitValue* lhs, u32 rhs, VMState* state, BitValue* result);
+	bool bitfield_append(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
 
-	CONST_BI_OP bitfield_and;
-	CONST_BI_OP bitfield_or;
-	CONST_OP bitfield_not;
+	bool bitfield_and(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
+	bool bitfield_or(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
+	bool bitfield_not(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
 
-	CONST_BI_OP bitfield_binary_and;
-	CONST_BI_OP bitfield_binary_or;
-	CONST_BI_OP bitfield_binary_xor;
-	CONST_OP bitfield_binary_not;
+	bool bitfield_binary_and(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
+	bool bitfield_binary_or(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
+	bool bitfield_binary_xor(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
+	bool bitfield_binary_not(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
 
-	CONST_BI_OP bitfield_shift_right;
-	CONST_BI_OP bitfield_shift_left;
-	CONST_BI_OP bitfield_rotate_right;
-	CONST_BI_OP bitfield_rotate_left;
+	bool bitfield_shift_right(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
+	bool bitfield_shift_left(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
+	bool bitfield_rotate_right(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
+	bool bitfield_rotate_left(BitValue* lhs, BitValue* rhs, VMState* state, BitValue* result);
 
 	struct ConstTypeEval {
 		StringRef type;
