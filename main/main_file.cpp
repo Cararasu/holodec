@@ -29,23 +29,25 @@
 
 #include "CHolodec.h"
 
-#include <thread>
-
 #include "HoloIO.h"
 
 
-//FileFormat		-> proposes BinaryAnalyzer
-//BinaryAnalyzer	-> configuration
-//					-> proposes Architecture
-//					-> maps data into vmemory
-//Architecture		-> proposes FunctionAnalyzer
+//File -> FileFormat -> Binary
 
-//Binary -> Symbol, Section, Function, DataSegment, Architecture*
-//Binary -> Architecture*
-//Symbol -> Symbol, Binary*
-//Section -> Symbol, Binary*, CC*
-//Function -> Symbol, Binary*, SSARep
-//Architecture -> ISA, Regs
+/*
+Binary
+	MemorySpace
+		DataSegment
+	Section
+*/
+
+
+//FileFormat
+//Architecture
+
+//
+
+
 
 using namespace holodec;
 
@@ -91,6 +93,8 @@ int main (int argc, const char** argv) {
 		g_logger.log<LogLevel::eWarn>("No parameters given\n");
 		return -1;
 	}
+
+
 	g_logger.log<LogLevel::eInfo>("Analysing file %s\n", argv[1]);
 	HString filename = argv[1];
 	Main::initMain();
@@ -153,7 +157,7 @@ int main (int argc, const char** argv) {
 		sym->name = "main";
 		sym->size = 0;
 		sym->symboltype = &holodec::SymbolType::symfunc;
-		sym->vaddr = 0x0000053d;
+		sym->vaddr = 0x00000504;
 		binary->addSymbol(sym);
 		binary->addEntrypoint(sym->id);
 	}

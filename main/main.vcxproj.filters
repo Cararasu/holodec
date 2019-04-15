@@ -159,9 +159,6 @@
     <ClCompile Include="arch\AvrFunctionAnalyzer.cpp">
       <Filter>Quelldateien\arch</Filter>
     </ClCompile>
-    <ClCompile Include="SSAApplyRegRef.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="SSACalleeCallerRegs.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -169,6 +166,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="SSAReverseRegUsageAnalyzer.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="SSARedundancyElimination.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -302,9 +302,6 @@
     <ClInclude Include="arch\AvrFunctionAnalyzer.h">
       <Filter>Headerdateien\arch</Filter>
     </ClInclude>
-    <ClInclude Include="SSAApplyRegRef.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="SSA.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -315,6 +312,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="SSAReverseRegUsageAnalyzer.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="SSARedundancyElimination.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

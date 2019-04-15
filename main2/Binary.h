@@ -1,6 +1,7 @@
 #pragma once
 
 #include "File.h"
+#include "DataSource.h"
 
 namespace holodec {
 
@@ -11,59 +12,35 @@ namespace holodec {
 		void* data;
 	};
 
-	struct DataSegment {
-		String name;
-		size_t offset;
-		size_t size;
-		void* data;
-
-		void* getPtr(size_t index, size_t wordsize = 1) {
-			size_t ptrindex = (index - offset) * wordsize;
-			if (0 <= ptrindex && ptrindex < size) {
-				return reinterpret_cast<void*>(reinterpret_cast<size_t>(data) + ptrindex);
-			}
-			return nullptr;
-		}
-	};
-
 	struct MemorySpace {
 		u32 id;
 		String name;
 		DynArray<DataSegment> dataSegments;
 		uint64_t wordsize = 1;
-		Endianess endianess = Endianess::eBig;
+		Endianess endianess = Endianess::eLittle;
 
-		bool isMapped(uint64_t addr) {
+		bool is_mapped(uint64_t addr) {
 			for (DataSegment& dataSegment : dataSegments) {
-				if (dataSegment.getPtr(addr, wordsize)) {
+				if (dataSegment.is_mapped(addr)) {
 					return true;
 				}
 			}
 			return false;
 		}
-		uint64_t mappedSize(uint64_t addr) {
+		u64 mapped_size(uint64_t addr) {
 			for (DataSegment& dataSegment : dataSegments) {
-				if (dataSegment.getPtr(addr, wordsize)) {
-					return dataSegment.size - (addr - dataSegment.offset);
-				}
+				u64 bytes_left = dataSegment.bytes_left(addr);
+				if (bytes_left) return bytes_left;
 			}
 			return 0;
-		}
-		const void* getVDataPtr(size_t addr) {
-			for (DataSegment& dataSegment : dataSegments) {
-				if (dataSegment.getPtr(addr, wordsize)) {
-					return dataSegment.getPtr(addr, wordsize);
-				}
-			}
-			return nullptr;
 		}
 		DataSegment* getDataSegment(size_t addr) {
 			for (DataSegment& dataSegment : dataSegments) {
-				if (dataSegment.getPtr(addr, wordsize)) {
+				if (dataSegment.is_mapped(addr)) {
 					return &dataSegment;
 				}
 			}
-			return 0;
+			return nullptr;
 		}
 	};
 	struct Section {
@@ -112,21 +89,6 @@ namespace holodec {
 		//disassembled basic blocks
 
 		//functions
-
-		const void* getVDataPtr(size_t addr) {
-			return memorySpaces[default_mem_space_id].getVDataPtr(addr);
-		}
-		const void* getVDataPtr(u32 memorySegmentId, size_t addr) {
-			MemorySpace* memspace = &memorySpaces[memorySegmentId];
-			return memspace ? memspace->getVDataPtr(addr) : nullptr;
-		}
-		DataSegment* getDataSegment(size_t addr) {
-			return memorySpaces[default_mem_space_id].getDataSegment(addr);
-		}
-		DataSegment* getDataSegment(u32 memorySegmentId, size_t addr) {
-			MemorySpace* memspace = &memorySpaces[memorySegmentId];
-			return memspace ? memspace->getDataSegment(addr) : nullptr;
-		}
 
 	};
 

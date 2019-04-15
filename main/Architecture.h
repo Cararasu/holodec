@@ -29,7 +29,7 @@ namespace holodec {
 		uint32_t bitbase;
 		//how many bytes are in one default unit on the system
 		uint32_t bytebase;
-		//ho many bytes are the instructionpointer
+		//how many bytes are the instructionpointer
 		uint32_t instrptrsize;
 
 		HList<std::function<FunctionAnalyzer* (Binary*) >> functionanalyzerfactories;

@@ -239,13 +239,14 @@ namespace holodec {
 		}
 		return true;
 	}
-	bool parse_instruction_token(DecompContext* context, FileData* fdata, Line* line, Instruction* instruction) {
+	bool parse_instruction_token(DecompContext* context, FileData* fdata, Line* line, InstructionDefinition* instruction_def) {
 		if (!line->token) return false;
 		if (match_part(&line->token, "mnemonic")) {
-			return parse_string_value(context, fdata, line, &instruction->mnemonic);
+			return parse_string_value(context, fdata, line, &instruction_def->mnemonic);
 		}
 		else if (match_part(&line->token, "translation")) {
-			return parse_token_args<translation::IRTranslation>(context, fdata, parse_translation_token, instruction->translations.emplace_back(), line);
+			instruction_def->translations.emplace_back();
+			return parse_token_args<translation::IRTranslation>(context, fdata, parse_translation_token, &instruction_def->translations.back(), line);
 		}
 		else {
 			printf("Instruction-Token |%*c %.*s\n", (int)line->indent, ' ', (int)line->token.size, line->token.ptr);
@@ -278,10 +279,12 @@ namespace holodec {
 			return parse_string_value(context, fdata, line, &builtin->name);
 		}
 		else if (match_part(&line->token, "argument")) {
-			return parse_token_args<Argument>(context, fdata, parse_argument_token, builtin->arguments.emplace_back(), line);
+			builtin->arguments.emplace_back();
+			return parse_token_args<Argument>(context, fdata, parse_argument_token, &builtin->arguments.back(), line);
 		}
 		else if (match_part(&line->token, "return")) {
-			return parse_token_args<Argument>(context, fdata, parse_argument_token, builtin->returns.emplace_back(), line);
+			builtin->returns.emplace_back();
+			return parse_token_args<Argument>(context, fdata, parse_argument_token, &builtin->returns.back(), line);
 		}
 		else {
 			printf("Builtin-Token |%*c %.*s\n", (int)line->indent, ' ', (int)line->token.size, line->token.ptr);
@@ -428,9 +431,9 @@ namespace holodec {
 			return res;
 		}
 		else if (match_part(&line->token, "instruction")) {
-			Instruction instr;
-			bool res = parse_token_args<Instruction>(context, fdata, parse_instruction_token, &instr, line);
-			arch->instructions.insert(instr);
+			InstructionDefinition instr;
+			bool res = parse_token_args<InstructionDefinition>(context, fdata, parse_instruction_token, &instr, line);
+			arch->instruction_defs.insert(instr);
 			return res;
 		}
 		else {

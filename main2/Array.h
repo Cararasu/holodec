@@ -32,8 +32,10 @@ namespace holodec {
 
 	template<typename T>
 	struct Array;
+	//template<typename T>
+	//struct DynArray;
 	template<typename T>
-	struct DynArray;
+	using DynArray = std::vector<T>;
 	template<typename T, u32 LOCALSIZE = 4>
 	struct StaticDynArray;
 	template<typename T>
@@ -166,7 +168,7 @@ namespace holodec {
 			return data + size;
 		}
 	};
-
+	/*
 	template<typename T> 
 	struct DynArray {
 
@@ -398,7 +400,7 @@ namespace holodec {
 		const iterator end() const {
 			return data + size;
 		}
-	};
+	};*/
 
 	template<typename T, u32 LOCAL_SIZE>
 	struct StaticDynArray {
@@ -686,20 +688,6 @@ namespace holodec {
 		}
 	};
 
-	template<typename T>
-	inline void free_backing_id_dynarray(DynArray<T>* list) {
-		if (list->data) {
-			for (size_t i = 0; i < list->size; i++) {
-				if (list->data[i].id) list->data[i].~T();
-			}
-			t_free<T>(list->allocator, list->data);
-			list->size = 0;
-			list->capacity = 0;
-			list->data = nullptr;
-		}
-	}
-
-
 	class IdGenerator {
 		u32 val = 0;
 	public:
@@ -730,7 +718,7 @@ namespace holodec {
 			this->list.insert(list.begin(), list.end(), this->list.begin());
 		}
 		~IdArray() {
-			free_backing_id_dynarray<T>(&list);
+
 		}
 
 		u32 insert(T&& ele) {
@@ -748,7 +736,7 @@ namespace holodec {
 			return id;
 		}
 		u32 insert(const T& ele) {
-			for (size_t i = 0; i < list.size; i++) {
+			for (size_t i = 0; i < list.size(); i++) {
 				if (!list[i].id) {
 					u32 id = (u32)(i + 1);
 					list[i] = ele;
@@ -756,7 +744,7 @@ namespace holodec {
 					return id;
 				}
 			}
-			u32 id = (u32)(list.size + 1);
+			u32 id = (u32)(list.size() + 1);
 			list.push_back(ele);
 			list.back().id = id;
 			return id;
@@ -768,7 +756,7 @@ namespace holodec {
 			return list.end();
 		}
 		size_t size() {
-			return list.size;
+			return list.size();
 		}
 		auto back() -> decltype (list.back()) {
 			return list.back();
@@ -785,7 +773,7 @@ namespace holodec {
 			}
 		}
 		T* get(u32 id) {
-			return id && id <= list.size ? &list[id - 1] : nullptr;
+			return id && id <= list.size() ? &list[id - 1] : nullptr;
 		}
 		T& operator[] (u32 id) {
 			return *get(id);
@@ -807,7 +795,7 @@ namespace holodec {
 
 	template<typename T>
 	struct UIdArray {
-		IdGenerator gen;
+		IdGenerator m_gen;
 		DynArray<T> list;
 
 		typedef typename DynArray<T>::iterator iterator;
@@ -815,40 +803,40 @@ namespace holodec {
 		UIdArray() {}
 		UIdArray(std::initializer_list<T> init_list) : list(init_list) {
 			for (size_t i = 0; i < list.size(); i++) {
-				list[i]->id = pack_handle(i + 1, gen.next());
+				list[i]->id = pack_handle(i + 1, m_gen.next());
 			}
 		}
 		UIdArray(DynArray<T>& dynarray) : list(dynarray.list) {
 			for (size_t i = 0; i < list.size(); i++) {
-				list[i]->id = pack_handle(i + 1, gen.next());
+				list[i]->id = pack_handle(i + 1, m_gen.next());
 			}
 		}
 		~UIdArray() {
-			free_backing_id_dynarray<T>(&list);
+
 		}
 
 		u64 insert(T&& ele) {
-			for (size_t i = 0; i < list.size; i++) {
+			for (size_t i = 0; i < list.size(); i++) {
 				if (!list[i].id) {
-					ele.id = pack_handle((u32)i + 1, gen.next());
+					ele.id = pack_handle((u32)i + 1, m_gen.next());
 					list[i] = ele;
 					return ele.id;
 				}
 			}
-			ele.id = pack_handle((u32)list.size + 1, gen.next());
+			ele.id = pack_handle((u32)list.size() + 1, m_gen.next());
 			list.push_back(ele);
 			return ele.id;
 		}
 		u64 insert(const T& ele) {
-			for (size_t i = 0; i < list.size; i++) {
+			for (size_t i = 0; i < list.size(); i++) {
 				if (!list[i].id) {
 					list[i] = ele;
-					list[i].id = pack_handle((u32)i + 1, gen.next());
+					list[i].id = pack_handle((u32)i + 1, m_gen.next());
 					return list[i].id;
 				}
 			}
 			list.push_back(ele);
-			list.back().id = pack_handle((u32)list.size, gen.next());
+			list.back().id = pack_handle((u32)list.size, m_gen.next());
 			return list.back().id;
 		}
 		auto begin() -> decltype (list.begin()) {
@@ -857,7 +845,7 @@ namespace holodec {
 		auto end() -> decltype (list.end()) {
 			return list.end();
 		}
-		auto size() -> decltype (list.size) {
+		auto size() -> decltype (list.size()) {
 			return list.size();
 		}
 		auto back() -> decltype (list.back()) {
@@ -873,7 +861,7 @@ namespace holodec {
 			return ptr && ptr->id == handle ? ptr : nullptr;
 		}
 		T* get(u32 id) {
-			return id && id <= list.size ? &list[id - 1] : nullptr;
+			return id && id <= list.size() ? &list[id - 1] : nullptr;
 		}
 		void remove(u64 handle) {
 			T* ptr = get(handle);
@@ -910,7 +898,7 @@ namespace holodec {
 			this->list.insert(list.begin(), list.end(), this->list.begin());
 		}
 		~IdPtrArray() {
-			free_backing_id_dynarray<T>(&list);
+
 		}
 
 		T* insert(T* ele) {
@@ -958,51 +946,51 @@ namespace holodec {
 	};
 	template<typename T>
 	struct UIdPtrArray {
-		IdGenerator gen;
-		DynArray<T*> list;
+		IdGenerator m_gen;
+		DynArray<T*> m_list;
 
 		typedef typename DynArray<T*>::iterator iterator;
 
 		UIdPtrArray() {}
-		UIdPtrArray(std::initializer_list<T*> list) : list(list) {
+		UIdPtrArray(std::initializer_list<T*> list) : m_list(list) {
 			for (size_t i = 0; i < list.size(); i++) {
-				list[i]->id = pack_handle(i + 1, gen.next());
+				list[i]->id = pack_handle(i + 1, m_gen.next());
 			}
-			this->list.insert(list.begin(), list.end(), this->list.begin());
+			m_list.insert(list.begin(), list.end(), m_list.begin());
 		}
-		UIdPtrArray(DynArray<T*> list) : list(list) {
+		UIdPtrArray(DynArray<T*> list) : m_list(list) {
 			for (size_t i = 0; i < list.size(); i++) {
-				list[i]->id = pack_handle(i + 1, gen.next());
+				list[i]->id = pack_handle(i + 1, m_gen.next());
 			}
-			this->list.insert(list.begin(), list.end(), this->list.begin());
+			m_list.insert(list.begin(), list.end(), m_list.begin());
 		}
 		~UIdPtrArray() {
-			free_backing_id_dynarray<T>(&list);
+
 		}
 
 		T* insert(T* ele) {
-			for (size_t i = 0; i < list.size(); i++) {
-				if (!list[i]->id) {
-					ele->id = pack_handle(i + 1, gen.next());
-					list[i] = ele;
-					return list[i];
+			for (size_t i = 0; i < m_list.size(); i++) {
+				if (!m_list[i]->id) {
+					ele->id = pack_handle(i + 1, m_gen.next());
+					m_list[i] = ele;
+					return m_list[i];
 				}
 			}
-			ele->id = pack_handle(list.size() + 1, gen.next());
-			list.push_back(ele);
-			return list.back();
+			ele->id = pack_handle(m_list.size() + 1, m_gen.next());
+			m_list.push_back(ele);
+			return m_list.back();
 		}
-		auto begin() -> decltype (list.begin()) {
-			return list.begin();
+		auto begin() -> decltype (m_list.begin()) {
+			return m_list.begin();
 		}
-		auto end() -> decltype (list.end()) {
-			return list.end();
+		auto end() -> decltype (m_list.end()) {
+			return m_list.end();
 		}
-		auto size() -> decltype (list.size()) {
-			return list.size();
+		auto size() -> decltype (m_list.size()) {
+			return m_list.size();
 		}
-		auto back() -> decltype (list.back()) {
-			return list.back();
+		auto back() -> decltype (m_list.back()) {
+			return m_list.back();
 		}
 		iterator erase(iterator it) {
 			(*it)->id = 0;
@@ -1014,7 +1002,7 @@ namespace holodec {
 			return ptr && ptr->id == handle ? ptr : nullptr;
 		}
 		T* get(u32 id) {
-			return id && id <= list.size() ? list[id - 1] : nullptr;
+			return id && id <= m_list.size() ? m_list[id - 1] : nullptr;
 		}
 		void remove(u64 handle) {
 			T* ptr = get(handle);
@@ -1024,7 +1012,237 @@ namespace holodec {
 			return get(id);
 		}
 		void clear() {
-			list.clear();
+			m_list.clear();
+		}
+	};
+
+
+	#define CREATE_MEMBER_DETECTOR(X)                                                   \
+	template<typename T> class has_member_##X {                                         \
+		struct Fallback { int X; };                                                     \
+		struct Derived : T, Fallback { };                                               \
+																						\
+		template<typename U, U> struct Check;                                           \
+																						\
+		typedef char ArrayOfOne[1];                                                     \
+		typedef char ArrayOfTwo[2];                                                     \
+																						\
+		template<typename U> static ArrayOfOne & func(Check<int Fallback::*, &U::X> *); \
+		template<typename U> static ArrayOfTwo & func(...);                             \
+	  public:                                                                           \
+		typedef has_member_##X type;                                                    \
+		enum { value = sizeof(func<Derived>(0)) == 2 };                                 \
+	};
+	CREATE_MEMBER_DETECTOR(id);
+
+	template<bool SHOULD_CONTAIN>
+	struct Optional {};
+
+	template<>
+	struct Optional<true> {};
+
+	template<typename T>
+	struct SparseDynArray {
+		struct ElementBlock {
+			union {
+				T m_element;
+				u32 m_next_free;
+			};
+			ElementBlock(u32 next_index) {
+				m_next_free = next_index;
+			}
+			ElementBlock(const T& element) {
+				new (&m_element)T(element);
+			}
+			ElementBlock(const ElementBlock& element) {
+				memcpy(this, &element, sizeof(ElementBlock));
+			}
+			~ElementBlock() {}
+
+			void replace_ele_by_next_free(u32 next_free) {
+				m_element.~T();
+				m_next_free = next_free;
+			}
+			void replace_next_free_by_ele(const T& element) {
+				new (&m_element)T(element);
+			}
+		};
+
+		DynArray<bool> m_filled_flags;
+		DynArray<ElementBlock> m_elements;
+		IdGenerator gen;
+		u32 m_first_free = 0;
+
+		void delete_elements() {
+			for (size_t i = 0; i < m_elements.size(); i++) {
+				if (m_filled_flags[i]) {
+					m_elements[i].m_element.~T();
+				}
+			}
+		}
+
+		SparseDynArray() : m_filled_flags(), m_elements() {}
+		~SparseDynArray() {
+			delete_elements();
+		}
+
+		u32 insert(const T& element) {
+
+			u32 free_index = m_first_free;
+			if (free_index) {
+				// adjust index once
+				free_index--;
+
+				assert(!m_filled_flags[free_index]);
+
+				ElementBlock* block = &m_elements[free_index];
+				m_first_free = block->m_next_free;
+				block->replace_next_free_by_ele(element);
+
+				if constexpr (has_member_id<T>::value) {
+					if constexpr (std::is_same<u32, decltype(T::id)>::value) {
+						block->m_element.id = free_index;
+					}
+					else if constexpr (std::is_same<u64, decltype(T::id)>::value) {
+						block->m_element.id = pack_handle(free_index, gen.next());
+					}
+				}
+
+				m_filled_flags[free_index] = true;
+				return free_index + 1;
+			}
+			else {
+				m_filled_flags.push_back(true);
+				m_elements.emplace_back(element);
+				assert(m_filled_flags.size() == m_elements.size());
+				if constexpr (has_member_id<T>::value) {
+					if constexpr (std::is_same<u32, decltype(T::id)>::value) {
+						m_elements.back().m_element.id = static_cast<u32>(m_elements.size());
+					}
+					else if constexpr (std::is_same<u64, decltype(T::id)>::value) {
+						m_elements.back().m_element.id = pack_handle(static_cast<u32>(m_elements.size()), gen.next());
+					}
+				}
+				return static_cast<u32>(m_elements.size());
+			}
+		}
+		u32 insert(T&& element) {
+			return insert(element);
+		}
+		void remove(u32 index) {
+			if (m_filled_flags[index - 1]) {
+				m_elements[index - 1].replace_ele_by_next_free(m_first_free);
+				m_first_free = index;
+				m_filled_flags[index - 1] = false;
+
+				// remove trailing elements
+				while (!m_filled_flags.back()) {
+					m_filled_flags.pop_back();
+					m_elements.pop_back();
+				}
+			}
+		}
+		void clear() {
+			delete_elements();
+			m_filled_flags.clear();
+			m_elements.clear();
+		}
+		T* get(u32 index) {
+			assert(m_filled_flags[index]);
+			return &m_elements[index].m_element;
+		}
+		T& operator[](u32 index) {
+			assert(m_filled_flags[index]);
+			return m_elements[index].m_element;
+		}
+
+
+
+		struct iterator {
+			SparseDynArray<T>* arr;
+			u32 index = 0;
+
+			iterator(SparseDynArray<T>* arr, u32 index) : arr(arr), index(index) {}
+			iterator(const iterator& it) : arr(it.arr), index(it.index) {}
+			iterator(iterator&& it) : arr(it.arr), index(it.index) {}
+			iterator& operator=(iterator&& it) {
+				this->arr = it.arr;
+				this->index = it.index;
+			}
+			~iterator() {}
+
+
+			T& operator[] (size_t i) {
+				return arr->operator[](index + i);
+			}
+			const T& operator[] (size_t i) const {
+				return arr->operator[](index + i);
+			}
+			T& operator->() {
+				return arr->operator[](index);
+			}
+			T& operator*() {
+				return arr->operator[](index);
+			}
+			bool operator<(iterator& it) {
+				return index < it.index;
+			}
+			bool operator<=(iterator& it) {
+				return index <= it.index;
+			}
+			bool operator>(iterator& it) {
+				return index > it.index;
+			}
+			bool operator>=(iterator& it) {
+				return index >= it.index;
+			}
+			bool operator==(iterator& it) {
+				return index == it.index;
+			}
+			bool operator!=(iterator& it) {
+				return index != it.index;
+			}
+			iterator operator+(size_t i) {
+				return iterator(arr, index + i);
+			}
+			iterator operator-(size_t i) {
+				return iterator(arr, index - i);
+			}
+			iterator& operator+=(size_t i) {
+				index += i;
+				return *this;
+			}
+			iterator& operator-=(size_t i) {
+				index -= i;
+				return *this;
+			}
+			iterator& operator++() {
+				++index;
+				return *this;
+			}
+			iterator& operator--() {
+				--index;
+				return *this;
+			}
+			iterator& operator++(int) {
+				return iterator(arr, index++);
+			}
+			iterator& operator--(int) {
+				return iterator(arr, index--);
+			}
+		};
+
+		iterator begin() {
+			return iterator(this, 0);
+		}
+		iterator end() {
+			return iterator(this, static_cast<u32>(m_elements.size()));
+		}
+		const iterator begin() const {
+			return iterator(this, 0);
+		}
+		const iterator end() const {
+			return iterator(this, static_cast<u32>(m_elements.size()));
 		}
 	};
 

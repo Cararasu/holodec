@@ -54,6 +54,18 @@
     <ClInclude Include="Instruction.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="DataType.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Disassembler.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="X86Disassembler.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="DataSource.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -81,6 +93,15 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="General.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Disassembler.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="X86Disassembler.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="DataSource.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

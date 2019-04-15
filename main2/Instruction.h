@@ -1,12 +1,11 @@
 #pragma once
 
 #include "String.h"
+#include "BitValue.h"
 
 namespace holodec {
 
-#ifndef MAX_LOCAL_INSTRUCTION_ARGUMENTS
-#define MAX_LOCAL_INSTRUCTION_ARGUMENTS 4
-#endif
+	constexpr u32 MAX_LOCAL_INSTRUCTION_ARGUMENTS = 4;
 
 	enum class InstrArgType {
 		eValue,

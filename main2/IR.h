@@ -109,15 +109,16 @@ namespace holodec {
 		struct Expression {
 			u32 id;
 
-			ExprType type;
-			OpType op_type;
+			ExprType m_type;
+			OpType m_op_type;
 
-			BitValue value;
+			BitValue m_value;
 
-			Argument arg[3];
+			StaticDynArray<Argument> m_arguments;
 
-			StaticDynArray<Location, 2> locations;
+			StaticDynArray<Location, 2> m_locations;
 		};
+
 
 		struct BasicBlock {
 			u32 id;

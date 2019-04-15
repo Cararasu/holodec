@@ -11,7 +11,7 @@
 
 namespace holodec {
 
-	struct Instruction {
+	struct InstructionDefinition {
 		u32 id;
 		ProxyString mnemonic;
 		DynArray<translation::IRTranslation> translations;
@@ -90,40 +90,40 @@ namespace holodec {
 		StringRef default_type;
 
 		//registers
-		IdArray<Register> registers;
+		SparseDynArray<Register> registers;
 		Map<String, u32> reg_name_map;
 
 		Register* get_register(StringRef* ref);
 
 		//memories
-		IdArray<Memory> memories;
+		SparseDynArray<Memory> memories;
 		Map<String, u32> mem_name_map;
 
 		Memory* get_memory(StringRef* ref);
 
 		//stacks
-		IdArray<Stack> stacks;
+		SparseDynArray<Stack> stacks;
 		Map<String, u32> stack_name_map;
 
 		Stack* get_stack(StringRef* ref);
 
 		//primitivetypes
-		IdArray<PrimitiveType> primitivetypes;
+		SparseDynArray<PrimitiveType> primitivetypes;
 
 		PrimitiveType* get_primitivetype(StringRef* ref);
 
 		//builtins
-		IdArray<Builtin> builtins;
+		SparseDynArray<Builtin> builtins;
 
 		Builtin* get_builtin(StringRef* ref);
 
 		//instructions
 		translation::IRExprStore ir_expr_store;
-		IdArray<Instruction> instructions;
-		Map<String, u32> instr_mnemonic_map;
+		IdArray<InstructionDefinition> instruction_defs;
+		Map<String, u32> instr_def_mnemonic_map;
 
-		Instruction* get_instruction_by_mnemonic(StringRef* ref);
-		Instruction* get_instruction_by_mnemonic(String* str);
+		InstructionDefinition* get_instruction_def_by_mnemonic(StringRef* ref);
+		InstructionDefinition* get_instruction_def_by_mnemonic(String* str);
 
 
 		void print(u32 indent = 0, FILE * file = stdout);

@@ -91,12 +91,14 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>../libs/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../libs/capstone/include;../libs/elfio/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>..\libs\capstone\msvc\x64\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>capstone.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -157,6 +159,9 @@
     <ClInclude Include="Array.h" />
     <ClInclude Include="Binary.h" />
     <ClInclude Include="BitValue.h" />
+    <ClInclude Include="DataSource.h" />
+    <ClInclude Include="DataType.h" />
+    <ClInclude Include="Disassembler.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="Instruction.h" />
@@ -166,10 +171,13 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="String.h" />
     <ClInclude Include="ConstEval.h" />
+    <ClInclude Include="X86Disassembler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Architecture.cpp" />
     <ClCompile Include="ConstEval.cpp" />
+    <ClCompile Include="DataSource.cpp" />
+    <ClCompile Include="Disassembler.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="General.cpp" />
     <ClCompile Include="main2.cpp" />
@@ -182,6 +190,7 @@
     </ClCompile>
     <ClCompile Include="Printing.cpp" />
     <ClCompile Include="IRTranslation.cpp" />
+    <ClCompile Include="X86Disassembler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

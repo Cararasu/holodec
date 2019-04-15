@@ -37,8 +37,8 @@ namespace holodec {
 		for (Builtin& builtin : builtins) {
 			builtin.print(indent + 1, file);
 		}
-		for (Instruction& instr : instructions) {
-			instr.print(indent + 1, file);
+		for (InstructionDefinition& instr_def : instruction_defs) {
+			instr_def.print(indent + 1, file);
 		}
 	}
 	void Register::print(u32 indent, FILE* file) {
@@ -91,13 +91,13 @@ namespace holodec {
 			print_ref(&stackpointer, file);
 			fprintf(file, "\n");
 		}
-		if (backing_regs.size == 1) {
+		if (backing_regs.size() == 1) {
 			print_indent(indent + 1, file);
 			fprintf(file, "backingregs;");
 			print_ref(&backing_regs[0], file);
 			fprintf(file, "\n");
 		}
-		if (backing_regs.size > 1) {
+		if (backing_regs.size() > 1) {
 			print_indent(indent + 1, file);
 			fprintf(file, "backingregs;\n");
 			for (StringRef& ref : backing_regs) {
@@ -114,14 +114,14 @@ namespace holodec {
 		fprintf(file, "name; %" STRING_FORMAT "\n", (int)name.size(), name.str());
 		print_indent(indent + 1, file);
 		fprintf(file, "shorthand; %" STRING_FORMAT "\n", (int)shorthand.size(), shorthand.str());
-		if (bitsizes.size > 1) {
+		if (bitsizes.size() > 1) {
 			print_indent(indent + 1, file);
 			fprintf(file, "bitsizes;\n");
 			for (u32 bitsize : bitsizes) {
 				print_indent(indent + 2, file);
 				fprintf(file, "%" PRIu32 "\n", bitsize);
 			}
-		} else if (bitsizes.size == 1) {
+		} else if (bitsizes.size() == 1) {
 			print_indent(indent + 1, file);
 			fprintf(file, "bitsizes; %" PRIu32 "\n", bitsizes[0]);
 		}
@@ -162,12 +162,12 @@ namespace holodec {
 			fprintf(file, "size; %" PRIu32 "\n", arg.size);
 		}
 	}
-	void Instruction::print(u32 indent, FILE* file) {
+	void InstructionDefinition::print(u32 indent, FILE* file) {
 		print_indent(indent, file);
 		fprintf(file, "instruction\n");
 		print_indent(indent + 1, file);
 		fprintf(file, "mnemonic; %" STRING_FORMAT "\n", (int)mnemonic.size(), mnemonic.str());
-		if (translations.size) {
+		if (translations.size()) {
 			for (translation::IRTranslation& translation : translations) {
 				translation.print(indent + 1, file);
 			}
@@ -290,7 +290,7 @@ namespace holodec {
 			fprintf(file, "#greater");
 		}break;
 		case translation::OpType::eBAnd: {
-			fprintf(file, "#greatereq");
+			fprintf(file, "#band");
 		}break;
 		case translation::OpType::eBOr: {
 			fprintf(file, "#bor");
@@ -422,24 +422,24 @@ namespace holodec {
 		fprintf(file, "translation\n");
 		print_indent(indent + 1, file);
 		fprintf(file, "argcount; %" PRIu32 "\n", argcount);
-		if (condition.size == 1) {
+		if (condition.size() == 1) {
 			print_indent(indent + 1, file);
 			fprintf(file, "cond; ");
 			//condition[0].print(0, file);
 		}
-		else if (condition.size > 1) {
+		else if (condition.size() > 1) {
 			print_indent(indent + 1, file);
 			fprintf(file, "cond;\n");
 			for (translation::IRLine& irline : condition) {
 				//irline.print(indent + 2, file);
 			}
 		}
-		if (code.size == 1) {
+		if (code.size() == 1) {
 			print_indent(indent + 1, file);
 			fprintf(file, "cond; ");
 			//code[0].print(0, file);
 		}
-		else if (code.size > 0) {
+		else if (code.size() > 0) {
 			print_indent(indent + 1, file);
 			fprintf(file, "code;\n");
 			for (translation::IRLine& irline : code) {

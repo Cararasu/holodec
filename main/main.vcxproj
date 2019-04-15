@@ -56,13 +56,13 @@
     <ClCompile Include="SSA.cpp" />
     <ClCompile Include="SSAAddressToBlockTransformer.cpp" />
     <ClCompile Include="SSAAppendSimplifier.cpp" />
-    <ClCompile Include="SSAApplyRegRef.cpp" />
     <ClCompile Include="SSACalleeCallerRegs.cpp" />
     <ClCompile Include="SSACallingConvApplier.cpp" />
     <ClCompile Include="SSADCETransformer.cpp" />
     <ClCompile Include="SSAGen.cpp" />
     <ClCompile Include="SSAPeepholeOptimizer.cpp" />
     <ClCompile Include="SSAPhiNodeGenerator.cpp" />
+    <ClCompile Include="SSARedundancyElimination.cpp" />
     <ClCompile Include="SSAReverseRegUsageAnalyzer.cpp" />
     <ClCompile Include="SSATransformer.cpp" />
     <ClCompile Include="SSATransformToC.cpp" />
@@ -106,13 +106,13 @@
     <ClInclude Include="SSA.h" />
     <ClInclude Include="SSAAddressToBlockTransformer.h" />
     <ClInclude Include="SSAAppendSimplifier.h" />
-    <ClInclude Include="SSAApplyRegRef.h" />
     <ClInclude Include="SSACalleeCallerRegs.h" />
     <ClInclude Include="SSACallingConvApplier.h" />
     <ClInclude Include="SSADCETransformer.h" />
     <ClInclude Include="SSAGen.h" />
     <ClInclude Include="SSAPeepholeOptimizer.h" />
     <ClInclude Include="SSAPhiNodeGenerator.h" />
+    <ClInclude Include="SSARedundancyElimination.h" />
     <ClInclude Include="SSAReverseRegUsageAnalyzer.h" />
     <ClInclude Include="SSATransformer.h" />
     <ClInclude Include="SSATransformToC.h" />
@@ -204,7 +204,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;HOLODEC_REMOVE_OBVIOUS;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>
@@ -243,7 +243,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;HOLODEC_REMOVE_OBVIOUS;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>

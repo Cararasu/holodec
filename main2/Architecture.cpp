@@ -55,24 +55,24 @@ namespace holodec {
 		}
 		return nullptr;
 	}
-	Instruction* Architecture::get_instruction_by_mnemonic(StringRef* ref) {
-		if (ref->id) return instructions.get(ref->id);
-		for (Instruction& instruction : instructions) {
-			if (instruction.id && instruction.mnemonic == ref->name) {
-				ref->id = instruction.id;
-				return &instruction;
+	InstructionDefinition* Architecture::get_instruction_def_by_mnemonic(StringRef* ref) {
+		if (ref->id) return instruction_defs.get(ref->id);
+		for (InstructionDefinition& instruction_def : instruction_defs) {
+			if (instruction_def.id && instruction_def.mnemonic == ref->name) {
+				ref->id = instruction_def.id;
+				return &instruction_def;
 			}
 		}
 		return nullptr;
 	}
-	Instruction* Architecture::get_instruction_by_mnemonic(String* str) {
-		auto it = instr_mnemonic_map.find(*str);
-		if (it != instr_mnemonic_map.end()) {
-			return &instructions[it->second];
+	InstructionDefinition* Architecture::get_instruction_def_by_mnemonic(String* str) {
+		auto it = instr_def_mnemonic_map.find(*str);
+		if (it != instr_def_mnemonic_map.end()) {
+			return &instruction_defs[it->second];
 		}
-		for (Instruction& instruction : instructions) {
-			if (instruction.id && instruction.mnemonic == *str) {
-				return &instruction;
+		for (InstructionDefinition& instruction_def : instruction_defs) {
+			if (instruction_def.id && instruction_def.mnemonic == *str) {
+				return &instruction_def;
 			}
 		}
 		return nullptr;
@@ -104,8 +104,8 @@ namespace holodec {
 				if (argument.type.name) get_primitivetype(&argument.type);
 			}
 		}
-		for (Instruction& instruction : instructions) {
-			instr_mnemonic_map.insert(std::make_pair(instruction.mnemonic, instruction.id));
+		for (InstructionDefinition& instruction_def : instruction_defs) {
+			instr_def_mnemonic_map.insert(std::make_pair(instruction_def.mnemonic, instruction_def.id));
 		}
 		default_type.id = 0;
 		if (default_type.name) get_primitivetype(&default_type);

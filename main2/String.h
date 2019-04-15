@@ -13,7 +13,7 @@ namespace holodec {
 		return (char*)data;
 	}
 	inline char* string_dup(const char* cstr) {
-		return string_dup(cstr, strlen(cstr));
+		return string_dup(cstr, strlen(cstr) + 1);
 	}
 
 	inline constexpr uint64_t djb2_hash(const char* ptr, size_t size) {
@@ -25,121 +25,110 @@ namespace holodec {
 
 		union {
 			struct {
-				char* cstr;
-				size_t _hash;
+				char* m_cstr;
+				u64 m_hash;
 			};
 			struct {
-				char data[BUFFER_SIZE];
+				char m_data[BUFFER_SIZE];
 			};
 		};
-
-		size_t _size;
+		size_t m_size;
 
 		String() {
-			cstr = nullptr;
-			_hash = 0;
-			_size = 0;
-		}
-		String(const char* cstr) {
-			_size = strlen(cstr);
-			if (_size <= BUFFER_SIZE) {
-				memcpy(data, cstr, _size);
-				memset(&data[_size], 0, BUFFER_SIZE - _size);
-			}
-			else {
-				this->cstr = string_dup(cstr, _size);
-				_hash = djb2_hash(cstr, _size);
-			}
+			m_cstr = nullptr;
+			m_size = 0;
+			memset(m_data, 0, BUFFER_SIZE);
 		}
 		String(const char* cstr, size_t size) {
-			_size = size;
-			if (_size <= BUFFER_SIZE) {
-				memcpy(data, cstr, _size);
-				memset(&data[_size], 0, BUFFER_SIZE - _size);
+			m_size = size;
+			if (m_size <= BUFFER_SIZE) {
+				memcpy(m_data, cstr, m_size);
+				memset(&m_data[m_size], 0, BUFFER_SIZE - m_size);
 			}
 			else {
-				this->cstr = string_dup(cstr, size);
-				_hash = djb2_hash(cstr, size);
+				m_cstr = string_dup(cstr, m_size);
+				m_hash = djb2_hash(m_cstr, m_size);
 			}
 		}
+		String(const char* cstr) : String(cstr, strlen(cstr) + 1) {}
 		String(const String& str) {
-			_size = str._size;
-			if (_size <= BUFFER_SIZE) {
-				memcpy(data, str.data, BUFFER_SIZE);
+			m_size = str.size();
+			if (m_size <= BUFFER_SIZE) {
+				memcpy(m_data, str.m_data, BUFFER_SIZE);
 			}
 			else {
-				cstr = string_dup(str.str(), str.size());
-				_hash = str._hash;
+				m_cstr = string_dup(str.str(), str.size());
+				m_hash = str.m_hash;
 			}
 		}
 		String(String&& str) {
-			_size = str._size;
-			if (_size <= BUFFER_SIZE) {
-				memcpy(data, str.data, BUFFER_SIZE);
+			m_size = str.m_size;
+			if (m_size <= BUFFER_SIZE) {
+				memcpy(m_data, str.m_data, BUFFER_SIZE);
 			}
 			else {
-				cstr = string_dup(str.str(), str.size());
-				_hash = str._hash;
+				m_cstr = string_dup(str.str(), str.size());
+				m_hash = str.m_hash;
 			}
 		}
 		String& operator= (const String& str) {
-			_size = str._size;
-			if (_size <= BUFFER_SIZE) {
-				memcpy(data, str.data, BUFFER_SIZE);
+			m_size = str.m_size;
+			if (m_size <= BUFFER_SIZE) {
+				memcpy(m_data, str.m_data, BUFFER_SIZE);
 			}
 			else {
-				cstr = string_dup(str.str(), str.size());
-				_hash = str._hash;
+				m_cstr = string_dup(str.str(), str.size());
+				m_hash = str.m_hash;
 			}
 			return *this;
 		}
 		String& operator= (String&& str) {
-			_size = str._size;
-			if (_size <= BUFFER_SIZE) {
-				memcpy(data, str.data, BUFFER_SIZE);
+			m_size = str.m_size;
+			if (m_size <= BUFFER_SIZE) {
+				memcpy(m_data, str.m_data, BUFFER_SIZE);
 			}
 			else {
-				cstr = string_dup(str.str(), str.size());
-				_hash = str._hash;
+				m_cstr = string_dup(str.str(), str.size());
+				m_hash = str.m_hash;
 			}
 			return *this;
 		}
 		String& operator= (const char* cstr) {
-			_size = strlen(cstr);
-			if (_size <= BUFFER_SIZE) {
-				memcpy(data, cstr, _size);
-				memset(&data[_size], 0, BUFFER_SIZE - _size);
+			m_size = strlen(cstr);
+			if (m_size <= BUFFER_SIZE) {
+				memcpy(m_data, cstr, m_size);
+				memset(&m_data[m_size], 0, BUFFER_SIZE - m_size);
 			}
 			else {
-				this->cstr = string_dup(cstr, _size);
-				_hash = djb2_hash(cstr, _size);
+				m_cstr = string_dup(cstr, m_size);
+				m_hash = djb2_hash(cstr, m_size);
 			}
 			return *this;
 		}
 		~String() {
-			if (_size > BUFFER_SIZE) free(cstr);
+			if (m_size > BUFFER_SIZE) free(m_cstr);
 		}
 		operator bool() {
-			return _size != 0;
+			return m_size != 0;
 		}
 		constexpr const char* str() const {
-			if (_size > BUFFER_SIZE) return cstr;
-			else return data;
+			if (m_size > BUFFER_SIZE) return m_cstr;
+			else return m_data;
 		}
 		char* str() {
-			return _size > BUFFER_SIZE ? cstr : data;
+			return m_size > BUFFER_SIZE ? m_cstr : m_data;
 		}
 		size_t size() const {
-			return _size;
+			return m_size;
 		}
-		size_t hash() const {
-			return _size > BUFFER_SIZE ? _hash : *(size_t*)data;
+		u64 hash() const {
+			return m_size > BUFFER_SIZE ? m_hash : *(u64*)m_data;
 		}
 	};
 
 
 	inline bool operator==(const String& lhs, const String& rhs) {
-		return lhs._hash == rhs._hash ? strcmp(lhs.str(), rhs.str()) == 0 : false;
+		return lhs.hash() == rhs.hash() ? strcmp(lhs.str(), rhs.str()) == 0 : false;
 	}
 	inline bool operator==(const String& lhs, const char* rhs) {
 		return strcmp(lhs.str(), rhs) == 0;
@@ -157,16 +146,16 @@ namespace holodec {
 		return !(lhs == rhs);
 	}
 	inline bool operator<(const String& lhs, const String& rhs) {
-		return lhs._hash < rhs._hash ? true : strcmp(lhs.str(), rhs.str()) < 0;
+		return lhs.hash() == rhs.hash() ? strcmp(lhs.str(), rhs.str()) < 0 : lhs.hash() < rhs.hash();
 	}
 	inline bool operator<=(const String& lhs, const String& rhs) {
-		return lhs._hash <= rhs._hash ? true : strcmp(lhs.str(), rhs.str()) <= 0;
+		return lhs.hash() == rhs.hash() ? strcmp(lhs.str(), rhs.str()) < 0 : lhs.hash() <= rhs.hash();
 	}
 	inline bool operator>(const String& lhs, const String& rhs) {
-		return lhs._hash > rhs._hash ? true : strcmp(lhs.str(), rhs.str()) > 0;
+		return lhs.hash() == rhs.hash() ? strcmp(lhs.str(), rhs.str()) < 0 : lhs.hash() > rhs.hash();
 	}
 	inline bool operator>=(const String& lhs, const String& rhs) {
-		return lhs._hash >= rhs._hash ? true : strcmp(lhs.str(), rhs.str()) >= 0;
+		return lhs.hash() == rhs.hash() ? strcmp(lhs.str(), rhs.str()) < 0 : lhs.hash() >= rhs.hash();
 	}
 
 
@@ -298,7 +287,7 @@ namespace holodec {
 			_size = 0;
 		}
 		ProxyString(const char* cstr, StringStore* store) {
-			init(cstr, strlen(cstr), store);
+			init(cstr, strlen(cstr) + 1, store);
 		}
 		ProxyString(const char* cstr, size_t size, StringStore* store) {
 			init(cstr, size, store);
@@ -315,7 +304,7 @@ namespace holodec {
 		}
 		ProxyString(String&& str, StringStore* store) {
 			init(str.str(), str.size(), store);
-			str._size = 0;
+			str.m_size = 0;
 		}
 
 		ProxyString& operator= (const ProxyString& str) {
@@ -394,6 +383,58 @@ namespace holodec {
 		}
 	};
 	inline bool operator==(StringRef& lhs, StringRef& rhs) {
+		if (lhs.name == rhs.name) return true;
+		return lhs.id == rhs.id;
+	}
+
+	struct StringURef {
+		u64 handle;
+		ProxyString name;
+
+		StringURef() : handle(0), name() {}
+
+		StringURef(const char* name, StringStore* store) : handle(0), name(name, store) {}
+		StringURef(const char* name, size_t size, StringStore* store) : handle(0), name(name, size, store) {}
+
+		StringURef(u64 handle) : handle(handle), name() {}
+
+		StringURef(const String& name, StringStore* store) : handle(0), name(name.str(), name.size(), store) {}
+		StringURef(String&& name, StringStore* store) : handle(0), name(name.str(), name.size(), store) {}
+
+		StringURef(const String& name, StringStore* store, u64 handle) : handle(handle), name(name.str(), name.size(), store) {}
+		StringURef(String&& name, StringStore* store, u64 handle) : handle(handle), name(name.str(), name.size(), store) {}
+
+		StringURef(const ProxyString& name) : handle(0), name(name) {}
+		StringURef(ProxyString&& name) : handle(0), name(std::move(name)) {}
+
+		StringURef(const ProxyString& name, u64 handle) : handle(handle), name(name) {}
+		StringURef(ProxyString&& name, u64 handle) : handle(handle), name(std::move(name)) {}
+
+		StringURef(const StringURef& ref) : handle(ref.handle), name(ref.name) {}
+		StringURef(StringURef&& ref) : handle(ref.handle), name(std::move(ref.name)) {}
+
+		StringURef& operator=(const StringURef& ref) {
+			handle = ref.handle;
+			name = ref.name;
+			return *this;
+		}
+		StringURef& operator=(StringURef&& ref) {
+			handle = ref.handle;
+			name = std::move(ref.name);
+			return *this;
+		}
+
+		explicit operator bool() {
+			return name.size() != 0;
+		}
+		explicit operator u64() {
+			return handle;
+		}
+	};
+	inline bool operator==(StringURef& lhs, StringURef& rhs) {
+		u32 lhuid = unpack_uid_from_handle(lhs.handle);
+		u32 rhuid = unpack_uid_from_handle(rhs.handle);
+		if (lhuid && lhuid == rhuid) return true;
 		return lhs.name == rhs.name;
 	}
 
@@ -462,7 +503,7 @@ namespace holodec {
 			return *this;
 		}
 		StringBuilder& append(String& str) {
-			append(str.cstr);
+			append(str.m_cstr);
 			return *this;
 		}
 
@@ -474,7 +515,7 @@ namespace holodec {
 				tvalue /= base;
 				count++;
 			}
-			char buffer[150];//with base 2 the max size is 128
+			char buffer[520];//with base 2 the max size is 512
 			for (u32 i = 1; i <= count; i++) {
 				int digit = value % base;
 				value /= base;
@@ -496,7 +537,7 @@ namespace holodec {
 				tvalue /= base;
 				count++;
 			}
-			char buffer[100];//with base 2 the max size is 64
+			char buffer[260];//with base 2 the max size is 256
 			for (u32 i = 1; i <= count; i++) {
 				int digit = value % base;
 				value /= base;
@@ -543,6 +584,7 @@ namespace holodec {
 			}
 			ptr[char_index] = '\0';
 			assert(!buffer);
+			//TODO can be done with only one malloc and not 2 as it is now
 			return String(ptr);
 		}
 	};

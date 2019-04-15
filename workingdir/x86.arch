@@ -423,8 +423,8 @@ architecture
 			cond;		$1 = #eq(#bsize($1),8)
 			code;
 				$ax = #mul($al,$1)
-				$cf = #c
-				$of = #o
+				$cf = #carry($ax)
+				$of = #overflow($ax)
 			undef;	$sf, $zf, $af, $pf
 		translation
 			argcount;	1

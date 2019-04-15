@@ -205,6 +205,7 @@ namespace translation {
 			else if (match_part(token, "underflow"))	expr->op_type = OpType::eUnderflowFlag;
 			else {
 				printf("ERROR: unknown token %.*s\n", (int)token->size, token->ptr);
+				expr->op_type = OpType::eInvalid;
 				expr->ref = token->to_proxystring(context->string_store);
 			}
 			if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, expr)) return 0;
@@ -627,8 +628,8 @@ namespace translation {
 			return false;
 		}
 
-		for (Instruction& instruction : context->arch->instructions) {
-			for (IRTranslation& translation : instruction.translations) {
+		for (InstructionDefinition& instr_def : context->arch->instruction_defs) {
+			for (IRTranslation& translation : instr_def.translations) {
 				for (IRLine& line : translation.condition) {
 					if (parse_ir_string(context, &line)) {
 						if (!validate_ir_line(context, &line)) {
