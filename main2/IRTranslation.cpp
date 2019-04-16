@@ -221,7 +221,43 @@ namespace translation {
 		if (fdata->character('#')) {
 			if (fdata->token(&token)) { //ir-defined operations
 				Expression expr;
-				if (!parse_op(context, fdata, &token, &expr)) {
+				if (match_part(&token, "rec")) { //Parse recursive instruction
+					Expression expr;
+					expr.type = ExpressionType::eRecursive;
+
+					DataPart stringtoken;
+					if (!parse_string_modifier(context, fdata, &stringtoken)) {
+						//ERROR
+						return 0;
+					}
+					expr.ref = stringtoken.to_proxystring(context->string_store);
+					if (!parse_arguments(context, fdata, &expr)) {
+						//ERROR
+						return 0;
+					}
+					return context->arch->ir_expr_store.insert(expr);
+				}
+				else if (match_part(&token, "trap")) { //Parse recursive instruction
+					Expression expr;
+					expr.type = ExpressionType::eTrap;
+
+					if (!parse_arguments(context, fdata, &expr)) {
+						//ERROR
+						return 0;
+					}
+					return context->arch->ir_expr_store.insert(expr);
+				}
+				else if (match_part(&token, "nop")) { //Parse recursive instruction
+					Expression expr;
+					expr.type = ExpressionType::eNop;
+
+					if (!parse_arguments(context, fdata, &expr)) {
+						//ERROR
+						return 0;
+					}
+					return context->arch->ir_expr_store.insert(expr);
+				}
+				else if (!parse_op(context, fdata, &token, &expr)) {
 					printf("ERROR: Not a #-op %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
 					return 0;
 				}
@@ -336,149 +372,24 @@ namespace translation {
 			}
 		}
 		fdata->whitespaces();
-		if (fdata->character('#')) {
-			if (fdata->token(&token)) { //ir-defined operations
-				if (match_part(&token, "rec")) { //Parse recursive instruction
-					Expression expr;
-					expr.type = ExpressionType::eRecursive;
 
-					DataPart stringtoken;
-					if (!parse_string_modifier(context, fdata, &stringtoken)) {
-						//ERROR
-						return false;
-					}
-					expr.ref = stringtoken.to_proxystring(context->string_store);
-					if (!parse_arguments(context, fdata, &expr)) {
-						//ERROR
-						return false;
-					}
-					line->expr_id = context->arch->ir_expr_store.insert(expr);
-					return is_ending(fdata);
-				}
-				if (match_part(&token, "trap")) { //Parse recursive instruction
-					Expression expr;
-					expr.type = ExpressionType::eTrap;
+		line->write_id = parse_expression(context, fdata);
 
-					if (!parse_arguments(context, fdata, &expr)) {
-						//ERROR
-						return false;
-					}
-					line->expr_id = context->arch->ir_expr_store.insert(expr);
-					return is_ending(fdata);
-				}
-				else {
-					//ERROR
-					printf("ERROR: Not a standalone #-op %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
-					return false;
-				}
-			}
-			else if (fdata->integer(&index)) { //temporary
-				Expression expr;
-				expr.type = ExpressionType::eTemporary;
-				expr.index = index;
-				line->write_id = context->arch->ir_expr_store.insert(expr);
-			}
-			else {
-				//ERROR
-				printf("ERROR: #-Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
-				return false;
-			}
-		}
-		else if (fdata->character('$')) { //arch-defined
-			if (fdata->token(&token)) {
-				if (match_part(&token, "mem")) {
-					Expression expr;
-					expr.type = ExpressionType::eMemory;
-
-					DataPart stringtoken;
-					if (!parse_string_modifier(context, fdata, &stringtoken)) {
-						//ERROR
-						return false;
-					}
-					expr.ref = stringtoken.to_proxystring(context->string_store);
-					if (!parse_modifiers<Expression>(context, fdata, parse_generic_modifier, &expr)) {
-						//ERROR
-						return false;
-					}
-
-					line->write_id = context->arch->ir_expr_store.insert(expr);
-				}
-				else if (match_part(&token, "stack")) {
-					Expression expr;
-					expr.type = ExpressionType::eStack;
-
-					DataPart stringtoken;
-					if (!parse_string_modifier(context, fdata, &stringtoken)) {
-						//ERROR
-						return false;
-					}
-					expr.ref = stringtoken.to_proxystring(context->string_store);
-
-					line->write_id = context->arch->ir_expr_store.insert(expr);
-				}
-				else if (match_part(&token, "builtin")) {
-					Expression expr;
-					expr.type = ExpressionType::eBuiltin;
-
-					DataPart stringtoken;
-					if (!parse_string_modifier(context, fdata, &stringtoken)) {
-						//ERROR
-						return false;
-					}
-					expr.ref = stringtoken.to_proxystring(context->string_store);
-					if (!parse_arguments(context, fdata, &expr)) {
-						//ERROR
-						return false;
-					}
-
-					line->expr_id = context->arch->ir_expr_store.insert(expr);
-					return is_ending(fdata);
-				}
-				else {//register
-					Expression expr;
-					expr.type = ExpressionType::eRegister;
-					if (match_part(&token, "reg")) {
-						DataPart stringtoken;
-						if (!parse_string_modifier(context, fdata, &stringtoken)) {
-							//ERROR
-							return false;
-						}
-						expr.ref = stringtoken.to_proxystring(context->string_store);
-					}
-					else {
-						expr.ref = token.to_proxystring(context->string_store);
-					}
-					line->write_id = context->arch->ir_expr_store.insert(expr);
-				}
-			}
-			else if (fdata->integer(&index)) { //argument
-				Expression expr;
-				expr.type = ExpressionType::eArgument;
-				expr.index = index;
-				line->write_id = context->arch->ir_expr_store.insert(expr);
-			}
-			else {
-				//ERROR
-				printf("ERROR: $-Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
-				return false;
-			}
-		}
-		else {
-			//ERROR
-			printf("ERROR: Expression %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
-			return false;
-		}
 		fdata->whitespaces();
 		if (!fdata->character('=')) {
 			//ERROR
-			printf("ERROR: Expected '=' %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
-			return false;
+			//printf("ERROR: Expected '=' %.*s\n", (int)(fdata->size - fdata->offset), fdata->current_ptr());
+			line->expr_id = line->write_id;
+			line->write_id = 0;
+			return true;
 		}
-		fdata->whitespaces();
-		line->expr_id = parse_expression(context, fdata);
-		if (!line->expr_id) {
-			//ERROR
-			return false;
+		else {
+			fdata->whitespaces();
+			line->expr_id = parse_expression(context, fdata);
+			if (!line->expr_id) {
+				//ERROR
+				return false;
+			}
 		}
 		fdata->whitespaces();
 		if (fdata->character('?')) {
@@ -568,6 +479,7 @@ namespace translation {
 				return true;
 			case ExpressionType::eRecursive:
 				return true;
+			case ExpressionType::eNop:
 			case ExpressionType::eTrap:
 				return validate_ir_arguments(context, expr, 0, 0);
 			case ExpressionType::eExtract:

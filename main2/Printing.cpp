@@ -9,16 +9,16 @@ namespace holodec {
 		if(indent) fprintf(file, "%*c", indent * 4, ' ');
 	}
 	inline void print_ref(StringRef* ref, FILE * file) {
-		fprintf(file, "%" STRING_FORMAT "", (int)ref->name.size(), ref->name.str());
+		fprintf(file, "%s", ref->name.str());
 	}
 
 	void Architecture::print(u32 indent, FILE* file) {
 		print_indent(indent, file);
 		fprintf(file, "architecture\n");
 		print_indent(indent + 1, file);
-		fprintf(file, "name; %" STRING_FORMAT "\n", (int)name.size(), name.str());
+		fprintf(file, "name; %s\n", name.str());
 		print_indent(indent + 1, file);
-		fprintf(file, "instrptr %" STRING_FORMAT "\n", (int)instrptr.name.size(), instrptr.name.str());
+		fprintf(file, "instrptr %s\n", instrptr.name.str());
 		print_indent(indent + 1, file);
 		fprintf(file, "wordbase; %" PRIu32 "\n", wordbase);
 
@@ -45,7 +45,7 @@ namespace holodec {
 		print_indent(indent, file);
 		fprintf(file, "register\n");
 		print_indent(indent + 1, file);
-		fprintf(file, "name; %" STRING_FORMAT "\n", (int)name.size(), name.str());
+		fprintf(file, "name; %s\n", name.str());
 		print_indent(indent + 1, file);
 		fprintf(file, "size; %" PRIu32 "\n", size);
 		print_indent(indent + 1, file);
@@ -61,7 +61,7 @@ namespace holodec {
 		print_indent(indent, file);
 		fprintf(file, "memory\n");
 		print_indent(indent + 1, file);
-		fprintf(file, "name; %" STRING_FORMAT "\n", (int)name.size(), name.str());
+		fprintf(file, "name; %s\n",  name.str());
 		print_indent(indent + 1, file);
 		fprintf(file, "wordsize; %" PRIu32 "\n", wordsize);
 	}
@@ -69,7 +69,7 @@ namespace holodec {
 		print_indent(indent, file);
 		fprintf(file, "stack\n");
 		print_indent(indent + 1, file);
-		fprintf(file, "name; %" STRING_FORMAT "\n", (int)name.size(), name.str());
+		fprintf(file, "name; %s\n", name.str());
 		print_indent(indent + 1, file);
 		switch (policy) {
 		case StackPolicy::eBottom:
@@ -111,9 +111,9 @@ namespace holodec {
 		print_indent(indent, file);
 		fprintf(file, "primitivetype\n");
 		print_indent(indent + 1, file);
-		fprintf(file, "name; %" STRING_FORMAT "\n", (int)name.size(), name.str());
+		fprintf(file, "name; %s\n", name.str());
 		print_indent(indent + 1, file);
-		fprintf(file, "shorthand; %" STRING_FORMAT "\n", (int)shorthand.size(), shorthand.str());
+		fprintf(file, "shorthand; %s\n", shorthand.str());
 		if (bitsizes.size() > 1) {
 			print_indent(indent + 1, file);
 			fprintf(file, "bitsizes;\n");
@@ -136,12 +136,12 @@ namespace holodec {
 		print_indent(indent, file);
 		fprintf(file, "builtin\n");
 		print_indent(indent + 1, file);
-		fprintf(file, "name; %" STRING_FORMAT "\n", (int)name.size(), name.str());
+		fprintf(file, "name; %s\n", name.str());
 		for (Argument& arg : arguments) {
 			print_indent(indent + 1, file);
 			fprintf(file, "argument\n");
 			print_indent(indent + 2, file);
-			fprintf(file, "name; %" STRING_FORMAT "\n", (int)arg.name.size(), arg.name.str());
+			fprintf(file, "name; %s\n", arg.name.str());
 			print_indent(indent + 2, file);
 			fprintf(file, "type; ");
 			print_ref(&arg.type, file);
@@ -153,7 +153,7 @@ namespace holodec {
 			print_indent(indent + 1, file);
 			fprintf(file, "return\n");
 			print_indent(indent + 2, file);
-			fprintf(file, "name; %" STRING_FORMAT "\n", (int)arg.name.size(), arg.name.str());
+			fprintf(file, "name; %s\n", arg.name.str());
 			print_indent(indent + 2, file);
 			fprintf(file, "type; ");
 			print_ref(&arg.type, file);
@@ -166,7 +166,7 @@ namespace holodec {
 		print_indent(indent, file);
 		fprintf(file, "instruction\n");
 		print_indent(indent + 1, file);
-		fprintf(file, "mnemonic; %" STRING_FORMAT "\n", (int)mnemonic.size(), mnemonic.str());
+		fprintf(file, "mnemonic; %s\n", mnemonic.str());
 		if (translations.size()) {
 			for (translation::IRTranslation& translation : translations) {
 				translation.print(indent + 1, file);
@@ -325,6 +325,9 @@ namespace holodec {
 		default:
 		case translation::ExpressionType::eInvalid: {
 			fprintf(file, "Invalid Expression-Type");
+		}break;
+		case translation::ExpressionType::eNop: {
+			fprintf(file, "#nop");
 		}break;
 		case translation::ExpressionType::eValue: {
 			if (expr->value.bitcount <= 64) {

@@ -19,6 +19,9 @@ namespace translation {
 		eInvalid,
 
 		//
+		eNop,
+
+		//
 		eValue,
 		eArgument,
 		eTemporary,
@@ -105,12 +108,21 @@ namespace translation {
 
 	inline bool operator==(Expression& lhs, Expression& rhs) {
 		return lhs.type == rhs.type &&
+			lhs.op_type == rhs.op_type &&
+
 			lhs.index == rhs.index &&
 			lhs.ref == rhs.ref &&
 			lhs.value == rhs.value &&
+
+			lhs.typeref == rhs.typeref &&
 			lhs.size_id == rhs.size_id &&
+
 			lhs.offset_id == rhs.offset_id &&
 			lhs.addr_id == rhs.addr_id &&
+
+			lhs.cast_typeref == rhs.cast_typeref &&
+			lhs.cast_size_id == rhs.cast_size_id &&
+
 			lhs.sub_expressions[0] == rhs.sub_expressions[0] &&
 			lhs.sub_expressions[1] == rhs.sub_expressions[1] &&
 			lhs.sub_expressions[2] == rhs.sub_expressions[2] &&
